@@ -32,7 +32,26 @@ public class PatientController {
     
     @PostMapping
     public ResponseEntity<Patient> createPatient(@RequestBody Patient patient) {
-        return new ResponseEntity<>(patientService.savePatient(patient), HttpStatus.CREATED);
+        try {
+            // Validate required fields
+            if (patient.getFirstName() == null || patient.getLastName() == null) {
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            }
+            
+            // Handle dateOfBirth properly if it's null
+            if (patient.getDateOfBirth() == null) {
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            }
+            
+            // Save patient
+            Patient savedPatient = patientService.savePatient(patient);
+            return new ResponseEntity<>(savedPatient, HttpStatus.CREATED);
+        } catch (Exception e) {
+            // Log the error
+            System.err.println("Error creating patient: " + e.getMessage());
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
     
     @PutMapping("/{id}")
