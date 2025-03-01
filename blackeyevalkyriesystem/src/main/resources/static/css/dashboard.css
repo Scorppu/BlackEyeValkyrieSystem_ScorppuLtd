@@ -1,0 +1,256 @@
+/* Dashboard Styles */
+
+/* Calendar styles */
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    margin-top: 1rem;
+}
+
+.calendar-header {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    margin-bottom: 0.5rem;
+}
+
+.calendar-day {
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--secondary-text);
+}
+
+.calendar-date {
+    text-align: center;
+    padding: 8px;
+    border-radius: 50%;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.calendar-date.current {
+    background-color: var(--accent-color);
+    color: white;
+}
+
+.calendar-date:hover:not(.current) {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.calendar-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.calendar-month {
+    font-size: 0.9rem;
+    color: var(--secondary-text);
+}
+
+.calendar-nav {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.calendar-nav button {
+    background: none;
+    border: none;
+    color: var(--secondary-text);
+    cursor: pointer;
+}
+
+/* Chart styles */
+.chart-container {
+    position: relative;
+    width: 100%;
+    height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.donut-chart {
+    position: relative;
+    width: 150px;
+    height: 150px;
+}
+
+.chart-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.chart-value {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: var(--primary-text);
+}
+
+.chart-caption {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.chart-legend {
+    display: flex;
+    align-items: center;
+    font-size: 0.85rem;
+}
+
+.legend-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 0.5rem;
+}
+
+.legend-value {
+    margin-left: auto;
+}
+
+/* Drug list styles */
+.drug-list {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+.drug-list th, .drug-list td {
+    padding: 1rem;
+    text-align: left;
+}
+
+.drug-list th {
+    color: var(--secondary-text);
+    font-weight: 500;
+    font-size: 0.9rem;
+    padding-bottom: 0.5rem;
+}
+
+.drug-list td {
+    border-top: 1px solid var(--border-color);
+}
+
+.drug-name {
+    display: flex;
+    align-items: center;
+}
+
+.drug-icon {
+    width: 32px;
+    height: 32px;
+    margin-right: 1rem;
+    background-color: var(--border-color);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.drug-price {
+    color: var(--accent-color);
+    font-weight: 500;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.stat-card {
+    background-color: var(--primary-bg);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    font-size: 0.85rem;
+    color: var(--secondary-text);
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .content-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .calendar-grid {
+        gap: 4px;
+    }
+    
+    .calendar-date {
+        padding: 6px;
+        font-size: 0.75rem;
+    }
+    
+    .drug-list th, .drug-list td {
+        padding: 0.75rem;
+    }
+    
+    .chart-container {
+        height: 160px;
+    }
+    
+    .donut-chart {
+        width: 130px;
+        height: 130px;
+    }
+    
+    .chart-value {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .calendar-grid {
+        gap: 2px;
+    }
+    
+    .calendar-date {
+        padding: 4px;
+        font-size: 0.7rem;
+    }
+    
+    .drug-icon {
+        width: 24px;
+        height: 24px;
+        margin-right: 0.5rem;
+    }
+    
+    .drug-list th, .drug-list td {
+        padding: 0.5rem;
+        font-size: 0.85rem;
+    }
+    
+    .donut-chart {
+        width: 110px;
+        height: 110px;
+    }
+    
+    .chart-value {
+        font-size: 1.3rem;
+    }
+} 

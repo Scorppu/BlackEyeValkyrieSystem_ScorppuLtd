@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appointments - BlackEyeValkyrieSystem</title>
+    
+    <th:block layout:fragment="head">
+        <!-- Appointments-specific CSS -->
+        <style>
+            /* Appointments specific styles */
+        </style>
+    </th:block>
+</head>
+<body>
+    <h1 layout:fragment="header-title">Appointments</h1>
+    
+    <div layout:fragment="content">
+        <div class="content-grid">
+            <!-- Calendar Card -->
+            <div class="content-card">
+                <h2>Appointment Calendar</h2>
+                <p>The appointment calendar will be displayed here.</p>
+                
+                <!-- Calendar placeholder -->
+                <div class="calendar-container">
+                    <p>Calendar component coming soon...</p>
+                </div>
+            </div>
+            
+            <!-- Upcoming Appointments Card -->
+            <div class="content-card">
+                <h2>Upcoming Appointments</h2>
+                <p>List of upcoming patient appointments.</p>
+                
+                <div class="appointment-list">
+                    <p>No upcoming appointments at this time.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <th:block layout:fragment="scripts">
+        <script>
+            // Appointments-specific JavaScript
+            document.addEventListener('DOMContentLoaded', function() {
+                console.log('Appointments page loaded');
+            });
+        </script>
+    </th:block>
+</body>
+</html> 

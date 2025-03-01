@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Patient Profile - BlackEyeValkyrieSystem</title>
+    
+    <th:block layout:fragment="head">
+        <!-- Create Patient specific CSS -->
+        <style>
+            .main-container {
+                display: flex;
+                gap: 2rem;
+                max-width: 1200px;
+                margin: 0 auto;
+            }
+            
+            .credentials-sidebar {
+                background-color: var(--secondary-bg);
+                border-radius: 0.5rem;
+                padding: 1.5rem;
+                width: 250px;
+                flex-shrink: 0;
+            }
+            
+            .credentials-sidebar h2 {
+                margin-top: 0;
+                margin-bottom: 1.5rem;
+                font-size: 1.25rem;
+                font-weight: 600;
+                color: var(--primary-text);
+            }
+            
+            .tab-nav {
+                display: flex;
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .tab-item {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                padding: 0.75rem;
+                border-radius: 0.5rem;
+                cursor: pointer;
+                color: var(--secondary-text);
+                transition: background-color 0.2s;
+            }
+            
+            .tab-item:hover {
+                background-color: rgba(138, 43, 226, 0.1);
+            }
+            
+            .tab-item.active {
+                background-color: rgba(138, 43, 226, 0.2);
+                color: var(--accent-color);
+            }
+            
+            .tab-content {
+                display: none;
+                margin-top: 1.5rem;
+                color: var(--secondary-text);
+            }
+            
+            .tab-content.active {
+                display: block;
+            }
+            
+            .form-container {
+                background-color: var(--secondary-bg);
+                border-radius: 0.5rem;
+                padding: 2rem;
+                flex-grow: 1;
+            }
+            
+            .form-section {
+                display: none;
+            }
+            
+            .form-section.active {
+                display: block;
+            }
+            
+            .form-section h2 {
+                margin-top: 0;
+                margin-bottom: 0.5rem;
+                font-size: 1.5rem;
+                font-weight: 600;
+                color: var(--primary-text);
+            }
+            
+            .form-section p {
+                margin-top: 0;
+                margin-bottom: 2rem;
+                color: var(--secondary-text);
+            }
+            
+            .form-group {
+                margin-bottom: 1.5rem;
+            }
+            
+            .form-group label {
+                display: block;
+                margin-bottom: 0.5rem;
+                font-weight: 500;
+                color: var(--secondary-text);
+            }
+            
+            .form-control {
+                width: 100%;
+                padding: 0.75rem 1rem;
+                background-color: var(--primary-bg);
+                border: 1px solid var(--border-color);
+                border-radius: 0.5rem;
+                color: var(--primary-text);
+                font-size: 1rem;
+            }
+            
+            .form-control:focus {
+                outline: none;
+                border-color: var(--accent-color);
+                box-shadow: 0 0 0 2px rgba(138, 43, 226, 0.2);
+            }
+            
+            select.form-control {
+                appearance: none;
+                background-image: url("data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4 6L8 10L12 6' stroke='white' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+                background-repeat: no-repeat;
+                background-position: right 1rem center;
+                padding-right: 2.5rem;
+            }
+            
+            .form-actions {
+                display: flex;
+                justify-content: flex-end;
+                gap: 1rem;
+                margin-top: 2rem;
+            }
+            
+            .btn {
+                padding: 0.75rem 1.5rem;
+                border: none;
+                border-radius: 0.5rem;
+                font-weight: 600;
+                cursor: pointer;
+                transition: background-color 0.2s;
+            }
+            
+            .btn-primary {
+                background-color: var(--accent-color);
+                color: white;
+            }
+            
+            .btn-primary:hover {
+                background-color: #7b26cd;
+            }
+            
+            .btn-secondary {
+                background-color: rgba(255, 255, 255, 0.1);
+                color: var(--primary-text);
+            }
+            
+            .btn-secondary:hover {
+                background-color: rgba(255, 255, 255, 0.15);
+            }
+            
+            .btn-success {
+                background-color: #23b27e;
+                color: white;
+            }
+            
+            .btn-success:hover {
+                background-color: #1e9d6e;
+            }
+            
+            .header-container {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 2rem;
+                max-width: 1200px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+        </style>
+    </th:block>
+</head>
+<body>
+    <!-- Override the header section completely -->
+    <header class="header" layout:fragment="custom-header">
+        <div class="header-container">
+            <h1>Create Patient Profile</h1>
+        </div>
+    </header>
+    
+    <div layout:fragment="content">
+        <div class="main-container">
+            <!-- Left Column - Credentials -->
+            <div class="credentials-sidebar">
+                <h2>Credentials</h2>
+                
+                <div class="tab-nav">
+                    <div class="tab-item active" data-target="personal-info-tab">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="8" cy="8" r="8" fill="#4263EB" opacity="0.1"/>
+                            <circle cx="8" cy="8" r="4" fill="#4263EB"/>
+                        </svg>
+                        Personal Information
+                    </div>
+                    
+                    <div class="tab-item" data-target="contact-info-tab">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M14.6667 11.28C14.6667 11.5333 14.6133 11.7933 14.5 12.04C14.3867 12.2867 14.2333 12.52 14.0333 12.7333C13.6933 13.0867 13.3133 13.3333 12.8867 13.48C12.4667 13.6267 12.0133 13.7067 11.5333 13.7067C10.8133 13.7067 10.0533 13.5467 9.26667 13.2267C8.48 12.9067 7.69333 12.4667 6.90667 11.9067C6.12 11.3467 5.37333 10.7267 4.66667 10.0467C3.96 9.36667 3.32 8.63333 2.74667 7.84667C2.17333 7.06 1.72 6.27333 1.4 5.48667C1.08 4.7 0.926667 3.94 0.926667 3.21333C0.926667 2.74667 1 2.30667 1.14667 1.88667C1.29333 1.46 1.53333 1.06667 1.88 0.72C2.3 0.293333 2.75333 0.08 3.22667 0.08C3.40667 0.08 3.58667 0.12 3.75333 0.2C3.92 0.28 4.07333 0.4 4.2 0.573333L5.88 2.92C6.00667 3.09333 6.1 3.24667 6.16667 3.4C6.23333 3.55333 6.26667 3.70667 6.26667 3.85333C6.26667 4.04 6.22 4.22667 6.12667 4.40667C6.03333 4.58667 5.90667 4.77333 5.74667 4.96L5.14667 5.6C5.07333 5.67333 5.04 5.76 5.04 5.86667C5.04 5.92 5.04667 5.97333 5.06 6.02667C5.07333 6.08 5.08667 6.12 5.09333 6.16C5.21333 6.40667 5.42667 6.71333 5.73333 7.08C6.04 7.44667 6.36667 7.82 6.72 8.18C7.08 8.54 7.44667 8.87333 7.82 9.18C8.19333 9.48667 8.5 9.7 8.74667 9.82C8.78667 9.82667 8.82667 9.84 8.88 9.85333C8.93333 9.86667 8.98667 9.87333 9.04667 9.87333C9.15333 9.87333 9.24 9.83333 9.31333 9.76L9.91333 9.16667C10.1067 9 10.2933 8.87333 10.4733 8.78667C10.6533 8.69333 10.84 8.64667 11.0333 8.64667C11.18 8.64667 11.3333 8.67333 11.4933 8.74C11.6533 8.80667 11.8067 8.9 11.98 9.02667L14.36 10.7333C14.5333 10.86 14.6533 11.0067 14.7267 11.1733C14.7933 11.34 14.6667 11.5133 14.6667 11.28Z" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Contact Information
+                    </div>
+                </div>
+                
+                <div id="personal-info-tab" class="tab-content active">
+                    <p>Please fill in the personal information form on the right.</p>
+                </div>
+                
+                <div id="contact-info-tab" class="tab-content">
+                    <p>Please fill in the contact information form on the right.</p>
+                </div>
+            </div>
+            
+            <!-- Right Column - Form Content -->
+            <div class="form-container" id="form-content-container">
+                <!-- Personal Information Form -->
+                <div id="personal-info-form" class="form-section active">
+                    <h2>Personal information</h2>
+                    <p>Please insert patient's personal information</p>
+                    
+                    <form id="patient-form">
+                        <div class="form-group">
+                            <label for="firstName">First name</label>
+                            <input type="text" id="firstName" name="firstName" class="form-control" value="John">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="lastName">Last name</label>
+                            <input type="text" id="lastName" name="lastName" class="form-control" value="Carter">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="sex">Sex</label>
+                            <select id="sex" name="sex" class="form-control">
+                                <option value="Male" selected>Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="relativeName">Relative Name</label>
+                            <input type="text" id="relativeName" name="relativeName" class="form-control" value="Mum">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="dateOfBirth">Date Of Birth</label>
+                            <input type="date" id="dateOfBirth" name="dateOfBirth" class="form-control" value="2004-11-01">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="age">Age</label>
+                            <input type="number" id="age" name="age" class="form-control" value="20" readonly>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="maritalStatus">Marital Status</label>
+                            <select id="maritalStatus" name="maritalStatus" class="form-control">
+                                <option value="Single" selected>Single</option>
+                                <option value="Single dog">Single dog</option>
+                                <option value="Married">Married</option>
+                                <option value="Divorced">Divorced</option>
+                                <option value="Widowed">Widowed</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="bloodType">Blood Type</label>
+                            <select id="bloodType" name="bloodType" class="form-control">
+                                <option value="A+">A+</option>
+                                <option value="A-">A-</option>
+                                <option value="B+">B+</option>
+                                <option value="B-">B-</option>
+                                <option value="AB+">AB+</option>
+                                <option value="AB-">AB-</option>
+                                <option value="O+">O+</option>
+                                <option value="O-">O-</option>
+                                <option value="idk mine actually" selected>idk mine actually</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="button" id="next-btn" class="btn btn-primary">NEXT</button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Contact Information Form -->
+                <div id="contact-info-form" class="form-section">
+                    <h2>Contact Information</h2>
+                    <p>Please insert patient's contact information</p>
+                    
+                    <form id="contact-form">
+                        <div class="form-group">
+                            <label for="contactNumber">Phone / Mobile</label>
+                            <input type="tel" id="contactNumber" name="contactNumber" class="form-control" value="(852) 1234-9876">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="address1">Address 1</label>
+                            <input type="text" id="address1" name="address1" class="form-control" value="somewhere street">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="address2">Address 2</label>
+                            <input type="text" id="address2" name="address2" class="form-control" value="some block some building">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="address3">Address 3</label>
+                            <input type="text" id="address3" name="address3" class="form-control" value="some floor some room">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="country">Country</label>
+                            <input type="text" id="country" name="country" class="form-control" value="China">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="state">State</label>
+                            <input type="text" id="state" name="state" class="form-control" value="Hong Kong Special Administrative Region (HKSAR)">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="town">Town</label>
+                            <input type="text" id="town" name="town" class="form-control" value="Sha Tin">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="pinCode">Pin Code</label>
+                            <input type="text" id="pinCode" name="pinCode" class="form-control" value="00000">
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="button" id="back-btn" class="btn btn-secondary">BACK</button>
+                            <button type="submit" id="submit-btn" class="btn btn-success">SAVE PATIENT</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <th:block layout:fragment="scripts">
+        <script>
+            // Tab navigation for personal to contact info
+            document.addEventListener('DOMContentLoaded', function() {
+                const nextButton = document.getElementById('next-btn');
+                const backButton = document.getElementById('back-btn');
+                const tabItems = document.querySelectorAll('.tab-item');
+                const personalInfoForm = document.getElementById('personal-info-form');
+                const contactInfoForm = document.getElementById('contact-info-form');
+                
+                // Switch between form sections based on tab
+                function switchFormSection(tabId) {
+                    // Hide all form sections
+                    document.querySelectorAll('.form-section').forEach(section => {
+                        section.classList.remove('active');
+                    });
+                    
+                    // Show the correct form section
+                    if (tabId === 'personal-info-tab') {
+                        personalInfoForm.classList.add('active');
+                        document.querySelectorAll('.tab-item').forEach(tab => {
+                            if (tab.dataset.target === 'personal-info-tab') {
+                                tab.classList.add('active');
+                            } else {
+                                tab.classList.remove('active');
+                            }
+                        });
+                        document.getElementById('personal-info-tab').classList.add('active');
+                        document.getElementById('contact-info-tab').classList.remove('active');
+                    } else if (tabId === 'contact-info-tab') {
+                        contactInfoForm.classList.add('active');
+                        document.querySelectorAll('.tab-item').forEach(tab => {
+                            if (tab.dataset.target === 'contact-info-tab') {
+                                tab.classList.add('active');
+                            } else {
+                                tab.classList.remove('active');
+                            }
+                        });
+                        document.getElementById('contact-info-tab').classList.add('active');
+                        document.getElementById('personal-info-tab').classList.remove('active');
+                    }
+                }
+                
+                // Tab click event handling
+                tabItems.forEach(function(tab) {
+                    tab.addEventListener('click', function() {
+                        const targetId = this.dataset.target;
+                        switchFormSection(targetId);
+                    });
+                });
+                
+                // Next button handling
+                if (nextButton) {
+                    nextButton.addEventListener('click', function() {
+                        // Validate personal information fields
+                        const firstName = document.getElementById('firstName').value;
+                        const lastName = document.getElementById('lastName').value;
+                        const dateOfBirth = document.getElementById('dateOfBirth').value;
+                        
+                        if (!firstName || !lastName || !dateOfBirth) {
+                            alert('Please fill in all required fields.');
+                            return;
+                        }
+                        
+                        // Switch to contact information tab
+                        switchFormSection('contact-info-tab');
+                    });
+                }
+                
+                // Back button handling
+                if (backButton) {
+                    backButton.addEventListener('click', function() {
+                        // Switch back to personal information tab
+                        switchFormSection('personal-info-tab');
+                    });
+                }
+                
+                // Form submission handling
+                const contactForm = document.getElementById('contact-form');
+                if (contactForm) {
+                    contactForm.addEventListener('submit', function(e) {
+                        e.preventDefault();
+                        
+                        // Get personal information
+                        const firstName = document.getElementById('firstName').value;
+                        const lastName = document.getElementById('lastName').value;
+                        const sex = document.getElementById('sex').value === 'Male' ? true : false;
+                        const relativeName = document.getElementById('relativeName').value;
+                        const dateOfBirth = document.getElementById('dateOfBirth').value;
+                        const age = document.getElementById('age').value;
+                        const maritalStatus = document.getElementById('maritalStatus').value;
+                        const bloodType = document.getElementById('bloodType').value;
+                        
+                        // Get contact information
+                        const contactNumber = document.getElementById('contactNumber').value;
+                        const address1 = document.getElementById('address1').value;
+                        const address2 = document.getElementById('address2').value;
+                        const address3 = document.getElementById('address3').value;
+                        const country = document.getElementById('country').value;
+                        const state = document.getElementById('state').value;
+                        const town = document.getElementById('town').value;
+                        const pinCode = document.getElementById('pinCode').value;
+                        
+                        // Create combined data object
+                        const patientData = {
+                            firstName: firstName,
+                            lastName: lastName,
+                            sex: sex,
+                            relativeName: relativeName,
+                            dateOfBirth: dateOfBirth,
+                            age: parseInt(age),
+                            maritalStatus: maritalStatus,
+                            bloodType: bloodType,
+                            contactNumber: contactNumber,
+                            address: {
+                                addressLine1: address1,
+                                addressLine2: address2,
+                                addressLine3: address3,
+                                country: country,
+                                state: state,
+                                town: town,
+                                pinCode: pinCode
+                            }
+                        };
+                        
+                        // Send data to server
+                        fetch('/api/patients', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(patientData)
+                        })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Network response was not ok');
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            console.log('Success:', data);
+                            alert('Patient profile created successfully!');
+                            
+                            // Redirect to patient list
+                            window.location.href = '/patient/list';
+                        })
+                        .catch((error) => {
+                            console.error('Error:', error);
+                            alert('Error creating patient profile. Please try again.');
+                        });
+                    });
+                }
+                
+                // Calculate age from date of birth
+                const dobField = document.getElementById('dateOfBirth');
+                const ageField = document.getElementById('age');
+                
+                if (dobField && ageField) {
+                    dobField.addEventListener('change', function() {
+                        const dob = new Date(this.value);
+                        const today = new Date();
+                        let age = today.getFullYear() - dob.getFullYear();
+                        
+                        // Adjust age if birthday hasn't occurred yet this year
+                        const monthDiff = today.getMonth() - dob.getMonth();
+                        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+                            age--;
+                        }
+                        
+                        ageField.value = age;
+                    });
+                    
+                    // Calculate initial age
+                    if (dobField.value) {
+                        const dob = new Date(dobField.value);
+                        const today = new Date();
+                        let age = today.getFullYear() - dob.getFullYear();
+                        
+                        const monthDiff = today.getMonth() - dob.getMonth();
+                        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+                            age--;
+                        }
+                        
+                        ageField.value = age;
+                    }
+                }
+            });
+        </script>
+    </th:block>
+</body>
+</html> 

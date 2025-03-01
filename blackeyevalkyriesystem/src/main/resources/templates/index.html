@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" 
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Main Page - BlackEyeValkyrieSystem</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    
+    <th:block th:fragment="head">
+        <!-- Dashboard-specific CSS -->
+        <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+    </th:block>
+</head>
+<body>
+    <div layout:fragment="content">
+        <h1>Main Page</h1>
+        
+        <div class="content-grid">
+            <!-- Patient Stats -->
+            <div class="content-card">
+                <h2>Total Patient</h2>
+                
+                <div class="chart-container">
+                    <div class="donut-chart">
+                        <svg width="150" height="150" viewBox="0 0 150 150">
+                            <!-- Background circle -->
+                            <circle cx="75" cy="75" r="60" fill="none" stroke="#111133" stroke-width="15" />
+                            
+                            <!-- Blue progress circle (Discharged) -->
+                            <circle cx="75" cy="75" r="60" fill="none" stroke="#30A9DE" stroke-width="15"
+                                    stroke-dasharray="377" stroke-dashoffset="302"
+                                    transform="rotate(-90 75 75)" />
+                            
+                            <!-- Purple progress circle (Admitted) -->
+                            <circle cx="75" cy="75" r="60" fill="none" stroke="#8A2BE2" stroke-width="15"
+                                    stroke-dasharray="377" stroke-dashoffset="188"
+                                    transform="rotate(-90 75 75)" />
+                        </svg>
+                        <div class="chart-center">
+                            <div class="chart-value">150k</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="chart-caption">
+                    <div class="chart-legend">
+                        <div class="legend-color" style="background-color: #8A2BE2;"></div>
+                        Admitted
+                        <div class="legend-value">50%</div>
+                    </div>
+                    <div class="chart-legend">
+                        <div class="legend-color" style="background-color: #30A9DE;"></div>
+                        Discharged
+                        <div class="legend-value">20%</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Calendar -->
+            <div class="content-card">
+                <div class="calendar-controls">
+                    <div class="calendar-month">December 2, 2021</div>
+                    <div class="calendar-nav">
+                        <button>
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M10 12L6 8L10 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+                        <button>
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M6 4L10 8L6 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="calendar-header">
+                    <div class="calendar-day">S</div>
+                    <div class="calendar-day">M</div>
+                    <div class="calendar-day">T</div>
+                    <div class="calendar-day">W</div>
+                    <div class="calendar-day">T</div>
+                    <div class="calendar-day">F</div>
+                    <div class="calendar-day">S</div>
+                </div>
+                
+                <div class="calendar-grid">
+                    <div class="calendar-date">29</div>
+                    <div class="calendar-date">30</div>
+                    <div class="calendar-date">1</div>
+                    <div class="calendar-date">2</div>
+                    <div class="calendar-date current">3</div>
+                    <div class="calendar-date">4</div>
+                    <div class="calendar-date">5</div>
+                    
+                    <div class="calendar-date">6</div>
+                    <div class="calendar-date">7</div>
+                    <div class="calendar-date">8</div>
+                    <div class="calendar-date">9</div>
+                    <div class="calendar-date">10</div>
+                    <div class="calendar-date">11</div>
+                    <div class="calendar-date">12</div>
+                    
+                    <div class="calendar-date">13</div>
+                    <div class="calendar-date">14</div>
+                    <div class="calendar-date">15</div>
+                    <div class="calendar-date">16</div>
+                    <div class="calendar-date">17</div>
+                    <div class="calendar-date">18</div>
+                    <div class="calendar-date">19</div>
+                    
+                    <div class="calendar-date">20</div>
+                    <div class="calendar-date">21</div>
+                    <div class="calendar-date">22</div>
+                    <div class="calendar-date">23</div>
+                    <div class="calendar-date">24</div>
+                    <div class="calendar-date">25</div>
+                    <div class="calendar-date">26</div>
+                    
+                    <div class="calendar-date">27</div>
+                    <div class="calendar-date">28</div>
+                    <div class="calendar-date">29</div>
+                    <div class="calendar-date">30</div>
+                    <div class="calendar-date">31</div>
+                    <div class="calendar-date">1</div>
+                    <div class="calendar-date">2</div>
+                </div>
+            </div>
+            
+            <!-- Drug List -->
+            <div class="content-card">
+                <h2>Drug</h2>
+                
+                <table class="drug-list">
+                    <thead>
+                        <tr>
+                            <th>Products</th>
+                            <th>Price</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <div class="drug-name">
+                                    <div class="drug-icon">
+                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M12.6667 5.33333L10.6667 3.33333M6 12L3.33334 9.33333C2.89131 8.8913 2.89131 8.1087 3.33334 7.66667L8.66668 2.33333C9.1087 1.89131 9.8913 1.89131 10.3333 2.33333L13.6667 5.66667C14.1087 6.1087 14.1087 6.8913 13.6667 7.33333L8.33334 12.6667C7.8913 13.1087 7.1087 13.1087 6.66668 12.6667L6 12ZM3.33334 12.6667L6.00001 9.99999L2.00001 6.00001L5.33334 2.66667L9.33334 6.66667L6.00001 9.99999L3.33334 12.6667Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                    </div>
+                                    Acetaminophen
+                                </div>
+                            </td>
+                            <td class="drug-price">$ 120</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="drug-name">
+                                    <div class="drug-icon">
+                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M12.6667 5.33333L10.6667 3.33333M6 12L3.33334 9.33333C2.89131 8.8913 2.89131 8.1087 3.33334 7.66667L8.66668 2.33333C9.1087 1.89131 9.8913 1.89131 10.3333 2.33333L13.6667 5.66667C14.1087 6.1087 14.1087 6.8913 13.6667 7.33333L8.33334 12.6667C7.8913 13.1087 7.1087 13.1087 6.66668 12.6667L6 12ZM3.33334 12.6667L6.00001 9.99999L2.00001 6.00001L5.33334 2.66667L9.33334 6.66667L6.00001 9.99999L3.33334 12.6667Z" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                    </div>
+                                    Adderall
+                                </div>
+                            </td>
+                            <td class="drug-price">$ 100</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <div style="text-align: center; margin-top: 1rem;">
+                    <a href="/drugs" class="btn btn-outline">more...</a>
+                </div>
+            </div>
+            
+            <!-- NB Section -->
+            <div class="content-card">
+                <h2>NB</h2>
+                <!-- This would contain notification content -->
+                <!-- Placeholder for notification content -->
+                <div style="height: 200px; display: flex; justify-content: center; align-items: center;">
+                    <span style="color: var(--secondary-text);">No notifications</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <th:block th:fragment="scripts">
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Initialize calendar
+                const calendarDates = document.querySelectorAll('.calendar-date');
+                calendarDates.forEach(date => {
+                    date.addEventListener('click', function() {
+                        // Remove current class from all dates
+                        calendarDates.forEach(d => d.classList.remove('current'));
+                        // Add current class to clicked date
+                        this.classList.add('current');
+                    });
+                });
+
+                // Patient stats donut chart animation
+                const animateDonutChart = () => {
+                    const admittedCircle = document.querySelector('circle[stroke="#8A2BE2"]');
+                    const dischargedCircle = document.querySelector('circle[stroke="#30A9DE"]');
+                    
+                    if (admittedCircle && dischargedCircle) {
+                        // Store the original stroke-dashoffset values
+                        const admittedOffset = 377 - (377 * 0.5); // 50%
+                        const dischargedOffset = 377 - (377 * 0.2); // 20%
+                        
+                        // Reset the values for animation
+                        admittedCircle.setAttribute('stroke-dashoffset', '377');
+                        dischargedCircle.setAttribute('stroke-dashoffset', '377');
+                        
+                        // Add transition for animation
+                        admittedCircle.style.transition = 'stroke-dashoffset 1.5s ease-in-out';
+                        dischargedCircle.style.transition = 'stroke-dashoffset 1.5s ease-in-out';
+                        
+                        // Trigger animation
+                        setTimeout(() => {
+                            dischargedCircle.setAttribute('stroke-dashoffset', dischargedOffset);
+                            setTimeout(() => {
+                                admittedCircle.setAttribute('stroke-dashoffset', admittedOffset);
+                            }, 200);
+                        }, 300);
+                    }
+                };
+                
+                // Call the animation function
+                animateDonutChart();
+            });
+        </script>
+    </th:block>
+</body>
+</html> 
