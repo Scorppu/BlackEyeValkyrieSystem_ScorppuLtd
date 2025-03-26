@@ -107,6 +107,8 @@
                     <path d="M4 6L8 10L12 6" stroke="white" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
             </div>
+            
+            <!-- Theme Toggle will be added by JavaScript -->
         </aside>
         
         <!-- Main Content -->
@@ -133,8 +135,67 @@
             event.preventDefault();
             return true;
         });
+        
+        // Theme toggling functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const themeToggleBtn = document.getElementById('theme-toggle-btn');
+            const moonIcon = document.getElementById('moon-icon');
+            const sunIcon = document.getElementById('sun-icon');
+            const themeLabel = themeToggleBtn.querySelector('.theme-label');
+            
+            // Check if user has a saved preference
+            const savedTheme = localStorage.getItem('theme');
+            
+            // Apply saved theme or default to dark mode
+            if (savedTheme === 'light') {
+                document.documentElement.classList.add('light-mode');
+                moonIcon.style.display = 'none';
+                sunIcon.style.display = 'block';
+                themeLabel.textContent = 'Switch to Dark Mode';
+            }
+            
+            // Theme toggle button click handler
+            themeToggleBtn.addEventListener('click', function() {
+                // Toggle light mode class on root element
+                document.documentElement.classList.toggle('light-mode');
+                
+                // Check if light mode is now active
+                const isLightMode = document.documentElement.classList.contains('light-mode');
+                
+                // Update icons and label
+                if (isLightMode) {
+                    moonIcon.style.display = 'none';
+                    sunIcon.style.display = 'block';
+                    themeLabel.textContent = 'Switch to Dark Mode';
+                    localStorage.setItem('theme', 'light');
+                } else {
+                    moonIcon.style.display = 'block';
+                    sunIcon.style.display = 'none';
+                    themeLabel.textContent = 'Switch to Light Mode';
+                    localStorage.setItem('theme', 'dark');
+                }
+            });
+            
+            // Dropdown navigation handling (existing functionality)
+            const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
+            
+            dropdownToggles.forEach(function(toggle) {
+                toggle.addEventListener('click', function() {
+                    this.classList.toggle('expanded');
+                    const dropdown = this.nextElementSibling;
+                    if (dropdown.classList.contains('dropdown-menu')) {
+                        if (dropdown.classList.contains('active')) {
+                            dropdown.classList.remove('active');
+                        } else {
+                            dropdown.classList.add('active');
+                        }
+                    }
+                });
+            });
+        });
     </script>
     <script th:src="@{/js/main.js}"></script>
+    <script th:src="@{/js/theme-toggle.js}"></script>
     
     <!-- Page specific scripts -->
     <th:block layout:fragment="scripts"></th:block>
