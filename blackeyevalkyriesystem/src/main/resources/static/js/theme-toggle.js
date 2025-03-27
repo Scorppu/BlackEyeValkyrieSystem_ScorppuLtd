@@ -30,7 +30,6 @@ function createThemeToggleButton() {
     
     const moonPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     moonPath.setAttribute('d', 'M13.5 8.25C13.4889 9.30911 13.1713 10.3467 12.584 11.2419C11.9967 12.1371 11.1659 12.8499 10.1888 13.3023C9.21162 13.7547 8.1235 13.9291 7.04413 13.8071C5.96476 13.6851 4.94572 13.2713 4.10739 12.6116C3.26906 11.9518 2.64595 11.074 2.30517 10.0836C1.9644 9.09323 1.91897 8.02791 2.17358 7.01236C2.42819 5.99682 2.97134 5.07584 3.7374 4.34808C4.50345 3.62033 5.45758 3.11473 6.5 2.89M13.5 4.5L7.5 10.5L6 9');
-    moonPath.setAttribute('stroke', 'white');
     moonPath.setAttribute('stroke-width', '1.33333');
     moonPath.setAttribute('stroke-linecap', 'round');
     moonPath.setAttribute('stroke-linejoin', 'round');
@@ -62,7 +61,6 @@ function createThemeToggleButton() {
     sunPaths.forEach(d => {
         const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
         path.setAttribute('d', d);
-        path.setAttribute('stroke', 'white');
         path.setAttribute('stroke-width', '1.33333');
         path.setAttribute('stroke-linecap', 'round');
         path.setAttribute('stroke-linejoin', 'round');

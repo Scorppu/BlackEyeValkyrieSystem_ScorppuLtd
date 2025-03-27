@@ -26,7 +26,7 @@
             <a href="/" class="logo">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <circle cx="12" cy="12" r="10" fill="#8A2BE2"/>
-                    <path d="M12 7V17M7 12H17" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M12 7V17M7 12H17" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
                 BlackEyeValkyrieSystem
             </a>
@@ -34,8 +34,8 @@
             <!-- Search -->
             <div class="search-bar">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M7.33333 12.6667C10.2789 12.6667 12.6667 10.2789 12.6667 7.33333C12.6667 4.38781 10.2789 2 7.33333 2C4.38781 2 2 4.38781 2 7.33333C2 10.2789 4.38781 12.6667 7.33333 12.6667Z" stroke="white" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M14 14.0001L11.1 11.1001" stroke="white" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M7.33333 12.6667C10.2789 12.6667 12.6667 10.2789 12.6667 7.33333C12.6667 4.38781 10.2789 2 7.33333 2C4.38781 2 2 4.38781 2 7.33333C2 10.2789 4.38781 12.6667 7.33333 12.6667Z" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M14 14.0001L11.1 11.1001" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
                 <input type="text" placeholder="Search for...">
             </div>
@@ -44,8 +44,8 @@
             <nav>
                 <a href="/" class="nav-item" th:classappend="${request != null && request.requestURI == '/' ? 'active' : ''}">
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M2 8.66667L8 2.66667L14 8.66667V13.3333C14 13.687 13.8595 14.0261 13.6095 14.2761C13.3594 14.5262 13.0203 14.6667 12.6667 14.6667H3.33333C2.97971 14.6667 2.64057 14.5262 2.39052 14.2761C2.14048 14.0261 2 13.687 2 13.3333V8.66667Z" stroke="white" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M6 14.6667V8.66667H10V14.6667" stroke="white" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M2 8.66667L8 2.66667L14 8.66667V13.3333C14 13.687 13.8595 14.0261 13.6095 14.2761C13.3594 14.5262 13.0203 14.6667 12.6667 14.6667H3.33333C2.97971 14.6667 2.64057 14.5262 2.39052 14.2761C2.14048 14.0261 2 13.687 2 13.3333V8.66667Z" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M6 14.6667V8.66667H10V14.6667" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                     Main Page
                 </a>
@@ -53,15 +53,15 @@
                 <a href="#" class="nav-item dropdown-toggle" th:classappend="${request != null && request.requestURI.startsWith('/patient') ? 'expanded' : ''}">
                     <div class="nav-item-content">
                         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M10.6667 14V12.6667C10.6667 11.9594 10.3857 11.2811 9.88562 10.781C9.38552 10.281 8.70724 10 8 10H3.33333C2.62609 10 1.9478 10.281 1.44771 10.781C0.947617 11.2811 0.666666 11.9594 0.666666 12.6667V14" stroke="white" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M5.66667 7.33333C7.13943 7.33333 8.33333 6.13943 8.33333 4.66667C8.33333 3.19391 7.13943 2 5.66667 2C4.19391 2 3 3.19391 3 4.66667C3 6.13943 4.19391 7.33333 5.66667 7.33333Z" stroke="white" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M15.3333 14V12.6667C15.3328 12.0758 15.1362 11.5019 14.7742 11.0349C14.4122 10.5679 13.9053 10.2344 13.3333 10.0867" stroke="white" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M10.6667 2.08667C11.2406 2.2335 11.7492 2.56712 12.1118 3.03488C12.4744 3.50264 12.6709 4.07769 12.6709 4.67C12.6709 5.26232 12.4744 5.83737 12.1118 6.30513C11.7492 6.77289 11.2406 7.1065 10.6667 7.25334" stroke="white" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M10.6667 14V12.6667C10.6667 11.9594 10.3857 11.2811 9.88562 10.781C9.38552 10.281 8.70724 10 8 10H3.33333C2.62609 10 1.9478 10.281 1.44771 10.781C0.947617 11.2811 0.666666 11.9594 0.666666 12.6667V14" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M5.66667 7.33333C7.13943 7.33333 8.33333 6.13943 8.33333 4.66667C8.33333 3.19391 7.13943 2 5.66667 2C4.19391 2 3 3.19391 3 4.66667C3 6.13943 4.19391 7.33333 5.66667 7.33333Z" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M15.3333 14V12.6667C15.3328 12.0758 15.1362 11.5019 14.7742 11.0349C14.4122 10.5679 13.9053 10.2344 13.3333 10.0867" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M10.6667 2.08667C11.2406 2.2335 11.7492 2.56712 12.1118 3.03488C12.4744 3.50264 12.6709 4.07769 12.6709 4.67C12.6709 5.26232 12.4744 5.83737 12.1118 6.30513C11.7492 6.77289 11.2406 7.1065 10.6667 7.25334" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                         Patient Profile
                     </div>
                     <svg class="dropdown-arrow" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M4 6L8 10L12 6" stroke="white" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M4 6L8 10L12 6" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                 </a>
                 
@@ -77,18 +77,18 @@
                 
                 <a href="/appointments" class="nav-item" th:classappend="${request != null && request.requestURI == '/appointments' ? 'active' : ''}">
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12.6667 2.66667H3.33333C2.59695 2.66667 2 3.26362 2 4.00001V13.3333C2 14.0697 2.59695 14.6667 3.33333 14.6667H12.6667C13.403 14.6667 14 14.0697 14 13.3333V4.00001C14 3.26362 13.403 2.66667 12.6667 2.66667Z" stroke="white" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M10.6667 1.33333V4" stroke="white" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M5.33334 1.33333V4" stroke="white" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M2 6.66667H14" stroke="white" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M12.6667 2.66667H3.33333C2.59695 2.66667 2 3.26362 2 4.00001V13.3333C2 14.0697 2.59695 14.6667 3.33333 14.6667H12.6667C13.403 14.6667 14 14.0697 14 13.3333V4.00001C14 3.26362 13.403 2.66667 12.6667 2.66667Z" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M10.6667 1.33333V4" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M5.33334 1.33333V4" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M2 6.66667H14" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                     Appointment Scheduling
                 </a>
                 
                 <a href="/settings" class="nav-item" th:classappend="${request != null && request.requestURI == '/settings' ? 'active' : ''}">
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M8 10C9.10457 10 10 9.10457 10 8C10 6.89543 9.10457 6 8 6C6.89543 6 6 6.89543 6 8C6 9.10457 6.89543 10 8 10Z" stroke="white" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M12.9333 8C12.9333 8 12.7333 8.73333 12.4 9.06667C12.0667 9.4 11.3333 9.6 11.3333 9.6L10.4 11.2L10.5333 12.3333L8 14L5.46667 12.3333L5.6 11.2L4.66667 9.6C4.66667 9.6 3.93333 9.4 3.6 9.06667C3.26667 8.73333 3.06667 8 3.06667 8C3.06667 8 3.26667 7.26667 3.6 6.93333C3.93333 6.6 4.66667 6.4 4.66667 6.4L5.6 4.8L5.46667 3.66667L8 2L10.5333 3.66667L10.4 4.8L11.3333 6.4C11.3333 6.4 12.0667 6.6 12.4 6.93333C12.7333 7.26667 12.9333 8 12.9333 8Z" stroke="white" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M8 10C9.10457 10 10 9.10457 10 8C10 6.89543 9.10457 6 8 6C6.89543 6 6 6.89543 6 8C6 9.10457 6.89543 10 8 10Z" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M12.9333 8C12.9333 8 12.7333 8.73333 12.4 9.06667C12.0667 9.4 11.3333 9.6 11.3333 9.6L10.4 11.2L10.5333 12.3333L8 14L5.46667 12.3333L5.6 11.2L4.66667 9.6C4.66667 9.6 3.93333 9.4 3.6 9.06667C3.26667 8.73333 3.06667 8 3.06667 8C3.06667 8 3.26667 7.26667 3.6 6.93333C3.93333 6.6 4.66667 6.4 4.66667 6.4L5.6 4.8L5.46667 3.66667L8 2L10.5333 3.66667L10.4 4.8L11.3333 6.4C11.3333 6.4 12.0667 6.6 12.4 6.93333C12.7333 7.26667 12.9333 8 12.9333 8Z" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                     Settings
                 </a>
@@ -104,7 +104,7 @@
                     <div class="user-role">Account settings</div>
                 </div>
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M4 6L8 10L12 6" stroke="white" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M4 6L8 10L12 6" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
             </div>
             
@@ -113,9 +113,8 @@
         
         <!-- Main Content -->
         <main class="main-content">
-            <!-- Header -->
             <div th:remove="tag" layout:fragment="custom-header">
-                <header class="header">
+                <header class="header" th:if="${false}">
                     <h1 layout:fragment="header-title">Page Title</h1>
                 </header>
             </div>
@@ -146,12 +145,24 @@
             // Check if user has a saved preference
             const savedTheme = localStorage.getItem('theme');
             
-            // Apply saved theme or default to dark mode
-            if (savedTheme === 'light') {
+            // Apply saved theme or default to light mode
+            if (savedTheme === 'dark') {
+                // Dark mode only if explicitly saved as 'dark'
+                document.documentElement.classList.remove('light-mode');
+                moonIcon.style.display = 'block';
+                sunIcon.style.display = 'none';
+                themeLabel.textContent = 'Switch to Light Mode';
+            } else {
+                // Default to light mode
                 document.documentElement.classList.add('light-mode');
                 moonIcon.style.display = 'none';
                 sunIcon.style.display = 'block';
                 themeLabel.textContent = 'Switch to Dark Mode';
+                
+                // Save preference if not already saved
+                if (!savedTheme) {
+                    localStorage.setItem('theme', 'light');
+                }
             }
             
             // Theme toggle button click handler

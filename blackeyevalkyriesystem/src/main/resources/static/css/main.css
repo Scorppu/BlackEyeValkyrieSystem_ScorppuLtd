@@ -7,6 +7,7 @@
     --accent-color: #8a2be2;
     --input-bg: #111133;
     --border-color: #222266;
+    --icon-stroke: #ffffff;
 }
 
 :root.light-mode {
@@ -17,6 +18,7 @@
     --accent-color: #8a2be2;
     --input-bg: #f0f0fa;
     --border-color: #ddddee;
+    --icon-stroke: #333366;
 }
 
 body {
@@ -38,22 +40,26 @@ body {
     width: 250px;
     background-color: var(--secondary-bg);
     border-right: 1px solid var(--border-color);
-    padding: 1rem;
+    padding: 1rem 1rem 2rem 0.5rem;
     display: flex;
     flex-direction: column;
+    position: fixed;
+    height: calc(100vh - 1rem);
+    overflow-y: auto;
 }
 
 .main-content {
     flex-grow: 1;
-    padding: 1rem 2rem;
+    padding: 1.5rem 2rem;
+    margin-left: 250px;
 }
 
 .header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem 0;
-    margin-bottom: 2rem;
+    padding: 0;
+    margin-bottom: 1rem;
 }
 
 /* Updated header styles */
@@ -95,6 +101,7 @@ body {
     text-decoration: none;
     font-weight: bold;
     font-size: 1.1rem;
+    padding-left: 0.5rem;
 }
 
 .logo svg {
@@ -110,6 +117,8 @@ body {
     display: flex;
     align-items: center;
     margin-bottom: 2rem;
+    margin-left: 0.5rem;
+    margin-right: 0.5rem;
 }
 
 .search-bar input {
@@ -124,18 +133,22 @@ body {
 }
 
 /* Navigation */
+nav {
+    padding-left: 0.5rem;
+}
+
 .nav-item {
     display: flex;
     align-items: center;
     padding: 0.75rem 1rem;
-    color: var(--nav-text);
+    color: var(--primary-text);
     text-decoration: none;
     border-radius: 0.25rem;
     transition: background-color 0.2s;
 }
 
 .nav-item:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(138, 43, 226, 0.1);
 }
 
 .nav-item.active {
@@ -145,6 +158,17 @@ body {
 
 .nav-item svg {
     margin-right: 0.75rem;
+}
+
+/* Fix for Patient Profile alignment */
+.nav-item-content {
+    display: flex;
+    align-items: center;
+}
+
+/* SVG Icon Styling */
+.sidebar svg path {
+    stroke: var(--icon-stroke);
 }
 
 /* Dropdown Menu */
@@ -168,13 +192,15 @@ body {
     max-height: 0;
     overflow: hidden;
     transition: max-height 0.3s ease;
+    padding-left: 0;
 }
 
 .nav-subitem {
-    margin-left: 2rem;
-    padding: 0.5rem 1rem;
+    padding: 0.5rem 1rem 0.5rem 2.5rem !important;
     border-radius: 0.25rem;
     display: block;
+    margin-left: 0 !important;
+    font-size: 0.9rem;
 }
 
 /* User profile */
@@ -184,6 +210,8 @@ body {
     padding: 1rem;
     margin-top: auto;
     border-top: 1px solid var(--border-color);
+    margin-left: 0.5rem;
+    margin-right: 0.5rem;
 }
 
 .avatar {
@@ -214,18 +242,23 @@ body {
 .content-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 2rem;
+    gap: 1.5rem;
+    max-height: calc(100vh - 7rem);
+    overflow: hidden;
 }
 
 .content-card {
     background-color: var(--secondary-bg);
     border-radius: 0.5rem;
-    padding: 1.5rem;
+    padding: 1.25rem;
+    height: calc((100vh - 8rem) / 2 - 0.75rem);
+    min-height: 300px;
+    overflow-y: auto;
 }
 
 .content-card h2 {
     margin-top: 0;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
     font-weight: 600;
     font-size: 1.25rem;
     color: var(--secondary-text);
@@ -329,17 +362,33 @@ select.form-control {
         width: 100%;
         border-right: none;
         border-bottom: 1px solid var(--border-color);
+        position: relative;
+        height: auto;
+        overflow-y: visible;
+    }
+    
+    .main-content {
+        margin-left: 0;
     }
     
     .content-grid {
         grid-template-columns: 1fr;
+        max-height: none;
+        overflow: visible;
+    }
+    
+    .content-card {
+        height: auto;
+        min-height: 250px;
+        max-height: none;
+        margin-bottom: 1.5rem;
     }
 }
 
 /* Theme Toggle */
 .theme-toggle {
     margin-top: 1rem;
-    padding: 0 1rem;
+    padding: 0 0.5rem 1rem 0.5rem;
     border-top: 1px solid var(--border-color);
     padding-top: 1rem;
 }
@@ -376,4 +425,10 @@ select.form-control {
 /* Dropdown menu active state */
 .dropdown-menu.active {
     max-height: 500px;
+}
+
+/* For index.html page h1 */
+.main-content > h1:first-child {
+    margin-top: 0;
+    margin-bottom: 1rem;
 } 

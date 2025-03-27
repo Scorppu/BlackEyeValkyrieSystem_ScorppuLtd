@@ -6,6 +6,8 @@
     grid-template-columns: repeat(7, 1fr);
     gap: 8px;
     margin-top: 1rem;
+    grid-auto-rows: minmax(30px, auto); /* Ensure rows have minimum height */
+    min-height: 240px; /* Ensure the calendar has minimum height */
 }
 
 .calendar-header {
@@ -19,14 +21,24 @@
     text-align: center;
     font-size: 0.85rem;
     color: var(--secondary-text);
+    font-weight: 500;
 }
 
 .calendar-date {
     text-align: center;
-    padding: 8px;
+    width: 30px; /* Fixed width */
+    height: 30px; /* Fixed height equal to width for perfect circle */
+    line-height: 30px; /* Center text vertically */
     border-radius: 50%;
     font-size: 0.85rem;
     cursor: pointer;
+    padding: 0; /* Remove padding to ensure circle shape */
+    margin: 0 auto; /* Center horizontally */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary-text); /* Ensure date text color is visible */
+    background-color: transparent; /* Ensure background doesn't hide text */
 }
 
 .calendar-date.current {
@@ -35,7 +47,7 @@
 }
 
 .calendar-date:hover:not(.current) {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(138, 43, 226, 0.1);
 }
 
 .calendar-controls {
@@ -60,6 +72,17 @@
     border: none;
     color: var(--secondary-text);
     cursor: pointer;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+.calendar-nav button:hover {
+    background-color: rgba(138, 43, 226, 0.1);
 }
 
 /* Chart styles */
@@ -121,11 +144,13 @@
     width: 100%;
     border-collapse: collapse;
     margin-top: 1rem;
+    table-layout: fixed;
 }
 
 .drug-list th, .drug-list td {
-    padding: 1rem;
+    padding: 0.75rem;
     text-align: left;
+    word-wrap: break-word;
 }
 
 .drug-list th {
@@ -142,12 +167,16 @@
 .drug-name {
     display: flex;
     align-items: center;
+    flex-wrap: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .drug-icon {
     width: 32px;
     height: 32px;
-    margin-right: 1rem;
+    min-width: 32px; /* Ensure the icon doesn't shrink */
+    margin-right: 0.75rem;
     background-color: var(--border-color);
     border-radius: 4px;
     display: flex;
@@ -204,10 +233,17 @@
     .calendar-date {
         padding: 6px;
         font-size: 0.75rem;
+        width: 28px;
+        height: 28px;
+        line-height: 28px;
     }
     
     .drug-list th, .drug-list td {
         padding: 0.75rem;
+    }
+    
+    .drug-name {
+        font-size: 0.85rem;
     }
     
     .chart-container {
@@ -232,11 +268,15 @@
     .calendar-date {
         padding: 4px;
         font-size: 0.7rem;
+        width: 24px;
+        height: 24px;
+        line-height: 24px;
     }
     
     .drug-icon {
         width: 24px;
         height: 24px;
+        min-width: 24px;
         margin-right: 0.5rem;
     }
     
