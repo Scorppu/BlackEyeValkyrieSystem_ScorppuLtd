@@ -8,7 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
-
+import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -21,12 +21,18 @@ public class Patient {
     private String firstName;
     private String lastName;
     private Boolean sex;
-    private String relativeName;
     private LocalDate dateOfBirth;
     private Integer age;
+    private String relativeName;
     private String maritalStatus;
     private String bloodType;
-    
+    private List<Drug> drugAllergies;
+    private List<Visit> visits;
+
+    // Date fields
+    private LocalDate createDate;
+    private LocalDate updateDate;
+
     // Status field to track admitted/discharged status
     private String status;
     
