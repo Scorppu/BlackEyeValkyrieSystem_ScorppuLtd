@@ -27,6 +27,9 @@ public class Patient {
     private String maritalStatus;
     private String bloodType;
     
+    // Status field to track admitted/discharged status
+    private String status;
+    
     // Additional fields that might be needed later
     private String contactNumber;
     private String email;
