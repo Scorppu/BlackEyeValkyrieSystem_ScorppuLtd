@@ -14,6 +14,7 @@ import java.util.List;
 public class Doctor extends User {
     
     // Medical qualifications
+    private String doctorId;
     private String specialization;
     private String licenseNumber;
     private List<String> qualifications;

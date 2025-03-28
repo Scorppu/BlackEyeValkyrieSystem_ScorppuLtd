@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{layout/main}">
+
+<head>
+    <title>Consultation</title>
+    <style>
+        .info-section {
+            background-color: #0f1a2e;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            color: #cecfd3;
+        }
+        .section-label {
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 15px;
+            color: white;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 10px;
+        }
+        .info-label {
+            font-size: 14px;
+            color: #8b8d96;
+            margin-bottom: 5px;
+        }
+        .info-value {
+            font-size: 16px;
+            padding: 8px 12px;
+            background-color: #151f33;
+            border-radius: 4px;
+        }
+        .transcript-box {
+            width: 100%;
+            height: 200px;
+            background-color: #151f33;
+            border: none;
+            border-radius: 4px;
+            color: #cecfd3;
+            padding: 12px;
+            resize: vertical;
+        }
+        .diagnosis-input {
+            width: 100%;
+            padding: 12px;
+            background-color: #151f33;
+            border: none;
+            border-radius: 4px;
+            color: #cecfd3;
+            margin-bottom: 10px;
+        }
+        .confirm-btn {
+            background-color: #b147e4;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 16px;
+            float: right;
+        }
+        .prescription-table {
+            width: 100%;
+            margin-top: 15px;
+            color: #cecfd3;
+        }
+        .prescription-table th, .prescription-table td {
+            padding: 10px;
+            text-align: left;
+        }
+        .template-list {
+            padding: 0;
+            list-style-type: none;
+        }
+        .template-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .template-item:hover {
+            background-color: #151f33;
+        }
+        .template-item.active {
+            background-color: #b147e4;
+            color: white;
+        }
+        .drug-cart {
+            min-height: 150px;
+            background-color: #151f33;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+        .checkout-btn {
+            background-color: #b147e4;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 16px;
+            float: right;
+            margin-top: 15px;
+        }
+        .checkout-icon {
+            margin-left: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div layout:fragment="content">
+        <div class="container-fluid">
+            <h1 class="mt-4 mb-4">Consultation Module</h1>
+
+            <div class="row">
+                <!-- Patient Information Section -->
+                <div class="col-md-6">
+                    <div class="info-section">
+                        <h2 class="section-label">Patient Information</h2>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <span class="info-label">Visit ID</span>
+                                <span class="info-value" th:text="${consultation.id}">OP8021</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Appointment Type</span>
+                                <span class="info-value" th:text="${consultation.consultationType}">General Consultation</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Patient Name</span>
+                                <span class="info-value" th:text="${consultation.patient.firstName + ' ' + consultation.patient.lastName}">Somebody</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Patient Age</span>
+                                <span class="info-value" th:text="${consultation.patient.age}">20</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Patient Vitals Section -->
+                <div class="col-md-6">
+                    <div class="info-section">
+                        <h2 class="section-label">Patient Vitals</h2>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <span class="info-label">Height</span>
+                                <span class="info-value" th:text="${consultation.vitalSigns.height + ' cm'}">175</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Weight</span>
+                                <span class="info-value" th:text="${consultation.vitalSigns.weight + ' kg'}">70kg</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Temperature</span>
+                                <span class="info-value" th:text="${consultation.vitalSigns.temperature + '°C'}">37.5°C</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Blood Pressure (sbp/dbp)</span>
+                                <span class="info-value" th:text="${consultation.vitalSigns.bloodPressure + ' (mmHg)'}">120/80 (mmHg)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Consultation Transcript Section -->
+            <form th:action="@{/consultation/save}" method="post" th:object="${consultation}">
+                <input type="hidden" th:field="*{id}" />
+                
+                <div class="info-section">
+                    <h2 class="section-label">Consultation Transcript:</h2>
+                    <textarea class="transcript-box" th:field="*{clinicalNotes}" placeholder="Enter consultation notes here..."></textarea>
+                </div>
+
+                <!-- Final Diagnosis Section -->
+                <div class="info-section">
+                    <h2 class="section-label">Final Diagnosis:</h2>
+                    <input type="text" class="diagnosis-input" th:field="*{diagnoses[0].diagnosisName}" placeholder="Enter final diagnosis" />
+                    <button type="button" class="confirm-btn" id="confirmDiagnosis">Confirm diagnosis</button>
+                    <div class="clearfix"></div>
+                </div>
+
+                <!-- Prescription Section -->
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="info-section">
+                            <h2 class="section-label">Template</h2>
+                            <ul class="template-list">
+                                <li class="template-item" onclick="selectTemplate(this, 'In-House Dispensary')">In-House Dispensary</li>
+                                <li class="template-item" onclick="selectTemplate(this, 'Pain Meds - non narcotic')">Pain Meds - non narcotic</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-md-9">
+                        <div class="info-section">
+                            <table class="prescription-table">
+                                <thead>
+                                    <tr>
+                                        <th>Drug</th>
+                                        <th>Dose</th>
+                                        <th>Days</th>
+                                        <th>Qty</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            <select id="drugSelect" class="info-value">
+                                                <option value="">Select drug</option>
+                                                <option value="1">Combiflox</option>
+                                                <option value="2">Paracetamol</option>
+                                                <option value="3">Ibuprofen</option>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <input type="text" id="doseInput" class="info-value" placeholder="Dose instructions" />
+                                        </td>
+                                        <td>
+                                            <input type="number" id="daysInput" class="info-value" placeholder="Days" />
+                                        </td>
+                                        <td>
+                                            <input type="number" id="qtyInput" class="info-value" placeholder="Qty" />
+                                        </td>
+                                        <td>
+                                            <button type="button" class="confirm-btn" onclick="addToCart()">Add</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Drug Cart Section -->
+                <div class="info-section">
+                    <h2 class="section-label">Drug Cart</h2>
+                    <div id="drugCart" class="drug-cart">
+                        <!-- Cart items will be added here dynamically -->
+                    </div>
+                    <button type="submit" class="checkout-btn">Checkout <span class="checkout-icon">→</span></button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script layout:fragment="script">
+        function selectTemplate(element, template) {
+            // Remove active class from all templates
+            document.querySelectorAll('.template-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Add active class to selected template
+            element.classList.add('active');
+            
+            // In a real app, this would load template-specific drugs
+            console.log('Selected template:', template);
+        }
+        
+        function addToCart() {
+            // Get values from form
+            const drugSelect = document.getElementById('drugSelect');
+            const drug = drugSelect.options[drugSelect.selectedIndex].text;
+            const dose = document.getElementById('doseInput').value;
+            const days = document.getElementById('daysInput').value;
+            const qty = document.getElementById('qtyInput').value;
+            
+            if (!drug || drug === 'Select drug' || !dose || !days || !qty) {
+                alert('Please fill in all fields');
+                return;
+            }
+            
+            // Create cart item element
+            const cartItem = document.createElement('div');
+            cartItem.style.padding = '10px';
+            cartItem.style.marginBottom = '5px';
+            cartItem.style.borderBottom = '1px solid #2a3448';
+            
+            cartItem.innerHTML = `
+                <div style="display: flex; justify-content: space-between;">
+                    <div>
+                        <strong>${drug}</strong> - ${dose}
+                    </div>
+                    <div>
+                        ${days} days - Qty: ${qty}
+                    </div>
+                    <div>
+                        <button type="button" onclick="this.parentNode.parentNode.parentNode.remove()" 
+                                style="background: none; border: none; color: #ff5c5c; cursor: pointer;">
+                            Remove
+                        </button>
+                    </div>
+                </div>
+                <input type="hidden" name="prescription.prescriptionItems[0].drug.id" value="${drugSelect.value}">
+                <input type="hidden" name="prescription.prescriptionItems[0].dosage" value="${dose}">
+                <input type="hidden" name="prescription.prescriptionItems[0].duration" value="${days} days">
+                <input type="hidden" name="prescription.prescriptionItems[0].quantity" value="${qty}">
+            `;
+            
+            // Add to cart
+            document.getElementById('drugCart').appendChild(cartItem);
+            
+            // Clear form
+            drugSelect.selectedIndex = 0;
+            document.getElementById('doseInput').value = '';
+            document.getElementById('daysInput').value = '';
+            document.getElementById('qtyInput').value = '';
+        }
+        
+        // Confirm diagnosis button
+        document.getElementById('confirmDiagnosis').addEventListener('click', function() {
+            const diagnosisInput = document.querySelector('input[name="diagnoses[0].diagnosisName"]');
+            if (diagnosisInput.value.trim() === '') {
+                alert('Please enter a diagnosis');
+                return;
+            }
+            
+            this.textContent = 'Diagnosis Confirmed';
+            this.style.backgroundColor = '#4CAF50';
+            diagnosisInput.setAttribute('readonly', 'readonly');
+            setTimeout(() => {
+                this.textContent = 'Confirm diagnosis';
+                this.style.backgroundColor = '#b147e4';
+            }, 2000);
+        });
+    </script>
+</body>
+</html>

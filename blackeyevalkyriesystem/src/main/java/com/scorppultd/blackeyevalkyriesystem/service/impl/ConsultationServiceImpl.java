@@ -81,6 +81,11 @@ public class ConsultationServiceImpl implements ConsultationService {
     }
 
     @Override
+    public List<Consultation> getConsultationsByPatientIdAndStatus(String patientId, String status) {
+        return consultationRepository.findByPatientIdAndStatus(patientId, status);
+    }
+
+    @Override
     public List<Consultation> getConsultationsInDateRange(LocalDateTime start, LocalDateTime end) {
         return consultationRepository.findByConsultationDateTimeBetween(start, end);
     }
