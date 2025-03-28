@@ -20,6 +20,7 @@ public class Prescription {
     @Id
     private String id;
 
+    private String status;
     private String patientId;
     private String doctorId;
     private LocalDate prescriptionDate;
