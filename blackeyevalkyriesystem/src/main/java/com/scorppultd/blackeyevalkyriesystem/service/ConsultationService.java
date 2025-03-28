@@ -21,6 +21,7 @@ public interface ConsultationService {
     List<Consultation> getConsultationsByDoctor(String doctorId);
     List<Consultation> getConsultationsByPatient(String patientId);
     List<Consultation> getConsultationsByDoctorAndPatient(String doctorId, String patientId);
+    List<Consultation> getConsultationsByPatientIdAndStatus(String patientId, String status);
     
     // Date range queries
     List<Consultation> getConsultationsInDateRange(LocalDateTime start, LocalDateTime end);

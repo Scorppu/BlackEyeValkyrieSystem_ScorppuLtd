@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{layout/main}">
+
+<head>
+    <title>Consultation Queue</title>
+    <style>
+        .consultation-btn {
+            background-color: #b147e4;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 16px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .queue-section {
+            background-color: #0f1a2e;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .queue-title {
+            color: white;
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 15px;
+        }
+        .queue-table {
+            width: 100%;
+            color: #cecfd3;
+        }
+        .queue-table th, .queue-table td {
+            padding: 10px;
+            text-align: left;
+        }
+        .queue-table tr:hover {
+            background-color: #151f33;
+        }
+        .pagination-info {
+            color: #b1b5c3;
+            text-align: right;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div layout:fragment="content">
+        <div class="container-fluid">
+            <h1 class="mt-4 mb-4">Consultation Module</h1>
+            
+            <!-- Search -->
+            <div class="mb-4">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    <input type="text" class="form-control" placeholder="Search for..." style="background-color: #151f33; color: #cecfd3; border: none;">
+                </div>
+            </div>
+
+            <!-- Next in Queue Section -->
+            <div class="queue-section">
+                <h2 class="queue-title">Next in Queue</h2>
+                <table class="queue-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Patient ID</th>
+                            <th>Age</th>
+                            <th>Gender</th>
+                            <th>Last Recent Visit</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:if="${nextPatient != null}">
+                            <td th:text="${nextPatient.firstName + ' ' + nextPatient.lastName}">Sophie Moore</td>
+                            <td th:text="${nextPatient.id}">123412434</td>
+                            <td th:text="${nextPatient.age}">18</td>
+                            <td th:text="${nextPatient.sex ? 'Female' : 'Male'}">Female</td>
+                            <td th:text="${nextPatient.lastVisit}">IP0001</td>
+                            <td>
+                                <a th:href="@{/consultation/create/{id}(id=${nextPatient.id})}" class="consultation-btn">Begin consultation</a>
+                            </td>
+                        </tr>
+                        <tr th:if="${nextPatient == null}">
+                            <td colspan="6" class="text-center">No patients in queue</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Others in Queue Section -->
+            <div class="queue-section">
+                <h2 class="queue-title">Others in Queue</h2>
+                <table class="queue-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Patient ID</th>
+                            <th>Age</th>
+                            <th>Gender</th>
+                            <th>Last Recent Visit</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="patient : ${queuedPatients}">
+                            <td th:text="${patient.firstName + ' ' + patient.lastName}">John Carter</td>
+                            <td th:text="${patient.id}">019238744</td>
+                            <td th:text="${patient.age}">18</td>
+                            <td th:text="${patient.sex ? 'Female' : 'Male'}">Male</td>
+                            <td th:text="${patient.lastVisit}">OP0011</td>
+                        </tr>
+                        <tr th:if="${queuedPatients.empty}">
+                            <td colspan="5" class="text-center">No more patients in queue</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <!-- Pagination information -->
+                <div class="pagination-info" th:if="${!queuedPatients.empty}">
+                    <span th:text="${'1 - 10 of ' + queuedPatients.size()}">1 - 10 of 256</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

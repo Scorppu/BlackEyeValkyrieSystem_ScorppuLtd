@@ -11,9 +11,10 @@ import com.scorppultd.blackeyevalkyriesystem.model.Doctor;
 
 @Repository
 public interface DoctorRepository extends MongoRepository<Doctor, String> {
-    // Find by medical qualifications
-    List<Doctor> findBySpecialization(String specialization);
+    // Find by professional information
+    Optional<Doctor> findByDoctorId(String doctorId);
     Optional<Doctor> findByLicenseNumber(String licenseNumber);
+    List<Doctor> findBySpecialization(String specialization);
     List<Doctor> findByYearsOfExperienceGreaterThan(Integer years);
     
     // Find by department and position

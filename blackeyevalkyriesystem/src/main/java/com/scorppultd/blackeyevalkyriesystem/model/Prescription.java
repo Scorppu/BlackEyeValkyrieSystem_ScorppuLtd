@@ -19,11 +19,18 @@ public class Prescription {
     
     @Id
     private String id;
-
-    private String status;
-    private String patientId;
+    
+    @DBRef
+    private Patient patient;
+    
+    private String doctorName;
     private String doctorId;
     private LocalDate prescriptionDate;
+    private LocalDate validUntil;
+    private String diagnosis;
+    private String notes;
+    private String status;
+    
     private List<PrescriptionItem> prescriptionItems;
     
     @Data
