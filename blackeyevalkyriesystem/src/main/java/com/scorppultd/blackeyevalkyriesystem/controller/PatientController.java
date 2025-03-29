@@ -19,8 +19,18 @@ public class PatientController {
     private PatientService patientService;
     
     @GetMapping
-    public ResponseEntity<List<Patient>> getAllPatients() {
-        return new ResponseEntity<>(patientService.getAllPatients(), HttpStatus.OK);
+    public ResponseEntity<List<Patient>> getAllPatients(
+            @RequestParam(required = false, defaultValue = "lastName") String sortBy,
+            @RequestParam(required = false, defaultValue = "asc") String direction) {
+        
+        List<Patient> patients;
+        try {
+            patients = patientService.getAllPatientsSorted(sortBy, direction);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        
+        return new ResponseEntity<>(patients, HttpStatus.OK);
     }
     
     @GetMapping("/{id}")
