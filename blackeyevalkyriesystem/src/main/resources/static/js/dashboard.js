@@ -13,7 +13,8 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentMonth = currentDate.getMonth();
     let currentYear = currentDate.getFullYear();
     let firstDayOfMonth = new Date(currentYear, currentMonth, 1);
-
+    let selectedDay = null; // Track the currently selected day
+    
     // Check if calendar elements exist before initializing
     const calendarNav = document.querySelector('.calendar-nav');
     const calendarMonth = document.querySelector('.calendar-month');
@@ -36,6 +37,9 @@ document.addEventListener('DOMContentLoaded', function() {
     function initCalendar() {
         updateCalendarHeader();
         generateCalendarDays();
+        
+        // Select today's date by default
+        selectTodayDate();
     }
 
     // Update calendar header with month and year
@@ -102,6 +106,27 @@ document.addEventListener('DOMContentLoaded', function() {
             const dayElement = createDayElement(i, 'next-month');
             calendarGrid.appendChild(dayElement);
         }
+        
+        // Check if we should highlight a selected day after month navigation
+        if (selectedDay) {
+            const { day, month, year } = selectedDay;
+            if (month === currentMonth && year === currentYear) {
+                // Find all current month days
+                const currentMonthDays = document.querySelectorAll('.calendar-date:not(.prev-month):not(.next-month)');
+                
+                // Find the day element by text content matching our target day
+                let dayToSelect = null;
+                currentMonthDays.forEach(element => {
+                    if (parseInt(element.textContent) === day) {
+                        dayToSelect = element;
+                    }
+                });
+                
+                if (dayToSelect) {
+                    selectDay(dayToSelect);
+                }
+            }
+        }
     }
     
     // Create a day element for the calendar
@@ -110,77 +135,74 @@ document.addEventListener('DOMContentLoaded', function() {
         dayElement.className = `calendar-date ${className}`;
         dayElement.textContent = day;
         
+        // Make text unselectable
+        dayElement.style.userSelect = 'none';
+        dayElement.style.webkitUserSelect = 'none';
+        dayElement.style.mozUserSelect = 'none';
+        dayElement.style.msUserSelect = 'none';
+        
         // Style prev-month and next-month dates differently
         if (className === 'prev-month' || className === 'next-month') {
             dayElement.style.color = 'var(--secondary-text)';
             dayElement.style.opacity = '0.5';
+        } else if (className === 'current') {
+            // Apply appropriate styling for today's date
+            // Get current theme
+            const isDarkMode = document.documentElement.classList.contains('light-mode') ? false : true;
+            
+            // Style based on theme - transparent background with circle border
+            if (isDarkMode) {
+                // Dark mode: use white circle border
+                dayElement.style.backgroundColor = 'transparent';
+                dayElement.style.color = 'var(--primary-text)';
+                dayElement.style.boxShadow = '0 0 0 2px white';
+            } else {
+                // Light mode: use dark blue circle border
+                dayElement.style.backgroundColor = 'transparent';
+                dayElement.style.color = 'var(--primary-text)';
+                dayElement.style.boxShadow = '0 0 0 2px #333366';
+            }
         }
         
         // Add click event listener
         dayElement.addEventListener('click', function() {
-            // Remove 'selected' class from any previously selected day
-            document.querySelectorAll('.calendar-date.selected').forEach(element => {
-                element.classList.remove('selected');
-                // Reset any inline styles that were applied
-                if (element.classList.contains('prev-month') || element.classList.contains('next-month')) {
-                    element.style.color = 'var(--secondary-text)';
-                    element.style.opacity = '0.5';
-                } else if (element.classList.contains('current')) {
-                    element.style.backgroundColor = 'var(--accent-color)';
-                    element.style.color = 'white';
-                } else {
-                    element.style.backgroundColor = 'transparent';
-                    element.style.color = 'var(--primary-text)';
-                }
-            });
-            
-            // Add 'selected' class to the clicked day
-            dayElement.classList.add('selected');
-            
-            // Apply highlight styling to the selected date
-            if (className === 'prev-month' || className === 'next-month') {
-                dayElement.style.backgroundColor = 'rgba(138, 43, 226, 0.3)';
-                dayElement.style.color = 'var(--primary-text)';
-                dayElement.style.opacity = '0.8';
-            } else if (className === 'current') {
-                // Keep the current day styling but make it more prominent
-                dayElement.style.backgroundColor = 'var(--accent-color)';
-                dayElement.style.color = 'white';
-                dayElement.style.boxShadow = '0 0 0 2px white, 0 0 0 4px var(--accent-color)';
-            } else {
-                dayElement.style.backgroundColor = 'rgba(138, 43, 226, 0.7)';
-                dayElement.style.color = 'white';
-            }
+            // Select this day
+            selectDay(dayElement);
             
             // Update the month display if selecting a day from prev/next month
             if (className === 'prev-month') {
-                // Go to previous month and select this day
+                // Remember which day to select after navigation
+                const targetDay = day;
+                
+                // Store information about the day to select BEFORE navigation
+                const prevMonth = currentMonth - 1;
+                const prevYear = currentYear;
+                if (prevMonth < 0) {
+                    selectedDay = { day: targetDay, month: 11, year: prevYear - 1 };
+                } else {
+                    selectedDay = { day: targetDay, month: prevMonth, year: prevYear };
+                }
+                
+                // Go to previous month
                 previousMonth();
-                // Store the value of firstDayOfWeek in a local variable to use later
-                const firstDayWeek = firstDayOfMonth.getDay();
-                setTimeout(() => {
-                    try {
-                        const dayToSelect = document.querySelector(`.calendar-date:not(.prev-month):not(.next-month):nth-child(${day + firstDayWeek})`);
-                        if (dayToSelect) {
-                            dayToSelect.classList.add('selected');
-                        }
-                    } catch (error) {
-                        console.error("Error selecting day in previous month:", error);
-                    }
-                }, 100);
             } else if (className === 'next-month') {
-                // Go to next month and select this day
+                // Remember which day to select after navigation
+                const targetDay = day;
+                
+                // Store information about the day to select BEFORE navigation
+                const nextMonthValue = currentMonth + 1;
+                const nextYear = currentYear;
+                if (nextMonthValue > 11) {
+                    selectedDay = { day: targetDay, month: 0, year: nextYear + 1 };
+                } else {
+                    selectedDay = { day: targetDay, month: nextMonthValue, year: nextYear };
+                }
+                
+                // Go to next month - use the function, not the variable
                 nextMonth();
-                setTimeout(() => {
-                    try {
-                        const dayToSelect = document.querySelector(`.calendar-date:not(.prev-month):not(.next-month):nth-child(${day})`);
-                        if (dayToSelect) {
-                            dayToSelect.classList.add('selected');
-                        }
-                    } catch (error) {
-                        console.error("Error selecting day in next month:", error);
-                    }
-                }, 100);
+            } else {
+                // Store information about the selected day in current month
+                selectedDay = { day, month: currentMonth, year: currentYear };
             }
             
             // You can add functionality here to display events for the selected day
@@ -188,6 +210,59 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         return dayElement;
+    }
+    
+    // Function to select a day and handle styling
+    function selectDay(dayElement) {
+        // Remove selection from any previously selected day
+        document.querySelectorAll('.calendar-date.selected').forEach(element => {
+            element.classList.remove('selected');
+            
+            // Reset any inline styles that were applied for selection
+            if (element.classList.contains('prev-month') || element.classList.contains('next-month')) {
+                element.style.color = 'var(--secondary-text)';
+                element.style.opacity = '0.5';
+                element.style.backgroundColor = 'transparent';
+                element.style.boxShadow = 'none';
+            } else if (element.classList.contains('current')) {
+                // Reset to current day styling
+                const isDarkMode = document.documentElement.classList.contains('light-mode') ? false : true;
+                
+                if (isDarkMode) {
+                    // Dark mode: use white circle border
+                    element.style.backgroundColor = 'transparent';
+                    element.style.color = 'var(--primary-text)';
+                    element.style.boxShadow = '0 0 0 2px white';
+                } else {
+                    // Light mode: use dark blue circle border
+                    element.style.backgroundColor = 'transparent';
+                    element.style.color = 'var(--primary-text)';
+                    element.style.boxShadow = '0 0 0 2px #333366';
+                }
+            } else {
+                element.style.backgroundColor = 'transparent';
+                element.style.color = 'var(--primary-text)';
+                element.style.boxShadow = 'none';
+            }
+        });
+        
+        // Add 'selected' class to the clicked day
+        dayElement.classList.add('selected');
+        
+        // Apply highlight styling to the selected date
+        if (dayElement.classList.contains('prev-month') || dayElement.classList.contains('next-month')) {
+            dayElement.style.backgroundColor = 'rgba(138, 43, 226, 0.3)';
+            dayElement.style.color = 'var(--primary-text)';
+            dayElement.style.opacity = '0.8';
+        } else if (dayElement.classList.contains('current')) {
+            // For current day, add additional selection styling while preserving the circle
+            dayElement.style.backgroundColor = 'rgba(138, 43, 226, 0.7)';
+            dayElement.style.color = 'white';
+            dayElement.style.boxShadow = '0 0 0 2px white';
+        } else {
+            dayElement.style.backgroundColor = 'rgba(138, 43, 226, 0.7)';
+            dayElement.style.color = 'white';
+        }
     }
     
     // Navigate to previous month
@@ -214,5 +289,27 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateCalendar() {
         updateCalendarHeader();
         generateCalendarDays();
+    }
+
+    // Function to select today's date
+    function selectTodayDate() {
+        const today = new Date();
+        const isCurrentMonth = today.getMonth() === currentMonth && today.getFullYear() === currentYear;
+        
+        if (isCurrentMonth) {
+            // Find the element with the 'current' class (today's date)
+            const todayElement = document.querySelector('.calendar-date.current');
+            if (todayElement) {
+                // Select today's date
+                selectDay(todayElement);
+                
+                // Store information about the selected day
+                selectedDay = { 
+                    day: today.getDate(), 
+                    month: currentMonth, 
+                    year: currentYear 
+                };
+            }
+        }
     }
 });

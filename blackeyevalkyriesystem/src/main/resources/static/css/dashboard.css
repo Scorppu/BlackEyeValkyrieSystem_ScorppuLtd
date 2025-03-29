@@ -5,9 +5,9 @@
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 8px;
-    margin-top: 1rem;
-    grid-auto-rows: minmax(30px, auto); /* Ensure rows have minimum height */
-    min-height: 240px; /* Ensure the calendar has minimum height */
+    margin-top: 0.5rem;
+    grid-auto-rows: minmax(3.5vh, auto);
+    min-height: min(25vh, 180px);
 }
 
 .calendar-header {
@@ -19,18 +19,18 @@
 
 .calendar-day {
     text-align: center;
-    font-size: 0.85rem;
+    font-size: 0.75rem;
     color: var(--secondary-text);
     font-weight: 500;
 }
 
 .calendar-date {
     text-align: center;
-    width: 30px; /* Fixed width */
-    height: 30px; /* Fixed height equal to width for perfect circle */
-    line-height: 30px; /* Center text vertically */
+    width: 26px; /* Fixed width */
+    height: 26px; /* Fixed height equal to width for perfect circle */
+    line-height: 26px; /* Center text vertically */
     border-radius: 50%;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     cursor: pointer;
     padding: 0; /* Remove padding to ensure circle shape */
     margin: 0 auto; /* Center horizontally */
@@ -54,7 +54,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
 }
 
 .calendar-month {
@@ -89,7 +89,7 @@
 .chart-container {
     position: relative;
     width: 100%;
-    height: 180px;
+    height: min(25vh, 150px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -97,8 +97,8 @@
 
 .donut-chart {
     position: relative;
-    width: 150px;
-    height: 150px;
+    width: min(22vh, 130px);
+    height: min(22vh, 130px);
 }
 
 .chart-center {
@@ -110,13 +110,13 @@
 }
 
 .chart-value {
-    font-size: 1.8rem;
+    font-size: min(4vh, 2rem);
     font-weight: 600;
     color: var(--primary-text);
 }
 
 .chart-caption {
-    margin-top: 1rem;
+    margin-top: min(2vh, 0.8rem);
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
@@ -292,5 +292,48 @@
     
     .chart-value {
         font-size: 1.3rem;
+    }
+}
+
+/* Height-based media queries */
+@media (min-height: 900px) {
+    .chart-container {
+        height: min(30vh, 180px);
+    }
+    
+    .donut-chart {
+        width: min(25vh, 150px);
+        height: min(25vh, 150px);
+    }
+    
+    .calendar-grid {
+        min-height: min(30vh, 220px);
+    }
+}
+
+@media (max-height: 700px) {
+    .chart-container {
+        height: min(22vh, 130px);
+    }
+    
+    .donut-chart {
+        width: min(18vh, 110px);
+        height: min(18vh, 110px);
+    }
+    
+    .calendar-grid {
+        grid-auto-rows: minmax(3vh, auto);
+        min-height: min(22vh, 160px);
+    }
+    
+    .calendar-date {
+        width: 22px;
+        height: 22px;
+        line-height: 22px;
+        font-size: 0.75rem;
+    }
+    
+    .drug-list th, .drug-list td {
+        padding: 0.5rem;
     }
 } 
