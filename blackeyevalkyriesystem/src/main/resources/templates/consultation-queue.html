@@ -6,41 +6,81 @@
     <title>Consultation Queue</title>
     <style>
         .consultation-btn {
-            background-color: #b147e4;
+            background-color: var(--accent-color);
             color: white;
             border: none;
             border-radius: 6px;
             padding: 8px 16px;
             font-weight: 500;
             cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .consultation-btn:hover {
+            background-color: #7b26cd;
         }
         .queue-section {
-            background-color: #0f1a2e;
+            background-color: var(--secondary-bg);
             border-radius: 8px;
             padding: 20px;
             margin-bottom: 20px;
+            border: 1px solid var(--border-color);
         }
         .queue-title {
-            color: white;
+            color: var(--primary-text);
             font-size: 18px;
             font-weight: 500;
             margin-bottom: 15px;
         }
         .queue-table {
             width: 100%;
-            color: #cecfd3;
+            color: var(--secondary-text);
+            border-collapse: separate;
+            border-spacing: 0;
         }
-        .queue-table th, .queue-table td {
-            padding: 10px;
+        .queue-table th {
+            padding: 12px 10px;
             text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 500;
+        }
+        .queue-table td {
+            padding: 12px 10px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
         }
         .queue-table tr:hover {
-            background-color: #151f33;
+            background-color: rgba(138, 43, 226, 0.1);
         }
         .pagination-info {
-            color: #b1b5c3;
+            color: var(--secondary-text);
             text-align: right;
             margin-top: 10px;
+            font-size: 14px;
+        }
+        .search-container {
+            display: flex;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 8px 16px;
+            margin-bottom: 20px;
+        }
+        .search-container svg {
+            margin-right: 10px;
+        }
+        .search-container input {
+            background: transparent;
+            border: none;
+            color: var(--primary-text);
+            width: 100%;
+        }
+        .search-container input:focus {
+            outline: none;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 20px;
+            color: var(--secondary-text);
         }
     </style>
 </head>
@@ -48,14 +88,17 @@
 <body>
     <div layout:fragment="content">
         <div class="container-fluid">
-            <h1 class="mt-4 mb-4">Consultation Module</h1>
+            <div class="header-container">
+                <h1>Consultation Queue</h1>
+            </div>
             
             <!-- Search -->
-            <div class="mb-4">
-                <div class="input-group">
-                    <span class="input-group-text"><i class="fas fa-search"></i></span>
-                    <input type="text" class="form-control" placeholder="Search for..." style="background-color: #151f33; color: #cecfd3; border: none;">
-                </div>
+            <div class="search-container">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M7.33333 12.6667C10.2789 12.6667 12.6667 10.2789 12.6667 7.33333C12.6667 4.38781 10.2789 2 7.33333 2C4.38781 2 2 4.38781 2 7.33333C2 10.2789 4.38781 12.6667 7.33333 12.6667Z" stroke="var(--icon-stroke)" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M14 14.0001L11.1 11.1001" stroke="var(--icon-stroke)" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <input type="text" placeholder="Search patient by name or ID...">
             </div>
 
             <!-- Next in Queue Section -->
@@ -84,7 +127,7 @@
                             </td>
                         </tr>
                         <tr th:if="${nextPatient == null}">
-                            <td colspan="6" class="text-center">No patients in queue</td>
+                            <td colspan="6" class="empty-state">No patients in queue</td>
                         </tr>
                     </tbody>
                 </table>
@@ -112,7 +155,7 @@
                             <td th:text="${patient.lastVisit}">OP0011</td>
                         </tr>
                         <tr th:if="${queuedPatients.empty}">
-                            <td colspan="5" class="text-center">No more patients in queue</td>
+                            <td colspan="5" class="empty-state">No more patients in queue</td>
                         </tr>
                     </tbody>
                 </table>

@@ -26,4 +26,7 @@ public class Drug {
     // Administration details
     private String dosageInstructions;
     private String routeOfAdministration; // oral, intravenous, etc.
+    
+    // For template categorization
+    private String templateCategory; // e.g., "In-House Dispensary", "Pain Meds - non narcotic"
 } 

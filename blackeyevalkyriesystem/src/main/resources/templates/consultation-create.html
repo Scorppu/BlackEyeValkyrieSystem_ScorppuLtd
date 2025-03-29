@@ -6,17 +6,18 @@
     <title>Consultation</title>
     <style>
         .info-section {
-            background-color: #0f1a2e;
+            background-color: var(--secondary-bg);
             border-radius: 8px;
             padding: 20px;
             margin-bottom: 20px;
-            color: #cecfd3;
+            color: var(--secondary-text);
+            border: 1px solid var(--border-color);
         }
         .section-label {
             font-size: 18px;
             font-weight: 500;
             margin-bottom: 15px;
-            color: white;
+            color: var(--primary-text);
         }
         .info-grid {
             display: grid;
@@ -30,50 +31,57 @@
         }
         .info-label {
             font-size: 14px;
-            color: #8b8d96;
+            color: var(--secondary-text);
             margin-bottom: 5px;
         }
         .info-value {
             font-size: 16px;
             padding: 8px 12px;
-            background-color: #151f33;
+            background-color: var(--input-bg);
             border-radius: 4px;
+            border: 1px solid var(--border-color);
         }
         .transcript-box {
             width: 100%;
             height: 200px;
-            background-color: #151f33;
-            border: none;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
             border-radius: 4px;
-            color: #cecfd3;
+            color: var(--primary-text);
             padding: 12px;
             resize: vertical;
         }
         .diagnosis-input {
             width: 100%;
             padding: 12px;
-            background-color: #151f33;
-            border: none;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
             border-radius: 4px;
-            color: #cecfd3;
+            color: var(--primary-text);
             margin-bottom: 10px;
         }
         .confirm-btn {
-            background-color: #b147e4;
+            background-color: var(--accent-color);
             color: white;
             border: none;
             border-radius: 4px;
             padding: 8px 16px;
             float: right;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .confirm-btn:hover {
+            background-color: #7b26cd;
         }
         .prescription-table {
             width: 100%;
             margin-top: 15px;
-            color: #cecfd3;
+            color: var(--secondary-text);
         }
         .prescription-table th, .prescription-table td {
             padding: 10px;
             text-align: left;
+            border-bottom: 1px solid var(--border-color);
         }
         .template-list {
             padding: 0;
@@ -83,29 +91,36 @@
             padding: 8px 12px;
             cursor: pointer;
             border-radius: 4px;
+            transition: background-color 0.2s;
         }
         .template-item:hover {
-            background-color: #151f33;
+            background-color: rgba(138, 43, 226, 0.1);
         }
         .template-item.active {
-            background-color: #b147e4;
+            background-color: var(--accent-color);
             color: white;
         }
         .drug-cart {
             min-height: 150px;
-            background-color: #151f33;
+            background-color: var(--input-bg);
             border-radius: 4px;
             padding: 15px;
             margin-top: 15px;
+            border: 1px solid var(--border-color);
         }
         .checkout-btn {
-            background-color: #b147e4;
+            background-color: var(--accent-color);
             color: white;
             border: none;
             border-radius: 4px;
             padding: 8px 16px;
             float: right;
             margin-top: 15px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .checkout-btn:hover {
+            background-color: #7b26cd;
         }
         .checkout-icon {
             margin-left: 5px;
@@ -116,7 +131,9 @@
 <body>
     <div layout:fragment="content">
         <div class="container-fluid">
-            <h1 class="mt-4 mb-4">Consultation Module</h1>
+            <div class="header-container">
+                <h1>Consultation</h1>
+            </div>
 
             <div class="row">
                 <!-- Patient Information Section -->
@@ -215,9 +232,6 @@
                                         <td>
                                             <select id="drugSelect" class="info-value">
                                                 <option value="">Select drug</option>
-                                                <option value="1">Combiflox</option>
-                                                <option value="2">Paracetamol</option>
-                                                <option value="3">Ibuprofen</option>
                                             </select>
                                         </td>
                                         <td>
@@ -252,6 +266,9 @@
     </div>
 
     <script layout:fragment="script">
+        let prescriptionItemIndex = 0;
+        let selectedTemplate = '';
+        
         function selectTemplate(element, template) {
             // Remove active class from all templates
             document.querySelectorAll('.template-item').forEach(item => {
@@ -260,15 +277,84 @@
             
             // Add active class to selected template
             element.classList.add('active');
+            selectedTemplate = template;
             
-            // In a real app, this would load template-specific drugs
-            console.log('Selected template:', template);
+            // Load template-specific drugs
+            loadDrugsByTemplate(template);
         }
+        
+        function loadDrugsByTemplate(template) {
+            // Clear existing options
+            const drugSelect = document.getElementById('drugSelect');
+            drugSelect.innerHTML = '<option value="">Select drug</option>';
+            
+            // Encode template name for URL
+            const encodedTemplate = encodeURIComponent(template);
+            
+            // Fetch drugs based on template
+            fetch(`/api/drugs/template/${encodedTemplate}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(drugs => {
+                    // Populate select with fetched drugs
+                    drugs.forEach(drug => {
+                        const option = document.createElement('option');
+                        option.value = drug.id;
+                        option.textContent = drug.name;
+                        
+                        // Add drug data as data attributes for later use
+                        option.dataset.dosageInstructions = drug.dosageInstructions || '';
+                        option.dataset.routeOfAdministration = drug.routeOfAdministration || '';
+                        
+                        drugSelect.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading drugs:', error);
+                    // Fallback to static drugs if API fails
+                    addFallbackDrugs(template);
+                });
+        }
+        
+        function addFallbackDrugs(template) {
+            const drugSelect = document.getElementById('drugSelect');
+            
+            if (template === 'In-House Dispensary') {
+                addDrugOption('1', 'Combiflox', '1 tablet twice daily');
+                addDrugOption('2', 'Paracetamol', '1-2 tablets every 4-6 hours');
+                addDrugOption('3', 'Ibuprofen', '1 tablet 3 times daily');
+            } else if (template === 'Pain Meds - non narcotic') {
+                addDrugOption('2', 'Paracetamol', '1-2 tablets every 4-6 hours');
+                addDrugOption('3', 'Ibuprofen', '1 tablet 3 times daily');
+                addDrugOption('4', 'Diclofenac', '50mg 3 times daily');
+            }
+            
+            function addDrugOption(id, name, dosage) {
+                const option = document.createElement('option');
+                option.value = id;
+                option.textContent = name;
+                option.dataset.dosageInstructions = dosage;
+                drugSelect.appendChild(option);
+            }
+        }
+        
+        // Handle drug selection to pre-fill dose
+        document.getElementById('drugSelect').addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            if (selectedOption.dataset.dosageInstructions) {
+                document.getElementById('doseInput').value = selectedOption.dataset.dosageInstructions;
+            }
+        });
         
         function addToCart() {
             // Get values from form
             const drugSelect = document.getElementById('drugSelect');
             const drug = drugSelect.options[drugSelect.selectedIndex].text;
+            const drugId = drugSelect.value;
             const dose = document.getElementById('doseInput').value;
             const days = document.getElementById('daysInput').value;
             const qty = document.getElementById('qtyInput').value;
@@ -278,11 +364,14 @@
                 return;
             }
             
+            // Get the current index for this prescription item
+            const itemIndex = prescriptionItemIndex++;
+            
             // Create cart item element
             const cartItem = document.createElement('div');
             cartItem.style.padding = '10px';
             cartItem.style.marginBottom = '5px';
-            cartItem.style.borderBottom = '1px solid #2a3448';
+            cartItem.style.borderBottom = '1px solid var(--border-color)';
             
             cartItem.innerHTML = `
                 <div style="display: flex; justify-content: space-between;">
@@ -293,16 +382,16 @@
                         ${days} days - Qty: ${qty}
                     </div>
                     <div>
-                        <button type="button" onclick="this.parentNode.parentNode.parentNode.remove()" 
+                        <button type="button" onclick="removeFromCart(this, ${itemIndex})" 
                                 style="background: none; border: none; color: #ff5c5c; cursor: pointer;">
                             Remove
                         </button>
                     </div>
                 </div>
-                <input type="hidden" name="prescription.prescriptionItems[0].drug.id" value="${drugSelect.value}">
-                <input type="hidden" name="prescription.prescriptionItems[0].dosage" value="${dose}">
-                <input type="hidden" name="prescription.prescriptionItems[0].duration" value="${days} days">
-                <input type="hidden" name="prescription.prescriptionItems[0].quantity" value="${qty}">
+                <input type="hidden" name="prescription.prescriptionItems[${itemIndex}].drug.id" value="${drugId}">
+                <input type="hidden" name="prescription.prescriptionItems[${itemIndex}].dosage" value="${dose}">
+                <input type="hidden" name="prescription.prescriptionItems[${itemIndex}].duration" value="${days} days">
+                <input type="hidden" name="prescription.prescriptionItems[${itemIndex}].quantity" value="${qty}">
             `;
             
             // Add to cart
@@ -314,6 +403,23 @@
             document.getElementById('daysInput').value = '';
             document.getElementById('qtyInput').value = '';
         }
+        
+        function removeFromCart(button, index) {
+            // Remove the cart item
+            const cartItem = button.closest('div').parentNode;
+            cartItem.remove();
+            
+            // Note: We don't decrement prescriptionItemIndex to avoid index conflicts
+        }
+        
+        // Load initial template on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Select first template by default
+            const firstTemplate = document.querySelector('.template-item');
+            if (firstTemplate) {
+                selectTemplate(firstTemplate, firstTemplate.textContent.trim());
+            }
+        });
         
         // Confirm diagnosis button
         document.getElementById('confirmDiagnosis').addEventListener('click', function() {
@@ -328,7 +434,7 @@
             diagnosisInput.setAttribute('readonly', 'readonly');
             setTimeout(() => {
                 this.textContent = 'Confirm diagnosis';
-                this.style.backgroundColor = '#b147e4';
+                this.style.backgroundColor = '';
             }, 2000);
         });
     </script>
