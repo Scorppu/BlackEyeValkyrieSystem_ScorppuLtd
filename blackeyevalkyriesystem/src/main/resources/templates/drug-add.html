@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{layout/main}">
+
+<head>
+    <title>Add New Drug</title>
+    <style>
+        .form-container {
+            background-color: var(--secondary-bg);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            color: var(--secondary-text);
+            border: 1px solid var(--border-color);
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: var(--primary-text);
+        }
+        .form-input {
+            width: 100%;
+            padding: 10px 12px;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            color: var(--primary-text);
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+        .form-textarea {
+            width: 100%;
+            padding: 10px 12px;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            color: var(--primary-text);
+            min-height: 100px;
+            resize: vertical;
+        }
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+        .form-hint {
+            font-size: 12px;
+            color: var(--secondary-text);
+            margin-top: 5px;
+        }
+        .form-select {
+            width: 100%;
+            padding: 10px 12px;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            color: var(--primary-text);
+        }
+        .btn-container {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            border: none;
+        }
+        .btn-primary {
+            background-color: var(--accent-color);
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #7b26cd;
+        }
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--secondary-text);
+            border: 1px solid var(--border-color);
+        }
+        .btn-secondary:hover {
+            background-color: rgba(138, 43, 226, 0.1);
+        }
+    </style>
+</head>
+
+<body>
+    <div layout:fragment="content">
+        <div class="container-fluid">
+            <div class="header-container">
+                <h1>Add New Drug</h1>
+            </div>
+            
+            <div class="form-container">
+                <form th:action="@{/drugs/add}" method="post" th:object="${drug}">
+                    <div class="form-group">
+                        <label for="name" class="form-label">Drug Name</label>
+                        <input type="text" id="name" th:field="*{name}" class="form-input" placeholder="Enter drug name" required>
+                        <div class="form-hint">Enter the commercial or generic name of the drug</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="templateCategory" class="form-label">Template Category</label>
+                        <select id="templateCategory" th:field="*{templateCategory}" class="form-select" required>
+                            <option value="">-- Select category --</option>
+                            <option value="In-House Dispensary">In-House Dispensary</option>
+                            <option value="Pain Meds - non narcotic">Pain Meds - non narcotic</option>
+                            <option value="Antibiotics">Antibiotics</option>
+                            <option value="Cardiovascular">Cardiovascular</option>
+                            <option value="Respiratory">Respiratory</option>
+                            <option value="Gastrointestinal">Gastrointestinal</option>
+                            <option value="Antidiabetic">Antidiabetic</option>
+                            <option value="CNS Agents">CNS Agents</option>
+                        </select>
+                        <div class="form-hint">This determines which template this drug will appear in during prescription</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="routeOfAdministration" class="form-label">Route of Administration</label>
+                        <select id="routeOfAdministration" th:field="*{routeOfAdministration}" class="form-select" required>
+                            <option value="">-- Select route --</option>
+                            <option value="Oral">Oral</option>
+                            <option value="Intravenous">Intravenous</option>
+                            <option value="Intramuscular">Intramuscular</option>
+                            <option value="Subcutaneous">Subcutaneous</option>
+                            <option value="Topical">Topical</option>
+                            <option value="Inhalation">Inhalation</option>
+                            <option value="Rectal">Rectal</option>
+                            <option value="Ophthalmic">Ophthalmic</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="dosageInstructions" class="form-label">Dosage Instructions</label>
+                        <input type="text" id="dosageInstructions" th:field="*{dosageInstructions}" class="form-input" 
+                               placeholder="e.g., 1 tablet twice daily" required>
+                        <div class="form-hint">Standard dosage instructions that will be pre-filled during prescription</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="contraindications" class="form-label">Contraindications</label>
+                        <textarea id="contraindications" th:field="*{contraindications}" class="form-textarea" 
+                                 placeholder="Enter conditions/situations where this drug should not be used"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="sideEffects" class="form-label">Side Effects</label>
+                        <textarea id="sideEffects" th:field="*{sideEffects}" class="form-textarea" 
+                                 placeholder="Enter common side effects"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="interactions" class="form-label">Interactions</label>
+                        <textarea id="interactions" th:field="*{interactions}" class="form-textarea" 
+                                 placeholder="Enter known drug interactions"></textarea>
+                    </div>
+                    
+                    <div class="btn-container">
+                        <a href="/drugs/list" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">Save Drug</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

@@ -26,6 +26,8 @@ public class SecurityConfig {
                 .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
                 .requestMatchers("/login").permitAll()
                 .requestMatchers("/api/**").permitAll() // For development - restrict in production
+                // Admin-only pages
+                .requestMatchers("/drugs/**").hasRole("ADMIN")
                 // All other requests need authentication
                 .anyRequest().authenticated()
             )
