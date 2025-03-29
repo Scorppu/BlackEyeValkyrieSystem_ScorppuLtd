@@ -50,8 +50,8 @@ body {
 
 .main-content {
     flex-grow: 1;
-    padding: 1.5rem 2rem;
-    margin-left: 250px;
+    padding: 0 2rem 1.5rem;
+    margin-left: 270px;
 }
 
 .header {
@@ -59,7 +59,7 @@ body {
     justify-content: space-between;
     align-items: center;
     padding: 0;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
 }
 
 /* Updated header styles */
@@ -242,25 +242,25 @@ nav {
 .content-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
-    max-height: calc(100vh - 7rem);
-    overflow: hidden;
+    gap: 1rem;
+    max-height: calc(100vh - 4.5rem);
+    overflow: visible;
 }
 
 .content-card {
     background-color: var(--secondary-bg);
     border-radius: 0.5rem;
-    padding: 1.25rem;
-    height: calc((100vh - 8rem) / 2 - 0.75rem);
-    min-height: 300px;
+    padding: 0.8rem;
+    height: calc(min(45vh, 280px));
+    min-height: 180px;
     overflow-y: auto;
 }
 
 .content-card h2 {
     margin-top: 0;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
     font-weight: 600;
-    font-size: 1.25rem;
+    font-size: 1.1rem;
     color: var(--secondary-text);
 }
 
@@ -429,6 +429,32 @@ select.form-control {
 
 /* For index.html page h1 */
 .main-content > h1:first-child {
-    margin-top: 0;
-    margin-bottom: 1rem;
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Height-based media queries */
+@media (min-height: 900px) {
+    .content-card {
+        height: calc(min(40vh, 300px));
+    }
+}
+
+@media (max-height: 700px) {
+    .content-card {
+        padding: 0.6rem;
+        height: calc(min(42vh, 260px));
+        min-height: 160px;
+    }
+    
+    .content-card h2 {
+        margin-bottom: 0.3rem;
+        font-size: 1rem;
+    }
+    
+    .main-content > h1:first-child {
+        margin-top: 0.3rem;
+        margin-bottom: 0.3rem;
+        font-size: 1.4rem;
+    }
 } 
