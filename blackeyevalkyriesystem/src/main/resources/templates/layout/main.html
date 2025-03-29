@@ -98,7 +98,7 @@
                 </a>
                 
                 <!-- Drugs Menu (Admin Only) -->
-                <a href="#" class="nav-item dropdown-toggle" th:classappend="${request != null && request.requestURI.startsWith('/drugs') ? 'expanded' : ''}" sec:authorize="hasRole('ADMIN')">
+                <a href="#" class="nav-item dropdown-toggle" th:classappend="${request != null && #strings.startsWith(request.requestURI, '/drugs') ? 'expanded' : ''}" sec:authorize="hasRole('ADMIN')">
                     <div class="nav-item-content">
                         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M11.5355 4.46447C12.7834 5.71236 12.7834 7.76252 11.5355 9.01041L8.59633 11.9497C7.34844 13.1976 5.29828 13.1976 4.05039 11.9497C2.8025 10.7018 2.8025 8.65165 4.05039 7.40376L6.98959 4.46447" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
@@ -113,13 +113,17 @@
                     </svg>
                 </a>
                 
-                <div class="dropdown-menu" th:classappend="${request != null && request.requestURI.startsWith('/drugs') ? 'active' : ''}" sec:authorize="hasRole('ADMIN')">
-                    <a href="/drugs/list" class="nav-item nav-subitem" th:classappend="${request != null && request.requestURI == '/drugs/list' ? 'active' : ''}">
+                <div class="dropdown-menu" th:classappend="${request != null && #strings.startsWith(request.requestURI, '/drugs') ? 'active' : ''}" sec:authorize="hasRole('ADMIN')">
+                    <a href="/drugs/list" class="nav-item nav-subitem" th:classappend="${request != null && #strings.startsWith(request.requestURI, '/drugs/list') ? 'active' : ''}">
                         Drug List
                     </a>
                     
-                    <a href="/drugs/add" class="nav-item nav-subitem" th:classappend="${request != null && request.requestURI == '/drugs/add' ? 'active' : ''}">
+                    <a href="/drugs/add" class="nav-item nav-subitem" th:classappend="${request != null && #strings.startsWith(request.requestURI, '/drugs/add') ? 'active' : ''}">
                         Add Drug
+                    </a>
+                    
+                    <a href="/drugs/import" class="nav-item nav-subitem" th:classappend="${request != null && #strings.startsWith(request.requestURI, '/drugs/import') ? 'active' : ''}">
+                        Import from CSV
                     </a>
                 </div>
             

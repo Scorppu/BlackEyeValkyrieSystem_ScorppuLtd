@@ -114,6 +114,11 @@
             border: 1px solid rgba(231, 76, 60, 0.5);
             color: #e74c3c;
         }
+        .alert-warning {
+            background-color: rgba(255, 215, 0, 0.2);
+            border: 1px solid rgba(255, 215, 0, 0.5);
+            color: #f39c12;
+        }
     </style>
 </head>
 
@@ -137,6 +142,9 @@
             </div>
             <div th:if="${error}" class="alert alert-danger" th:text="${error}">
                 An error occurred
+            </div>
+            <div th:if="${warning}" class="alert alert-warning" th:text="${warning}">
+                Warning message
             </div>
             
             <div class="search-container">

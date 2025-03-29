@@ -2,9 +2,22 @@ package com.scorppultd.blackeyevalkyriesystem.service.impl;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.ArrayList;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.ByteArrayOutputStream;
+import java.io.OutputStreamWriter;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVPrinter;
+import org.apache.commons.csv.CSVRecord;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.scorppultd.blackeyevalkyriesystem.model.Drug;
 import com.scorppultd.blackeyevalkyriesystem.repository.DrugRepository;
@@ -13,6 +26,7 @@ import com.scorppultd.blackeyevalkyriesystem.service.DrugService;
 @Service
 public class DrugServiceImpl implements DrugService {
 
+    private static final Logger logger = LoggerFactory.getLogger(DrugServiceImpl.class);
     private final DrugRepository drugRepository;
     
     @Autowired
@@ -51,7 +65,96 @@ public class DrugServiceImpl implements DrugService {
     }
     
     @Override
+    public boolean existsByName(String name) {
+        return drugRepository.existsByNameIgnoreCase(name);
+    }
+    
+    @Override
     public List<Drug> getDrugsByTemplateCategory(String category) {
         return drugRepository.findByTemplateCategory(category);
+    }
+    
+    @Override
+    public List<Drug> importDrugsFromCsv(InputStream csvInputStream) {
+        List<Drug> importedDrugs = new ArrayList<>();
+        List<String> skippedDrugs = new ArrayList<>();
+        
+        try (BufferedReader fileReader = new BufferedReader(new InputStreamReader(csvInputStream, "UTF-8"));
+             CSVParser csvParser = new CSVParser(fileReader, CSVFormat.DEFAULT.builder()
+                    .setHeader()
+                    .setSkipHeaderRecord(true)
+                    .setIgnoreHeaderCase(true)
+                    .setTrim(true)
+                    .build())) {
+            
+            for (CSVRecord csvRecord : csvParser) {
+                String drugName = csvRecord.get("name");
+                
+                // Skip existing drugs
+                if (existsByName(drugName)) {
+                    skippedDrugs.add(drugName);
+                    continue;
+                }
+                
+                Drug drug = new Drug();
+                drug.setName(drugName);
+                drug.setTemplateCategory(csvRecord.get("templateCategory"));
+                drug.setRouteOfAdministration(csvRecord.get("routeOfAdministration"));
+                drug.setDosageInstructions(csvRecord.get("dosageInstructions"));
+                
+                // Optional fields
+                if (csvRecord.isMapped("contraindications")) {
+                    drug.setContraindications(csvRecord.get("contraindications"));
+                }
+                if (csvRecord.isMapped("sideEffects")) {
+                    drug.setSideEffects(csvRecord.get("sideEffects"));
+                }
+                if (csvRecord.isMapped("interactions")) {
+                    drug.setInteractions(csvRecord.get("interactions"));
+                }
+                
+                // Save the drug
+                Drug savedDrug = drugRepository.save(drug);
+                importedDrugs.add(savedDrug);
+            }
+            
+            // If any drugs were skipped, throw an exception with details
+            if (!skippedDrugs.isEmpty()) {
+                throw new RuntimeException("Skipped " + skippedDrugs.size() + " drugs that already exist: " + String.join(", ", skippedDrugs));
+            }
+            
+            return importedDrugs;
+        } catch (IOException e) {
+            logger.error("Failed to parse CSV file: ", e);
+            throw new RuntimeException("Failed to parse CSV file: " + e.getMessage());
+        }
+    }
+    
+    @Override
+    public byte[] generateCsvTemplate() {
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream();
+             CSVPrinter csvPrinter = new CSVPrinter(new OutputStreamWriter(out), 
+                CSVFormat.DEFAULT.builder()
+                .setHeader("name", "templateCategory", "routeOfAdministration", 
+                          "dosageInstructions", "contraindications", "sideEffects", "interactions")
+                .build())) {
+            
+            // Add an example row
+            csvPrinter.printRecord(
+                "Paracetamol", 
+                "Pain Meds - non narcotic", 
+                "Oral", 
+                "1-2 tablets every 4-6 hours", 
+                "Liver disease", 
+                "Nausea, dizziness", 
+                "Alcohol"
+            );
+            
+            csvPrinter.flush();
+            return out.toByteArray();
+        } catch (IOException e) {
+            logger.error("Failed to generate CSV template: ", e);
+            throw new RuntimeException("Failed to generate CSV template: " + e.getMessage());
+        }
     }
 } 
