@@ -149,26 +149,14 @@
                         </select>
                     </div>
                     
-                    <!-- Hidden field to track the number of interactions -->
-                    <input type="hidden" id="interactionCount" name="interactionCount" value="1">
-                    
                     <!-- Interaction Fields Container -->
                     <div id="interactionsContainer">
                         <div class="interaction-item">
                             <div class="form-group">
                                 <div class="d-flex align-items-center" style="margin-bottom: 10px; justify-content: space-between;">
-                                    <label for="drugB0" style="margin-bottom: 0; white-space: nowrap;">Second Drug</label>
-                                    <div style="margin-left: auto;">
-                                        <button type="button" class="btn btn-primary btn-sm add-interaction" style="margin-right: 5px;">
-                                            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 4px;">
-                                                <path d="M8 3.33334V12.6667" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                                <path d="M3.33334 8H12.6667" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                            </svg>
-                                            Add more
-                                        </button>
-                                    </div>
+                                    <label for="drugB" style="margin-bottom: 0; white-space: nowrap;">Second Drug</label>
                                 </div>
-                                <select class="form-control drugB-select" id="drugB0" name="interactingDrugs[0]" required>
+                                <select class="form-control drugB-select" id="drugB" name="drugB" required>
                                     <option value="">Select Second Drug</option>
                                     <option th:each="drug : ${drugs}" 
                                             th:value="${drug.id}" 
@@ -177,8 +165,8 @@
                             </div>
                             
                             <div class="form-group">
-                                <label for="severity0">Severity</label>
-                                <select class="form-control" id="severity0" name="severities[0]" required>
+                                <label for="severity">Severity</label>
+                                <select class="form-control" id="severity" name="severity" required>
                                     <option value="">Select Severity</option>
                                     <option value="MILD">Mild</option>
                                     <option value="MODERATE">Moderate</option>
@@ -187,19 +175,17 @@
                             </div>
                             
                             <div class="form-group">
-                                <label for="description0">Description</label>
-                                <textarea class="form-control" id="description0" name="descriptions[0]" 
+                                <label for="description">Description</label>
+                                <textarea class="form-control" id="description" name="description" 
                                         placeholder="Enter interaction description" required
                                         style="min-height: 120px;"></textarea>
                             </div>
-                            
-                            <hr style="margin: 20px 0; border-color: var(--border-color);" />
                         </div>
                     </div>
                     
                     <div class="btn-container">
                         <a th:href="@{/drugs/interactions}" class="secondary-btn">Cancel</a>
-                        <button type="submit" class="primary-btn">Save Interactions</button>
+                        <button type="submit" class="primary-btn">Save Interaction</button>
                     </div>
                 </form>
             </div>
@@ -314,7 +300,7 @@
                                 </button>
                             </div>
                         </div>
-                        <select class="form-control drugB-select" id="drugB${newIndex}" name="interactingDrugs[${newIndex}]" required>
+                        <select class="form-control drugB-select" id="drugB${newIndex}" name="drugB" required>
                             <option value="">Select Second Drug</option>
                             ${Array.from(document.querySelector('#drugB0').options)
                                 .map(opt => `<option value="${opt.value}" ${opt.disabled ? 'disabled' : ''}>${opt.textContent}</option>`)
@@ -324,7 +310,7 @@
                     
                     <div class="form-group">
                         <label for="severity${newIndex}">Severity</label>
-                        <select class="form-control" id="severity${newIndex}" name="severities[${newIndex}]" required>
+                        <select class="form-control" id="severity${newIndex}" name="severity" required>
                             <option value="">Select Severity</option>
                             <option value="MILD">Mild</option>
                             <option value="MODERATE">Moderate</option>
@@ -334,7 +320,7 @@
                     
                     <div class="form-group">
                         <label for="description${newIndex}">Description</label>
-                        <textarea class="form-control" id="description${newIndex}" name="descriptions[${newIndex}]" 
+                        <textarea class="form-control" id="description${newIndex}" name="description" 
                                 placeholder="Enter interaction description" required
                                 style="min-height: 120px;"></textarea>
                     </div>
@@ -413,38 +399,38 @@
                     const drugBSelect = item.querySelector('.drugB-select');
                     if (drugBSelect) {
                         drugBSelect.id = `drugB${index}`;
-                        drugBSelect.name = `interactingDrugs[${index}]`;
+                        drugBSelect.name = `drugB`;
                         
                         // Update the label's for attribute
                         const drugBLabel = item.querySelector('label[for^="drugB"]');
                         if (drugBLabel) {
-                            drugBLabel.setAttribute('for', `drugB${index}`);
+                            drugBLabel.setAttribute('for', `drugB`);
                         }
                     }
                     
                     // Update severity select
                     const severitySelect = item.querySelector('select[id^="severity"]');
                     if (severitySelect) {
-                        severitySelect.id = `severity${index}`;
-                        severitySelect.name = `severities[${index}]`;
+                        severitySelect.id = `severity`;
+                        severitySelect.name = `severity`;
                         
                         // Update the label's for attribute
                         const severityLabel = item.querySelector('label[for^="severity"]');
                         if (severityLabel) {
-                            severityLabel.setAttribute('for', `severity${index}`);
+                            severityLabel.setAttribute('for', `severity`);
                         }
                     }
                     
                     // Update description textarea
                     const descriptionTextarea = item.querySelector('textarea[id^="description"]');
                     if (descriptionTextarea) {
-                        descriptionTextarea.id = `description${index}`;
-                        descriptionTextarea.name = `descriptions[${index}]`;
+                        descriptionTextarea.id = `description`;
+                        descriptionTextarea.name = `description`;
                         
                         // Update the label's for attribute
                         const descriptionLabel = item.querySelector('label[for^="description"]');
                         if (descriptionLabel) {
-                            descriptionLabel.setAttribute('for', `description${index}`);
+                            descriptionLabel.setAttribute('for', `description`);
                         }
                     }
                 });
