@@ -3,6 +3,7 @@ package com.scorppultd.blackeyevalkyriesystem.service.impl;
 import java.util.List;
 import java.util.Optional;
 import java.util.ArrayList;
+import java.util.stream.Collectors;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.BufferedReader;
@@ -20,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.scorppultd.blackeyevalkyriesystem.model.Drug;
+import com.scorppultd.blackeyevalkyriesystem.model.Drug.Interaction;
 import com.scorppultd.blackeyevalkyriesystem.repository.DrugRepository;
 import com.scorppultd.blackeyevalkyriesystem.service.DrugService;
 
@@ -109,9 +111,6 @@ public class DrugServiceImpl implements DrugService {
                 if (csvRecord.isMapped("sideEffects")) {
                     drug.setSideEffects(csvRecord.get("sideEffects"));
                 }
-                if (csvRecord.isMapped("interactions")) {
-                    drug.setInteractions(csvRecord.get("interactions"));
-                }
                 
                 // Save the drug
                 Drug savedDrug = drugRepository.save(drug);
@@ -120,41 +119,122 @@ public class DrugServiceImpl implements DrugService {
             
             // If any drugs were skipped, throw an exception with details
             if (!skippedDrugs.isEmpty()) {
-                throw new RuntimeException("Skipped " + skippedDrugs.size() + " drugs that already exist: " + String.join(", ", skippedDrugs));
+                throw new RuntimeException("Skipped " + skippedDrugs.size() + " drugs that already exist: " + 
+                                          String.join(", ", skippedDrugs));
             }
             
             return importedDrugs;
         } catch (IOException e) {
-            logger.error("Failed to parse CSV file: ", e);
-            throw new RuntimeException("Failed to parse CSV file: " + e.getMessage());
+            throw new RuntimeException("Failed to parse CSV file: " + e.getMessage(), e);
         }
     }
     
     @Override
     public byte[] generateCsvTemplate() {
         try (ByteArrayOutputStream out = new ByteArrayOutputStream();
-             CSVPrinter csvPrinter = new CSVPrinter(new OutputStreamWriter(out), 
-                CSVFormat.DEFAULT.builder()
-                .setHeader("name", "templateCategory", "routeOfAdministration", 
-                          "dosageInstructions", "contraindications", "sideEffects", "interactions")
-                .build())) {
+             CSVPrinter csvPrinter = new CSVPrinter(new OutputStreamWriter(out), CSVFormat.DEFAULT
+                    .builder()
+                    .setHeader("name", "templateCategory", "routeOfAdministration", 
+                              "dosageInstructions", "contraindications", "sideEffects")
+                    .build())) {
             
-            // Add an example row
+            // Template with example data
             csvPrinter.printRecord(
-                "Paracetamol", 
-                "Pain Meds - non narcotic", 
-                "Oral", 
-                "1-2 tablets every 4-6 hours", 
-                "Liver disease", 
-                "Nausea, dizziness", 
-                "Alcohol"
+                "Example Drug Name",
+                "In-House Dispensary",
+                "Oral",
+                "Take 1 tablet twice daily with food",
+                "Pregnancy, liver disease",
+                "Nausea, headache, dizziness"
             );
             
             csvPrinter.flush();
             return out.toByteArray();
         } catch (IOException e) {
-            logger.error("Failed to generate CSV template: ", e);
-            throw new RuntimeException("Failed to generate CSV template: " + e.getMessage());
+            throw new RuntimeException("Failed to generate CSV template: " + e.getMessage(), e);
         }
+    }
+    
+    // Interaction management methods
+    
+    @Override
+    public Drug addInteractionToDrug(String drugId, Interaction interaction) {
+        return drugRepository.findById(drugId)
+            .map(drug -> {
+                if (drug.getInteractions() == null) {
+                    System.out.println("Drug " + drugId + " has no interactions yet, initializing list");
+                    drug.setInteractions(new ArrayList<>());
+                }
+                
+                // Check if interaction with same drug already exists
+                boolean exists = drug.getInteractions().stream()
+                    .anyMatch(i -> i.getDrugId().equals(interaction.getDrugId()));
+                
+                if (!exists) {
+                    System.out.println("Adding new interaction to drug " + drugId + " with target drug " + interaction.getDrugId());
+                    drug.getInteractions().add(interaction);
+                    return drugRepository.save(drug);
+                } else {
+                    // Update existing interaction
+                    System.out.println("Updating existing interaction for drug " + drugId + " with target drug " + interaction.getDrugId());
+                    drug.getInteractions().stream()
+                        .filter(i -> i.getDrugId().equals(interaction.getDrugId()))
+                        .findFirst()
+                        .ifPresent(i -> {
+                            i.setSeverity(interaction.getSeverity());
+                            i.setDescription(interaction.getDescription());
+                        });
+                    return drugRepository.save(drug);
+                }
+            })
+            .orElseThrow(() -> new RuntimeException("Drug not found with ID: " + drugId));
+    }
+    
+    @Override
+    public Drug removeInteractionFromDrug(String drugId, String interactingDrugId) {
+        return drugRepository.findById(drugId)
+            .map(drug -> {
+                if (drug.getInteractions() != null) {
+                    drug.setInteractions(
+                        drug.getInteractions().stream()
+                            .filter(i -> !i.getDrugId().equals(interactingDrugId))
+                            .collect(Collectors.toList())
+                    );
+                    return drugRepository.save(drug);
+                }
+                return drug;
+            })
+            .orElseThrow(() -> new RuntimeException("Drug not found with ID: " + drugId));
+    }
+    
+    @Override
+    public List<Interaction> getAllInteractionsForDrug(String drugId) {
+        return drugRepository.findById(drugId)
+            .map(drug -> drug.getInteractions() != null ? 
+                 (List<Interaction>)drug.getInteractions() : new ArrayList<Interaction>())
+            .orElseThrow(() -> new RuntimeException("Drug not found with ID: " + drugId));
+    }
+    
+    @Override
+    public List<Interaction> getAllInteractions() {
+        List<Interaction> allInteractions = new ArrayList<>();
+        List<Drug> allDrugs = drugRepository.findAll();
+        
+        for (Drug drug : allDrugs) {
+            if (drug.getInteractions() != null && !drug.getInteractions().isEmpty()) {
+                // Add the drug's ID to each interaction for context
+                for (Interaction interaction : drug.getInteractions()) {
+                    // Create a copy of the interaction
+                    Interaction enrichedInteraction = new Interaction(
+                        interaction.getDrugId(),
+                        interaction.getSeverity(),
+                        interaction.getDescription()
+                    );
+                    allInteractions.add(enrichedInteraction);
+                }
+            }
+        }
+        
+        return allInteractions;
     }
 } 

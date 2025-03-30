@@ -206,10 +206,53 @@
                                  placeholder="Enter common side effects"></textarea>
                     </div>
                     
-                    <div class="form-group">
-                        <label for="interactions" class="form-label">Interactions</label>
-                        <textarea id="interactions" th:field="*{interactions}" class="form-textarea" 
-                                 placeholder="Enter known drug interactions"></textarea>
+                    <!-- Drug Interactions Section -->
+                    <div class="card" style="background-color: var(--secondary-bg); border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 20px;">
+                        <div class="card-header" style="background-color: rgba(138, 43, 226, 0.1); padding: 12px 16px; border-radius: 8px 8px 0 0; border-bottom: 1px solid var(--border-color);">
+                            <h3 style="margin: 0; font-size: 18px; color: var(--primary-text);">Drug Interactions</h3>
+                            <p style="margin: 5px 0 0 0; font-size: 14px; color: var(--secondary-text);">
+                                Select drugs that interact with this medication
+                            </p>
+                        </div>
+                        <div class="card-body" style="padding: 16px;">
+                            <!-- Specific Drug Interactions -->
+                            <div id="interactionsContainer">
+                                <div class="interaction-item" style="border: 1px solid var(--border-color); border-radius: 4px; padding: 16px; margin-bottom: 16px; background-color: var(--input-bg);">
+                                    <div class="form-group">
+                                        <label for="interactingDrug0" class="form-label">Interacting Drug</label>
+                                        <select id="interactingDrug0" name="interactingDrugs[0]" class="form-select" required>
+                                            <option value="">Select a drug...</option>
+                                            <option th:each="otherDrug : ${allDrugs}" 
+                                                    th:value="${otherDrug.id}" 
+                                                    th:text="${otherDrug.name}">Drug name</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="severity0" class="form-label">Interaction Severity</label>
+                                        <select id="severity0" name="severities[0]" class="form-select" required>
+                                            <option th:each="severity : ${severityLevels}" 
+                                                    th:value="${severity}" 
+                                                    th:text="${severity}">Severity level</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="description0" class="form-label">Interaction Description</label>
+                                        <textarea id="description0" name="descriptions[0]" class="form-textarea" 
+                                                placeholder="Describe the interaction and its effects" required></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <button type="button" id="addInteraction" class="btn btn-secondary" style="margin-bottom: 10px;">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 5px;">
+                                    <path d="M8 4V12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M4 8H12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                Add Another Interaction
+                            </button>
+                        </div>
                     </div>
                     
                     <div class="btn-container">
@@ -220,5 +263,140 @@
             </div>
         </div>
     </div>
+    
+    <script layout:fragment="script">
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add interaction button functionality
+            const addInteractionBtn = document.getElementById('addInteraction');
+            const interactionsContainer = document.getElementById('interactionsContainer');
+            
+            let interactionCount = 1;
+            
+            addInteractionBtn.addEventListener('click', function() {
+                const newInteraction = document.createElement('div');
+                newInteraction.className = 'interaction-item';
+                newInteraction.style = 'border: 1px solid var(--border-color); border-radius: 4px; padding: 16px; margin-bottom: 16px; background-color: var(--input-bg); position: relative;';
+                
+                const deleteBtn = `
+                    <button type="button" class="remove-interaction" style="position: absolute; top: 10px; right: 10px; background: none; border: none; color: var(--danger-color); cursor: pointer;">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M2 4H3.33333H14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M5.33334 4V2.66667C5.33334 2.31305 5.47382 1.97391 5.72387 1.72386C5.97392 1.47381 6.31305 1.33334 6.66668 1.33334H9.33334C9.68697 1.33334 10.0261 1.47381 10.2762 1.72386C10.5262 1.97391 10.6667 2.31305 10.6667 2.66667V4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M12.6667 4V13.3333C12.6667 13.687 12.5262 14.0261 12.2762 14.2761C12.0261 14.5262 11.687 14.6667 11.3333 14.6667H4.66668C4.31305 14.6667 3.97392 14.5262 3.72387 14.2761C3.47382 14.0261 3.33334 13.687 3.33334 13.3333V4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                `;
+                
+                // Clone dropdown options from the first interaction
+                const interactingDrugOptions = Array.from(document.querySelector('#interactingDrug0').options)
+                    .map(option => `<option value="${option.value}">${option.textContent}</option>`)
+                    .join('');
+                    
+                const severityOptions = Array.from(document.querySelector('#severity0').options)
+                    .map(option => `<option value="${option.value}">${option.textContent}</option>`)
+                    .join('');
+                
+                newInteraction.innerHTML = `
+                    ${deleteBtn}
+                    <div class="form-group">
+                        <label for="interactingDrug${interactionCount}" class="form-label">Interacting Drug</label>
+                        <select id="interactingDrug${interactionCount}" name="interactingDrugs[${interactionCount}]" class="form-select" required>
+                            <option value="">Select a drug...</option>
+                            ${interactingDrugOptions}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="severity${interactionCount}" class="form-label">Interaction Severity</label>
+                        <select id="severity${interactionCount}" name="severities[${interactionCount}]" class="form-select" required>
+                            ${severityOptions}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="description${interactionCount}" class="form-label">Interaction Description</label>
+                        <textarea id="description${interactionCount}" name="descriptions[${interactionCount}]" class="form-textarea" 
+                                placeholder="Describe the interaction and its effects" required></textarea>
+                    </div>
+                `;
+                
+                interactionsContainer.appendChild(newInteraction);
+                interactionCount++;
+                
+                // Add a hidden input to track the number of interaction fields
+                const interactionCountInput = document.getElementById('interactionCount') || document.createElement('input');
+                interactionCountInput.type = 'hidden';
+                interactionCountInput.id = 'interactionCount';
+                interactionCountInput.name = 'interactionCount';
+                interactionCountInput.value = interactionCount;
+                
+                // Add to form if not already there
+                const form = document.querySelector('form');
+                if (!document.getElementById('interactionCount')) {
+                    form.appendChild(interactionCountInput);
+                }
+            });
+            
+            // Event delegation for remove interaction buttons
+            interactionsContainer.addEventListener('click', function(e) {
+                if (e.target.closest('.remove-interaction')) {
+                    e.target.closest('.interaction-item').remove();
+                    
+                    // Renumber the remaining interaction fields
+                    const items = interactionsContainer.querySelectorAll('.interaction-item');
+                    items.forEach((item, index) => {
+                        const selects = item.querySelectorAll('select');
+                        const textareas = item.querySelectorAll('textarea');
+                        
+                        selects.forEach(select => {
+                            const name = select.name.replace(/\[\d+\]/, `[${index}]`);
+                            const id = select.id.replace(/\d+$/, index);
+                            select.name = name;
+                            select.id = id;
+                            
+                            // Update corresponding label
+                            const label = item.querySelector(`label[for="${select.id}"]`);
+                            if (label) {
+                                label.setAttribute('for', id);
+                            }
+                        });
+                        
+                        textareas.forEach(textarea => {
+                            const name = textarea.name.replace(/\[\d+\]/, `[${index}]`);
+                            const id = textarea.id.replace(/\d+$/, index);
+                            textarea.name = name;
+                            textarea.id = id;
+                            
+                            // Update corresponding label
+                            const label = item.querySelector(`label[for="${textarea.id}"]`);
+                            if (label) {
+                                label.setAttribute('for', id);
+                            }
+                        });
+                    });
+                    
+                    // Update interaction count
+                    interactionCount = items.length;
+                    const interactionCountInput = document.getElementById('interactionCount');
+                    if (interactionCountInput) {
+                        interactionCountInput.value = interactionCount;
+                    }
+                }
+            });
+            
+            // Add validation to ensure at least one field is selected
+            const form = document.querySelector('form');
+            form.addEventListener('submit', function(e) {
+                const interactingDrugs = document.querySelectorAll('[name^="interactingDrugs"]');
+                interactingDrugs.forEach(select => {
+                    // Make sure all drug selects have a value
+                    if (select.value === '') {
+                        e.preventDefault();
+                        alert('Please select an interacting drug or remove empty interaction fields');
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 </html> 

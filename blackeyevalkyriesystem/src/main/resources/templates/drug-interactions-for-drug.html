@@ -226,28 +226,17 @@
                     </thead>
                     <tbody>
                         <tr th:each="interaction : ${interactions}">
-                            <td>
-                                <!-- Determine which drug to show (the one that's not the current drug) -->
-                                <span th:if="${drug != null && drug.id == interaction.drugA.id}" 
-                                      th:text="${interaction.drugB.name}">Interacting Drug</span>
-                                <span th:if="${drug != null && drug.id == interaction.drugB.id}" 
-                                      th:text="${interaction.drugA.name}">Interacting Drug</span>
-                                <!-- If no specific drug view, show both drugs -->
-                                <span th:if="${drug == null}">
-                                    <span th:text="${interaction.drugA.name}">Drug A</span>
-                                    <span class="mx-2">+</span>
-                                    <span th:text="${interaction.drugB.name}">Drug B</span>
-                                </span>
+                            <td th:with="interactingDrug=${allDrugs.find(d -> d.id == interaction.targetDrugId)}">
+                                <span th:text="${interactingDrug != null ? interactingDrug.name : 'Unknown Drug (' + interaction.targetDrugId + ')'}">Interacting Drug</span>
                             </td>
                             <td>
-                                <span th:if="${interaction.severity == 'MILD'}" class="badge badge-mild">Mild</span>
-                                <span th:if="${interaction.severity == 'MODERATE'}" class="badge badge-moderate">Moderate</span>
-                                <span th:if="${interaction.severity == 'SEVERE'}" class="badge badge-severe">Severe</span>
+                                <span th:class="'badge badge-' + (${interaction.severity <= 2} ? 'mild' : (${interaction.severity <= 4} ? 'moderate' : 'severe'))">
+                                    <span th:text="${interaction.severity <= 2 ? 'Mild' : (interaction.severity <= 4 ? 'Moderate' : 'Severe')}">Severity</span>
+                                </span>
                             </td>
                             <td th:text="${interaction.description}">Description</td>
                             <td>
-                                <a th:href="@{/drugs/interactions/edit/{id}(id=${interaction.id})}" class="action-btn edit-btn">Edit</a>
-                                <a th:href="@{/drugs/interactions/delete/{id}(id=${interaction.id})}" class="action-btn delete-btn" 
+                                <a th:href="@{/drugs/interactions/delete(drugId=${interaction.sourceDrugId},interactingDrugId=${interaction.targetDrugId})}" class="action-btn delete-btn" 
                                    onclick="return confirm('Are you sure you want to delete this interaction?')">Delete</a>
                             </td>
                         </tr>

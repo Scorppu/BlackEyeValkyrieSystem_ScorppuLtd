@@ -1,51 +1,40 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
-      layout:decorate="~{layout/main}">
-
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/main}">
 <head>
     <title>Add Drug Interaction</title>
     <style>
         .form-container {
             background-color: var(--secondary-bg);
-            border-radius: 8px;
             padding: 20px;
-            margin-bottom: 20px;
-            color: var(--secondary-text);
+            border-radius: 8px;
             border: 1px solid var(--border-color);
         }
         .form-group {
             margin-bottom: 20px;
         }
-        .form-group label {
+        .form-label {
             display: block;
             margin-bottom: 8px;
             font-weight: 500;
             color: var(--primary-text);
         }
-        .form-control {
+        .form-select, .form-textarea {
             width: 100%;
             padding: 10px 12px;
             border: 1px solid var(--border-color);
-            border-radius: 4px;
+            border-radius: 6px;
             background-color: var(--input-bg);
             color: var(--primary-text);
+            font-size: 14px;
             transition: border-color 0.2s;
         }
-        .form-control:focus {
+        .form-select:focus, .form-textarea:focus {
             outline: none;
             border-color: var(--accent-color);
         }
-        textarea.form-control {
-            min-height: 120px;
+        .form-textarea {
+            min-height: 100px;
             resize: vertical;
-        }
-        select.form-control {
-            appearance: none;
-            background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23718096' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 10px center;
-            padding-right: 30px;
         }
         .btn-container {
             display: flex;
@@ -53,388 +42,134 @@
             gap: 10px;
             margin-top: 20px;
         }
-        .primary-btn {
+        .btn {
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: none;
+        }
+        .btn-primary {
             background-color: var(--accent-color);
             color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 500;
             transition: background-color 0.2s;
         }
-        .primary-btn:hover {
+        .btn-primary:hover {
             background-color: #7b26cd;
         }
-        .secondary-btn {
-            background-color: transparent;
-            color: var(--secondary-text);
-            padding: 10px 20px;
-            border-radius: 4px;
-            text-decoration: none;
-            font-weight: 500;
+        .btn-secondary {
+            background-color: var(--input-bg);
+            color: var(--primary-text);
             border: 1px solid var(--border-color);
             transition: background-color 0.2s;
         }
-        .secondary-btn:hover {
-            background-color: rgba(138, 43, 226, 0.1);
-            text-decoration: none;
-            color: var(--secondary-text);
-        }
-        .alert {
-            padding: 12px 16px;
-            margin-bottom: 20px;
-            border-radius: 4px;
-            border-left: 4px solid;
-        }
-        .alert-success {
-            background-color: rgba(39, 174, 96, 0.1);
-            border-color: #27ae60;
-            color: #27ae60;
-        }
-        .alert-danger {
-            background-color: rgba(231, 76, 60, 0.1);
-            border-color: #e74c3c;
-            color: #e74c3c;
-        }
-        .alert-warning {
-            background-color: rgba(243, 156, 18, 0.1);
-            border-color: #f39c12;
-            color: #f39c12;
-        }
-        .header-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
+        .btn-secondary:hover {
+            background-color: var(--hover-bg);
         }
     </style>
 </head>
-
 <body>
     <div layout:fragment="content">
-        <div class="container-fluid">
-            <div class="header-container">
+        <div class="content-wrapper">
+            <div class="content-header">
                 <h1>Add Drug Interaction</h1>
-                <a th:href="@{/drugs/interactions/import}" class="primary-btn">Import from CSV</a>
             </div>
             
-            <div th:if="${successMessage}" class="alert alert-success">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 5px;">
-                    <path d="M12 22C17.5 22 22 17.5 22 12C22 6.5 17.5 2 12 2C6.5 2 2 6.5 2 12C2 17.5 6.5 22 12 22Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M7.75 12L10.58 14.83L16.25 9.17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                <span th:text="${successMessage}">Success message</span>
-            </div>
+            <!-- Error message -->
+            <div th:if="${error}" class="alert alert-danger" style="margin-bottom: 20px;" th:text="${error}"></div>
             
-            <div th:if="${errorMessage}" class="alert alert-danger">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 5px;">
-                    <path d="M12 22C17.5 22 22 17.5 22 12C22 6.5 17.5 2 12 2C6.5 2 2 6.5 2 12C2 17.5 6.5 22 12 22Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M12 8V13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M11.9945 16H12.0035" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                <span th:text="${errorMessage}">Error message</span>
-            </div>
-            
-            <div class="form-container">
-                <form th:action="@{/drugs/interactions/add}" method="post" id="drugInteractionForm" onsubmit="return validateForm()">
-                    
-                    <div class="form-group">
-                        <label for="drugA">First Drug</label>
-                        <select class="form-control" id="drugA" name="drugA" required>
-                            <option value="">Select First Drug</option>
-                            <option th:each="drug : ${drugs}" 
-                                    th:value="${drug.id}" 
-                                    th:text="${drug.name}">Drug name</option>
-                        </select>
-                    </div>
-                    
-                    <!-- Interaction Fields Container -->
-                    <div id="interactionsContainer">
-                        <div class="interaction-item">
-                            <div class="form-group">
-                                <div class="d-flex align-items-center" style="margin-bottom: 10px; justify-content: space-between;">
-                                    <label for="drugB" style="margin-bottom: 0; white-space: nowrap;">Second Drug</label>
-                                </div>
-                                <select class="form-control drugB-select" id="drugB" name="drugB" required>
-                                    <option value="">Select Second Drug</option>
-                                    <option th:each="drug : ${drugs}" 
-                                            th:value="${drug.id}" 
-                                            th:text="${drug.name}">Drug name</option>
-                                </select>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="severity">Severity</label>
-                                <select class="form-control" id="severity" name="severity" required>
-                                    <option value="">Select Severity</option>
-                                    <option value="MILD">Mild</option>
-                                    <option value="MODERATE">Moderate</option>
-                                    <option value="SEVERE">Severe</option>
-                                </select>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="description">Description</label>
-                                <textarea class="form-control" id="description" name="description" 
-                                        placeholder="Enter interaction description" required
-                                        style="min-height: 120px;"></textarea>
-                            </div>
+            <div class="content-body">
+                <div class="form-container">
+                    <form th:action="@{/drugs/interactions/add}" method="post">
+                        <!-- First Drug (Primary) -->
+                        <div class="form-group">
+                            <label for="drugA" class="form-label">Primary Drug</label>
+                            <select id="drugA" name="drugA" class="form-select" required>
+                                <option value="">-- Select Primary Drug --</option>
+                                <option th:each="drug : ${drugs}" 
+                                        th:value="${drug.id}" 
+                                        th:text="${drug.name}">Drug name</option>
+                            </select>
                         </div>
-                    </div>
-                    
-                    <div class="btn-container">
-                        <a th:href="@{/drugs/interactions}" class="secondary-btn">Cancel</a>
-                        <button type="submit" class="primary-btn">Save Interaction</button>
-                    </div>
-                </form>
+                        
+                        <!-- Second Drug (Interacting) -->
+                        <div class="form-group">
+                            <label for="drugB" class="form-label">Interacting Drug</label>
+                            <select id="drugB" name="drugB" class="form-select" required>
+                                <option value="">-- Select Interacting Drug --</option>
+                                <option th:each="drug : ${drugs}" 
+                                        th:value="${drug.id}" 
+                                        th:text="${drug.name}">Drug name</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Severity -->
+                        <div class="form-group">
+                            <label for="severity" class="form-label">Interaction Severity</label>
+                            <select id="severity" name="severity" class="form-select" required>
+                                <option value="">-- Select Severity --</option>
+                                <option th:each="level : ${severityLevels}" 
+                                        th:value="${level}" 
+                                        th:text="${level} + ' - ' + ${level == 1 ? 'Very Mild' : level == 2 ? 'Mild' : level == 3 ? 'Moderate' : level == 4 ? 'Severe' : 'Very Severe'}">
+                                    Severity level
+                                </option>
+                            </select>
+                        </div>
+                        
+                        <!-- Description -->
+                        <div class="form-group">
+                            <label for="description" class="form-label">Interaction Description</label>
+                            <textarea id="description" name="description" class="form-textarea" 
+                                     placeholder="Describe the interaction and its effects" required></textarea>
+                        </div>
+                        
+                        <div class="btn-container">
+                            <a href="/drugs/interactions" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Save Interaction</button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
     
-    <!-- Move all JavaScript to the layout:fragment script -->
-    <script>
-        // Define validateForm in the global window scope
-        window.validateForm = function() {
-            const drugASelect = document.getElementById('drugA');
-            const drugBSelects = document.querySelectorAll('.drugB-select');
-            
-            // Check if first drug is selected
-            if (!drugASelect.value) {
-                alert('Please select the first drug');
-                return false;
-            }
-            
-            // Check if ALL second drug fields are filled and none matches the first drug
-            let allSecondDrugsSelected = true;
-            let hasDuplicateDrug = false;
-            
-            drugBSelects.forEach(select => {
-                // Make sure no options are disabled before submission
-                Array.from(select.options).forEach(opt => {
-                    opt.disabled = false;
-                });
-                
-                // Check if this select has a value
-                if (!select.value) {
-                    allSecondDrugsSelected = false;
-                } 
-                // Check if it matches the first drug
-                else if (select.value === drugASelect.value) {
-                    hasDuplicateDrug = true;
-                }
-            });
-            
-            if (!allSecondDrugsSelected) {
-                alert('Both drugs must be selected');
-                return false;
-            }
-            
-            if (hasDuplicateDrug) {
-                alert('First and Second drugs cannot be the same');
-                return false;
-            }
-            
-            return true;
-        }
-    </script>
-
-    <script layout:fragment="scripts">
+    <script layout:fragment="script">
         document.addEventListener('DOMContentLoaded', function() {
             const drugASelect = document.getElementById('drugA');
-            const interactionsContainer = document.getElementById('interactionsContainer');
+            const drugBSelect = document.getElementById('drugB');
             
-            // Initial setup for the first drugB select
-            updateAllDrugOptions();
+            // Prevent selecting the same drug
+            drugASelect.addEventListener('change', function() {
+                updateInteractingDrugOptions();
+            });
             
-            // Listen for changes on drugA
-            if (drugASelect) {
-                drugASelect.addEventListener('change', updateAllDrugOptions);
-            }
-            
-            // Add more interactions button
-            document.addEventListener('click', function(e) {
-                if (e.target.closest('.add-interaction')) {
-                    addNewInteraction();
-                }
-                
-                if (e.target.closest('.remove-interaction')) {
-                    e.target.closest('.interaction-item').remove();
-                    updateAllDrugOptions();
-                    reindexFormFields();
-                    
-                    // Update interaction count after removal
-                    const updatedCount = document.querySelectorAll('.interaction-item').length;
-                    document.getElementById('interactionCount').value = updatedCount;
+            drugBSelect.addEventListener('change', function() {
+                if (drugBSelect.value === drugASelect.value && drugBSelect.value !== '') {
+                    alert('The interacting drug cannot be the same as the primary drug.');
+                    drugBSelect.value = '';
                 }
             });
             
-            function addNewInteraction() {
-                const interactionItems = document.querySelectorAll('.interaction-item');
-                const newIndex = interactionItems.length;
+            function updateInteractingDrugOptions() {
+                const primaryDrugId = drugASelect.value;
                 
-                // Create the new interaction item
-                const newItem = document.createElement('div');
-                newItem.className = 'interaction-item';
-                
-                // Update interaction count
-                document.getElementById('interactionCount').value = newIndex + 1;
-                
-                newItem.innerHTML = `
-                    <div class="form-group">
-                        <div class="d-flex align-items-center" style="margin-bottom: 10px; justify-content: space-between;">
-                            <label for="drugB${newIndex}" style="margin-bottom: 0; white-space: nowrap;">Second Drug</label>
-                            <div style="margin-left: auto;">
-                                <button type="button" class="btn btn-primary btn-sm add-interaction" style="margin-right: 5px;">
-                                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 4px;">
-                                        <path d="M8 3.33334V12.6667" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                        <path d="M3.33334 8H12.6667" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                    </svg>
-                                    Add more
-                                </button>
-                                <button type="button" class="btn btn-danger btn-sm remove-interaction" style="background-color: #dc3545; color: white; border-color: #dc3545;">
-                                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 4px;">
-                                        <path d="M3.33334 8H12.6667" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                    </svg>
-                                    Remove
-                                </button>
-                            </div>
-                        </div>
-                        <select class="form-control drugB-select" id="drugB${newIndex}" name="drugB" required>
-                            <option value="">Select Second Drug</option>
-                            ${Array.from(document.querySelector('#drugB0').options)
-                                .map(opt => `<option value="${opt.value}" ${opt.disabled ? 'disabled' : ''}>${opt.textContent}</option>`)
-                                .join('')}
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="severity${newIndex}">Severity</label>
-                        <select class="form-control" id="severity${newIndex}" name="severity" required>
-                            <option value="">Select Severity</option>
-                            <option value="MILD">Mild</option>
-                            <option value="MODERATE">Moderate</option>
-                            <option value="SEVERE">Severe</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="description${newIndex}">Description</label>
-                        <textarea class="form-control" id="description${newIndex}" name="description" 
-                                placeholder="Enter interaction description" required
-                                style="min-height: 120px;"></textarea>
-                    </div>
-                    
-                    <hr style="margin: 20px 0; border-color: var(--border-color);" />
-                `;
-                
-                interactionsContainer.appendChild(newItem);
-                updateAllDrugOptions();
-                
-                // Add event listener to the new select
-                const newSelect = document.getElementById(`drugB${newIndex}`);
-                if (newSelect) {
-                    newSelect.addEventListener('change', updateAllDrugOptions);
-                }
-            }
-            
-            // Function to update drug selection options across all selects
-            function updateAllDrugOptions() {
-                const drugAValue = drugASelect.value;
-                const drugBSelects = document.querySelectorAll('.drugB-select');
-                
-                // Get all selected values from drugB selects
-                const selectedDrugBValues = Array.from(drugBSelects).map(select => select.value).filter(val => val);
-                
-                // Reset all options first
-                drugBSelects.forEach(select => resetOptions(select));
-                
-                // Disable the drugA value in all drugB options
-                if (drugAValue) {
-                    drugBSelects.forEach(select => disableOption(select, drugAValue));
+                // Reset the interacting drug dropdown
+                if (drugBSelect.value === primaryDrugId && drugBSelect.value !== '') {
+                    drugBSelect.value = '';
                 }
                 
-                // For each drugB select, disable values selected in other drugB selects
-                drugBSelects.forEach((currentSelect) => {
-                    const currentValue = currentSelect.value;
-                    
-                    // Disable all other selected values except the current one
-                    selectedDrugBValues.forEach(value => {
-                        if (value && value !== currentValue) {
-                            disableOption(currentSelect, value);
-                        }
-                    });
+                // Enable all options and disable the one matching the primary drug
+                Array.from(drugBSelect.options).forEach(option => {
+                    option.disabled = (option.value === primaryDrugId && option.value !== '');
                 });
             }
             
-            // Helper function to reset all options in a select
-            function resetOptions(selectElement) {
-                Array.from(selectElement.options).forEach(option => {
-                    if (option.value !== "") { // Skip the placeholder option
-                        option.disabled = false;
-                    }
-                });
-            }
-            
-            // Helper function to disable an option by value
-            function disableOption(selectElement, valueToDisable) {
-                Array.from(selectElement.options).forEach(option => {
-                    if (option.value === valueToDisable) {
-                        option.disabled = true;
-                    }
-                });
-            }
-            
-            // Add event listeners to all drugB selects
-            document.querySelectorAll('.drugB-select').forEach(select => {
-                select.addEventListener('change', updateAllDrugOptions);
-            });
-            
-            // Function to reindex form fields after removal
-            function reindexFormFields() {
-                const interactionItems = document.querySelectorAll('.interaction-item');
-                
-                interactionItems.forEach((item, index) => {
-                    // Update drugB select
-                    const drugBSelect = item.querySelector('.drugB-select');
-                    if (drugBSelect) {
-                        drugBSelect.id = `drugB${index}`;
-                        drugBSelect.name = `drugB`;
-                        
-                        // Update the label's for attribute
-                        const drugBLabel = item.querySelector('label[for^="drugB"]');
-                        if (drugBLabel) {
-                            drugBLabel.setAttribute('for', `drugB`);
-                        }
-                    }
-                    
-                    // Update severity select
-                    const severitySelect = item.querySelector('select[id^="severity"]');
-                    if (severitySelect) {
-                        severitySelect.id = `severity`;
-                        severitySelect.name = `severity`;
-                        
-                        // Update the label's for attribute
-                        const severityLabel = item.querySelector('label[for^="severity"]');
-                        if (severityLabel) {
-                            severityLabel.setAttribute('for', `severity`);
-                        }
-                    }
-                    
-                    // Update description textarea
-                    const descriptionTextarea = item.querySelector('textarea[id^="description"]');
-                    if (descriptionTextarea) {
-                        descriptionTextarea.id = `description`;
-                        descriptionTextarea.name = `description`;
-                        
-                        // Update the label's for attribute
-                        const descriptionLabel = item.querySelector('label[for^="description"]');
-                        if (descriptionLabel) {
-                            descriptionLabel.setAttribute('for', `description`);
-                        }
-                    }
-                });
-            }
+            // Run once on page load
+            updateInteractingDrugOptions();
         });
     </script>
 </body>
