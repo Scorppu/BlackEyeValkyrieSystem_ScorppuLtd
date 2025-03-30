@@ -1,5 +1,8 @@
 // Theme toggling functionality
 document.addEventListener('DOMContentLoaded', function() {
+    // Ensure visibility when DOM is fully loaded
+    document.documentElement.classList.add('theme-initialized');
+    
     // Create the theme toggle button if it doesn't exist
     if (!document.getElementById('theme-toggle-btn')) {
         createThemeToggleButton();
@@ -96,15 +99,18 @@ function initThemeToggle() {
     const sunIcon = document.getElementById('sun-icon');
     const themeLabel = themeToggleBtn.querySelector('.theme-label');
     
-    // Check if user has a saved preference
-    const savedTheme = localStorage.getItem('theme');
+    // Check the current theme by checking if light-mode class is present
+    const isLightMode = document.documentElement.classList.contains('light-mode');
     
-    // Apply saved theme or default to dark mode
-    if (savedTheme === 'light') {
-        document.documentElement.classList.add('light-mode');
+    // Set the correct icon and label based on current theme
+    if (isLightMode) {
         moonIcon.style.display = 'none';
         sunIcon.style.display = 'block';
         themeLabel.textContent = 'Switch to Dark Mode';
+    } else {
+        moonIcon.style.display = 'block';
+        sunIcon.style.display = 'none';
+        themeLabel.textContent = 'Switch to Light Mode';
     }
     
     // Theme toggle button click handler
