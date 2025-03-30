@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Patient Profile - BlackEyeValkyrieSystem</title>
+    <title>Edit Patient Profile - BlackEyeValkyrieSystem</title>
     
     <th:block layout:fragment="head">
         <!-- Create Patient specific CSS -->
@@ -218,65 +218,65 @@
                 <!-- Personal Information Form -->
                 <div id="personal-info-form" class="form-section active">
                     <h2>Personal information</h2>
-                    <p>Below is patient's personal information</p>
+                    <p>Edit patient's personal information</p>
+                    
                     <form id="patient-form">
+                        <input type="hidden" id="patientId" name="patientId" th:value="${patient != null ? patient.id : ''}">
+                        
                         <div class="form-group">
                             <label for="firstName">First name</label>
-                            <input type="text" id="firstName" name="firstName" class="form-control">
+                            <input type="text" id="firstName" name="firstName" class="form-control" th:value="${patient != null ? patient.firstName : ''}">
                         </div>
                         
                         <div class="form-group">
                             <label for="lastName">Last name</label>
-                            <input type="text" id="lastName" name="lastName" class="form-control">
+                            <input type="text" id="lastName" name="lastName" class="form-control" th:value="${patient != null ? patient.lastName : ''}">
                         </div>
                         
                         <div class="form-group">
                             <label for="sex">Sex</label>
                             <select id="sex" name="sex" class="form-control">
-                                <option value="Male" >Male</option>
-                                <option value="Female">Female</option>
-                                <option value="Other">Other</option>
+                                <option value="Male" th:selected="${patient != null && patient.sex == true}">Male</option>
+                                <option value="Female" th:selected="${patient != null && patient.sex == false}">Female</option>
                             </select>
                         </div>
                         
                         <div class="form-group">
                             <label for="relativeName">Relative Name</label>
-                            <input type="text" id="relativeName" name="relativeName" class="form-control">
+                            <input type="text" id="relativeName" name="relativeName" class="form-control" th:value="${patient != null ? patient.relativeName : ''}">
                         </div>
                         
                         <div class="form-group">
                             <label for="dateOfBirth">Date Of Birth</label>
-                            <input type="date" id="dateOfBirth" name="dateOfBirth" class="form-control">
+                            <input type="date" id="dateOfBirth" name="dateOfBirth" class="form-control" th:value="${patient != null ? patient.dateOfBirth : ''}">
                         </div>
                         
                         <div class="form-group">
                             <label for="age">Age</label>
-                            <input type="number" id="age" name="age" class="form-control" readonly>
+                            <input type="number" id="age" name="age" class="form-control" readonly th:value="${patient != null ? patient.age : ''}">
                         </div>
                         
                         <div class="form-group">
                             <label for="maritalStatus">Marital Status</label>
                             <select id="maritalStatus" name="maritalStatus" class="form-control">
-                                <option value="Single">Single</option>
-                                <option value="Single dog">Single dog</option>
-                                <option value="Married">Married</option>
-                                <option value="Divorced">Divorced</option>
-                                <option value="Widowed">Widowed</option>
+                                <option value="Single" th:selected="${patient != null && patient.maritalStatus == 'Single'}">Single</option>
+                                <option value="Married" th:selected="${patient != null && patient.maritalStatus == 'Married'}">Married</option>
+                                <option value="Divorced" th:selected="${patient != null && patient.maritalStatus == 'Divorced'}">Divorced</option>
+                                <option value="Widowed" th:selected="${patient != null && patient.maritalStatus == 'Widowed'}">Widowed</option>
                             </select>
                         </div>
                         
                         <div class="form-group">
                             <label for="bloodType">Blood Type</label>
                             <select id="bloodType" name="bloodType" class="form-control">
-                                <option value="A+">A+</option>
-                                <option value="A-">A-</option>
-                                <option value="B+">B+</option>
-                                <option value="B-">B-</option>
-                                <option value="AB+">AB+</option>
-                                <option value="AB-">AB-</option>
-                                <option value="O+">O+</option>
-                                <option value="O-">O-</option>
-                                <option value="idk mine actually">idk mine actually</option>
+                                <option value="A+" th:selected="${patient != null && patient.bloodType == 'A+'}">A+</option>
+                                <option value="A-" th:selected="${patient != null && patient.bloodType == 'A-'}">A-</option>
+                                <option value="B+" th:selected="${patient != null && patient.bloodType == 'B+'}">B+</option>
+                                <option value="B-" th:selected="${patient != null && patient.bloodType == 'B-'}">B-</option>
+                                <option value="AB+" th:selected="${patient != null && patient.bloodType == 'AB+'}">AB+</option>
+                                <option value="AB-" th:selected="${patient != null && patient.bloodType == 'AB-'}">AB-</option>
+                                <option value="O+" th:selected="${patient != null && patient.bloodType == 'O+'}">O+</option>
+                                <option value="O-" th:selected="${patient != null && patient.bloodType == 'O-'}">O-</option>
                             </select>
                         </div>
 
@@ -289,56 +289,56 @@
                 <!-- Contact Information Form -->
                 <div id="contact-info-form" class="form-section">
                     <h2>Contact Information</h2>
-                    <p>Below is patient's contact information</p>
+                    <p>Edit patient's contact information</p>
                     <form id="contact-form">
                         <div class="form-group">
                             <label for="contactNumber">Phone / Mobile</label>
-                            <input type="tel" id="contactNumber" name="contactNumber" class="form-control">
+                            <input type="tel" id="contactNumber" name="contactNumber" class="form-control" th:value="${patient != null ? patient.contactNumber : ''}">
                         </div>
                         
                         <div class="form-group">
                             <label for="email">Email Address</label>
-                            <input type="email" id="email" name="email" class="form-control">
+                            <input type="email" id="email" name="email" class="form-control" th:value="${patient != null ? patient.email : ''}">
                         </div>
                         
                         <div class="form-group">
                             <label for="address1">Address 1</label>
-                            <input type="text" id="address1" name="address1" class="form-control">
+                            <input type="text" id="address1" name="address1" class="form-control" th:value="${patient != null && patient.address != null ? patient.address.addressLine1 : ''}">
                         </div>
                         
                         <div class="form-group">
                             <label for="address2">Address 2</label>
-                            <input type="text" id="address2" name="address2" class="form-control">
+                            <input type="text" id="address2" name="address2" class="form-control" th:value="${patient != null && patient.address != null ? patient.address.addressLine2 : ''}">
                         </div>
                         
                         <div class="form-group">
                             <label for="address3">Address 3</label>
-                            <input type="text" id="address3" name="address3" class="form-control">
+                            <input type="text" id="address3" name="address3" class="form-control" th:value="${patient != null && patient.address != null ? patient.address.addressLine3 : ''}">
                         </div>
                         
                         <div class="form-group">
                             <label for="country">Country</label>
-                            <input type="text" id="country" name="country" class="form-control">
+                            <input type="text" id="country" name="country" class="form-control" th:value="${patient != null && patient.address != null ? patient.address.country : ''}">
                         </div>
                         
                         <div class="form-group">
                             <label for="state">State</label>
-                            <input type="text" id="state" name="state" class="form-control">
+                            <input type="text" id="state" name="state" class="form-control" th:value="${patient != null && patient.address != null ? patient.address.state : ''}">
                         </div>
                         
                         <div class="form-group">
                             <label for="town">Town</label>
-                            <input type="text" id="town" name="town" class="form-control">
+                            <input type="text" id="town" name="town" class="form-control" th:value="${patient != null && patient.address != null ? patient.address.town : ''}">
                         </div>
                         
                         <div class="form-group">
                             <label for="pinCode">Pin Code</label>
-                            <input type="text" id="pinCode" name="pinCode" class="form-control">
+                            <input type="text" id="pinCode" name="pinCode" class="form-control" th:value="${patient != null && patient.address != null ? patient.address.pinCode : ''}">
                         </div>
 
                         <div class="form-actions">
                             <button type="button" id="back-btn" class="btn btn-secondary">BACK</button>
-                            <button type="submit" id="submit-btn" class="btn btn-success">SAVE PATIENT</button>
+                            <button type="submit" id="submit-btn" class="btn btn-success">UPDATE PATIENT</button>
                         </div>
                     </form>
                 </div>
@@ -347,16 +347,57 @@
     </div>
     
     <th:block layout:fragment="scripts">
-        <script>
-            // Tab navigation for personal to contact info
+        <script type="text/javascript">
             document.addEventListener('DOMContentLoaded', function() {
+                // Always fetch patient data from API on page load
+                const pathParts = window.location.pathname.split('/');
+                const patientId = pathParts[pathParts.length - 1];
+                
+                if (patientId && patientId !== 'edit') {
+                    // Make the API call to fetch patient data
+                    fetch(`/api/patients/${patientId}`)
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error(`API returned error code ${response.status}`);
+                            }
+                            return response.json();
+                        })
+                        .then(patient => {
+                            // Set values to form fields
+                            document.getElementById('patientId').value = patient.id || '';
+                            document.getElementById('firstName').value = patient.firstName || '';
+                            document.getElementById('lastName').value = patient.lastName || '';
+                            document.getElementById('sex').value = patient.sex ? 'Male' : 'Female';
+                            document.getElementById('relativeName').value = patient.relativeName || '';
+                            document.getElementById('dateOfBirth').value = patient.dateOfBirth || '';
+                            document.getElementById('age').value = patient.age || '';
+                            document.getElementById('maritalStatus').value = patient.maritalStatus || '';
+                            document.getElementById('bloodType').value = patient.bloodType || '';
+                            document.getElementById('contactNumber').value = patient.contactNumber || '';
+                            document.getElementById('email').value = patient.email || '';
+                            
+                            if (patient.address) {
+                                document.getElementById('address1').value = patient.address.addressLine1 || '';
+                                document.getElementById('address2').value = patient.address.addressLine2 || '';
+                                document.getElementById('address3').value = patient.address.addressLine3 || '';
+                                document.getElementById('country').value = patient.address.country || '';
+                                document.getElementById('state').value = patient.address.state || '';
+                                document.getElementById('town').value = patient.address.town || '';
+                                document.getElementById('pinCode').value = patient.address.pinCode || '';
+                            }
+                        })
+                        .catch(error => {
+                        });
+                }
+                
+                // Setup form tabs
                 const nextButton = document.getElementById('next-btn');
                 const backButton = document.getElementById('back-btn');
                 const tabItems = document.querySelectorAll('.tab-item');
                 const personalInfoForm = document.getElementById('personal-info-form');
                 const contactInfoForm = document.getElementById('contact-info-form');
                 
-                // Switch between form sections based on tab
+                // Switch between form sections
                 function switchFormSection(tabId) {
                     // Hide all form sections
                     document.querySelectorAll('.form-section').forEach(section => {
@@ -373,8 +414,6 @@
                                 tab.classList.remove('active');
                             }
                         });
-                        document.getElementById('personal-info-tab').classList.add('active');
-                        document.getElementById('contact-info-tab').classList.remove('active');
                     } else if (tabId === 'contact-info-tab') {
                         contactInfoForm.classList.add('active');
                         document.querySelectorAll('.tab-item').forEach(tab => {
@@ -384,8 +423,6 @@
                                 tab.classList.remove('active');
                             }
                         });
-                        document.getElementById('contact-info-tab').classList.add('active');
-                        document.getElementById('personal-info-tab').classList.remove('active');
                     }
                 }
                 
@@ -400,13 +437,12 @@
                 // Next button handling
                 if (nextButton) {
                     nextButton.addEventListener('click', function() {
-                        // Validate personal information fields
+                        // Basic validation
                         const firstName = document.getElementById('firstName').value;
                         const lastName = document.getElementById('lastName').value;
-                        const dateOfBirth = document.getElementById('dateOfBirth').value;
                         
-                        if (!firstName || !lastName || !dateOfBirth) {
-                            alert('Please fill in all required fields.');
+                        if (!firstName || !lastName) {
+                            alert('Please fill in at least first name and last name fields.');
                             return;
                         }
                         
@@ -414,133 +450,23 @@
                         switchFormSection('contact-info-tab');
                     });
                 }
-
+                
+                // Back button handling
                 if (backButton) {
                     backButton.addEventListener('click', function() {
                         // Switch back to personal information tab
                         switchFormSection('personal-info-tab');
                     });
                 }
-
-                // Form submission handling
-                const contactForm = document.getElementById('contact-form');
-                if (contactForm) {
-                    contactForm.addEventListener('submit', function(e) {
-                        e.preventDefault();
-                        
-                        // Get personal information
-                        const firstName = document.getElementById('firstName').value;
-                        const lastName = document.getElementById('lastName').value;
-                        const sex = document.getElementById('sex').value === 'Male' ? true : false;
-                        const relativeName = document.getElementById('relativeName').value;
-                        const dateOfBirth = document.getElementById('dateOfBirth').value;
-                        const age = document.getElementById('age').value;
-                        const maritalStatus = document.getElementById('maritalStatus').value;
-                        const bloodType = document.getElementById('bloodType').value;
-                        
-                        // Get contact information
-                        const contactNumber = document.getElementById('contactNumber').value;
-                        const email = document.getElementById('email').value;
-                        const address1 = document.getElementById('address1').value;
-                        const address2 = document.getElementById('address2').value;
-                        const address3 = document.getElementById('address3').value;
-                        const country = document.getElementById('country').value;
-                        const state = document.getElementById('state').value;
-                        const town = document.getElementById('town').value;
-                        const pinCode = document.getElementById('pinCode').value;
-                        
-                        // Create combined data object
-                        const patientData = {
-                            firstName: firstName,
-                            lastName: lastName,
-                            sex: sex,
-                            relativeName: relativeName,
-                            dateOfBirth: dateOfBirth,
-                            age: parseInt(age),
-                            maritalStatus: maritalStatus,
-                            bloodType: bloodType,
-                            contactNumber: contactNumber,
-                            email: email,
-                            address: {
-                                addressLine1: address1,
-                                addressLine2: address2,
-                                addressLine3: address3,
-                                country: country,
-                                state: state,
-                                town: town,
-                                pinCode: pinCode
-                            }
-                        };
-                        
-                        console.log('Sending patient data:', JSON.stringify(patientData));
-                        
-                        // Send data to server
-                        fetch('/api/patients', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify(patientData)
-                        })
-                        .then(response => {
-                            if (!response.ok) {
-                                // Get more detailed error information
-                                return response.text().then(text => {
-                                    console.error('Server error response:', text);
-                                    throw new Error(`Server responded with status: ${response.status} ${response.statusText}`);
-                                });
-                            }
-                            return response.json();
-                        })
-                        .then(data => {
-                            console.log('Success:', data);
-                            alert('Patient profile created successfully!');
-                            
-                            // Redirect to patient list
-                            window.location.href = '/patient/list';
-                        })
-                        .catch((error) => {
-                            console.error('Error:', error);
-                            alert('Error creating patient profile: ' + error.message);
-                        });
-                    });
-                }
-
-                // Function to populate patient information
-                function populatePatientInfo(patient) {
-                    // Hide loading, show patient info
-                    document.getElementById('loading-container').style.display = 'none';
-                    document.getElementById('patient-info').style.display = 'block';
-                    
-                    // Set field values from patient object
-                    document.getElementById('patient-id').textContent = patient.id || '';
-                    document.getElementById('first-name').textContent = patient.firstName || '';
-                    document.getElementById('last-name').textContent = patient.lastName || '';
-                    document.getElementById('sex').textContent = patient.sex || '';
-                    document.getElementById('relative-name').textContent = patient.relativeName || '';
-                    document.getElementById('date-of-birth').textContent = patient.dateOfBirth || '';
-                    document.getElementById('age').textContent = patient.age || '';
-                    document.getElementById('marital-status').textContent = patient.maritalStatus || '';
-                    document.getElementById('blood-type').textContent = patient.bloodType || '';
-                    
-                    document.getElementById('contact-number').textContent = patient.contactNumber || '';
-                    document.getElementById('email').textContent = patient.email || '';
-                    document.getElementById('address1').textContent = patient.address1 || '';
-                    document.getElementById('address2').textContent = patient.address2 || '';
-                    document.getElementById('address3').textContent = patient.address3 || '';                    
-                    
-                    document.getElementById('country').textContent = patient.country || '';
-                    document.getElementById('state').textContent = patient.state || '';
-                    document.getElementById('town').textContent = patient.town || '';
-                    document.getElementById('pin-code').textContent = patient.pinCode || '';
-                }
-
+                
                 // Calculate age from date of birth
                 const dobField = document.getElementById('dateOfBirth');
                 const ageField = document.getElementById('age');
                 
                 if (dobField && ageField) {
                     dobField.addEventListener('change', function() {
+                        if (!this.value) return;
+                        
                         const dob = new Date(this.value);
                         const today = new Date();
                         let age = today.getFullYear() - dob.getFullYear();
@@ -553,38 +479,72 @@
                         
                         ageField.value = age;
                     });
-                    
-                    // Calculate initial age
-                    if (dobField.value) {
-                        const dob = new Date(dobField.value);
-                        const today = new Date();
-                        let age = today.getFullYear() - dob.getFullYear();
-                        
-                        const monthDiff = today.getMonth() - dob.getMonth();
-                        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
-                            age--;
-                        }
-                        
-                        ageField.value = age;
-                    }
                 }
-                // Make API request to get patient information
-                function fetchPatientInfo() {
-                    fetch(`/api/patients/${patientId}`).then(response => {
-                        if (!response.ok) {
-                            throw new Error(`HTTP error! Status: ${response.status}`);
+                
+                // Form submission handling
+                const contactForm = document.getElementById('contact-form');
+                if (contactForm) {
+                    contactForm.addEventListener('submit', function(e) {
+                        e.preventDefault();
+                        
+                        // Get patient ID
+                        const patientId = document.getElementById('patientId').value;
+                        if (!patientId) {
+                            alert('Error: No patient ID available');
+                            return;
                         }
-                        return response.json();
-                    })
-                    .then(data => {
-                        populatePatientInfo(data);
-                    })
-                    .catch(error => {
-                        showError(`Failed to load patient information: ${error.message}`);
-                        console.error('Error:', error);
+                        
+                        // Create patient data object
+                        const patientData = {
+                            firstName: document.getElementById('firstName').value,
+                            lastName: document.getElementById('lastName').value,
+                            sex: document.getElementById('sex').value === 'Male',
+                            relativeName: document.getElementById('relativeName').value,
+                            dateOfBirth: document.getElementById('dateOfBirth').value,
+                            age: parseInt(document.getElementById('age').value) || 0,
+                            maritalStatus: document.getElementById('maritalStatus').value,
+                            bloodType: document.getElementById('bloodType').value,
+                            contactNumber: document.getElementById('contactNumber').value,
+                            email: document.getElementById('email').value,
+                            address: {
+                                addressLine1: document.getElementById('address1').value,
+                                addressLine2: document.getElementById('address2').value,
+                                addressLine3: document.getElementById('address3').value,
+                                country: document.getElementById('country').value,
+                                state: document.getElementById('state').value,
+                                town: document.getElementById('town').value,
+                                pinCode: document.getElementById('pinCode').value
+                            }
+                        };
+                        
+                        // Send data to server using PUT for update
+                        fetch('/api/patients/' + patientId, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(patientData)
+                        })
+                        .then(response => {
+                            if (!response.ok) {
+                                // Get more detailed error information
+                                return response.text().then(text => {
+                                    throw new Error(`Server responded with status: ${response.status} ${response.statusText}`);
+                                });
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            alert('Patient profile updated successfully!');
+                            
+                            // Redirect to patient list
+                            window.location.href = '/patient/list';
+                        })
+                        .catch((error) => {
+                            alert('Error updating patient profile: ' + error.message);
+                        });
                     });
                 }
-                window.onload = fetchPatientInfo;
             });
         </script>
     </th:block>
