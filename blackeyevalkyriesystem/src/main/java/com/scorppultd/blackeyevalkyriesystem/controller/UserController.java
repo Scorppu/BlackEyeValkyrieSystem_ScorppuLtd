@@ -2,6 +2,7 @@ package com.scorppultd.blackeyevalkyriesystem.controller;
 
 import com.scorppultd.blackeyevalkyriesystem.model.User;
 import com.scorppultd.blackeyevalkyriesystem.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,8 +34,12 @@ public class UserController {
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public String listUsers(
             Model model,
+            HttpServletRequest request,
             @RequestParam(name = "sortBy", defaultValue = "lastName") String sortBy,
             @RequestParam(name = "direction", defaultValue = "asc") String direction) {
+        
+        // Add request to model for sidebar navigation
+        model.addAttribute("request", request);
         
         // Get sorted users
         List<User> users = userService.getAllUsersSorted(sortBy, direction);
@@ -57,14 +62,19 @@ public class UserController {
     
     @GetMapping("/create")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public String createUserForm(Model model) {
+    public String createUserForm(Model model, HttpServletRequest request) {
+        // Add request to model for sidebar navigation
+        model.addAttribute("request", request);
         model.addAttribute("user", new User());
         return "create-user";
     }
     
     @GetMapping("/edit/{id}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public String editUserForm(@PathVariable String id, Model model, RedirectAttributes redirectAttributes) {
+    public String editUserForm(@PathVariable String id, Model model, HttpServletRequest request, RedirectAttributes redirectAttributes) {
+        // Add request to model for sidebar navigation
+        model.addAttribute("request", request);
+        
         Optional<User> userOpt = userService.findUserById(id);
         
         if (userOpt.isEmpty()) {
@@ -81,7 +91,7 @@ public class UserController {
     
     @GetMapping("/delete/{id}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public String deleteUser(@PathVariable String id, RedirectAttributes redirectAttributes) {
+    public String deleteUser(@PathVariable String id, HttpServletRequest request, RedirectAttributes redirectAttributes) {
         try {
             Optional<User> userOpt = userService.findUserById(id);
             
@@ -117,6 +127,7 @@ class UserApiController {
     private PasswordEncoder passwordEncoder;
     
     @PostMapping
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<?> createUser(@RequestBody User user) {
         try {
             logger.info("Received user creation request: username={}", user.getUsername());
@@ -140,8 +151,6 @@ class UserApiController {
             // Encrypt password
             user.setPassword(passwordEncoder.encode(user.getPassword()));
             
-            // Set default values for new user
-            user.setActive(true);
             user.setCreatedDate(LocalDate.now());
             
             logger.info("Creating new user: username={}, role={}", user.getUsername(), user.getRole());
@@ -158,6 +167,7 @@ class UserApiController {
     }
     
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<?> updateUser(@PathVariable String id, @RequestBody User user) {
         try {
             logger.info("Received user update request for id={}", id);

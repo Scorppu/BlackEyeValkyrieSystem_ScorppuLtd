@@ -96,8 +96,8 @@
                     Consultation Module
                 </a>
                 
-                <!-- New Users dropdown menu item -->
-                <a href="#" class="nav-item dropdown-toggle" th:classappend="${request != null && request.requestURI.startsWith('/user') ? 'expanded' : ''}">
+                <!-- New Users dropdown menu item - Only visible to ADMIN -->
+                <a sec:authorize="hasRole('ROLE_ADMIN')" href="#" class="nav-item dropdown-toggle" th:classappend="${request != null && request.requestURI.startsWith('/user') ? 'expanded' : ''}">
                     <div class="nav-item-content">
                         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M10.6667 14V12.6667C10.6667 11.9594 10.3857 11.2811 9.88562 10.781C9.38552 10.281 8.70724 10 8 10H3.33333C2.62609 10 1.9478 10.281 1.44771 10.781C0.947617 11.2811 0.666666 11.9594 0.666666 12.6667V14" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
@@ -112,7 +112,7 @@
                     </svg>
                 </a>
 
-                <div class="dropdown-menu" th:classappend="${request != null && request.requestURI.startsWith('/user') ? 'active' : ''}">
+                <div sec:authorize="hasRole('ROLE_ADMIN')" class="dropdown-menu" th:classappend="${request != null && request.requestURI.startsWith('/user') ? 'active' : ''}">
                     <a href="/user/list" class="nav-item nav-subitem" th:classappend="${request != null && request.requestURI == '/user/list' ? 'active' : ''}">
                         User List
                     </a>
@@ -224,22 +224,10 @@
                 }
             });
             
-            // Dropdown navigation handling (existing functionality)
-            const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
-            
-            dropdownToggles.forEach(function(toggle) {
-                toggle.addEventListener('click', function() {
-                    this.classList.toggle('expanded');
-                    const dropdown = this.nextElementSibling;
-                    if (dropdown.classList.contains('dropdown-menu')) {
-                        if (dropdown.classList.contains('active')) {
-                            dropdown.classList.remove('active');
-                        } else {
-                            dropdown.classList.add('active');
-                        }
-                    }
-                });
-            });
+            /**
+             * We're removing the duplicate dropdown handling code that was here
+             * This will be managed by main.js to avoid conflicts
+             */
         });
     </script>
     <script th:src="@{/js/main.js}"></script>

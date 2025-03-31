@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -26,6 +27,7 @@ import java.util.Collections;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
     @Autowired
@@ -39,9 +41,13 @@ public class SecurityConfig {
                 // Static resources and login page are publicly accessible
                 .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
                 .requestMatchers("/login").permitAll()
-                .requestMatchers("/api/**").permitAll() // For development - restrict in production
+                // Require authentication for API endpoints
+                .requestMatchers("/api/users/**").hasRole("ADMIN")
                 // All other requests need authentication
                 .anyRequest().authenticated()
+            )
+            .exceptionHandling(exceptions -> exceptions
+                .accessDeniedPage("/access-denied")
             )
             .formLogin(form -> form
                 .loginPage("/login")
@@ -75,11 +81,23 @@ public class SecurityConfig {
     @Bean
     public UserDetailsService databaseUserDetailsService() {
         return username -> userService.findUserByUsername(username)
-            .map(user -> new org.springframework.security.core.userdetails.User(
-                user.getUsername(),
-                user.getPassword(),
-                Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
-            ))
+            .map(user -> {
+                // Check if the user account is active
+                if (!user.isActive()) {
+                    throw new UsernameNotFoundException("User account is not active: " + username);
+                }
+                
+                return new org.springframework.security.core.userdetails.User(
+                    user.getUsername(),
+                    user.getPassword(),
+                    // Pass the active status to the UserDetails
+                    user.isActive(), // enabled
+                    true, // accountNonExpired
+                    true, // credentialsNonExpired
+                    true, // accountNonLocked
+                    Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
+                );
+            })
             .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
     }
     
