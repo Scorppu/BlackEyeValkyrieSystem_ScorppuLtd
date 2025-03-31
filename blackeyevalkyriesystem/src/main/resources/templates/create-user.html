@@ -261,16 +261,7 @@
     </th:block>
 </head>
 <body>
-    <!-- Check for admin role access -->
-    <div sec:authorize="!hasRole('ROLE_ADMIN')" class="unauthorized-access">
-        <h1>Access Denied</h1>
-        <p>You do not have permission to view this page. Only administrators can manage users.</p>
-        <a href="/">Return to Dashboard</a>
-    </div>
-    
-    <!-- Only show the content if user has admin role -->
-    <div sec:authorize="hasRole('ROLE_ADMIN')">
-        <!-- Override the header section completely -->
+    <div>
         <header class="header" layout:fragment="custom-header">
             <div class="header-container">
                 <h1 th:text="${isEdit != null && isEdit ? 'Edit User' : 'Create User'}">Create User</h1>
