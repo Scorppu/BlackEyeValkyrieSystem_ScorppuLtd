@@ -37,10 +37,48 @@ public class UserService {
     }
     
     public User saveUser(User user) {
+        // Prevent saving over the hardcoded admin user
+        if ("admin".equalsIgnoreCase(user.getUsername())) {
+            throw new IllegalArgumentException("Cannot modify the default admin user");
+        }
         return userRepository.save(user);
     }
     
     public Optional<User> findUserById(String id) {
         return userRepository.findById(id);
+    }
+    
+    public Optional<User> findUserByUsername(String username) {
+        // Admin user is handled by in-memory authentication
+        if ("admin".equalsIgnoreCase(username)) {
+            return Optional.empty();
+        }
+        return userRepository.findByUsername(username);
+    }
+    
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
+    
+    public boolean isReservedUsername(String username) {
+        return "admin".equalsIgnoreCase(username);
+    }
+    
+    public void deleteUser(String id) {
+        // Check if the user exists
+        Optional<User> userOpt = findUserById(id);
+        
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+            
+            // Prevent deleting the hardcoded admin user
+            if ("admin".equalsIgnoreCase(user.getUsername())) {
+                throw new IllegalArgumentException("Cannot delete the default admin user");
+            }
+            
+            userRepository.deleteById(id);
+        } else {
+            throw new IllegalArgumentException("User not found with ID: " + id);
+        }
     }
 } 

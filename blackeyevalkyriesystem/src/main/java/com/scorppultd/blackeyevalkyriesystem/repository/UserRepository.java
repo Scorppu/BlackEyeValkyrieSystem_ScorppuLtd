@@ -22,6 +22,7 @@ public interface UserRepository extends MongoRepository<User, String> {
     
     // Find by contact info
     Optional<User> findByEmail(String email);
+    Optional<User> findByUsername(String username);
     List<User> findByPhoneNumber(String phoneNumber);
     
     // Find by status
