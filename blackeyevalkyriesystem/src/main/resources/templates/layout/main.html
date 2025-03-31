@@ -96,19 +96,31 @@
                     Consultation Module
                 </a>
                 
-                <!-- <a href="#" class="nav-item dropdown-toggle" th:classappend="${request != null && request.requestURI.startsWith('/consultation') ? 'expanded' : ''}">
+                <!-- New Users dropdown menu item -->
+                <a href="#" class="nav-item dropdown-toggle" th:classappend="${request != null && request.requestURI.startsWith('/user') ? 'expanded' : ''}">
                     <div class="nav-item-content">
                         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M14 8.66667V13.3333C14 13.687 13.8595 14.0261 13.6095 14.2761C13.3594 14.5262 13.0203 14.6667 12.6667 14.6667H3.33333C2.97971 14.6667 2.64057 14.5262 2.39052 14.2761C2.14048 14.0261 2 13.687 2 13.3333V8.66667" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M5.33333 6.66667L8 9.33333L10.6667 6.66667" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M8 1.33333V9.33333" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M10.6667 14V12.6667C10.6667 11.9594 10.3857 11.2811 9.88562 10.781C9.38552 10.281 8.70724 10 8 10H3.33333C2.62609 10 1.9478 10.281 1.44771 10.781C0.947617 11.2811 0.666666 11.9594 0.666666 12.6667V14" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M5.66667 7.33333C7.13943 7.33333 8.33333 6.13943 8.33333 4.66667C8.33333 3.19391 7.13943 2 5.66667 2C4.19391 2 3 3.19391 3 4.66667C3 6.13943 4.19391 7.33333 5.66667 7.33333Z" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M15.3333 14V12.6667C15.3328 12.0758 15.1362 11.5019 14.7742 11.0349C14.4122 10.5679 13.9053 10.2344 13.3333 10.0867" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M10.6667 2.08667C11.2406 2.2335 11.7492 2.56712 12.1118 3.03488C12.4744 3.50264 12.6709 4.07769 12.6709 4.67C12.6709 5.26232 12.4744 5.83737 12.1118 6.30513C11.7492 6.77289 11.2406 7.1065 10.6667 7.25334" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
-                        Consultation Module
+                        Users
                     </div>
                     <svg class="dropdown-arrow" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M4 6L8 10L12 6" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
-                </a> -->
+                </a>
+
+                <div class="dropdown-menu" th:classappend="${request != null && request.requestURI.startsWith('/user') ? 'active' : ''}">
+                    <a href="/user/list" class="nav-item nav-subitem" th:classappend="${request != null && request.requestURI == '/user/list' ? 'active' : ''}">
+                        User List
+                    </a>
+                    
+                    <a href="/user/create" class="nav-item nav-subitem" th:classappend="${request != null && request.requestURI == '/user/create' ? 'active' : ''}">
+                        Create User
+                    </a>
+                </div>
                 
                 <a href="/settings" class="nav-item" th:classappend="${request != null && request.requestURI == '/settings' ? 'active' : ''}">
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create New User - BlackEyeValkyrieSystem</title>
+    
+    <th:block layout:fragment="head">
+        <!-- Create User specific CSS -->
+        <style>
+            .main-container {
+                display: flex;
+                gap: 2rem;
+                max-width: 1200px;
+                margin: 0 auto;
+            }
+            
+            .form-container {
+                background-color: var(--secondary-bg);
+                border-radius: 0.5rem;
+                padding: 2rem;
+                flex-grow: 1;
+                max-width: 500px;
+                margin: 0 auto;
+            }
+            
+            .form-section {
+                display: block;
+            }
+            
+            .form-section h2 {
+                margin-top: 0;
+                margin-bottom: 0.5rem;
+                font-size: 1.5rem;
+                font-weight: 600;
+                color: var(--primary-text);
+            }
+            
+            .form-section p {
+                margin-top: 0;
+                margin-bottom: 2rem;
+                color: var(--secondary-text);
+            }
+            
+            .form-group {
+                margin-bottom: 1.5rem;
+            }
+            
+            .form-group label {
+                display: block;
+                margin-bottom: 0.5rem;
+                font-weight: 500;
+                color: var(--secondary-text);
+            }
+            
+            .form-control {
+                width: 100%;
+                padding: 0.75rem 1rem;
+                background-color: var(--primary-bg);
+                border: 1px solid var(--border-color);
+                border-radius: 0.5rem;
+                color: var(--primary-text);
+                font-size: 1rem;
+            }
+            
+            .form-control:focus {
+                outline: none;
+                border-color: var(--accent-color);
+                box-shadow: 0 0 0 2px rgba(138, 43, 226, 0.2);
+            }
+            
+            select.form-control {
+                appearance: none;
+                background-image: url("data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4 6L8 10L12 6' stroke='white' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+                background-repeat: no-repeat;
+                background-position: right 1rem center;
+                padding-right: 2.5rem;
+            }
+            
+            .form-actions {
+                display: flex;
+                justify-content: flex-end;
+                gap: 1rem;
+                margin-top: 2rem;
+            }
+            
+            .btn {
+                padding: 0.75rem 1.5rem;
+                border: none;
+                border-radius: 0.5rem;
+                font-weight: 600;
+                cursor: pointer;
+                transition: background-color 0.2s;
+            }
+            
+            .btn-primary {
+                background-color: var(--accent-color);
+                color: white;
+            }
+            
+            .btn-primary:hover {
+                background-color: #7b26cd;
+            }
+            
+            .btn-secondary {
+                background-color: rgba(255, 255, 255, 0.1);
+                color: var(--primary-text);
+            }
+            
+            .btn-secondary:hover {
+                background-color: rgba(255, 255, 255, 0.15);
+            }
+            
+            .header-container {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 2rem;
+                max-width: 1200px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+        </style>
+    </th:block>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="main-container">
+            <!-- Form Container -->
+            <div class="form-container">
+                <div class="form-section">
+                    <h2>Create new user</h2>
+                    <p>Please insert information below</p>
+                    
+                    <form id="user-form" th:action="@{/api/users}" method="post" th:object="${user}">
+                        <div class="form-group">
+                            <label for="username">Username</label>
+                            <input type="text" id="username" name="username" class="form-control" th:field="*{username}" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="password">Password</label>
+                            <input type="password" id="password" name="password" class="form-control" th:field="*{password}" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="licenseKey">License key</label>
+                            <input type="text" id="licenseKey" name="licenseKey" class="form-control" th:field="*{licenseKey}" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="role">Role</label>
+                            <select id="role" name="role" class="form-control" th:field="*{role}" required>
+                                <option value=""></option>
+                                <option value="ADMIN">Administrator</option>
+                                <option value="DOCTOR">Doctor</option>
+                                <option value="NURSE">Nurse</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">Confirm</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <th:block layout:fragment="scripts">
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const userForm = document.getElementById('user-form');
+                
+                if (userForm) {
+                    userForm.addEventListener('submit', function(e) {
+                        e.preventDefault();
+                        
+                        // Validate form
+                        const username = document.getElementById('username').value;
+                        const password = document.getElementById('password').value;
+                        const licenseKey = document.getElementById('licenseKey').value;
+                        const role = document.getElementById('role').value;
+                        
+                        if (!username || !password || !licenseKey || !role) {
+                            alert('Please fill in all required fields.');
+                            return;
+                        }
+                        
+                        // Create data object
+                        const userData = {
+                            username: username,
+                            password: password,
+                            licenseKey: licenseKey,
+                            role: role
+                        };
+                        
+                        console.log('Sending user data:', JSON.stringify(userData));
+                        
+                        // Send data to server
+                        fetch('/api/users', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(userData)
+                        })
+                        .then(response => {
+                            if (!response.ok) {
+                                // Get more detailed error information
+                                return response.text().then(text => {
+                                    console.error('Server error response:', text);
+                                    throw new Error(`Server responded with status: ${response.status} ${response.statusText}`);
+                                });
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            console.log('Success:', data);
+                            alert('User created successfully!');
+                            
+                            // Redirect to user list
+                            window.location.href = '/user/list';
+                        })
+                        .catch((error) => {
+                            console.error('Error:', error);
+                            alert('Error creating user: ' + error.message);
+                        });
+                    });
+                }
+            });
+        </script>
+    </th:block>
+</body>
+</html> 

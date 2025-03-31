@@ -34,4 +34,6 @@ public interface UserRepository extends MongoRepository<User, String> {
     List<User> findByAddress_City(String city);
     List<User> findByAddress_State(String state);
     List<User> findByAddress_Country(String country);
+
+    long countByRole(User.UserRole role);
 } 
