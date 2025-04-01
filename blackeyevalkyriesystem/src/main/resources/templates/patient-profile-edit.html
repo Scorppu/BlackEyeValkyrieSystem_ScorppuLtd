@@ -253,6 +253,59 @@
             .mb-4 {
                 margin-bottom: 1.5rem;
             }
+            
+            .search-container {
+                position: relative;
+                flex: 1;
+            }
+            
+            .drugs-dropdown {
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                max-height: 300px;
+                overflow-y: auto;
+                background-color: var(--primary-bg);
+                border: 1px solid var(--border-color);
+                border-radius: 0.5rem;
+                z-index: 1000;
+                display: none;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }
+            
+            .drug-item {
+                padding: 0.75rem 1rem;
+                cursor: pointer;
+                transition: background-color 0.2s;
+                border-bottom: 1px solid var(--border-color);
+            }
+            
+            .drug-item:last-child {
+                border-bottom: none;
+            }
+            
+            .drug-item:hover {
+                background-color: rgba(138, 43, 226, 0.1);
+            }
+            
+            .drug-name {
+                font-weight: 500;
+                color: var(--primary-text);
+            }
+            
+            .no-results {
+                padding: 0.75rem 1rem;
+                color: var(--secondary-text);
+                font-style: italic;
+                text-align: center;
+            }
+            
+            .drug-selection-container {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
         </style>
     </th:block>
 </head>
@@ -348,35 +401,39 @@
                             </select>
                         </div>
 
-                        <!-- Drug Allergies -->
-                        <div class="form-group mb-4">
-                            <label for="drugAllergies">Drug Allergies</label>
-                            <div class="drug-allergies-container">
+                        <!-- Drug allergies section -->
+                        <div class="mb-4" style="padding-bottom: 1rem;">
+                            <div>
+                                <div class="form-control-label">Drug Allergies</div>
                                 <div class="drug-selection-container">
-                                    <input type="text" id="drugAllergyInput" class="form-control" list="drugsList" placeholder="Search and select drugs...">
-                                    <datalist id="drugsList">
-                                        <option th:each="drug : ${allDrugs}" th:value="${drug.name}" th:data-id="${drug.id}"></option>
-                                    </datalist>
-                                    <button type="button" id="addAllergyBtn" class="btn btn-primary">Add</button>
+                                    <div class="search-container">
+                                        <input type="text" id="drugAllergyInput" class="form-control" placeholder="Type to search for drugs">
+                                        <div id="drugsDropdown" class="drugs-dropdown">
+                                            <!-- Drugs will be dynamically added here -->
+                                        </div>
+                                    </div>
+                                    <button type="button" id="addAllergyBtn" class="btn btn-primary ms-2">Add</button>
                                 </div>
-                                <div class="allergies-list-container mt-3">
-                                    <table class="allergies-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Drug Name</th>
-                                                <th>Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="allergiesList">
-                                            <tr class="empty-allergies-row">
-                                                <td colspan="2">No drug allergies selected</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                                <!-- Hidden input to store the selected drug allergies -->
-                                <input type="hidden" id="drugAllergies" name="drugAllergies">
                             </div>
+                            
+                            <div class="allergies-table-container mt-3">
+                                <table class="allergies-table w-100">
+                                    <thead>
+                                        <tr>
+                                            <th>Drug Name</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="allergiesList">
+                                        <tr th:if="${#lists.isEmpty(patient.drugAllergies)}" class="empty-allergies-row">
+                                            <td colspan="2">No drug allergies selected</td>
+                                        </tr>
+                                        <!-- This will be populated with JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <input type="hidden" id="drugAllergies" name="drugAllergies">
                         </div>
 
                         <div class="form-actions">
@@ -446,7 +503,7 @@
     </div>
     
     <th:block layout:fragment="scripts">
-        <script type="text/javascript">
+        <script type="text/javascript" th:inline="javascript">
             document.addEventListener('DOMContentLoaded', function() {
                 // Always fetch patient data from API on page load
                 const pathParts = window.location.pathname.split('/');
@@ -647,113 +704,278 @@
                 }
             });
             
-            // Drug allergies management
-            const drugAllergyInput = document.getElementById('drugAllergyInput');
-            const drugsList = document.getElementById('drugsList');
-            const addAllergyBtn = document.getElementById('addAllergyBtn');
-            const allergiesList = document.getElementById('allergiesList');
-            const drugAllergiesInput = document.getElementById('drugAllergies');
-            const selectedAllergies = new Set();
-            
-            // Function to update the hidden input with selected drug IDs
-            function updateDrugAllergiesInput() {
-                drugAllergiesInput.value = Array.from(selectedAllergies).join(',');
-            }
-            
-            // Function to add a drug allergy
-            function addDrugAllergy() {
-                const drugName = drugAllergyInput.value;
-                if (!drugName) return;
+            // JavaScript for drug allergies
+            document.addEventListener('DOMContentLoaded', function() {
+                const drugAllergyInput = document.getElementById('drugAllergyInput');
+                const drugsDropdown = document.getElementById('drugsDropdown');
+                const addAllergyBtn = document.getElementById('addAllergyBtn');
+                const allergiesList = document.getElementById('allergiesList');
+                const drugAllergiesInput = document.getElementById('drugAllergies');
+                const selectedAllergies = new Set();
                 
-                // Find the drug ID from the datalist options
-                let drugId = null;
-                for (const option of drugsList.options) {
-                    if (option.value === drugName) {
-                        drugId = option.getAttribute('data-id');
-                        break;
-                    }
-                }
+                // Get existing allergies
+                const patientAllergies = /*[[${patient.drugAllergies}]]*/ [];
+                const drugMap = {};
                 
-                if (!drugId) {
-                    alert('Please select a valid drug from the list');
-                    return;
-                }
+                // Get drugs data from Thymeleaf with proper inline JavaScript
+                const allDrugs = /*[[${allDrugs}]]*/ [];
                 
-                // Check if already selected
-                if (selectedAllergies.has(drugId)) {
-                    alert('This drug is already in the allergies list');
-                    drugAllergyInput.value = '';
-                    return;
-                }
+                // Debugging - log the drugs to console
+                console.log('Available drugs:', allDrugs);
+                console.log('Patient allergies:', patientAllergies);
                 
-                // Remove empty row if it exists
-                const emptyRow = allergiesList.querySelector('.empty-allergies-row');
-                if (emptyRow) {
-                    emptyRow.remove();
-                }
-                
-                // Create new row for the allergy
-                const row = document.createElement('tr');
-                row.setAttribute('data-drug-id', drugId);
-                row.innerHTML = `
-                    <td>${drugName}</td>
-                    <td>
-                        <button type="button" class="remove-allergy-btn">
-                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M2 4H3.33333H14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                <path d="M5.33334 4V2.66667C5.33334 2.31305 5.47382 1.97391 5.72387 1.72386C5.97392 1.47381 6.31305 1.33334 6.66668 1.33334H9.33334C9.68697 1.33334 10.0261 1.47381 10.2762 1.72386C10.5262 1.97391 10.6667 2.31305 10.6667 2.66667V4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                <path d="M12.6667 4V13.3333C12.6667 13.687 12.5262 14.0261 12.2762 14.2761C12.0261 14.5262 11.687 14.6667 11.3333 14.6667H4.66668C4.31305 14.6667 3.97392 14.5262 3.72387 14.2761C3.47382 14.0261 3.33334 13.687 3.33334 13.3333V4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                            Remove
-                        </button>
-                    </td>
-                `;
-                
-                allergiesList.appendChild(row);
-                selectedAllergies.add(drugId);
-                updateDrugAllergiesInput();
-                
-                // Clear input
-                drugAllergyInput.value = '';
-            }
-            
-            // Add drug allergy when clicking the add button
-            if (addAllergyBtn) {
-                addAllergyBtn.addEventListener('click', addDrugAllergy);
-            }
-            
-            // Add drug allergy when pressing Enter in the input field
-            if (drugAllergyInput) {
-                drugAllergyInput.addEventListener('keydown', function(e) {
-                    if (e.key === 'Enter') {
-                        e.preventDefault();
-                        addDrugAllergy();
-                    }
-                });
-            }
-            
-            // Remove drug allergy when clicking the remove button
-            if (allergiesList) {
-                allergiesList.addEventListener('click', function(e) {
-                    const removeBtn = e.target.closest('.remove-allergy-btn');
-                    if (removeBtn) {
-                        const row = removeBtn.closest('tr');
-                        const drugId = row.getAttribute('data-drug-id');
-                        
-                        row.remove();
-                        selectedAllergies.delete(drugId);
-                        updateDrugAllergiesInput();
-                        
-                        // Add empty row if no allergies left
-                        if (selectedAllergies.size === 0) {
-                            const emptyRow = document.createElement('tr');
-                            emptyRow.className = 'empty-allergies-row';
-                            emptyRow.innerHTML = '<td colspan="2">No drug allergies selected</td>';
-                            allergiesList.appendChild(emptyRow);
+                // Create a map of drug IDs to drug names
+                if (Array.isArray(allDrugs)) {
+                    allDrugs.forEach(drug => {
+                        // Handle different property structures
+                        const drugId = drug.id || '';
+                        const drugName = drug.name || drug.drugName || drug.genericName || '';
+                        if (drugId) {
+                            drugMap[drugId] = drugName;
                         }
+                    });
+                } else {
+                    console.error('allDrugs is not properly initialized:', allDrugs);
+                }
+                
+                console.log('Drug name mapping:', drugMap);
+                
+                // Initialize with existing allergies
+                if (patientAllergies && patientAllergies.length > 0) {
+                    // Clear any empty row
+                    const emptyRow = allergiesList.querySelector('.empty-allergies-row');
+                    if (emptyRow) {
+                        emptyRow.remove();
+                    }
+                    
+                    // Add existing allergies to the table
+                    patientAllergies.forEach(drugId => {
+                        if (drugMap[drugId]) {
+                            addDrugToTable(drugId, drugMap[drugId]);
+                            selectedAllergies.add(drugId);
+                        } else {
+                            console.warn('Could not find drug name for ID:', drugId);
+                        }
+                    });
+                    
+                    // Update hidden input
+                    updateDrugAllergiesInput();
+                }
+                
+                // Set up input event listener for drug search
+                drugAllergyInput.addEventListener('input', function() {
+                    filterDrugs(this.value);
+                });
+                
+                // Hide dropdown when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!drugAllergyInput.contains(e.target) && !drugsDropdown.contains(e.target)) {
+                        drugsDropdown.style.display = 'none';
                     }
                 });
-            }
+                
+                // Show dropdown when input is focused
+                drugAllergyInput.addEventListener('focus', function() {
+                    if (this.value.length > 0) {
+                        filterDrugs(this.value);
+                    }
+                });
+                
+                // Function to filter and display drugs based on search input
+                function filterDrugs(searchText) {
+                    // Clear the dropdown
+                    drugsDropdown.innerHTML = '';
+                    
+                    if (!searchText || searchText.length < 2) {
+                        drugsDropdown.style.display = 'none';
+                        return;
+                    }
+                    
+                    // Debugging
+                    console.log('Filtering drugs with search text:', searchText);
+                    
+                    // Make sure allDrugs is an array with the expected properties
+                    if (!Array.isArray(allDrugs) || allDrugs.length === 0) {
+                        console.error('allDrugs is not properly initialized:', allDrugs);
+                        
+                        // Show no results message
+                        const noResults = document.createElement('div');
+                        noResults.className = 'no-results';
+                        noResults.textContent = 'Error loading drugs. Please try again.';
+                        drugsDropdown.appendChild(noResults);
+                        drugsDropdown.style.display = 'block';
+                        return;
+                    }
+                    
+                    // Filter drugs based on search text - check different property names
+                    const searchLower = searchText.toLowerCase();
+                    const filteredDrugs = allDrugs.filter(drug => {
+                        // Determine the property to use for drug name
+                        const drugName = drug.name || drug.drugName || drug.genericName || '';
+                        return drugName.toLowerCase().includes(searchLower);
+                    });
+                    
+                    console.log('Filtered drugs:', filteredDrugs);
+                    
+                    // Display filtered drugs
+                    if (filteredDrugs.length > 0) {
+                        filteredDrugs.forEach(drug => {
+                            // Determine the drug ID and name properties
+                            const drugId = drug.id || '';
+                            const drugName = drug.name || drug.drugName || drug.genericName || '';
+                            
+                            const drugItem = document.createElement('div');
+                            drugItem.className = 'drug-item';
+                            drugItem.setAttribute('data-id', drugId);
+                            drugItem.setAttribute('data-name', drugName);
+                            drugItem.innerHTML = `<div class="drug-name">${drugName}</div>`;
+                            
+                            // Add click event to select the drug
+                            drugItem.addEventListener('click', function() {
+                                selectDrug(this.getAttribute('data-id'), this.getAttribute('data-name'));
+                            });
+                            
+                            drugsDropdown.appendChild(drugItem);
+                        });
+                        
+                        drugsDropdown.style.display = 'block';
+                    } else {
+                        // Show no results message
+                        const noResults = document.createElement('div');
+                        noResults.className = 'no-results';
+                        noResults.textContent = 'No matching drugs found';
+                        drugsDropdown.appendChild(noResults);
+                        drugsDropdown.style.display = 'block';
+                    }
+                }
+                
+                // Function to select a drug from the dropdown
+                function selectDrug(drugId, drugName) {
+                    drugAllergyInput.value = drugName;
+                    drugsDropdown.style.display = 'none';
+                    
+                    // Store selected drug ID to use when adding to allergies
+                    drugAllergyInput.setAttribute('data-selected-id', drugId);
+                }
+                
+                // Function to update the hidden input with selected drug IDs
+                function updateDrugAllergiesInput() {
+                    drugAllergiesInput.value = Array.from(selectedAllergies).join(',');
+                }
+                
+                // Function to add a drug to the table
+                function addDrugToTable(drugId, drugName) {
+                    const row = document.createElement('tr');
+                    row.setAttribute('data-drug-id', drugId);
+                    row.innerHTML = `
+                        <td>${drugName}</td>
+                        <td>
+                            <button type="button" class="remove-allergy-btn">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M2 4H3.33333H14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M5.33334 4V2.66667C5.33334 2.31305 5.47382 1.97391 5.72387 1.72386C5.97392 1.47381 6.31305 1.33334 6.66668 1.33334H9.33334C9.68697 1.33334 10.0261 1.47381 10.2762 1.72386C10.5262 1.97391 10.6667 2.31305 10.6667 2.66667V4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M12.6667 4V13.3333C12.6667 13.687 12.5262 14.0261 12.2762 14.2761C12.0261 14.5262 11.687 14.6667 11.3333 14.6667H4.66668C4.31305 14.6667 3.97392 14.5262 3.72387 14.2761C3.47382 14.0261 3.33334 13.687 3.33334 13.3333V4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                Remove
+                            </button>
+                        </td>
+                    `;
+                    
+                    allergiesList.appendChild(row);
+                }
+                
+                // Function to add a drug allergy
+                function addDrugAllergy() {
+                    const drugName = drugAllergyInput.value;
+                    if (!drugName) return;
+                    
+                    // Get the drug ID from the input attribute
+                    const drugId = drugAllergyInput.getAttribute('data-selected-id');
+                    
+                    if (!drugId) {
+                        alert('Please select a valid drug from the list');
+                        return;
+                    }
+                    
+                    // Check if already selected
+                    if (selectedAllergies.has(drugId)) {
+                        alert('This drug is already in the allergies list');
+                        drugAllergyInput.value = '';
+                        return;
+                    }
+                    
+                    // Remove empty row if it exists
+                    const emptyRow = allergiesList.querySelector('.empty-allergies-row');
+                    if (emptyRow) {
+                        emptyRow.remove();
+                    }
+                    
+                    // Add the drug to the table
+                    addDrugToTable(drugId, drugName);
+                    selectedAllergies.add(drugId);
+                    updateDrugAllergiesInput();
+                    
+                    // Clear input and selected data
+                    drugAllergyInput.value = '';
+                    drugAllergyInput.removeAttribute('data-selected-id');
+                }
+                
+                // Add drug allergy when clicking the add button
+                if (addAllergyBtn) {
+                    addAllergyBtn.addEventListener('click', addDrugAllergy);
+                }
+                
+                // Add drug allergy when pressing Enter in the input field
+                if (drugAllergyInput) {
+                    drugAllergyInput.addEventListener('keydown', function(e) {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            if (drugsDropdown.style.display === 'block') {
+                                // If dropdown is open and an item is selected, use that
+                                const firstItem = drugsDropdown.querySelector('.drug-item');
+                                if (firstItem) {
+                                    selectDrug(firstItem.getAttribute('data-id'), firstItem.getAttribute('data-name'));
+                                }
+                            }
+                            addDrugAllergy();
+                        }
+                    });
+                }
+                
+                // Remove drug allergy when clicking the remove button
+                if (allergiesList) {
+                    allergiesList.addEventListener('click', function(e) {
+                        const removeBtn = e.target.closest('.remove-allergy-btn');
+                        if (removeBtn) {
+                            const row = removeBtn.closest('tr');
+                            const drugId = row.getAttribute('data-drug-id');
+                            
+                            row.remove();
+                            selectedAllergies.delete(drugId);
+                            updateDrugAllergiesInput();
+                            
+                            // Add empty row if no allergies left
+                            if (selectedAllergies.size === 0) {
+                                const emptyRow = document.createElement('tr');
+                                emptyRow.className = 'empty-allergies-row';
+                                emptyRow.innerHTML = '<td colspan="2">No drug allergies selected</td>';
+                                allergiesList.appendChild(emptyRow);
+                            }
+                        }
+                    });
+                }
+                
+                // Show warning if no drugs are loaded
+                if (!Array.isArray(allDrugs) || allDrugs.length === 0) {
+                    console.error('No drugs available in the system');
+                    // Add a visual warning to the page
+                    const warningDiv = document.createElement('div');
+                    warningDiv.style.color = '#ff9800';
+                    warningDiv.style.padding = '0.5rem 0';
+                    warningDiv.textContent = 'Warning: No drugs available in the system. Contact administrator.';
+                    document.querySelector('.drug-selection-container').after(warningDiv);
+                }
+            });
         </script>
     </th:block>
 </body>
