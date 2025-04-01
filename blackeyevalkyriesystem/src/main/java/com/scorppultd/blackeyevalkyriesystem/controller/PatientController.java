@@ -80,6 +80,7 @@ public class PatientController {
             existingPatient.setContactNumber(patientDetails.getContactNumber());
             existingPatient.setEmail(patientDetails.getEmail());
             existingPatient.setAddress(patientDetails.getAddress());
+            existingPatient.setDrugAllergies(patientDetails.getDrugAllergies());
             
             return new ResponseEntity<>(patientService.savePatient(existingPatient), HttpStatus.OK);
         } else {

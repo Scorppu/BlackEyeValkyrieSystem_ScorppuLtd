@@ -2,8 +2,10 @@ package com.scorppultd.blackeyevalkyriesystem.service;
 
 import java.util.List;
 import java.util.Optional;
+import java.io.InputStream;
 
 import com.scorppultd.blackeyevalkyriesystem.model.Drug;
+import com.scorppultd.blackeyevalkyriesystem.model.Drug.Interaction;
 
 public interface DrugService {
     
@@ -16,7 +18,18 @@ public interface DrugService {
     
     // Search operations
     List<Drug> searchDrugsByName(String name);
+    boolean existsByName(String name);
     
     // Template-specific operations
     List<Drug> getDrugsByTemplateCategory(String category);
+    
+    // CSV operations
+    List<Drug> importDrugsFromCsv(InputStream csvInputStream);
+    byte[] generateCsvTemplate();
+    
+    // Interaction management operations
+    Drug addInteractionToDrug(String drugId, Interaction interaction);
+    Drug removeInteractionFromDrug(String drugId, String interactingDrugId);
+    List<Interaction> getAllInteractionsForDrug(String drugId);
+    List<Interaction> getAllInteractions();
 } 

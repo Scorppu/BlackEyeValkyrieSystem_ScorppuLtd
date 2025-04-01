@@ -26,7 +26,7 @@ public class Patient {
     private String relativeName;
     private String maritalStatus;
     private String bloodType;
-    private List<Drug> drugAllergies;
+    private List<String> drugAllergies;
     private List<Visit> visits;
 
     // Date fields

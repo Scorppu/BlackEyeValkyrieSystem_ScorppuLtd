@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/main}">
+<head>
+    <title>Edit Drug Interaction</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="container">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Edit Drug Interaction</h4>
+                </div>
+                <div class="card-body">
+                    <form th:action="@{/drugs/interactions/edit/{id}(id=${interaction.id})}" method="post" th:object="${interaction}">
+                        <div class="mb-3">
+                            <label for="drugA" class="form-label">First Drug</label>
+                            <select class="form-select" id="drugA" th:field="*{drugA}" required>
+                                <option value="">-- Select First Drug --</option>
+                                <option th:each="drug : ${drugs}" 
+                                        th:value="${drug.id}" 
+                                        th:text="${drug.name + ' (' + drug.code + ')'}"
+                                        th:selected="${drug.id == interaction.drugA.id}">Drug Name</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="drugB" class="form-label">Second Drug</label>
+                            <select class="form-select" id="drugB" th:field="*{drugB}" required>
+                                <option value="">-- Select Second Drug --</option>
+                                <option th:each="drug : ${drugs}" 
+                                        th:value="${drug.id}" 
+                                        th:text="${drug.name + ' (' + drug.code + ')'}"
+                                        th:selected="${drug.id == interaction.drugB.id}">Drug Name</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="severity" class="form-label">Severity Level</label>
+                            <select class="form-select" id="severity" th:field="*{severity}" required>
+                                <option value="">-- Select Severity --</option>
+                                <option th:each="level : ${severityLevels}" 
+                                        th:value="${level}" 
+                                        th:text="${level}"
+                                        th:selected="${level == interaction.severity}">Severity Level</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" th:field="*{description}" 
+                                      rows="4" placeholder="Describe the interaction, effects, and recommendations"></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <button type="submit" class="btn btn-primary">Update Interaction</button>
+                            <a th:href="@{/drugs/interactions}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script layout:fragment="script">
+        document.addEventListener('DOMContentLoaded', function() {
+            const drugASelect = document.getElementById('drugA');
+            const drugBSelect = document.getElementById('drugB');
+            
+            // Initial update
+            updateDrugOptions();
+            
+            // Listen for changes on drugA
+            if (drugASelect) {
+                drugASelect.addEventListener('change', updateDrugOptions);
+            }
+            
+            // Listen for changes on drugB
+            if (drugBSelect) {
+                drugBSelect.addEventListener('change', updateDrugOptions);
+            }
+            
+            // Function to update drug selection options
+            function updateDrugOptions() {
+                console.log("Updating drug options");
+                
+                const drugAValue = drugASelect.value;
+                const drugBValue = drugBSelect.value;
+                
+                // Reset all options first
+                resetOptions(drugASelect);
+                resetOptions(drugBSelect);
+                
+                // Disable the drugB value in drugA options
+                if (drugBValue) {
+                    disableOption(drugASelect, drugBValue);
+                }
+                
+                // Disable the drugA value in drugB options
+                if (drugAValue) {
+                    disableOption(drugBSelect, drugAValue);
+                }
+            }
+            
+            // Helper function to reset all options in a select
+            function resetOptions(selectElement) {
+                Array.from(selectElement.options).forEach(option => {
+                    if (option.value !== "") { // Skip the placeholder option
+                        option.disabled = false;
+                    }
+                });
+            }
+            
+            // Helper function to disable an option by value
+            function disableOption(selectElement, valueToDisable) {
+                Array.from(selectElement.options).forEach(option => {
+                    if (option.value === valueToDisable) {
+                        option.disabled = true;
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html> 

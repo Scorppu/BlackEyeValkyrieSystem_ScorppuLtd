@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{layout/main}">
+
+<head>
+    <title>Edit Drug</title>
+    <style>
+        .form-container {
+            background-color: var(--secondary-bg);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            color: var(--secondary-text);
+            border: 1px solid var(--border-color);
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: var(--primary-text);
+        }
+        .form-input {
+            width: 100%;
+            padding: 10px 12px;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            color: var(--primary-text);
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+        .form-textarea {
+            width: 100%;
+            padding: 10px 12px;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            color: var(--primary-text);
+            min-height: 100px;
+            resize: vertical;
+        }
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+        .form-hint {
+            font-size: 12px;
+            color: var(--secondary-text);
+            margin-top: 5px;
+        }
+        .form-select {
+            width: 100%;
+            padding: 10px 12px;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            color: var(--primary-text);
+        }
+        .btn-container {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            border: none;
+        }
+        .btn-primary {
+            background-color: var(--accent-color);
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #7b26cd;
+        }
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--secondary-text);
+            border: 1px solid var(--border-color);
+        }
+        .btn-secondary:hover {
+            background-color: rgba(138, 43, 226, 0.1);
+        }
+        .drug-id {
+            font-size: 14px;
+            color: var(--secondary-text);
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div layout:fragment="content">
+        <div class="container-fluid">
+            <div class="header-container">
+                <h1>Edit Drug</h1>
+            </div>
+            
+            <div class="form-container">
+                <div class="drug-id" th:if="${drug.id}">
+                    <strong>Drug ID:</strong> <span th:text="${drug.id}">id123456</span>
+                </div>
+                
+                <form th:action="@{/drugs/edit/{id}(id=${drug.id})}" method="post" th:object="${drug}">
+                    <input type="hidden" th:field="*{id}" />
+                    
+                    <div class="form-group">
+                        <label for="name" class="form-label">Drug Name</label>
+                        <input type="text" id="name" th:field="*{name}" class="form-input" placeholder="Enter drug name" required>
+                        <div class="form-hint">Enter the commercial or generic name of the drug</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="templateCategory" class="form-label">Template Category</label>
+                        <select id="templateCategory" th:field="*{templateCategory}" class="form-select" required>
+                            <option value="">-- Select category --</option>
+                            <option value="In-House Dispensary">In-House Dispensary</option>
+                            <option value="Pain Meds - non narcotic">Pain Meds - non narcotic</option>
+                            <option value="Antibiotics">Antibiotics</option>
+                            <option value="Cardiovascular">Cardiovascular</option>
+                            <option value="Respiratory">Respiratory</option>
+                            <option value="Gastrointestinal">Gastrointestinal</option>
+                            <option value="Antidiabetic">Antidiabetic</option>
+                            <option value="CNS Agents">CNS Agents</option>
+                        </select>
+                        <div class="form-hint">This determines which template this drug will appear in during prescription</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="routeOfAdministration" class="form-label">Route of Administration</label>
+                        <select id="routeOfAdministration" th:field="*{routeOfAdministration}" class="form-select" required>
+                            <option value="">-- Select route --</option>
+                            <option value="Oral">Oral</option>
+                            <option value="Intravenous">Intravenous</option>
+                            <option value="Intramuscular">Intramuscular</option>
+                            <option value="Subcutaneous">Subcutaneous</option>
+                            <option value="Topical">Topical</option>
+                            <option value="Inhalation">Inhalation</option>
+                            <option value="Rectal">Rectal</option>
+                            <option value="Ophthalmic">Ophthalmic</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="dosageInstructions" class="form-label">Dosage Instructions</label>
+                        <input type="text" id="dosageInstructions" th:field="*{dosageInstructions}" class="form-input" 
+                               placeholder="e.g., 1 tablet twice daily" required>
+                        <div class="form-hint">Standard dosage instructions that will be pre-filled during prescription</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="contraindications" class="form-label">Contraindications</label>
+                        <textarea id="contraindications" th:field="*{contraindications}" class="form-textarea" 
+                                 placeholder="Enter conditions/situations where this drug should not be used"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="sideEffects" class="form-label">Side Effects</label>
+                        <textarea id="sideEffects" th:field="*{sideEffects}" class="form-textarea" 
+                                 placeholder="Enter common side effects"></textarea>
+                    </div>
+                    
+                    <!-- Drug Interactions Section -->
+                    <div class="card" style="background-color: var(--secondary-bg); border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 20px;">
+                        <div class="card-header" style="background-color: rgba(138, 43, 226, 0.1); padding: 12px 16px; border-radius: 8px 8px 0 0; border-bottom: 1px solid var(--border-color);">
+                            <h3 style="margin: 0; font-size: 18px; color: var(--primary-text);">Drug Interactions</h3>
+                            <p style="margin: 5px 0 0 0; font-size: 14px; color: var(--secondary-text);">
+                                Manage interactions with other medications
+                            </p>
+                        </div>
+                        <div class="card-body" style="padding: 16px;">
+                            <!-- Existing Interactions -->
+                            <div th:if="${!#lists.isEmpty(existingInteractions)}" style="margin-bottom: 20px;">
+                                <h4 style="margin-top: 0; margin-bottom: 10px; font-size: 16px; color: var(--primary-text);">Existing Interactions</h4>
+                                <div class="table-responsive">
+                                    <table class="table" style="width: 100%; border-collapse: collapse;">
+                                        <thead>
+                                            <tr>
+                                                <th style="text-align: left; padding: 8px; border-bottom: 1px solid var(--border-color);">Drug</th>
+                                                <th style="text-align: left; padding: 8px; border-bottom: 1px solid var(--border-color);">Severity</th>
+                                                <th style="text-align: left; padding: 8px; border-bottom: 1px solid var(--border-color);">Description</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr th:each="interaction : ${existingInteractions}">
+                                                <td style="padding: 8px; border-bottom: 1px solid var(--border-color);">
+                                                    <span th:text="${interaction.drugA.id == drug.id ? interaction.drugB.name : interaction.drugA.name}">Other Drug</span>
+                                                </td>
+                                                <td style="padding: 8px; border-bottom: 1px solid var(--border-color);">
+                                                    <span th:text="${interaction.severity}">Severity</span>
+                                                </td>
+                                                <td style="padding: 8px; border-bottom: 1px solid var(--border-color);">
+                                                    <span th:text="${interaction.description}">Description</span>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <p style="font-size: 14px; color: var(--secondary-text); margin-top: 10px;">
+                                    To edit existing interactions, go to the Drug Interactions page.
+                                </p>
+                            </div>
+                            
+                            <!-- Add New Interactions -->
+                            <h4 style="margin-top: 20px; font-size: 16px; color: var(--primary-text);">Add New Interactions</h4>
+                            
+                            <!-- Specific Drug Interactions -->
+                            <div id="interactionsContainer">
+                                <div class="interaction-item" style="border: 1px solid var(--border-color); border-radius: 4px; padding: 16px; margin-bottom: 16px; background-color: var(--input-bg);">
+                                    <div class="form-group">
+                                        <label for="interactingDrug0" class="form-label">Interacting Drug</label>
+                                        <select id="interactingDrug0" name="interactingDrugs[0]" class="form-select">
+                                            <option value="">-- Select Drug --</option>
+                                            <option th:each="otherDrug : ${allDrugs}" 
+                                                    th:value="${otherDrug.id}" 
+                                                    th:text="${otherDrug.name}">Drug name</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="severity0" class="form-label">Interaction Severity</label>
+                                        <select id="severity0" name="severities[0]" class="form-select">
+                                            <option value="">-- Select Severity --</option>
+                                            <option th:each="severity : ${severityLevels}" 
+                                                    th:value="${severity}" 
+                                                    th:text="${severity}">Severity level</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="description0" class="form-label">Interaction Description</label>
+                                        <textarea id="description0" name="descriptions[0]" class="form-textarea" 
+                                                placeholder="Describe the interaction and its effects"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <button type="button" id="addInteraction" class="btn btn-secondary" style="margin-bottom: 10px;">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 5px;">
+                                    <path d="M8 4V12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M4 8H12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                Add Another Interaction
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="btn-container">
+                        <a href="/drugs/list" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">Update Drug</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <script layout:fragment="script">
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add interaction button functionality
+            const addInteractionBtn = document.getElementById('addInteraction');
+            const interactionsContainer = document.getElementById('interactionsContainer');
+            
+            let interactionCount = 1;
+            
+            addInteractionBtn.addEventListener('click', function() {
+                const newInteraction = document.createElement('div');
+                newInteraction.className = 'interaction-item';
+                newInteraction.style = 'border: 1px solid var(--border-color); border-radius: 4px; padding: 16px; margin-bottom: 16px; background-color: var(--input-bg); position: relative;';
+                
+                const deleteBtn = `
+                    <button type="button" class="remove-interaction" style="position: absolute; top: 10px; right: 10px; background: none; border: none; color: var(--danger-color); cursor: pointer;">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M2 4H3.33333H14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M5.33334 4V2.66667C5.33334 2.31305 5.47382 1.97391 5.72387 1.72386C5.97392 1.47381 6.31305 1.33334 6.66668 1.33334H9.33334C9.68697 1.33334 10.0261 1.47381 10.2762 1.72386C10.5262 1.97391 10.6667 2.31305 10.6667 2.66667V4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M12.6667 4V13.3333C12.6667 13.687 12.5262 14.0261 12.2762 14.2761C12.0261 14.5262 11.687 14.6667 11.3333 14.6667H4.66668C4.31305 14.6667 3.97392 14.5262 3.72387 14.2761C3.47382 14.0261 3.33334 13.687 3.33334 13.3333V4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                `;
+                
+                // Clone dropdown options from the first interaction
+                const interactingDrugOptions = Array.from(document.querySelector('#interactingDrug0').options)
+                    .map(option => `<option value="${option.value}">${option.textContent}</option>`)
+                    .join('');
+                    
+                const severityOptions = Array.from(document.querySelector('#severity0').options)
+                    .map(option => `<option value="${option.value}">${option.textContent}</option>`)
+                    .join('');
+                
+                newInteraction.innerHTML = `
+                    ${deleteBtn}
+                    <div class="form-group">
+                        <label for="interactingDrug${interactionCount}" class="form-label">Interacting Drug</label>
+                        <select id="interactingDrug${interactionCount}" name="interactingDrugs[${interactionCount}]" class="form-select">
+                            ${interactingDrugOptions}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="severity${interactionCount}" class="form-label">Interaction Severity</label>
+                        <select id="severity${interactionCount}" name="severities[${interactionCount}]" class="form-select">
+                            ${severityOptions}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="description${interactionCount}" class="form-label">Interaction Description</label>
+                        <textarea id="description${interactionCount}" name="descriptions[${interactionCount}]" class="form-textarea" 
+                                placeholder="Describe the interaction and its effects"></textarea>
+                    </div>
+                `;
+                
+                interactionsContainer.appendChild(newInteraction);
+                interactionCount++;
+            });
+            
+            // Event delegation for remove interaction buttons
+            interactionsContainer.addEventListener('click', function(e) {
+                if (e.target.closest('.remove-interaction')) {
+                    e.target.closest('.interaction-item').remove();
+                }
+            });
+        });
+    </script>
+</body>
+</html> 

@@ -13,6 +13,9 @@ public interface DrugRepository extends MongoRepository<Drug, String> {
     // Find drugs by name (case insensitive, partial match)
     List<Drug> findByNameContainingIgnoreCase(String name);
     
+    // Find drug by exact name (case insensitive)
+    boolean existsByNameIgnoreCase(String name);
+    
     // Find drugs by route of administration
     List<Drug> findByRouteOfAdministration(String route);
     
