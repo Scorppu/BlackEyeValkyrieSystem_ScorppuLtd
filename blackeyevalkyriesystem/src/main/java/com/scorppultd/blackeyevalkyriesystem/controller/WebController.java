@@ -75,7 +75,7 @@ public class WebController {
         Optional<Patient> patient = patientService.getPatientById(id);
         if (patient.isPresent()) {
             model.addAttribute("patient", patient.get());
-            return "edit-patient"; // This would be a new template similar to create-patient
+            return "patient-profile-edit"; // This would be a new template similar to create-patient
         } else {
             return "redirect:/patient/list";
         }
