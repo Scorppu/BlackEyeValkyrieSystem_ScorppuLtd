@@ -5,7 +5,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark light">
     <title>BlackEyeValkyrieSystem - <th:block th:include=":: title">Title</th:block></title>
+    
+    <!-- Critical CSS for preventing theme flash -->
+    <style>
+        /* Hide content until CSS is loaded to prevent flash */
+        html {
+            visibility: hidden;
+        }
+        
+        /* Default dark theme variables */
+        :root {
+            color-scheme: dark;
+            --primary-bg: #0a0a23;
+            --secondary-bg: #111133;
+            --primary-text: #ffffff;
+            --secondary-text: #b3b3ff;
+            --accent-color: #8a2be2;
+            --input-bg: #111133;
+            --border-color: #222266;
+            --icon-stroke: #ffffff;
+        }
+        
+        /* Light theme variables */
+        :root.light-mode {
+            color-scheme: light;
+            --primary-bg: #f5f5fa;
+            --secondary-bg: #ffffff;
+            --primary-text: #333366;
+            --secondary-text: #4d4d80;
+            --accent-color: #8a2be2;
+            --input-bg: #f0f0fa;
+            --border-color: #ddddee;
+            --icon-stroke: #333366;
+        }
+        
+        /* Apply base styles immediately */
+        body {
+            background-color: var(--primary-bg);
+            color: var(--primary-text);
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        /* Show content once CSS is applied */
+        .theme-initialized {
+            visibility: visible;
+        }
+    </style>
+    
+    <!-- Immediate theme detection script - must run before any rendering -->
+    <script>
+        (function() {
+            // Get saved theme preference
+            var savedTheme = localStorage.getItem('theme');
+            // Set the theme class before any rendering
+            if (savedTheme === 'dark') {
+                document.documentElement.classList.remove('light-mode');
+            } else {
+                document.documentElement.classList.add('light-mode');
+            }
+            // Flag that theme is initialized to make content visible
+            document.addEventListener('DOMContentLoaded', function() {
+                document.documentElement.classList.add('theme-initialized');
+            });
+        })();
+    </script>
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -172,8 +239,9 @@
             return true;
         });
         
-        // Theme toggling functionality
+        // Dropdown navigation handling
         document.addEventListener('DOMContentLoaded', function() {
+
             const themeToggleBtn = document.getElementById('theme-toggle-btn');
             const moonIcon = document.getElementById('moon-icon');
             const sunIcon = document.getElementById('sun-icon');
@@ -228,6 +296,7 @@
              * We're removing the duplicate dropdown handling code that was here
              * This will be managed by main.js to avoid conflicts
              */
+
         });
     </script>
     <script th:src="@{/js/main.js}"></script>
