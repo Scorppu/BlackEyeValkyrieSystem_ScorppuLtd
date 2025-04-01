@@ -23,10 +23,12 @@ public class User {
     private String firstName;
     private String lastName;
     private String email;
+    private String username;
     private String password;
     private String phoneNumber;
     private LocalDate dateOfBirth;
     private String sex;
+    private String licenseKey;
     
     // Role identifier
     private UserRole role;

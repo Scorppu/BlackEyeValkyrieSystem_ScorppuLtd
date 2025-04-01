@@ -9,31 +9,55 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Dropdown menus in sidebar
+    // Dropdown menus in sidebar - improved implementation
     const dropdownLinks = document.querySelectorAll('.dropdown-toggle');
     
     if (dropdownLinks.length > 0) {
+        // Remove any existing click event listeners first to prevent duplicates
         dropdownLinks.forEach(function(link) {
+            // Clone the node to remove all event listeners
+            const newLink = link.cloneNode(true);
+            link.parentNode.replaceChild(newLink, link);
+        });
+        
+        // Re-query the elements after replacing them
+        const refreshedDropdownLinks = document.querySelectorAll('.dropdown-toggle');
+        
+        // Add new click event listeners
+        refreshedDropdownLinks.forEach(function(link) {
             link.addEventListener('click', function(e) {
+                console.log('Dropdown toggle clicked'); // Debug log
                 e.preventDefault();
+                e.stopPropagation(); // Stop event bubbling
+                
+                // Toggle expanded class
                 this.classList.toggle('expanded');
+                
+                // Handle the dropdown menu
                 const submenu = this.nextElementSibling;
-                if (submenu.style.maxHeight) {
-                    submenu.style.maxHeight = null;
-                } else {
-                    submenu.style.maxHeight = submenu.scrollHeight + "px";
+                if (submenu && submenu.classList.contains('dropdown-menu')) {
+                    if (submenu.classList.contains('active')) {
+                        submenu.classList.remove('active');
+                        submenu.style.maxHeight = null;
+                    } else {
+                        submenu.classList.add('active');
+                        submenu.style.maxHeight = submenu.scrollHeight + "px";
+                    }
                 }
             });
         });
         
         // Auto-expand dropdown if a child is active
-        dropdownLinks.forEach(function(link) {
+        refreshedDropdownLinks.forEach(function(link) {
             const submenu = link.nextElementSibling;
-            const hasActiveChild = submenu.querySelector('.active');
-            
-            if (hasActiveChild) {
-                link.classList.add('expanded');
-                submenu.style.maxHeight = submenu.scrollHeight + "px";
+            if (submenu && submenu.classList.contains('dropdown-menu')) {
+                const hasActiveChild = submenu.querySelector('.active');
+                
+                if (hasActiveChild) {
+                    link.classList.add('expanded');
+                    submenu.classList.add('active');
+                    submenu.style.maxHeight = submenu.scrollHeight + "px";
+                }
             }
         });
     }
