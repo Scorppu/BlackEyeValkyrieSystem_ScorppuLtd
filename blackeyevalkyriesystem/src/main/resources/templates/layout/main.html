@@ -142,15 +142,30 @@
                     </a>
                 </div>
                 
-                <a href="/appointments" class="nav-item" th:classappend="${request != null && request.requestURI == '/appointments' ? 'active' : ''}">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12.6667 2.66667H3.33333C2.59695 2.66667 2 3.26362 2 4.00001V13.3333C2 14.0697 2.59695 14.6667 3.33333 14.6667H12.6667C13.403 14.6667 14 14.0697 14 13.3333V4.00001C14 3.26362 13.403 2.66667 12.6667 2.66667Z" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M10.6667 1.33333V4" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M5.33334 1.33333V4" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M2 6.66667H14" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                <a href="#" class="nav-item dropdown-toggle" th:classappend="${request != null && request.requestURI.startsWith('/appointment') ? 'expanded' : ''}">
+                    <div class="nav-item-content">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12.6667 2.66667H3.33333C2.59695 2.66667 2 3.26362 2 4.00001V13.3333C2 14.0697 2.59695 14.6667 3.33333 14.6667H12.6667C13.403 14.6667 14 14.0697 14 13.3333V4.00001C14 3.26362 13.403 2.66667 12.6667 2.66667Z" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M10.6667 1.33333V4" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M5.33334 1.33333V4" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M2 6.66667H14" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Appointment Scheduling
+                    </div>
+                    <svg class="dropdown-arrow" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4 6L8 10L12 6" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
-                    Appointment Scheduling
                 </a>
+                
+                <div class="dropdown-menu" th:classappend="${request != null && request.requestURI.startsWith('/appointment') ? 'active' : ''}">
+                    <a href="/appointment/timeline" class="nav-item nav-subitem" th:classappend="${request != null && request.requestURI == '/appointment/timeline' ? 'active' : ''}">
+                        Appointment Timeline
+                    </a>
+                    
+                    <a href="/appointment/create" class="nav-item nav-subitem" th:classappend="${request != null && request.requestURI == '/appointment/create' ? 'active' : ''}">
+                        Create Appointment
+                    </a>
+                </div>
 
                 <a href="/consultation" class="nav-item" th:classappend="${request != null && request.requestURI == '/consultation' ? 'active' : ''}">
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
