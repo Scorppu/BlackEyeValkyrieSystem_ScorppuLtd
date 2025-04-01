@@ -9,16 +9,32 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PostMapping;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
+import com.scorppultd.blackeyevalkyriesystem.model.Appointment;
 import com.scorppultd.blackeyevalkyriesystem.model.Patient;
+import com.scorppultd.blackeyevalkyriesystem.service.AppointmentService;
 import com.scorppultd.blackeyevalkyriesystem.service.PatientService;
+import com.scorppultd.blackeyevalkyriesystem.service.DoctorService;
+import com.scorppultd.blackeyevalkyriesystem.model.Doctor;
 
 @Controller
 public class WebController {
     
+    private final PatientService patientService;
+    private final AppointmentService appointmentService;
+    private final DoctorService doctorService;
+    
     @Autowired
-    private PatientService patientService;
+    public WebController(PatientService patientService, 
+                        AppointmentService appointmentService,
+                        DoctorService doctorService) {
+        this.patientService = patientService;
+        this.appointmentService = appointmentService;
+        this.doctorService = doctorService;
+    }
     
     @GetMapping("/")
     public String index(HttpServletRequest request, Model model) {
@@ -192,9 +208,6 @@ public class WebController {
         Patient patient = patientOpt.get();
         model.addAttribute("patient", patient);
         
-        // Generate a visit ID (for demo purposes)
-        model.addAttribute("visitId", "OP" + String.format("%04d", (int)(Math.random() * 10000)));
-        
         // Add appointment type options
         List<String> appointmentTypes = List.of(
             "General Consultation",
@@ -214,22 +227,85 @@ public class WebController {
         );
         model.addAttribute("appointmentPriorities", appointmentPriorities);
         
+        // Fetch all doctors for the dropdown
+        List<Doctor> doctors = doctorService.getAllDoctors();
+        model.addAttribute("doctors", doctors);
+        
         return "appointment-create-visit-info";
     }
     
     @PostMapping("/appointment/create/visit-info")
     public String processAppointmentCreation(
             @RequestParam("patientId") String patientId,
-            @RequestParam("visitId") String visitId,
             @RequestParam("appointmentType") String appointmentType,
             @RequestParam("requiredTime") String requiredTime,
             @RequestParam("appointmentPriority") String appointmentPriority,
+            @RequestParam(value = "notes", required = false) String notes,
+            @RequestParam(value = "doctorName", required = false) String doctorName,
+            @RequestParam(value = "scheduledTime", required = false) String scheduledTime,
             HttpServletRequest request,
             Model model) {
         
-        // Here you would save the appointment/visit to the database
-        // For now, we'll just redirect to the timeline
+        // Find the patient
+        Optional<Patient> patientOpt = patientService.getPatientById(patientId);
+        if (!patientOpt.isPresent()) {
+            return "redirect:/appointment/create?error=patientNotFound";
+        }
         
-        return "redirect:/appointment/timeline?success=created";
+        Patient patient = patientOpt.get();
+        
+        // Create a new appointment
+        Appointment appointment = new Appointment();
+        appointment.setPatient(patient);
+        appointment.setAppointmentType(appointmentType);
+        
+        // Parse required time (remove 'minutes' suffix if it exists)
+        try {
+            Integer time = Integer.parseInt(requiredTime.trim().split(" ")[0]);
+            appointment.setRequiredTime(time);
+        } catch (NumberFormatException e) {
+            // Default to 30 minutes if parsing fails
+            appointment.setRequiredTime(30);
+        }
+        
+        appointment.setAppointmentPriority(appointmentPriority);
+        appointment.setCreationTime(LocalDateTime.now());
+        appointment.setStatus("pending"); // Ensure status is set
+        
+        // Set optional fields if provided
+        if (notes != null && !notes.trim().isEmpty()) {
+            appointment.setNotes(notes);
+        }
+        
+        if (doctorName != null && !doctorName.trim().isEmpty()) {
+            appointment.setDoctorName(doctorName);
+        }
+        
+        // Parse and set scheduled time if provided
+        if (scheduledTime != null && !scheduledTime.trim().isEmpty()) {
+            try {
+                // Use DateTimeFormatter for more robust parsing
+                DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+                LocalDateTime dateTime = LocalDateTime.parse(scheduledTime, formatter);
+                appointment.setScheduledTime(dateTime);
+            } catch (Exception e) {
+                // If parsing fails, log the error and continue
+                System.err.println("Failed to parse scheduled time: " + e.getMessage());
+                System.err.println("Input was: " + scheduledTime);
+            }
+        }
+        
+        try {
+            // Save the appointment and log the ID
+            appointment = appointmentService.createAppointment(appointment);
+            System.out.println("Created appointment with ID: " + appointment.getId());
+        } catch (Exception e) {
+            // Log any exceptions during save
+            System.err.println("Error saving appointment: " + e.getMessage());
+            e.printStackTrace();
+            return "redirect:/appointment/create?error=saveFailed";
+        }
+        
+        return "redirect:/appointment/timeline?success=created&appointmentId=" + appointment.getId();
     }
 } 

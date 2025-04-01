@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import com.scorppultd.blackeyevalkyriesystem.model.Doctor;
 import com.scorppultd.blackeyevalkyriesystem.repository.DoctorRepository;
 import com.scorppultd.blackeyevalkyriesystem.service.DoctorService;
+import com.scorppultd.blackeyevalkyriesystem.model.User;
 
 @Service
 public class DoctorServiceImpl implements DoctorService {
@@ -32,7 +33,7 @@ public class DoctorServiceImpl implements DoctorService {
 
     @Override
     public List<Doctor> getAllDoctors() {
-        return doctorRepository.findAll();
+        return doctorRepository.findByRole(User.UserRole.DOCTOR);
     }
 
     @Override

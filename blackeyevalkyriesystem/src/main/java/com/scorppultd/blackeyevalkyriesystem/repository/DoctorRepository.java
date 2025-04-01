@@ -8,6 +8,7 @@ import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import com.scorppultd.blackeyevalkyriesystem.model.Doctor;
+import com.scorppultd.blackeyevalkyriesystem.model.User.UserRole;
 
 @Repository
 public interface DoctorRepository extends MongoRepository<Doctor, String> {
@@ -16,6 +17,9 @@ public interface DoctorRepository extends MongoRepository<Doctor, String> {
     Optional<Doctor> findByLicenseNumber(String licenseNumber);
     List<Doctor> findBySpecialization(String specialization);
     List<Doctor> findByYearsOfExperienceGreaterThan(Integer years);
+    
+    // Find by role
+    List<Doctor> findByRole(UserRole role);
     
     // Find by department and position
     List<Doctor> findByDepartment(String department);
