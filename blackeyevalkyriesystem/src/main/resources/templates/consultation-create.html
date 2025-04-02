@@ -117,6 +117,124 @@
         .checkout-icon {
             margin-left: 5px;
         }
+        .drug-item {
+            padding: 8px 10px;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            transition: background-color 0.2s;
+        }
+        .drug-item:hover {
+            background-color: rgba(138, 43, 226, 0.1);
+        }
+        .drug-item.selected {
+            background-color: rgba(138, 43, 226, 0.2);
+            border-left: 3px solid var(--accent-color);
+        }
+        .add-selected-btn {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 16px;
+            margin-top: 15px;
+            float: right;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .add-selected-btn:hover {
+            background-color: #7b26cd;
+        }
+        .add-selected-btn:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .modal {
+            display: none; 
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+        }
+        .modal-content {
+            background-color: var(--primary-bg);
+            margin: 10% auto;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            width: 400px;
+            max-width: 90%;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+        .modal-header h3 {
+            margin: 0;
+            color: var(--primary-text);
+        }
+        .close {
+            color: var(--secondary-text);
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .modal-body {
+            margin-bottom: 20px;
+        }
+        .modal-body .form-group {
+            margin-bottom: 15px;
+        }
+        .modal-body label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--primary-text);
+        }
+        .modal-body input, .modal-body select {
+            width: 100%;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            background-color: var(--input-bg);
+            color: var(--primary-text);
+        }
+        .modal-footer {
+            text-align: right;
+            border-top: 1px solid var(--border-color);
+            padding-top: 15px;
+        }
+        .btn-primary {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 15px;
+            cursor: pointer;
+        }
+        .btn-primary:hover {
+            background-color: #7b26cd;
+        }
+        .btn-secondary {
+            background-color: var(--secondary-bg);
+            color: var(--primary-text);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 8px 15px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+        .btn-secondary:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
     </style>
 </head>
 
@@ -200,13 +318,12 @@
                 <div class="row">
                     <div class="col-md-3">
                         <div class="info-section">
-                            <h2 class="section-label">Template</h2>
+                            <h2 class="section-label">Filter by Category</h2>
                             <select id="templateSelect" class="info-value" onchange="selectTemplateFromDropdown(this)">
-                                <option value="">Select template</option>
+                                <option value="">All Drugs</option>
                                 <option th:each="template : ${drugTemplates}" 
                                         th:value="${template}" 
-                                        th:text="${template}"
-                                        th:selected="${template == 'In-House Dispensary'}">Template Name</option>
+                                        th:text="${template}">Template Name</option>
                             </select>
                             
                             <!-- Drug List Display -->
@@ -229,23 +346,21 @@
                                 
                                 <!-- Drug List Header -->
                                 <div style="font-weight: bold; padding: 8px 10px; background-color: var(--input-bg); border-radius: 4px 4px 0 0; border: 1px solid var(--border-color); display: flex; justify-content: space-between;">
-                                    <span>Drug Name</span>
+                                    <span>Drug Name (Click to select)</span>
                                     <span>Details</span>
                                 </div>
                                 
                                 <!-- Drug List -->
                                 <ul id="drugList" class="drug-list" style="list-style-type: none; padding: 0; margin-top: 0; border: 1px solid var(--border-color); border-top: none; border-radius: 0 0 4px 4px;">
-                                    <!-- Initial drug list will be populated with default drugs -->
+                                    <!-- Initial drug list will be populated with all drugs -->
                                     <li th:each="drug : ${defaultDrugs}" 
                                         class="drug-item"
                                         th:data-id="${drug.id}"
                                         th:data-name="${drug.name}"
                                         th:data-dosage="${drug.dosageInstructions}"
                                         th:data-route="${drug.routeOfAdministration}"
-                                        style="padding: 8px 10px; border-bottom: 1px solid var(--border-color); cursor: pointer; display: flex; justify-content: space-between;"
-                                        onmouseover="this.style.backgroundColor='rgba(138, 43, 226, 0.1)';"
-                                        onmouseout="this.style.backgroundColor='';"
-                                        onclick="selectDrugFromList(this)">
+                                        th:data-template="${drug.templateCategory}"
+                                        onclick="toggleDrugSelection(this)">
                                         <div><strong th:text="${drug.name}">Drug Name</strong></div>
                                         <div style="text-align: right; color: var(--secondary-text); font-size: 0.9em;">
                                             <span th:if="${drug.dosageInstructions}" th:text="${drug.dosageInstructions}">Dosage</span>
@@ -253,51 +368,21 @@
                                         </div>
                                     </li>
                                     <li th:if="${#lists.isEmpty(defaultDrugs)}" style="padding: 8px 10px; font-style: italic; color: var(--secondary-text);">
-                                        No drugs available for this template
+                                        No drugs available
                                     </li>
                                 </ul>
                                 
                                 <!-- Empty state message -->
                                 <div id="emptyDrugList" style="text-align: center; padding: 15px; color: var(--secondary-text); font-style: italic; display: none;">
-                                    Select a template to view available drugs
+                                    Select a template to filter drugs by category
                                 </div>
+                                
+                                <!-- Add Selected button -->
+                                <button id="addSelectedBtn" class="add-selected-btn" onclick="addSelectedDrugsToCart()" disabled>
+                                    Add Selected
+                                </button>
+                                <div style="clear: both;"></div>
                             </div>
-                        </div>
-                    </div>
-                    <div class="col-md-9">
-                        <div class="info-section">
-                            <table class="prescription-table">
-                                <thead>
-                                    <tr>
-                                        <th>Drug</th>
-                                        <th>Dose</th>
-                                        <th>Days</th>
-                                        <th>Qty</th>
-                                        <th></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>
-                                            <select id="drugSelect" class="info-value">
-                                                <option value="">Select drug</option>
-                                            </select>
-                                        </td>
-                                        <td>
-                                            <input type="text" id="doseInput" class="info-value" placeholder="Dose instructions" />
-                                        </td>
-                                        <td>
-                                            <input type="number" id="daysInput" class="info-value" placeholder="Days" />
-                                        </td>
-                                        <td>
-                                            <input type="number" id="qtyInput" class="info-value" placeholder="Qty" />
-                                        </td>
-                                        <td>
-                                            <button type="button" class="confirm-btn" onclick="addToCart()">Add</button>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
                         </div>
                     </div>
                 </div>
@@ -311,21 +396,215 @@
                     <button type="submit" class="checkout-btn">Checkout <span class="checkout-icon">→</span></button>
                 </div>
             </form>
+            
+            <!-- Drug Details Modal -->
+            <div id="drugDetailsModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Add Drug to Prescription</h3>
+                        <span class="close">&times;</span>
+                    </div>
+                    <div class="modal-body">
+                        <div id="modalDrugsList">
+                            <!-- Selected drugs list will be shown here -->
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="modalDosage">Dosage Instructions:</label>
+                            <input type="text" id="modalDosage" class="form-control">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="modalDays">Duration (days):</label>
+                            <input type="number" id="modalDays" class="form-control" value="7" min="1">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="modalQuantity">Quantity:</label>
+                            <input type="number" id="modalQuantity" class="form-control" value="1" min="1">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn-secondary" onclick="closeModal()">Cancel</button>
+                        <button type="button" class="btn-primary" onclick="confirmAddToCart()">Add to Cart</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
     <script layout:fragment="script">
         let prescriptionItemIndex = 0;
-        let selectedTemplate = 'In-House Dispensary'; // Set default template
+        let selectedTemplate = ''; // No default template selected - show all drugs by default
+        let allDrugs = []; // Will store all drugs
+        let selectedDrugs = []; // Will store selected drug elements
         
-        function selectTemplateFromDropdown(selectElement) {
-            const template = selectElement.value;
-            if (!template || template === '') {
-                console.log('No template selected');
+        function toggleDrugSelection(element) {
+            // Toggle selected class
+            element.classList.toggle('selected');
+            
+            // Update selectedDrugs array
+            if (element.classList.contains('selected')) {
+                // Add to selected drugs
+                selectedDrugs.push(element);
+            } else {
+                // Remove from selected drugs
+                selectedDrugs = selectedDrugs.filter(drug => drug !== element);
+            }
+            
+            // Update Add Selected button state
+            document.getElementById('addSelectedBtn').disabled = selectedDrugs.length === 0;
+        }
+        
+        function addSelectedDrugsToCart() {
+            if (selectedDrugs.length === 0) {
                 return;
             }
             
-            // Update the selected template
+            // Show the drug details modal
+            showDrugDetailsModal();
+        }
+        
+        function showDrugDetailsModal() {
+            // Get the modal
+            const modal = document.getElementById('drugDetailsModal');
+            const modalDrugsList = document.getElementById('modalDrugsList');
+            const modalDosage = document.getElementById('modalDosage');
+            
+            // Clear previous list
+            modalDrugsList.innerHTML = '';
+            
+            // Create list of selected drugs
+            const listHeader = document.createElement('h4');
+            listHeader.textContent = 'Selected Drugs:';
+            listHeader.style.marginTop = '0';
+            listHeader.style.marginBottom = '10px';
+            modalDrugsList.appendChild(listHeader);
+            
+            const drugList = document.createElement('ul');
+            drugList.style.marginBottom = '15px';
+            drugList.style.paddingLeft = '20px';
+            
+            selectedDrugs.forEach(drug => {
+                const li = document.createElement('li');
+                li.textContent = drug.getAttribute('data-name');
+                drugList.appendChild(li);
+            });
+            
+            modalDrugsList.appendChild(drugList);
+            
+            // If only one drug is selected, pre-fill the dosage
+            if (selectedDrugs.length === 1) {
+                modalDosage.value = selectedDrugs[0].getAttribute('data-dosage') || '';
+            } else {
+                modalDosage.value = '';
+            }
+            
+            // Show the modal
+            modal.style.display = 'block';
+            
+            // Get the <span> element that closes the modal
+            const span = document.getElementsByClassName('close')[0];
+            
+            // When the user clicks on <span> (x), close the modal
+            span.onclick = function() {
+                closeModal();
+            };
+            
+            // When the user clicks anywhere outside of the modal, close it
+            window.onclick = function(event) {
+                if (event.target == modal) {
+                    closeModal();
+                }
+            };
+        }
+        
+        function closeModal() {
+            document.getElementById('drugDetailsModal').style.display = 'none';
+        }
+        
+        function confirmAddToCart() {
+            // Get values from modal
+            const dosage = document.getElementById('modalDosage').value;
+            const days = document.getElementById('modalDays').value;
+            const qty = document.getElementById('modalQuantity').value;
+            
+            // Validate inputs
+            if (!dosage) {
+                alert('Please enter dosage instructions');
+                return;
+            }
+            
+            if (!days || days < 1) {
+                alert('Please enter a valid duration');
+                return;
+            }
+            
+            if (!qty || qty < 1) {
+                alert('Please enter a valid quantity');
+                return;
+            }
+            
+            // Process each selected drug
+            selectedDrugs.forEach(drugElement => {
+                const drugId = drugElement.getAttribute('data-id');
+                const drugName = drugElement.getAttribute('data-name');
+                
+                // Add to cart
+                addDrugToCart(drugId, drugName, dosage, days, qty);
+                
+                // Remove from the drug list
+                drugElement.remove();
+            });
+            
+            // Clear selected drugs array
+            selectedDrugs = [];
+            
+            // Disable the Add Selected button
+            document.getElementById('addSelectedBtn').disabled = true;
+            
+            // Close the modal
+            closeModal();
+        }
+        
+        function addDrugToCart(drugId, drugName, dosage, days, qty) {
+            // Get the current index for this prescription item
+            const itemIndex = prescriptionItemIndex++;
+            
+            // Create cart item element
+            const cartItem = document.createElement('div');
+            cartItem.style.padding = '10px';
+            cartItem.style.marginBottom = '5px';
+            cartItem.style.borderBottom = '1px solid var(--border-color)';
+            cartItem.setAttribute('data-drug-id', drugId);
+            
+            cartItem.innerHTML = `
+                <div style="display: flex; justify-content: space-between;">
+                    <div>
+                        <strong>${drugName}</strong> - ${dosage}
+                    </div>
+                    <div>
+                        ${days} days - Qty: ${qty}
+                    </div>
+                    <div>
+                        <button type="button" onclick="removeFromCart(this, ${itemIndex})" 
+                                style="background: none; border: none; color: #ff5c5c; cursor: pointer;">
+                            Remove
+                        </button>
+                    </div>
+                </div>
+                <input type="hidden" name="prescription.prescriptionItems[${itemIndex}].drug.id" value="${drugId}">
+                <input type="hidden" name="prescription.prescriptionItems[${itemIndex}].dosage" value="${dosage}">
+                <input type="hidden" name="prescription.prescriptionItems[${itemIndex}].duration" value="${days} days">
+                <input type="hidden" name="prescription.prescriptionItems[${itemIndex}].quantity" value="${qty}">
+            `;
+            
+            // Add to cart
+            document.getElementById('drugCart').appendChild(cartItem);
+        }
+        
+        function selectTemplateFromDropdown(selectElement) {
+            const template = selectElement.value;
             selectedTemplate = template;
             console.log(`Template selected: ${template}`);
             
@@ -342,8 +621,75 @@
                 }
             }
             
-            // Load drugs for the selected template
-            loadDrugsByTemplate(template);
+            // Filter drugs by the selected template
+            filterDrugsByTemplate(template);
+            
+            // Clear selected drugs when changing template
+            selectedDrugs = [];
+            document.getElementById('addSelectedBtn').disabled = true;
+        }
+        
+        function filterDrugsByTemplate(template) {
+            const drugList = document.getElementById('drugList');
+            const items = drugList.querySelectorAll('li.drug-item');
+            
+            if (!template || template === '') {
+                // Show all drugs if no template is selected
+                items.forEach(item => {
+                    item.style.display = 'flex';
+                });
+                document.getElementById('emptyDrugList').style.display = 'none';
+                return;
+            }
+            
+            let visibleCount = 0;
+            
+            // Hide/show drugs based on template
+            items.forEach(item => {
+                const drugTemplate = item.getAttribute('data-template');
+                if (drugTemplate === template) {
+                    item.style.display = 'flex';
+                    visibleCount++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+            
+            // Show empty message if no drugs visible
+            if (visibleCount === 0) {
+                const emptyMessage = document.getElementById('emptyDrugList');
+                emptyMessage.textContent = `No drugs available for "${template}" category`;
+                emptyMessage.style.display = 'block';
+            } else {
+                document.getElementById('emptyDrugList').style.display = 'none';
+            }
+            
+            // Update the drug dropdown options to match filtered items
+            updateDrugSelectOptions(template);
+        }
+        
+        function updateDrugSelectOptions(template) {
+            const drugSelect = document.getElementById('drugSelect');
+            drugSelect.innerHTML = '<option value="">Select drug</option>';
+            
+            const drugList = document.getElementById('drugList');
+            const visibleItems = Array.from(drugList.querySelectorAll('li.drug-item'))
+                .filter(item => item.style.display !== 'none');
+            
+            visibleItems.forEach(item => {
+                const id = item.getAttribute('data-id');
+                const name = item.getAttribute('data-name');
+                const dosage = item.getAttribute('data-dosage');
+                const route = item.getAttribute('data-route');
+                
+                const option = document.createElement('option');
+                option.value = id;
+                option.textContent = name;
+                option.dataset.dosageInstructions = dosage || '';
+                option.dataset.routeOfAdministration = route || '';
+                
+                drugSelect.appendChild(option);
+            });
         }
         
         function selectDrugFromList(element) {
@@ -373,283 +719,6 @@
             });
         }
         
-        function loadDrugsByTemplate(template) {
-            if (!template || template === '') {
-                console.log('No template selected, cannot load drugs');
-                document.getElementById('emptyDrugList').style.display = 'block';
-                document.getElementById('drugList').style.display = 'none';
-                return;
-            }
-        
-            console.log(`Loading drugs for template: ${template}`);
-            document.getElementById('emptyDrugList').style.display = 'none';
-            document.getElementById('drugList').style.display = 'block';
-            
-            // Clear existing options
-            const drugSelect = document.getElementById('drugSelect');
-            drugSelect.innerHTML = '<option value="">Select drug</option>';
-            
-            // Also clear the drug list
-            const drugList = document.getElementById('drugList');
-            drugList.innerHTML = '';
-            
-            // Get the drug count for this template from server-side data
-            const drugCounts = {};
-            document.querySelectorAll('[data-drug-count]').forEach(el => {
-                const template = el.getAttribute('data-template');
-                const count = parseInt(el.getAttribute('data-drug-count'));
-                drugCounts[template] = count;
-            });
-            
-            // If we know there are 0 drugs for this template, use fallback immediately
-            const knownCount = drugCounts[template];
-            if (knownCount !== undefined && knownCount === 0) {
-                console.log(`Known empty template: ${template}, using fallback immediately`);
-                addFallbackDrugs(template);
-                return;
-            }
-            
-            // Show loading indicator
-            const loadingItem = document.createElement('li');
-            loadingItem.style.padding = '8px 10px';
-            loadingItem.style.fontStyle = 'italic';
-            loadingItem.style.color = 'var(--secondary-text)';
-            loadingItem.style.textAlign = 'center';
-            loadingItem.textContent = `Loading drugs for ${template}...`;
-            drugList.appendChild(loadingItem);
-            
-            // Encode template name for URL
-            const encodedTemplate = encodeURIComponent(template);
-            
-            // Fetch drugs based on template
-            fetch(`/api/drugs/template/${encodedTemplate}`)
-                .then(response => {
-                    if (!response.ok) {
-                        console.error(`API error: ${response.status} ${response.statusText}`);
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(drugs => {
-                    // Clear loading indicator
-                    drugList.innerHTML = '';
-                    
-                    console.log(`Received ${drugs.length} drugs from API for template "${template}"`);
-                    
-                    // Populate select with fetched drugs
-                    if (drugs && drugs.length > 0) {
-                        drugs.forEach(drug => {
-                            // Add to dropdown
-                            const option = document.createElement('option');
-                            option.value = drug.id;
-                            option.textContent = drug.name;
-                            
-                            // Add drug data as data attributes for later use
-                            option.dataset.dosageInstructions = drug.dosageInstructions || '';
-                            option.dataset.routeOfAdministration = drug.routeOfAdministration || '';
-                            
-                            drugSelect.appendChild(option);
-                            
-                            // Add to drug list
-                            const listItem = document.createElement('li');
-                            listItem.className = 'drug-item';
-                            listItem.setAttribute('data-id', drug.id);
-                            listItem.setAttribute('data-name', drug.name);
-                            listItem.setAttribute('data-dosage', drug.dosageInstructions || '');
-                            listItem.setAttribute('data-route', drug.routeOfAdministration || '');
-                            listItem.style.padding = '8px 10px';
-                            listItem.style.borderBottom = '1px solid var(--border-color)';
-                            listItem.style.cursor = 'pointer';
-                            listItem.style.transition = 'background-color 0.2s';
-                            listItem.style.display = 'flex';
-                            listItem.style.justifyContent = 'space-between';
-                            
-                            // Add hover effect
-                            listItem.addEventListener('mouseover', function() {
-                                this.style.backgroundColor = 'rgba(138, 43, 226, 0.1)';
-                            });
-                            listItem.addEventListener('mouseout', function() {
-                                this.style.backgroundColor = '';
-                            });
-                            
-                            // Add click event to select this drug
-                            listItem.addEventListener('click', function() {
-                                selectDrugFromList(this);
-                            });
-                            
-                            // Create drug name div
-                            const nameDiv = document.createElement('div');
-                            nameDiv.innerHTML = `<strong>${drug.name}</strong>`;
-                            
-                            // Create details div
-                            const detailsDiv = document.createElement('div');
-                            detailsDiv.style.textAlign = 'right';
-                            detailsDiv.style.color = 'var(--secondary-text)';
-                            detailsDiv.style.fontSize = '0.9em';
-                            
-                            let detailsContent = '';
-                            if (drug.dosageInstructions) {
-                                detailsContent += drug.dosageInstructions;
-                            }
-                            if (drug.routeOfAdministration) {
-                                detailsContent += ` (${drug.routeOfAdministration})`;
-                            }
-                            detailsDiv.textContent = detailsContent;
-                            
-                            // Add divs to list item
-                            listItem.appendChild(nameDiv);
-                            listItem.appendChild(detailsDiv);
-                            drugList.appendChild(listItem);
-                        });
-                    } else {
-                        console.log('No drugs found for template, using fallback');
-                        const noDrugsItem = document.createElement('li');
-                        noDrugsItem.style.padding = '8px 10px';
-                        noDrugsItem.style.fontStyle = 'italic';
-                        noDrugsItem.style.color = 'var(--secondary-text)';
-                        noDrugsItem.style.textAlign = 'center';
-                        noDrugsItem.textContent = `No drugs found for "${template}", using fallback`;
-                        drugList.appendChild(noDrugsItem);
-                        addFallbackDrugs(template);
-                    }
-                })
-                .catch(error => {
-                    // Clear loading indicator
-                    drugList.innerHTML = '';
-                    
-                    console.error('Error loading drugs:', error);
-                    
-                    // Add an error message
-                    const errorItem = document.createElement('li');
-                    errorItem.style.padding = '8px 10px';
-                    errorItem.style.fontStyle = 'italic';
-                    errorItem.style.color = '#ff5c5c';
-                    errorItem.style.textAlign = 'center';
-                    errorItem.textContent = `Error loading drugs for "${template}", using fallback`;
-                    drugList.appendChild(errorItem);
-                    
-                    // Fallback to static drugs if API fails
-                    addFallbackDrugs(template);
-                });
-        }
-        
-        function addFallbackDrugs(template) {
-            const drugSelect = document.getElementById('drugSelect');
-            const drugList = document.getElementById('drugList');
-            console.log(`Using fallback drugs for template: ${template}`);
-            
-            // Add a fallback indicator
-            const fallbackItem = document.createElement('li');
-            fallbackItem.style.padding = '8px 10px';
-            fallbackItem.style.fontStyle = 'italic';
-            fallbackItem.style.color = 'var(--secondary-text)';
-            fallbackItem.style.backgroundColor = 'rgba(255, 193, 7, 0.1)';
-            fallbackItem.style.textAlign = 'center';
-            fallbackItem.style.marginBottom = '5px';
-            fallbackItem.textContent = '⚠️ Using fallback data';
-            drugList.appendChild(fallbackItem);
-            
-            // Add a disabled option to indicate these are fallback drugs
-            const fallbackOption = document.createElement('option');
-            fallbackOption.disabled = true;
-            fallbackOption.textContent = "--- Using Fallback Drug List ---";
-            drugSelect.appendChild(fallbackOption);
-            
-            let drugsToAdd = [];
-            
-            if (template === 'In-House Dispensary') {
-                drugsToAdd = [
-                    {id: '1', name: 'Combiflam', dosage: '1 tablet twice daily', route: 'Oral'},
-                    {id: '2', name: 'Paracetamol', dosage: '1-2 tablets every 4-6 hours', route: 'Oral'},
-                    {id: '3', name: 'Ibuprofen', dosage: '1 tablet 3 times daily', route: 'Oral'},
-                    {id: '4', name: 'Amoxicillin', dosage: '1 capsule three times daily', route: 'Oral'},
-                    {id: '5', name: 'Cetirizine', dosage: '1 tablet daily at bedtime', route: 'Oral'},
-                    {id: '6', name: 'Omeprazole', dosage: '1 capsule before breakfast', route: 'Oral'}
-                ];
-            } else if (template === 'Pain Meds - non narcotic') {
-                drugsToAdd = [
-                    {id: '2', name: 'Paracetamol', dosage: '1-2 tablets every 4-6 hours', route: 'Oral'},
-                    {id: '3', name: 'Ibuprofen', dosage: '1 tablet 3 times daily', route: 'Oral'},
-                    {id: '4', name: 'Diclofenac', dosage: '50mg 3 times daily', route: 'Oral'},
-                    {id: '7', name: 'Naproxen', dosage: '250mg twice daily', route: 'Oral'},
-                    {id: '8', name: 'Aceclofenac', dosage: '100mg twice daily', route: 'Oral'}
-                ];
-            } else if (template === 'Antibiotics') {
-                drugsToAdd = [
-                    {id: '4', name: 'Amoxicillin', dosage: '500mg three times daily', route: 'Oral'},
-                    {id: '9', name: 'Azithromycin', dosage: '500mg once daily for 3 days', route: 'Oral'},
-                    {id: '10', name: 'Ciprofloxacin', dosage: '500mg twice daily', route: 'Oral'},
-                    {id: '11', name: 'Cefuroxime', dosage: '250mg twice daily', route: 'Oral'},
-                    {id: '12', name: 'Doxycycline', dosage: '100mg twice daily', route: 'Oral'}
-                ];
-            } else {
-                // Generic fallback for any other template
-                drugsToAdd = [
-                    {id: '1', name: 'Combiflam', dosage: '1 tablet twice daily', route: 'Oral'},
-                    {id: '2', name: 'Paracetamol', dosage: '1-2 tablets every 4-6 hours', route: 'Oral'}
-                ];
-            }
-            
-            // Add each drug to both the dropdown and the list
-            drugsToAdd.forEach(drug => {
-                // Add to dropdown
-                const option = document.createElement('option');
-                option.value = drug.id;
-                option.textContent = drug.name;
-                option.dataset.dosageInstructions = drug.dosage;
-                drugSelect.appendChild(option);
-                
-                // Add to drug list
-                const listItem = document.createElement('li');
-                listItem.className = 'drug-item';
-                listItem.setAttribute('data-id', drug.id);
-                listItem.setAttribute('data-name', drug.name);
-                listItem.setAttribute('data-dosage', drug.dosage);
-                listItem.setAttribute('data-route', drug.route || '');
-                listItem.style.padding = '8px 10px';
-                listItem.style.borderBottom = '1px solid var(--border-color)';
-                listItem.style.cursor = 'pointer';
-                listItem.style.transition = 'background-color 0.2s';
-                listItem.style.display = 'flex';
-                listItem.style.justifyContent = 'space-between';
-                
-                // Add hover effect
-                listItem.addEventListener('mouseover', function() {
-                    this.style.backgroundColor = 'rgba(138, 43, 226, 0.1)';
-                });
-                listItem.addEventListener('mouseout', function() {
-                    this.style.backgroundColor = '';
-                });
-                
-                // Add click event to select this drug
-                listItem.addEventListener('click', function() {
-                    selectDrugFromList(this);
-                });
-                
-                // Create two divs for name and details
-                const nameDiv = document.createElement('div');
-                nameDiv.innerHTML = `<strong>${drug.name}</strong>`;
-                
-                const detailsDiv = document.createElement('div');
-                detailsDiv.style.textAlign = 'right';
-                detailsDiv.style.color = 'var(--secondary-text)';
-                detailsDiv.style.fontSize = '0.9em';
-                
-                let detailsContent = '';
-                if (drug.dosage) {
-                    detailsContent += drug.dosage;
-                }
-                if (drug.route) {
-                    detailsContent += ` (${drug.route})`;
-                }
-                detailsDiv.textContent = detailsContent;
-                
-                listItem.appendChild(nameDiv);
-                listItem.appendChild(detailsDiv);
-                drugList.appendChild(listItem);
-            });
-        }
-        
         // Handle drug selection to pre-fill dose
         document.getElementById('drugSelect').addEventListener('change', function() {
             const selectedOption = this.options[this.selectedIndex];
@@ -658,107 +727,103 @@
             }
         });
         
-        function addToCart() {
-            // Get values from form
-            const drugSelect = document.getElementById('drugSelect');
-            const drug = drugSelect.options[drugSelect.selectedIndex].text;
-            const drugId = drugSelect.value;
-            const dose = document.getElementById('doseInput').value;
-            const days = document.getElementById('daysInput').value;
-            const qty = document.getElementById('qtyInput').value;
+        function removeFromCart(button, index) {
+            // Get the cart item
+            const cartItem = button.closest('div').parentNode;
+            const drugId = cartItem.getAttribute('data-drug-id');
+            const drugName = cartItem.querySelector('strong').textContent;
+            const dosageText = cartItem.querySelector('div > div:first-child').textContent;
+            const dosage = dosageText.split(' - ')[1] || '';
             
-            if (!drug || drug === 'Select drug' || !dose || !days || !qty) {
-                alert('Please fill in all fields');
-                return;
+            // Get template from the currently selected option
+            let template = '';
+            const templateSelect = document.getElementById('templateSelect');
+            if (templateSelect) {
+                template = templateSelect.value;
             }
             
-            // Get the current index for this prescription item
-            const itemIndex = prescriptionItemIndex++;
+            // Only add back to the list if no template filter is applied
+            if (!template || template === '') {
+                // Add drug back to the list
+                addDrugBackToList(drugId, drugName, dosage);
+            }
             
-            // Create cart item element
-            const cartItem = document.createElement('div');
-            cartItem.style.padding = '10px';
-            cartItem.style.marginBottom = '5px';
-            cartItem.style.borderBottom = '1px solid var(--border-color)';
-            
-            cartItem.innerHTML = `
-                <div style="display: flex; justify-content: space-between;">
-                    <div>
-                        <strong>${drug}</strong> - ${dose}
-                    </div>
-                    <div>
-                        ${days} days - Qty: ${qty}
-                    </div>
-                    <div>
-                        <button type="button" onclick="removeFromCart(this, ${itemIndex})" 
-                                style="background: none; border: none; color: #ff5c5c; cursor: pointer;">
-                            Remove
-                        </button>
-                    </div>
-                </div>
-                <input type="hidden" name="prescription.prescriptionItems[${itemIndex}].drug.id" value="${drugId}">
-                <input type="hidden" name="prescription.prescriptionItems[${itemIndex}].dosage" value="${dose}">
-                <input type="hidden" name="prescription.prescriptionItems[${itemIndex}].duration" value="${days} days">
-                <input type="hidden" name="prescription.prescriptionItems[${itemIndex}].quantity" value="${qty}">
-            `;
-            
-            // Add to cart
-            document.getElementById('drugCart').appendChild(cartItem);
-            
-            // Clear form
-            drugSelect.selectedIndex = 0;
-            document.getElementById('doseInput').value = '';
-            document.getElementById('daysInput').value = '';
-            document.getElementById('qtyInput').value = '';
-        }
-        
-        function removeFromCart(button, index) {
             // Remove the cart item
-            const cartItem = button.closest('div').parentNode;
             cartItem.remove();
             
             // Note: We don't decrement prescriptionItemIndex to avoid index conflicts
         }
         
+        function addDrugBackToList(drugId, drugName, dosage) {
+            // Create a new list item for the drug
+            const listItem = document.createElement('li');
+            listItem.className = 'drug-item';
+            listItem.setAttribute('data-id', drugId);
+            listItem.setAttribute('data-name', drugName);
+            listItem.setAttribute('data-dosage', dosage);
+            listItem.setAttribute('data-template', ''); // Template may not be known
+            listItem.onclick = function() { toggleDrugSelection(this); };
+            
+            // Create the name div
+            const nameDiv = document.createElement('div');
+            nameDiv.innerHTML = `<strong>${drugName}</strong>`;
+            
+            // Create the details div
+            const detailsDiv = document.createElement('div');
+            detailsDiv.style.textAlign = 'right';
+            detailsDiv.style.color = 'var(--secondary-text)';
+            detailsDiv.style.fontSize = '0.9em';
+            detailsDiv.textContent = dosage;
+            
+            // Add divs to list item
+            listItem.appendChild(nameDiv);
+            listItem.appendChild(detailsDiv);
+            
+            // Add to the drug list
+            const drugList = document.getElementById('drugList');
+            drugList.appendChild(listItem);
+        }
+        
         // Load initial template on page load
         document.addEventListener('DOMContentLoaded', function() {
-            // Initialize template select
-            const templateSelect = document.getElementById('templateSelect');
-            
-            // Populate drug dropdown with default drugs
+            // Initialize the drug dropdown with all drugs
             const drugSelect = document.getElementById('drugSelect');
             const drugList = document.getElementById('drugList');
             
-            // Add drugs from the initial server-side rendered list to the dropdown
-            if (drugSelect && drugList) {
+            // Store all drug items 
+            if (drugList) {
                 const drugItems = drugList.querySelectorAll('.drug-item');
-                drugItems.forEach(drugItem => {
-                    const id = drugItem.getAttribute('data-id');
-                    const name = drugItem.getAttribute('data-name');
-                    const dosage = drugItem.getAttribute('data-dosage');
-                    
-                    const option = document.createElement('option');
-                    option.value = id;
-                    option.textContent = name;
-                    option.dataset.dosageInstructions = dosage;
-                    drugSelect.appendChild(option);
+                
+                // Add keyboard support for multi-selection
+                document.addEventListener('keydown', function(e) {
+                    // Ctrl key (or Cmd key on Mac) for multi-selection
+                    if (e.key === 'Control' || e.key === 'Meta') {
+                        document.body.classList.add('multi-select-mode');
+                    }
                 });
+                
+                document.addEventListener('keyup', function(e) {
+                    if (e.key === 'Control' || e.key === 'Meta') {
+                        document.body.classList.remove('multi-select-mode');
+                    }
+                });
+                
+                // Add helpful tooltip to drug list header
+                const drugListHeader = document.querySelector('.drug-list').previousElementSibling;
+                if (drugListHeader) {
+                    const infoSpan = document.createElement('span');
+                    infoSpan.style.fontSize = '0.8em';
+                    infoSpan.style.fontWeight = 'normal';
+                    infoSpan.style.opacity = '0.7';
+                    infoSpan.innerHTML = ' (Use Ctrl/Cmd for multi-selection)';
+                    drugListHeader.querySelector('span:first-child').appendChild(infoSpan);
+                }
             }
             
-            // Get the initially selected template
+            // Add sort/filter tooltip to make it more intuitive
+            const templateSelect = document.getElementById('templateSelect');
             if (templateSelect) {
-                selectedTemplate = templateSelect.value || 'In-House Dispensary';
-                
-                // Make sure the template is actually selected in the dropdown
-                for (let i = 0; i < templateSelect.options.length; i++) {
-                    if (templateSelect.options[i].value === selectedTemplate) {
-                        templateSelect.selectedIndex = i;
-                        break;
-                    }
-                }
-                
-                // Load the drugs for the selected template
-                loadDrugsByTemplate(selectedTemplate);
+                templateSelect.parentNode.querySelector('.section-label').textContent = 'Filter by Category';
             }
         });
         

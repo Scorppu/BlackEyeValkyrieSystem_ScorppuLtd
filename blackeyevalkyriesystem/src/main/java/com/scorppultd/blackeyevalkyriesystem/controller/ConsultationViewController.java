@@ -145,8 +145,8 @@ public class ConsultationViewController {
         );
         model.addAttribute("drugTemplates", drugTemplates);
         
-        // Add default drugs for In-House Dispensary
-        List<Drug> defaultDrugs = drugService.getDrugsByTemplateCategory("In-House Dispensary");
+        // Add all drugs from database instead of just In-House Dispensary
+        List<Drug> defaultDrugs = drugService.getAllDrugs();
         model.addAttribute("defaultDrugs", defaultDrugs);
         
         // Add count of drugs in each template for diagnostics
