@@ -157,8 +157,16 @@
             }
             
             .btn-primary {
+                display: inline-flex;
+                align-items: center;
                 background-color: var(--accent-color);
                 color: white;
+                padding: 0.75rem 1.5rem;
+                border-radius: 0.5rem;
+                font-weight: 600;
+                text-decoration: none;
+                border: none;
+                transition: background-color 0.2s;
             }
             
             .btn-primary:hover {
@@ -210,22 +218,21 @@
             
             .timeline-scroll-container {
                 overflow-x: auto;
-                scrollbar-width: thin;
-                scrollbar-color: var(--accent-color) rgba(138, 43, 226, 0.1);
-                padding-bottom: 8px;
+                overflow-y: hidden;
                 width: 100%;
                 max-width: 100%;
             }
             
             .timeline-content {
-                width: 1700px;
-                max-width: none; /* Allow content to be wider than container for scrolling */
                 position: relative;
+                width: fit-content;
+                min-width: min(100%, 800px);
             }
             
             /* Scrollbar styling for webkit browsers */
             .timeline-scroll-container::-webkit-scrollbar {
                 height: 8px;
+                width: 8px;
             }
             
             .timeline-scroll-container::-webkit-scrollbar-track {
@@ -298,7 +305,7 @@
             }
             
             .appointment-block {
-                background-color: rgba(138, 43, 226, 0.2);
+                background-color: rgba(138, 43, 226, 0.1);
                 border-left: 4px solid #8a2be2;
                 border-radius: 0.375rem;
                 padding: 0.75rem;
@@ -319,12 +326,12 @@
             }
             
             .appointment-block.teal {
-                background-color: rgba(20, 184, 166, 0.2);
+                background-color: rgba(20, 184, 166, 0.1);
                 border-left-color: #14b8a6;
             }
             
             .appointment-block.red {
-                background-color: rgba(239, 68, 68, 0.2);
+                background-color: rgba(239, 68, 68, 0.1);
                 border-left-color: #ef4444;
             }
             
@@ -370,15 +377,188 @@
                 max-width: 100%;
                 box-sizing: border-box;
             }
+            
+            /* Add the following constraints to html, body and content-container */
+            html, body {
+                max-width: 100%;
+                margin: 0;
+                padding: 0;
+                overflow-y: auto !important; /* Force vertical scrolling */
+                height: auto !important; /* Allow content to determine height */
+                max-height: none !important; /* Remove any height restrictions */
+            }
+            
+            .content-container {
+                width: 100%;
+                max-width: 100%;
+                overflow-x: hidden;
+                box-sizing: border-box;
+                overflow-y: visible !important; /* Allow vertical overflow */
+                height: auto !important;
+                max-height: none !important;
+            }
+            
+            /* Ensure the form card stays within bounds */
+            .form-card {
+                max-width: 100%;
+                width: 100%;
+                box-sizing: border-box;
+                overflow: hidden;
+            }
+            
+            /* Ensure the form section stays within bounds */
+            .form-section {
+                max-width: 100%;
+                width: 100%;
+                box-sizing: border-box;
+                overflow: hidden;
+            }
+            
+            /* Force the timeline to stay within the parent container width */
+            @media (min-width: 768px) {
+                .timeline-content {
+                    max-width: calc(100vw - 300px - 4rem); /* Account for sidebar and padding */
+                }
+            }
+            
+            @media (max-width: 767px) {
+                .timeline-content {
+                    max-width: calc(100vw - 3rem); /* Account for padding only on mobile */
+                }
+            }
+            
+            /* Add these additional fixes to the CSS section */
+            
+            /* Fix header and container width */
+            .header, .header-actions {
+                position: relative;
+                width: 100%;
+                max-width: 100%;
+                box-sizing: border-box;
+            }
+            
+            /* Fix for the entire content area */
+            main.main-content {
+                width: 100%;
+                max-width: 100%;
+                overflow-x: hidden;
+            }
+            
+            body, html, .app-container {
+                width: 100%;
+                max-width: 100%;
+                overflow-x: hidden;
+            }
+            
+            /* Force width constraints on all containers */
+            .form-card, .form-section, .content-container, .timeline-container {
+                width: 100% !important;
+                max-width: 100% !important;
+                overflow-x: hidden !important;
+                box-sizing: border-box !important;
+            }
+            
+            /* Make sure the timeline content is absolutely positioned to prevent layout shifts */
+            .timeline-content {
+                position: relative;
+                width: 100%;
+                max-width: 100%;
+                overflow-x: auto;
+                overflow-y: hidden;
+            }
+            
+            /* Keep the confirm button in position */
+            .header-actions {
+                margin-left: auto; /* Push to the right */
+                position: static; /* Remove absolute positioning */
+                transform: none; /* Remove transform */
+            }
+            
+            /* Fix header layout to match screenshot exactly */
+            .header {
+                margin-bottom: 2rem;
+            }
+            
+            .header-container {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                width: 100%;
+                padding: 0 1rem;
+                box-sizing: border-box;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+                font-weight: 600;
+                margin: 0;
+                padding: 0;
+                color: white;
+            }
+            
+            .header-actions {
+                /* Remove absolute positioning */
+                position: static; 
+                top: auto;
+                right: auto;
+                z-index: auto;
+                margin: 0;
+                padding: 0;
+            }
+            
+            .btn-primary {
+                display: inline-flex;
+                align-items: center;
+                background-color: var(--accent-color);
+                color: white;
+                padding: 0.75rem 1.5rem;
+                border-radius: 0.5rem;
+                font-weight: 600;
+                text-decoration: none;
+                border: none;
+                transition: background-color 0.2s;
+                cursor: pointer;
+            }
+            
+            .btn-primary:hover {
+                background-color: #7b26cd;
+            }
+            
+            .timeline-container {
+                width: 100%;
+                max-width: 100%;
+                overflow: hidden;
+            }
+            
+            .timeline-scroll-container {
+                overflow-x: auto;
+                overflow-y: hidden;
+                width: 100%;
+                max-width: 100%;
+            }
+            
+            .timeline-content {
+                width: fit-content;
+                min-width: min(100%, 800px);
+            }
+            
+            @media (min-width: 1200px) {
+                .timeline-scroll-container:not([data-overflow="true"]) {
+                    overflow-x: hidden;
+                }
+            }
+            
         </style>
     </th:block>
 </head>
 <body>
     <div layout:fragment="custom-header">
         <header class="header">
-            <h1>Create Appointment</h1>
-            <div class="header-actions">
-                <button type="submit" form="visitInfoForm" class="btn btn-primary">Confirm</button>
+            <div class="header-container">
+                <h1>Create Appointment</h1>
+                <div class="header-actions">
+                    <button type="submit" form="visitInfoForm" class="btn btn-primary">Confirm</button>
+                </div>
             </div>
         </header>
     </div>
@@ -541,6 +721,28 @@
                 const timelineSlots = document.getElementById('timelineSlots');
                 const doctorLoading = document.getElementById('doctorLoading');
                 
+                // Function to check if timeline needs scrollbar
+                function checkTimelineOverflow() {
+                    const timelineContent = document.querySelector('.timeline-content');
+                    const scrollContainer = document.querySelector('.timeline-scroll-container');
+                    
+                    if (timelineContent && scrollContainer) {
+                        // Check if content width exceeds container width
+                        const needsScroll = timelineContent.scrollWidth > scrollContainer.clientWidth;
+                        scrollContainer.setAttribute('data-overflow', needsScroll);
+                        
+                        // Adjust appearance based on need for scrollbar
+                        if (needsScroll) {
+                            scrollContainer.style.overflowX = 'auto';
+                        } else {
+                            scrollContainer.style.overflowX = 'hidden';
+                        }
+                    }
+                }
+                
+                // Check for overflow when timeline is displayed and on window resize
+                window.addEventListener('resize', checkTimelineOverflow);
+                
                 // Initialize date fields
                 const now = new Date();
                 const minDateTime = new Date(now.getTime() + 30 * 60000); // 30 minutes from now
@@ -567,6 +769,9 @@
                 
                 // Handle doctor search
                 if (doctorSearch && doctorSelect) {
+                    // Store the initial content container width
+                    const initialContainerWidth = document.querySelector('.content-container').offsetWidth;
+                    
                     doctorSearch.addEventListener('input', function() {
                         const searchTerm = this.value.toLowerCase();
                         const options = doctorSelect.options;
@@ -591,6 +796,9 @@
                         if (selectedOption) {
                             doctorSearch.value = selectedOption.text;
                             
+                            // Force container width to stay fixed before timeline displays
+                            document.querySelector('.content-container').style.width = initialContainerWidth + 'px';
+                            
                             // When a doctor is selected, load their schedule
                             if (selectedOption.value) {
                                 fetchDoctorSchedule(selectedOption.value);
@@ -614,6 +822,11 @@
                 });
                 
                 function fetchDoctorSchedule(doctorName) {
+                    // Force content containers to fixed width before loading
+                    document.querySelectorAll('.content-container, .form-card, .form-section').forEach(el => {
+                        el.style.overflowX = 'hidden';
+                    });
+                    
                     // Show loading indicator
                     doctorLoading.style.display = 'inline-block';
                     
@@ -667,17 +880,61 @@
                 }
                 
                 function displayTimeline(doctorName, appointments, nextAvailableTime, requiredTime) {
+                    // Get the current container width before showing the timeline
+                    const containerWidth = document.querySelector('.content-container').offsetWidth;
+                    
                     // Clear previous timeline
                     timelineHeader.innerHTML = '';
                     timelineSlots.innerHTML = '';
                     doctorColumn.textContent = doctorName;
                     
-                    // Show timeline container
+                    // Show timeline container but keep content within container bounds
+                    document.querySelectorAll('.content-container, .form-card, .form-section').forEach(el => {
+                        el.style.width = '100%';
+                        el.style.maxWidth = '100%';
+                        el.style.overflowX = 'hidden';
+                    });
+                    
+                    // Now show the timeline
                     timelineContainer.style.display = 'block';
                     
                     // Appointment working hours: 9 AM to 5 PM
                     const workStartHour = 9;
                     const workEndHour = 17;
+                    
+                    // Calculate time slots for layout
+                    const timeSlots = (workEndHour - workStartHour) * 2 + 1; // 30-minute slots
+                    const slotWidth = 100; // Width in pixels of each time slot
+                    
+                    // Set min-width for the timeline content based on time slots
+                    const totalWidth = (timeSlots * slotWidth) + 120; // Add doctor column width
+                    
+                    // Get timeline scroll container
+                    const scrollContainer = timelineContainer.querySelector('.timeline-scroll-container');
+                    
+                    // Ensure only the scroll container has scrollbars
+                    document.querySelectorAll('body, html, .content-container, .form-card, .form-section, .timeline-container, .timeline-content').forEach(el => {
+                        if (el !== scrollContainer) {
+                            el.style.overflow = 'hidden';
+                        }
+                    });
+                    
+                    // Set appropriate width for timeline content
+                    const timelineContent = document.querySelector('.timeline-content');
+                    if (timelineContent) {
+                        timelineContent.style.width = totalWidth + 'px';
+                        timelineContent.style.minWidth = Math.min(800, totalWidth) + 'px';
+                        timelineContent.style.maxWidth = 'none'; // Allow content to be wider than container for scrolling
+                        timelineContent.style.overflow = 'visible';
+                    }
+                    
+                    // Ensure scroll container has proper overflow settings
+                    if (scrollContainer) {
+                        scrollContainer.style.overflowX = 'auto';
+                        scrollContainer.style.overflowY = 'hidden';
+                        scrollContainer.style.maxWidth = '100%';
+                        scrollContainer.style.width = '100%';
+                    }
                     
                     // Generate time slots (every 30 minutes) in a single row
                     for (let hour = workStartHour; hour <= workEndHour; hour++) {
@@ -696,11 +953,8 @@
                     appointments.sort((a, b) => new Date(a.scheduledTime) - new Date(b.scheduledTime));
                     
                     // Calculate total time slots
-                    const timeSlots = (workEndHour - workStartHour) * 2 + 1; // 30-minute slots
-                    let timelineItems = Array(timeSlots).fill(null);
-                    
-                    // Slot width in pixels
-                    const slotWidth = 100;
+                    const totalTimeSlots = (workEndHour - workStartHour) * 2 + 1; // 30-minute slots
+                    let timelineItems = Array(totalTimeSlots).fill(null);
                     
                     // Place existing appointments in the timeline
                     appointments.forEach(appointment => {
@@ -734,7 +988,7 @@
                         
                         // Mark slots as occupied
                         for (let i = 0; i < durationSlots; i++) {
-                            if (startSlot + i < timeSlots) {
+                            if (startSlot + i < totalTimeSlots) {
                                 timelineItems[startSlot + i] = appointment;
                             }
                         }
@@ -759,9 +1013,11 @@
                     setTimeout(() => {
                         const timelineScrollContainer = document.querySelector('.timeline-scroll-container');
                         if (timelineScrollContainer) {
-                            // Calculate scroll position to center the new appointment
-                            const scrollPosition = suggestedStartSlot * slotWidth;
-                            timelineScrollContainer.scrollLeft = Math.max(0, scrollPosition - 100);
+                            // Always start at the left side (beginning of the day)
+                            timelineScrollContainer.scrollLeft = 0;
+                            
+                            // Check if timeline needs scrollbar
+                            checkTimelineOverflow();
                         }
                     }, 100);
                     
@@ -845,8 +1101,24 @@
                         }
                     });
                 }
+                
+                // Handle window resize to adjust timeline width
+                window.addEventListener('resize', function() {
+                    // Get the timeline content element
+                    const timelineContent = document.querySelector('.timeline-content');
+                    if (timelineContent && timelineContainer.style.display === 'block') {
+                        // Get the container width
+                        const containerWidth = timelineContainer.clientWidth - 30;
+                        
+                        // Ensure we don't exceed viewport width
+                        const maxViewportWidth = window.innerWidth - 50;
+                        const finalWidth = Math.min(containerWidth, maxViewportWidth);
+                        
+                        timelineContent.style.width = `${finalWidth}px`;
+                    }
+                });
             });
         </script>
     </th:block>
 </body>
-</html> 
+</html>
