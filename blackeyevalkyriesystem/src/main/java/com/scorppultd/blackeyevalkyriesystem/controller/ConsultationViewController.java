@@ -13,12 +13,14 @@ import org.springframework.web.bind.annotation.*;
 
 import com.scorppultd.blackeyevalkyriesystem.model.Consultation;
 import com.scorppultd.blackeyevalkyriesystem.model.Doctor;
+import com.scorppultd.blackeyevalkyriesystem.model.Drug;
 import com.scorppultd.blackeyevalkyriesystem.model.Patient;
 import com.scorppultd.blackeyevalkyriesystem.model.Prescription;
 import com.scorppultd.blackeyevalkyriesystem.model.Consultation.Diagnosis;
 import com.scorppultd.blackeyevalkyriesystem.model.Consultation.VitalSigns;
 import com.scorppultd.blackeyevalkyriesystem.service.ConsultationService;
 import com.scorppultd.blackeyevalkyriesystem.service.DoctorService;
+import com.scorppultd.blackeyevalkyriesystem.service.DrugService;
 import com.scorppultd.blackeyevalkyriesystem.service.PatientService;
 import com.scorppultd.blackeyevalkyriesystem.service.PrescriptionService;
 
@@ -30,17 +32,20 @@ public class ConsultationViewController {
     private final PatientService patientService;
     private final DoctorService doctorService;
     private final PrescriptionService prescriptionService;
+    private final DrugService drugService;
 
     @Autowired
     public ConsultationViewController(
             ConsultationService consultationService,
             PatientService patientService, 
             DoctorService doctorService,
-            PrescriptionService prescriptionService) {
+            PrescriptionService prescriptionService,
+            DrugService drugService) {
         this.consultationService = consultationService;
         this.patientService = patientService;
         this.doctorService = doctorService;
         this.prescriptionService = prescriptionService;
+        this.drugService = drugService;
     }
 
     /**
@@ -126,6 +131,35 @@ public class ConsultationViewController {
         }
         
         model.addAttribute("consultation", consultation);
+        
+        // Add drug templates
+        List<String> drugTemplates = List.of(
+            "In-House Dispensary", 
+            "Pain Meds - non narcotic", 
+            "Antibiotics", 
+            "Cardiovascular", 
+            "Respiratory", 
+            "Gastrointestinal", 
+            "Antidiabetic", 
+            "CNS Agents"
+        );
+        model.addAttribute("drugTemplates", drugTemplates);
+        
+        // Add default drugs for In-House Dispensary
+        List<Drug> defaultDrugs = drugService.getDrugsByTemplateCategory("In-House Dispensary");
+        model.addAttribute("defaultDrugs", defaultDrugs);
+        
+        // Add count of drugs in each template for diagnostics
+        // This helps verify if data is being retrieved from the database
+        java.util.Map<String, Integer> drugCounts = new java.util.HashMap<>();
+        for (String template : drugTemplates) {
+            List<Drug> drugs = drugService.getDrugsByTemplateCategory(template);
+            drugCounts.put(template, drugs.size());
+        }
+        model.addAttribute("drugCounts", drugCounts);
+        
+        // Add total count of all drugs for diagnostics
+        model.addAttribute("totalDrugCount", drugService.getAllDrugs().size());
         
         return "consultation-create";
     }
