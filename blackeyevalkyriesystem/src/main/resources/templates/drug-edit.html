@@ -23,18 +23,33 @@
             font-weight: 500;
             color: var(--primary-text);
         }
-        .form-input {
+        .form-control {
             width: 100%;
             padding: 10px 12px;
             background-color: var(--input-bg);
             border: 1px solid var(--border-color);
             border-radius: 4px;
             color: var(--primary-text);
+            box-sizing: border-box;
         }
-        .form-input:focus {
+        .form-control:focus {
             outline: none;
             border-color: var(--accent-color);
         }
+        
+        input.form-control {
+            appearance: none;
+            padding-right: 30px;
+        }
+        
+        select.form-control {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4 6L8 10L12 6' stroke='white' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            padding-right: 30px;
+        }
+        
         .form-textarea {
             width: 100%;
             padding: 10px 12px;
@@ -44,6 +59,7 @@
             color: var(--primary-text);
             min-height: 100px;
             resize: vertical;
+            box-sizing: border-box;
         }
         .form-textarea:focus {
             outline: none;
@@ -117,13 +133,13 @@
                     
                     <div class="form-group">
                         <label for="name" class="form-label">Drug Name</label>
-                        <input type="text" id="name" th:field="*{name}" class="form-input" placeholder="Enter drug name" required>
+                        <input type="text" id="name" th:field="*{name}" class="form-control" placeholder="Enter drug name" required>
                         <div class="form-hint">Enter the commercial or generic name of the drug</div>
                     </div>
                     
                     <div class="form-group">
                         <label for="templateCategory" class="form-label">Template Category</label>
-                        <select id="templateCategory" th:field="*{templateCategory}" class="form-select" required>
+                        <select id="templateCategory" th:field="*{templateCategory}" class="form-control" required>
                             <option value="">-- Select category --</option>
                             <option value="In-House Dispensary">In-House Dispensary</option>
                             <option value="Pain Meds - non narcotic">Pain Meds - non narcotic</option>
@@ -139,7 +155,7 @@
                     
                     <div class="form-group">
                         <label for="routeOfAdministration" class="form-label">Route of Administration</label>
-                        <select id="routeOfAdministration" th:field="*{routeOfAdministration}" class="form-select" required>
+                        <select id="routeOfAdministration" th:field="*{routeOfAdministration}" class="form-control" required>
                             <option value="">-- Select route --</option>
                             <option value="Oral">Oral</option>
                             <option value="Intravenous">Intravenous</option>
@@ -154,7 +170,7 @@
                     
                     <div class="form-group">
                         <label for="dosageInstructions" class="form-label">Dosage Instructions</label>
-                        <input type="text" id="dosageInstructions" th:field="*{dosageInstructions}" class="form-input" 
+                        <input type="text" id="dosageInstructions" th:field="*{dosageInstructions}" class="form-control" 
                                placeholder="e.g., 1 tablet twice daily" required>
                         <div class="form-hint">Standard dosage instructions that will be pre-filled during prescription</div>
                     </div>
@@ -176,7 +192,7 @@
                         <div class="card-header" style="background-color: rgba(138, 43, 226, 0.1); padding: 12px 16px; border-radius: 8px 8px 0 0; border-bottom: 1px solid var(--border-color);">
                             <h3 style="margin: 0; font-size: 18px; color: var(--primary-text);">Drug Interactions</h3>
                             <p style="margin: 5px 0 0 0; font-size: 14px; color: var(--secondary-text);">
-                                Manage interactions with other medications
+                                Manage interactions with other medications (optional)
                             </p>
                         </div>
                         <div class="card-body" style="padding: 16px;">
@@ -213,14 +229,14 @@
                             </div>
                             
                             <!-- Add New Interactions -->
-                            <h4 style="margin-top: 20px; font-size: 16px; color: var(--primary-text);">Add New Interactions</h4>
+                            <h4 style="margin-top: 20px; font-size: 16px; color: var(--primary-text);">Add New Interactions (Optional)</h4>
                             
                             <!-- Specific Drug Interactions -->
                             <div id="interactionsContainer">
                                 <div class="interaction-item" style="border: 1px solid var(--border-color); border-radius: 4px; padding: 16px; margin-bottom: 16px; background-color: var(--input-bg);">
                                     <div class="form-group">
                                         <label for="interactingDrug0" class="form-label">Interacting Drug</label>
-                                        <select id="interactingDrug0" name="interactingDrugs[0]" class="form-select">
+                                        <select id="interactingDrug0" name="interactingDrugs[0]" class="form-control">
                                             <option value="">-- Select Drug --</option>
                                             <option th:each="otherDrug : ${allDrugs}" 
                                                     th:value="${otherDrug.id}" 
@@ -230,7 +246,7 @@
                                     
                                     <div class="form-group">
                                         <label for="severity0" class="form-label">Interaction Severity</label>
-                                        <select id="severity0" name="severities[0]" class="form-select">
+                                        <select id="severity0" name="severities[0]" class="form-control">
                                             <option value="">-- Select Severity --</option>
                                             <option th:each="severity : ${severityLevels}" 
                                                     th:value="${severity}" 
@@ -301,14 +317,14 @@
                     ${deleteBtn}
                     <div class="form-group">
                         <label for="interactingDrug${interactionCount}" class="form-label">Interacting Drug</label>
-                        <select id="interactingDrug${interactionCount}" name="interactingDrugs[${interactionCount}]" class="form-select">
+                        <select id="interactingDrug${interactionCount}" name="interactingDrugs[${interactionCount}]" class="form-control">
                             ${interactingDrugOptions}
                         </select>
                     </div>
                     
                     <div class="form-group">
                         <label for="severity${interactionCount}" class="form-label">Interaction Severity</label>
-                        <select id="severity${interactionCount}" name="severities[${interactionCount}]" class="form-select">
+                        <select id="severity${interactionCount}" name="severities[${interactionCount}]" class="form-control">
                             ${severityOptions}
                         </select>
                     </div>
@@ -328,6 +344,31 @@
             interactionsContainer.addEventListener('click', function(e) {
                 if (e.target.closest('.remove-interaction')) {
                     e.target.closest('.interaction-item').remove();
+                }
+            });
+            
+            // Add validation to ensure interactions are completed correctly
+            const form = document.querySelector('form');
+            form.addEventListener('submit', function(e) {
+                const interactingDrugs = document.querySelectorAll('[name^="interactingDrugs"]');
+                let hasEmptyInteraction = false;
+                
+                interactingDrugs.forEach(select => {
+                    // Check if this is a partially filled interaction
+                    const index = select.name.match(/\d+/)[0];
+                    const severity = document.querySelector(`[name="severities[${index}]"]`);
+                    const description = document.querySelector(`[name="descriptions[${index}]"]`);
+                    
+                    if ((select.value && (!severity.value || !description.value)) ||
+                        (severity.value && (!select.value || !description.value)) ||
+                        (description.value && (!select.value || !severity.value))) {
+                        hasEmptyInteraction = true;
+                    }
+                });
+                
+                if (hasEmptyInteraction) {
+                    e.preventDefault();
+                    alert('Please complete all fields for each interaction or remove incomplete interaction fields');
                 }
             });
         });
