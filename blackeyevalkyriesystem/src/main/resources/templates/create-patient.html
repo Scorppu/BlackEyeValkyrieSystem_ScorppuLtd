@@ -199,51 +199,55 @@
             .drug-selection-container {
                 display: flex;
                 gap: 0.5rem;
-                margin-bottom: 1rem;
+                align-items: flex-start;
             }
             
             .allergies-table {
                 width: 100%;
                 border-collapse: collapse;
-            }
-            
-            .allergies-table th, 
-            .allergies-table td {
-                padding: 0.75rem;
-                text-align: left;
-                border-bottom: 1px solid var(--border-color);
+                margin-top: 0.5rem;
             }
             
             .allergies-table th {
-                background-color: rgba(138, 43, 226, 0.1);
-                font-weight: 600;
+                text-align: left;
+                padding: 0.5rem;
+                font-weight: 500;
+                border-bottom: 1px solid var(--border-color);
+                color: var(--secondary-text);
+            }
+            
+            .allergies-table td {
+                padding: 0.5rem;
+                border-bottom: 1px solid var(--border-color);
                 color: var(--primary-text);
             }
             
-            .allergies-table tbody tr:hover {
-                background-color: rgba(138, 43, 226, 0.05);
+            .allergies-table .empty-allergies-row td {
+                text-align: center;
+                font-style: italic;
+                color: var(--secondary-text);
             }
             
             .remove-allergy-btn {
-                display: flex;
+                display: inline-flex;
                 align-items: center;
-                gap: 0.5rem;
+                gap: 0.25rem;
                 padding: 0.25rem 0.5rem;
-                background-color: rgba(220, 53, 69, 0.1);
-                color: #dc3545;
-                border: none;
+                border: 1px solid var(--border-color);
+                background-color: rgba(255, 0, 0, 0.05);
+                color: #ff5252;
                 border-radius: 0.25rem;
                 cursor: pointer;
                 transition: background-color 0.2s;
             }
             
             .remove-allergy-btn:hover {
-                background-color: rgba(220, 53, 69, 0.2);
+                background-color: rgba(255, 0, 0, 0.1);
             }
             
-            .empty-allergies-row td {
-                color: var(--secondary-text);
-                font-style: italic;
+            .remove-allergy-btn svg {
+                width: 14px;
+                height: 14px;
             }
             
             .mt-3 {
@@ -507,8 +511,11 @@
     
     <th:block layout:fragment="scripts">
         <script th:inline="javascript">
-            // Tab navigation for personal to contact info
+            // Initialize allDrugs from the controller data
+            const allDrugsData = /*[[${allDrugs}]]*/ [];
+            
             document.addEventListener('DOMContentLoaded', function() {
+                // Tab navigation for personal to contact info
                 const nextButton = document.getElementById('next-btn');
                 const backButton = document.getElementById('back-btn');
                 const tabItems = document.querySelectorAll('.tab-item');
@@ -667,7 +674,7 @@
                     });
                 }
                 
-                // Calculate age from date of birth
+                // Calculate age based on date of birth
                 const dobField = document.getElementById('dateOfBirth');
                 const ageField = document.getElementById('age');
                 
@@ -710,12 +717,29 @@
                 const allergiesList = document.getElementById('allergiesList');
                 const drugAllergiesInput = document.getElementById('drugAllergies');
                 const selectedAllergies = new Set();
+                const drugMap = {};
                 
-                // Get drugs data from Thymeleaf with proper JavaScript inlining
-                const allDrugs = /*[[${allDrugs}]]*/ [];
+                // Get drugs data from the pre-initialized variable
+                const allDrugs = allDrugsData || [];
                 
                 // Debugging - log the drugs to console
                 console.log('Available drugs:', allDrugs);
+                
+                // Create a map of drug IDs to drug names
+                if (Array.isArray(allDrugs)) {
+                    allDrugs.forEach(drug => {
+                        // Handle different property structures
+                        const drugId = drug.id || '';
+                        const drugName = drug.name || drug.drugName || drug.genericName || '';
+                        if (drugId) {
+                            drugMap[drugId] = drugName;
+                        }
+                    });
+                } else {
+                    console.error('allDrugs is not properly initialized:', allDrugs);
+                }
+                
+                console.log('Drug name mapping:', drugMap);
                 
                 // Show warning if no drugs are loaded
                 if (!Array.isArray(allDrugs) || allDrugs.length === 0) {
@@ -774,12 +798,7 @@
                         return;
                     }
                     
-                    // Check the property names in the first drug object
-                    if (allDrugs.length > 0) {
-                        console.log('First drug object structure:', allDrugs[0]);
-                    }
-                    
-                    // Filter drugs based on search text - check different property names
+                    // Filter drugs based on search text
                     const searchLower = searchText.toLowerCase();
                     const filteredDrugs = allDrugs.filter(drug => {
                         // Determine the property to use for drug name
