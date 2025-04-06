@@ -40,4 +40,15 @@ public interface DoctorRepository extends MongoRepository<Doctor, String> {
     
     // Find doctors by office number
     List<Doctor> findByOfficeNumber(String officeNumber);
+    
+    // Find doctors by name (partial match on first name OR last name)
+    @Query("{ $or: [ { 'firstName': { $regex: ?0, $options: 'i' } }, { 'lastName': { $regex: ?0, $options: 'i' } } ] }")
+    List<Doctor> findByNameContaining(String name);
+    
+    // Find doctor by email
+    Optional<Doctor> findByEmail(String email);
+    
+    // Find doctor by full name (exact match on first + last name)
+    @Query("{ $and: [ { 'firstName': ?0 }, { 'lastName': ?1 } ] }")
+    Optional<Doctor> findByFirstNameAndLastName(String firstName, String lastName);
 } 

@@ -75,4 +75,27 @@ public class DoctorServiceImpl implements DoctorService {
     public List<Doctor> getDoctorsByAvailableDay(String dayOfWeek) {
         return doctorRepository.findByAvailableDay(dayOfWeek);
     }
+
+    @Override
+    public Optional<Doctor> getDoctorByEmail(String email) {
+        return doctorRepository.findByEmail(email);
+    }
+
+    @Override
+    public Optional<Doctor> getDoctorByName(String fullName) {
+        // Split the full name into first name and last name
+        String[] nameParts = fullName.split(" ", 2);
+        if (nameParts.length == 2) {
+            String firstName = nameParts[0];
+            String lastName = nameParts[1];
+            return doctorRepository.findByFirstNameAndLastName(firstName, lastName);
+        }
+        // If the name doesn't have two parts, return empty
+        return Optional.empty();
+    }
+
+    @Override
+    public List<Doctor> getDoctorsByNameContaining(String name) {
+        return doctorRepository.findByNameContaining(name);
+    }
 } 

@@ -199,15 +199,37 @@
             .btn-primary:hover {
                 background-color: #7b26cd;
             }
+            
+            .header-container {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 2rem;
+            }
+            
+            .create-button {
+                display: inline-block;
+                background-color: var(--accent-color);
+                color: white;
+                padding: 0.75rem 1.5rem;
+                border-radius: 0.5rem;
+                font-weight: 600;
+                text-decoration: none;
+                transition: background-color 0.2s;
+            }
+            
+            .create-button:hover {
+                background-color: #7b26cd;
+            }
         </style>
     </th:block>
 </head>
 <body>
     <div layout:fragment="custom-header">
         <header class="header">
-            <h1>Create Appointment</h1>
-            <div class="header-actions">
-                <a href="#" class="btn btn-primary" id="nextButton">Next</a>
+            <div class="header-container">
+                <h1>Create Appointment</h1>
+                <a href="#" class="btn btn-primary" id="nextButton">Confirm</a>
             </div>
         </header>
     </div>
@@ -219,7 +241,7 @@
             
             <div class="table-card">
                 <div class="search-box">
-                    <input type="text" class="search-input" placeholder="Search for..." id="patientSearch">
+                    <input type="text" class="search-input" placeholder="" id="patientSearch">
                 </div>
                 
                 <form id="appointmentForm" method="post" action="/appointment/create">

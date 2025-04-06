@@ -33,6 +33,29 @@
                 overflow-x: hidden;
             }
             
+            /* Remove redundant calendar icon */
+            input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+            input[type="date"]::-webkit-calendar-picker-indicator {
+                opacity: 1;
+                display: block;
+                background: url('data:image/svg+xml;utf8,<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12.6667 3.33334H3.33333C2.59695 3.33334 2 3.93029 2 4.66668V12.6667C2 13.403 2.59695 14 3.33333 14H12.6667C13.403 14 14 13.403 14 12.6667V4.66668C14 3.93029 13.403 3.33334 12.6667 3.33334Z" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/><path d="M10.6667 2V4.66667" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.33334 2V4.66667" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 7.33334H14" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/></svg>') no-repeat;
+                width: 16px;
+                height: 16px;
+                border-width: thin;
+                position: absolute;
+                right: 10px;
+            }
+            
+            /* Hide the second calendar icon */
+            input[type="datetime-local"]::-webkit-inner-spin-button,
+            input[type="date"]::-webkit-inner-spin-button,
+            input[type="datetime-local"]::-webkit-clear-button,
+            input[type="date"]::-webkit-clear-button {
+                display: none;
+                -webkit-appearance: none;
+                margin: 0;
+            }
+            
             .form-section {
                 margin-bottom: 2rem;
                 width: 100%;
@@ -280,12 +303,6 @@
                 flex-shrink: 0;
             }
             
-            .timeline-times {
-                display: flex;
-                flex-grow: 1;
-                max-width: calc(100% - 120px);
-            }
-            
             .timeline-time {
                 text-align: center;
                 font-size: 0.875rem;
@@ -294,6 +311,26 @@
                 width: 100px;
                 min-width: 100px;
                 flex-shrink: 0;
+                position: relative;
+            }
+            
+            /* Add line indicators for time markers */
+            .timeline-time::after {
+                content: '';
+                position: absolute;
+                bottom: 0;
+                left: 50%;
+                transform: translateX(-50%);
+                height: 12px;
+                width: 1px;
+                background-color: var(--border-color);
+            }
+            
+            .timeline-times {
+                display: flex;
+                flex-grow: 1;
+                max-width: calc(100% - 120px);
+                position: relative;
             }
             
             .timeline-slots {
@@ -302,6 +339,20 @@
                 position: relative;
                 height: 80px;
                 max-width: calc(100% - 120px);
+            }
+            
+            /* Add vertical grid lines */
+            .timeline-slots::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background-image: linear-gradient(90deg, var(--border-color) 1px, transparent 1px);
+                background-size: 100px 100%;
+                opacity: 0.2;
+                pointer-events: none;
             }
             
             .appointment-block {
@@ -956,6 +1007,14 @@
                     const totalTimeSlots = (workEndHour - workStartHour) * 2 + 1; // 30-minute slots
                     let timelineItems = Array(totalTimeSlots).fill(null);
                     
+                    // Function to calculate the left position for a given time
+                    function calculateTimePosition(time) {
+                        const hours = time.getHours();
+                        const minutes = time.getMinutes();
+                        const slot = (hours - workStartHour) * 2 + (minutes >= 30 ? 1 : 0) + 0.2;
+                        return slot * slotWidth;
+                    }
+                    
                     // Place existing appointments in the timeline
                     appointments.forEach(appointment => {
                         const startTime = new Date(appointment.scheduledTime);
@@ -967,15 +1026,15 @@
                         }
                         
                         // Calculate position
-                        const startSlot = (startTime.getHours() - workStartHour) * 2 + (startTime.getMinutes() >= 30 ? 1 : 0);
+                        const leftPosition = calculateTimePosition(startTime);
                         const durationSlots = Math.ceil(appointment.requiredTime / 30);
                         
                         // Create appointment block
                         const appointmentBlock = document.createElement('div');
                         appointmentBlock.className = 'appointment-block';
                         
-                        // Position the block using absolute positioning
-                        appointmentBlock.style.left = `${startSlot * slotWidth}px`;
+                        // Position the block using absolute positioning - adjust position to align with time markers
+                        appointmentBlock.style.left = `${leftPosition}px`;
                         appointmentBlock.style.width = `${durationSlots * slotWidth - 10}px`; // -10 for margins
                         
                         // Add patient name or appointment type
@@ -988,21 +1047,22 @@
                         
                         // Mark slots as occupied
                         for (let i = 0; i < durationSlots; i++) {
-                            if (startSlot + i < totalTimeSlots) {
-                                timelineItems[startSlot + i] = appointment;
+                            if ((leftPosition / slotWidth) + i < totalTimeSlots) {
+                                timelineItems[Math.floor(leftPosition / slotWidth) + i] = appointment;
                             }
                         }
                     });
                     
                     // Add the suggested new appointment (dotted outline)
                     const suggestedStartTime = new Date(nextAvailableTime);
-                    const suggestedStartSlot = (suggestedStartTime.getHours() - workStartHour) * 2 + 
-                                              (suggestedStartTime.getMinutes() >= 30 ? 1 : 0);
+                    const leftPosition = calculateTimePosition(suggestedStartTime);
                     const suggestedDurationSlots = Math.ceil(requiredTime / 30);
                     
                     const newAppointmentBlock = document.createElement('div');
                     newAppointmentBlock.className = 'appointment-block dotted';
-                    newAppointmentBlock.style.left = `${suggestedStartSlot * slotWidth}px`;
+                    
+                    // Fix the alignment calculation for the appointment block
+                    newAppointmentBlock.style.left = `${leftPosition}px`;
                     newAppointmentBlock.style.width = `${suggestedDurationSlots * slotWidth - 10}px`; // -10 for margins
                     newAppointmentBlock.textContent = 'New Appointment';
                     
@@ -1022,7 +1082,10 @@
                     }, 100);
                     
                     // When scheduled time changes, update the dotted appointment in the timeline
-                    scheduledTimeInput.addEventListener('change', function() {
+                    scheduledTimeInput.addEventListener('blur', function() {
+                        // Only validate if there's a value
+                        if (!this.value) return;
+                        
                         const selectedTime = new Date(this.value);
                         
                         // Check if time is within working hours
@@ -1037,14 +1100,14 @@
                             previousDotted.remove();
                         }
                         
-                        // Calculate new position
-                        const newStartSlot = (selectedTime.getHours() - workStartHour) * 2 + 
-                                            (selectedTime.getMinutes() >= 30 ? 1 : 0);
+                        // Calculate new position using the same function for consistency
+                        const leftPosition = calculateTimePosition(selectedTime);
                         
                         // Check for conflicts
                         let hasConflict = false;
+                        const slotIndex = Math.floor(leftPosition / slotWidth);
                         for (let i = 0; i < suggestedDurationSlots; i++) {
-                            if (newStartSlot + i < timeSlots && timelineItems[newStartSlot + i] !== null) {
+                            if (slotIndex + i < timeSlots && timelineItems[slotIndex + i] !== null) {
                                 hasConflict = true;
                                 break;
                             }
@@ -1053,7 +1116,9 @@
                         // Create the new appointment block
                         const updatedAppointmentBlock = document.createElement('div');
                         updatedAppointmentBlock.className = `appointment-block dotted ${hasConflict ? 'red' : ''}`;
-                        updatedAppointmentBlock.style.left = `${newStartSlot * slotWidth}px`;
+                        
+                        // Use consistent positioning calculation
+                        updatedAppointmentBlock.style.left = `${leftPosition}px`;
                         updatedAppointmentBlock.style.width = `${suggestedDurationSlots * slotWidth - 10}px`;
                         updatedAppointmentBlock.textContent = hasConflict ? 
                             'Conflict! (New Appointment)' : 'New Appointment';
@@ -1073,10 +1138,61 @@
                         setTimeout(() => {
                             const timelineScrollContainer = document.querySelector('.timeline-scroll-container');
                             if (timelineScrollContainer) {
-                                const scrollPosition = newStartSlot * slotWidth;
+                                const scrollPosition = leftPosition;
                                 timelineScrollContainer.scrollLeft = Math.max(0, scrollPosition - 100);
                             }
                         }, 100);
+                    });
+                    
+                    // Also update the timeline when the input value changes
+                    scheduledTimeInput.addEventListener('change', function() {
+                        // We don't validate here, just update the visual timeline
+                        // This allows users to type their time without immediate validation
+                        
+                        // But only proceed if we have a completed, valid time
+                        if (!this.value || !this.value.includes('T')) return;
+                        
+                        const selectedTime = new Date(this.value);
+                        
+                        // Remove previous dotted appointment
+                        const previousDotted = timelineSlots.querySelector('.dotted');
+                        if (previousDotted) {
+                            previousDotted.remove();
+                        }
+                        
+                        // Calculate new position using the same function for consistency
+                        const leftPosition = calculateTimePosition(selectedTime);
+                        
+                        // Check for conflicts
+                        let hasConflict = false;
+                        const slotIndex = Math.floor(leftPosition / slotWidth);
+                        for (let i = 0; i < suggestedDurationSlots; i++) {
+                            if (slotIndex + i < timeSlots && timelineItems[slotIndex + i] !== null) {
+                                hasConflict = true;
+                                break;
+                            }
+                        }
+                        
+                        // Create the new appointment block
+                        const updatedAppointmentBlock = document.createElement('div');
+                        updatedAppointmentBlock.className = `appointment-block dotted ${hasConflict ? 'red' : ''}`;
+                        
+                        // Use consistent positioning calculation
+                        updatedAppointmentBlock.style.left = `${leftPosition}px`;
+                        updatedAppointmentBlock.style.width = `${suggestedDurationSlots * slotWidth - 10}px`;
+                        updatedAppointmentBlock.textContent = hasConflict ? 
+                            'Conflict! (New Appointment)' : 'New Appointment';
+                        
+                        // Add to timeline slots container
+                        timelineSlots.appendChild(updatedAppointmentBlock);
+                        
+                        if (hasConflict) {
+                            scheduledTimeHelp.textContent = 'Warning: The selected time conflicts with another appointment!';
+                            scheduledTimeHelp.style.color = '#ef4444';
+                        } else {
+                            scheduledTimeHelp.textContent = 'Selected time is available';
+                            scheduledTimeHelp.style.color = 'var(--secondary-text)';
+                        }
                     });
                 }
                 
