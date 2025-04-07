@@ -302,9 +302,21 @@
                 min-width: 120px;
                 flex-shrink: 0;
             }
+
+            .timeline-grid .timeline-slots {
+                padding: 1rem;
+                background-color: var(--secondary-bg);
+                border-radius: 0.5rem;
+                display: flex;
+                align-items: center;
+                font-weight: 500;
+                width: 120px;
+                min-width: 120px;
+                flex-shrink: 0;
+            }
             
             .timeline-time {
-                text-align: center;
+                text-align: left;
                 font-size: 0.875rem;
                 font-weight: 500;
                 padding: 0.5rem;
@@ -319,7 +331,7 @@
                 content: '';
                 position: absolute;
                 bottom: 0;
-                left: 50%;
+                left: 20%;
                 transform: translateX(-50%);
                 height: 12px;
                 width: 1px;
@@ -329,7 +341,7 @@
             .timeline-times {
                 display: flex;
                 flex-grow: 1;
-                max-width: calc(100% - 120px);
+                max-width: calc(100% - 100px);
                 position: relative;
             }
             
@@ -338,7 +350,7 @@
                 flex-grow: 1;
                 position: relative;
                 height: 80px;
-                max-width: calc(100% - 120px);
+                max-width: calc(100% - 100px);
             }
             
             /* Add vertical grid lines */
@@ -955,7 +967,7 @@
                     
                     // Calculate time slots for layout
                     const timeSlots = (workEndHour - workStartHour) * 2 + 1; // 30-minute slots
-                    const slotWidth = 100; // Width in pixels of each time slot
+                    const slotWidth = 130; // Width in pixels of each time slot
                     
                     // Set min-width for the timeline content based on time slots
                     const totalWidth = (timeSlots * slotWidth) + 120; // Add doctor column width
@@ -1011,7 +1023,7 @@
                     function calculateTimePosition(time) {
                         const hours = time.getHours();
                         const minutes = time.getMinutes();
-                        const slot = (hours - workStartHour) * 2 + (minutes >= 30 ? 1 : 0) + 0.2;
+                        const slot = (hours - workStartHour) * 2 + (minutes >= 30 ? 1 : 0);
                         return slot * slotWidth;
                     }
                     
