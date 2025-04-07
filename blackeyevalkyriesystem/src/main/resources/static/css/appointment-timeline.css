@@ -171,7 +171,6 @@ body {
 .timeline-times {
     display: grid;
     grid-template-columns: repeat(12, 100px);
-    gap: 0.5rem;
 }
 
 .timeline-time {
