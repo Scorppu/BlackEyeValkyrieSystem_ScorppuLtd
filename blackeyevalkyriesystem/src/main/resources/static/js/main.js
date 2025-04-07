@@ -155,4 +155,68 @@ document.addEventListener('DOMContentLoaded', function() {
             ageField.value = age;
         });
     }
+    
+    // User profile dropdown handling
+    const userProfileToggle = document.getElementById('user-profile-toggle');
+    const userProfileDropdown = document.getElementById('user-profile-dropdown');
+    const profileArrow = document.querySelector('.profile-arrow');
+    
+    if (userProfileToggle && userProfileDropdown) {
+        userProfileToggle.addEventListener('click', function() {
+            userProfileDropdown.classList.toggle('active');
+            profileArrow.classList.toggle('flipped');
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!userProfileToggle.contains(event.target) && !userProfileDropdown.contains(event.target)) {
+                userProfileDropdown.classList.remove('active');
+                profileArrow.classList.remove('flipped');
+            }
+        });
+    }
+    
+    // Duty status toggle
+    const dutyToggleBtn = document.getElementById('duty-toggle');
+    const dutyStatusText = document.getElementById('duty-status');
+    
+    if (dutyToggleBtn && dutyStatusText) {
+        // Check local storage for duty status
+        let isOnDuty = localStorage.getItem('dutyStatus') === 'on';
+        let dutyTime = localStorage.getItem('dutyTime') || getCurrentTime();
+        
+        updateDutyStatus(isOnDuty, dutyTime);
+        
+        dutyToggleBtn.addEventListener('click', function() {
+            isOnDuty = !isOnDuty;
+            dutyTime = getCurrentTime();
+            
+            // Save to localStorage
+            localStorage.setItem('dutyStatus', isOnDuty ? 'on' : 'off');
+            localStorage.setItem('dutyTime', dutyTime);
+            
+            updateDutyStatus(isOnDuty, dutyTime);
+        });
+    }
+    
+    function updateDutyStatus(isOnDuty, time) {
+        if (dutyToggleBtn && dutyStatusText) {
+            if (isOnDuty) {
+                dutyStatusText.textContent = `On Duty Since ${time}`;
+                dutyToggleBtn.textContent = 'Off Duty';
+                dutyToggleBtn.classList.remove('off');
+            } else {
+                dutyStatusText.textContent = `Last On Duty ${time}`;
+                dutyToggleBtn.textContent = 'On Duty';
+                dutyToggleBtn.classList.add('off');
+            }
+        }
+    }
+    
+    function getCurrentTime() {
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        return `${hours}:${minutes}`;
+    }
 }); 

@@ -206,15 +206,57 @@ nav {
     font-size: 0.9rem;
 }
 
+/* User profile container */
+.user-profile-container {
+    position: relative;
+    margin-top: auto;
+    margin-left: 0.5rem;
+    margin-right: 0.5rem;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+}
+
+/* Hover effect for the entire container */
+.user-profile-container:hover .user-profile {
+    transform: translateY(-2px);
+}
+
+:root.light-mode .user-profile-container:hover .user-profile {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+:root:not(.light-mode) .user-profile-container:hover .user-profile {
+    box-shadow: 0 4px 20px rgba(255, 255, 255, 0.15);
+}
+
+/* Enhanced dropdown hover effect */
+.user-profile-container:hover .user-profile-dropdown.active {
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.2);
+    transform: translateY(-2px);
+}
+
+:root:not(.light-mode) .user-profile-container:hover .user-profile-dropdown.active {
+    box-shadow: 0 -4px 20px rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+}
+
 /* User profile */
 .user-profile {
     display: flex;
     align-items: center;
     padding: 1rem;
-    margin-top: auto;
-    border-top: 1px solid var(--border-color);
-    margin-left: 0.5rem;
-    margin-right: 0.5rem;
+    background-color: var(--secondary-bg);
+    border-radius: 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    position: relative;
+    z-index: 10;
+    transition: all 0.3s ease;
+}
+
+/* Dark mode specific styling for the user profile */
+:root:not(.light-mode) .user-profile {
+    box-shadow: 0 2px 12px rgba(255, 255, 255, 0.08);
 }
 
 .avatar {
@@ -239,6 +281,117 @@ nav {
 .user-role {
     font-size: 0.8rem;
     color: var(--secondary-text);
+}
+
+/* User Profile Dropdown */
+.user-profile-dropdown {
+    display: none;
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    right: 0;
+    margin-bottom: 0.5rem;
+    background-color: var(--secondary-bg);
+    border-radius: 1rem;
+    box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.15);
+    padding: 1rem;
+    z-index: 100;
+    transition: all 0.3s ease;
+    transform-origin: bottom center;
+}
+
+/* Dark mode specific styling for dropdown */
+:root:not(.light-mode) .user-profile-dropdown {
+    box-shadow: 0 -2px 16px rgba(255, 255, 255, 0.1);
+}
+
+.user-profile-dropdown.active {
+    display: block;
+    animation: popup 0.2s ease-out;
+}
+
+/* Hover effect for buttons in dropdown */
+.btn-logout:hover, .btn-duty:hover {
+    transform: translateY(-2px);
+    transition: all 0.2s ease-out;
+}
+
+/* Enhanced button styling */
+.btn-logout, .btn-duty {
+    padding: 0.75rem 0;
+    border-radius: 0.5rem;
+    text-align: center;
+    font-weight: 600;
+    cursor: pointer;
+    flex: 1;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+/* Enhanced button styling */
+.btn-logout {
+    background-color: #ff3b30;
+    color: white;
+    border: none;
+    box-shadow: 0 2px 4px rgba(255, 59, 48, 0.2);
+}
+
+.btn-logout:hover {
+    background-color: #e5352c;
+    box-shadow: 0 4px 8px rgba(255, 59, 48, 0.3);
+    transform: translateY(-2px);
+}
+
+.btn-duty {
+    background-color: #34c759;
+    color: white;
+    border: none;
+    box-shadow: 0 2px 4px rgba(52, 199, 89, 0.2);
+}
+
+.btn-duty:hover {
+    background-color: #2db14f;
+    box-shadow: 0 4px 8px rgba(52, 199, 89, 0.3);
+    transform: translateY(-2px);
+}
+
+.btn-duty.off {
+    background-color: #ff9500;
+    box-shadow: 0 2px 4px rgba(255, 149, 0, 0.2);
+}
+
+.btn-duty.off:hover {
+    background-color: #e68600;
+    box-shadow: 0 4px 8px rgba(255, 149, 0, 0.3);
+}
+
+.btn-logout.full-width {
+    flex: 2;
+}
+
+@keyframes popup {
+    0% { 
+        opacity: 0;
+        transform: translateY(10px); 
+    }
+    100% { 
+        opacity: 1;
+        transform: translateY(0); 
+    }
+}
+
+.duty-status {
+    text-align: center;
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 0.9rem;
+    color: var(--secondary-text);
+}
+
+.profile-actions {
+    display: flex;
+    gap: 0.75rem;
 }
 
 /* Content Layout */
@@ -460,4 +613,12 @@ select.form-control {
         margin-bottom: 0.3rem;
         font-size: 1.4rem;
     }
+}
+
+.user-profile .profile-arrow {
+    transition: transform 0.3s ease;
+}
+
+.profile-arrow.flipped {
+    transform: rotate(180deg);
 } 
