@@ -62,6 +62,23 @@
                 position: relative;
             }
             
+            .patient-table th a {
+                color: var(--accent-color);
+                text-decoration: none;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+            
+            .patient-table th a:hover {
+                text-decoration: underline;
+            }
+            
+            .patient-table th span {
+                margin-left: 0.5rem;
+                font-size: 0.75rem;
+            }
+            
             .patient-table th.sortable::after {
                 content: '▼';
                 font-size: 0.75rem;
@@ -251,23 +268,32 @@
                                 <th width="40">
                                     <input type="checkbox" class="select-checkbox" id="selectAll">
                                 </th>
-                                <th class="sortable" th:classappend="${currentSortBy == 'name' ? (currentDirection == 'asc' ? 'sorted-asc' : 'sorted-desc') : ''}">
-                                    <a href="#" class="sort-link" data-sort="name">Name</a>
+                                <th>
+                                    <a th:href="@{/appointment/create(sortBy='name', direction=${currentSortBy == 'name' && currentDirection == 'asc' ? 'desc' : 'asc'})}">
+                                        Name
+                                        <span th:if="${currentSortBy == 'name'}" th:text="${currentDirection == 'asc' ? '▲' : '▼'}"></span>
+                                    </a>
                                 </th>
-                                <th class="sortable" th:classappend="${currentSortBy == 'patientId' ? (currentDirection == 'asc' ? 'sorted-asc' : 'sorted-desc') : ''}">
-                                    <a href="#" class="sort-link" data-sort="patientId">Patient ID</a>
+                                <th>
+                                    <a th:href="@{/appointment/create(sortBy='patientId', direction=${currentSortBy == 'patientId' && currentDirection == 'asc' ? 'desc' : 'asc'})}">
+                                        Patient ID
+                                        <span th:if="${currentSortBy == 'patientId'}" th:text="${currentDirection == 'asc' ? '▲' : '▼'}"></span>
+                                    </a>
                                 </th>
-                                <th class="sortable" th:classappend="${currentSortBy == 'age' ? (currentDirection == 'asc' ? 'sorted-asc' : 'sorted-desc') : ''}">
-                                    <a href="#" class="sort-link" data-sort="age">Age</a>
+                                <th>
+                                    <a th:href="@{/appointment/create(sortBy='age', direction=${currentSortBy == 'age' && currentDirection == 'asc' ? 'desc' : 'asc'})}">
+                                        Age
+                                        <span th:if="${currentSortBy == 'age'}" th:text="${currentDirection == 'asc' ? '▲' : '▼'}"></span>
+                                    </a>
                                 </th>
-                                <th class="sortable" th:classappend="${currentSortBy == 'gender' ? (currentDirection == 'asc' ? 'sorted-asc' : 'sorted-desc') : ''}">
-                                    <a href="#" class="sort-link" data-sort="gender">Gender</a>
+                                <th>
+                                    <a th:href="@{/appointment/create(sortBy='gender', direction=${currentSortBy == 'gender' && currentDirection == 'asc' ? 'desc' : 'asc'})}">
+                                        Gender
+                                        <span th:if="${currentSortBy == 'gender'}" th:text="${currentDirection == 'asc' ? '▲' : '▼'}"></span>
+                                    </a>
                                 </th>
-                                <th class="sortable">
+                                <th>
                                     Last Recent Visit
-                                </th>
-                                <th class="sortable" th:classappend="${currentSortBy == 'status' ? (currentDirection == 'asc' ? 'sorted-asc' : 'sorted-desc') : ''}">
-                                    <a href="#" class="sort-link" data-sort="status">Status</a>
                                 </th>
                                 <th width="80">Actions</th>
                             </tr>
@@ -277,14 +303,11 @@
                                 <td>
                                     <input type="checkbox" class="select-checkbox patient-select" th:value="${patient.id}" name="selectedPatients">
                                 </td>
-                                <td th:text="${patient.firstName + ' ' + patient.lastName}">John Carter</td>
-                                <td th:text="${patient.id}">019238744</td>
-                                <td th:text="${patient.age}">18</td>
-                                <td th:text="${patient.sex ? 'Male' : 'Female'}">Male</td>
-                                <td th:text="${patient.visits != null && !patient.visits.isEmpty() ? #dates.format(patient.visits[0].visitDate, 'dd/MM/yyyy') : 'No visits'}">OP0011</td>
-                                <td>
-                                    <span class="status-badge" th:classappend="${patient.status == 'Admitted' ? 'admitted' : 'discharged'}" th:text="${patient.status}">Admitted</span>
-                                </td>
+                                <td th:text="${patient.firstName + ' ' + patient.lastName}"></td>
+                                <td th:text="${patient.id}"></td>
+                                <td th:text="${patient.age}"></td>
+                                <td th:text="${patient.sex ? 'Male' : 'Female'}"></td>
+                                <td th:text="${patient.visits != null && !patient.visits.isEmpty() ? #dates.format(patient.visits[0].visitDate, 'dd/MM/yyyy') : 'No visits'}"></td>
                                 <td>
                                     <div class="action-buttons">
                                         <a th:href="@{'/patient/edit/' + ${patient.id}}" class="action-button">
@@ -346,13 +369,12 @@
     
     <th:block layout:fragment="scripts">
         <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                console.log('Create Appointment page loaded');
-                
+            document.addEventListener('DOMContentLoaded', function() {              
                 // Handle select all checkbox
                 const selectAllCheckbox = document.getElementById('selectAll');
                 const patientCheckboxes = document.querySelectorAll('.patient-select');
                 
+                // check if exist
                 if (selectAllCheckbox) {
                     selectAllCheckbox.addEventListener('change', function() {
                         patientCheckboxes.forEach(checkbox => {
@@ -421,6 +443,9 @@
                         const selectedPatients = document.querySelectorAll('.patient-select:checked');
                         if (selectedPatients.length === 0) {
                             alert('Please select at least one patient to continue.');
+                            return;
+                        }else if (selectedPatients.length > 1) {
+                            alert('Please select only one patient to continue.');
                             return;
                         }
                         

@@ -90,6 +90,12 @@ public class AppointmentController {
         }
         
         appointment.setId(id);
+        
+        // If status is being set to "Completed", set the completion time
+        if ("Completed".equals(appointment.getStatus()) && appointment.getCompletionTime() == null) {
+            appointment.setCompletionTime(LocalDateTime.now());
+        }
+        
         Appointment updatedAppointment = appointmentService.updateAppointment(appointment);
         return new ResponseEntity<>(updatedAppointment, HttpStatus.OK);
     }

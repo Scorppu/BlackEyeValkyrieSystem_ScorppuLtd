@@ -5,10 +5,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Patient Profile - BlackEyeValkyrieSystem</title>
+    <title>Edit Patient Profile - BlackEyeValkyrieSystem</title>
     
     <th:block layout:fragment="head">
-        <!-- Create Patient specific CSS -->
+        <!-- Edit Patient specific CSS -->
         <style>
             .main-container {
                 display: flex;
@@ -213,11 +213,11 @@
                 </div>
                 
                 <div id="personal-info-tab" class="tab-content active">
-                    <p>Please fill in the personal information form on the right.</p>
+                    <p>Please edit the personal information form on the right.</p>
                 </div>
                 
                 <div id="contact-info-tab" class="tab-content">
-                    <p>Please fill in the contact information form on the right.</p>
+                    <p>Please edit the contact information form on the right.</p>
                 </div>
             </div>
             
@@ -226,52 +226,53 @@
                 <!-- Personal Information Form -->
                 <div id="personal-info-form" class="form-section active">
                     <h2>Personal information</h2>
-                    <p>Please insert patient's personal information</p>
+                    <p>Please update patient's personal information</p>
                     
                     <form id="patient-form">
+                        <input type="hidden" id="patientId" name="patientId" th:value="${patient.id}">
+                        
                         <div class="form-group">
                             <label for="firstName">First name</label>
-                            <input type="text" id="firstName" name="firstName" class="form-control" value="">
+                            <input type="text" id="firstName" name="firstName" class="form-control" th:value="${patient.firstName}">
                         </div>
                         
                         <div class="form-group">
                             <label for="lastName">Last name</label>
-                            <input type="text" id="lastName" name="lastName" class="form-control" value="">
+                            <input type="text" id="lastName" name="lastName" class="form-control" th:value="${patient.lastName}">
                         </div>
                         
                         <div class="form-group">
                             <label for="sex">Sex</label>
-                            <select id="sex" name="sex" class="form-control" value="">
-                                <option value=""></option>
-                                <option value="Male">Male</option>
-                                <option value="Female">Female</option>
-                                <option value="Other">Other</option>
+                            <select id="sex" name="sex" class="form-control">
+                                <option value="Male" th:selected="${patient.sex == true}">Male</option>
+                                <option value="Female" th:selected="${patient.sex == false}">Female</option>
+                                <option value="Other" th:selected="${patient.sex == null}">Other</option>
                             </select>
                         </div>
                         
                         <div class="form-group">
                             <label for="relativeName">Relative Name</label>
-                            <input type="text" id="relativeName" name="relativeName" class="form-control" value="">
+                            <input type="text" id="relativeName" name="relativeName" class="form-control" th:value="${patient.relativeName}">
                         </div>
                         
                         <div class="form-group">
                             <label for="dateOfBirth">Date Of Birth</label>
-                            <input type="date" id="dateOfBirth" name="dateOfBirth" class="form-control" value="">
+                            <input type="date" id="dateOfBirth" name="dateOfBirth" class="form-control" th:value="${patient.dateOfBirth}">
                         </div>
                         
                         <div class="form-group">
                             <label for="age">Age</label>
-                            <input type="number" id="age" name="age" class="form-control" value="" readonly>
+                            <input type="number" id="age" name="age" class="form-control" th:value="${patient.age}" readonly>
                         </div>
                         
                         <div class="form-group">
                             <label for="maritalStatus">Marital Status</label>
                             <select id="maritalStatus" name="maritalStatus" class="form-control">
                                 <option value=""></option>
-                                <option value="Single">Single</option>
-                                <option value="Married">Married</option>
-                                <option value="Divorced">Divorced</option>
-                                <option value="Widowed">Widowed</option>
+                                <option value="Single" th:selected="${patient.maritalStatus == 'Single'}">Single</option>
+                                <option value="Married" th:selected="${patient.maritalStatus == 'Married'}">Married</option>
+                                <option value="Divorced" th:selected="${patient.maritalStatus == 'Divorced'}">Divorced</option>
+                                <option value="Widowed" th:selected="${patient.maritalStatus == 'Widowed'}">Widowed</option>
                             </select>
                         </div>
                         
@@ -279,14 +280,14 @@
                             <label for="bloodType">Blood Type</label>
                             <select id="bloodType" name="bloodType" class="form-control">
                                 <option value=""></option>
-                                <option value="A+">A+</option>
-                                <option value="A-">A-</option>
-                                <option value="B+">B+</option>
-                                <option value="B-">B-</option>
-                                <option value="AB+">AB+</option>
-                                <option value="AB-">AB-</option>
-                                <option value="O+">O+</option>
-                                <option value="O-">O-</option>
+                                <option value="A+" th:selected="${patient.bloodType == 'A+'}">A+</option>
+                                <option value="A-" th:selected="${patient.bloodType == 'A-'}">A-</option>
+                                <option value="B+" th:selected="${patient.bloodType == 'B+'}">B+</option>
+                                <option value="B-" th:selected="${patient.bloodType == 'B-'}">B-</option>
+                                <option value="AB+" th:selected="${patient.bloodType == 'AB+'}">AB+</option>
+                                <option value="AB-" th:selected="${patient.bloodType == 'AB-'}">AB-</option>
+                                <option value="O+" th:selected="${patient.bloodType == 'O+'}">O+</option>
+                                <option value="O-" th:selected="${patient.bloodType == 'O-'}">O-</option>
                             </select>
                         </div>
                         
@@ -299,57 +300,57 @@
                 <!-- Contact Information Form -->
                 <div id="contact-info-form" class="form-section">
                     <h2>Contact Information</h2>
-                    <p>Please insert patient's contact information</p>
+                    <p>Please update patient's contact information</p>
                     
                     <form id="contact-form">
                         <div class="form-group">
                             <label for="contactNumber">Phone / Mobile</label>
-                            <input type="tel" id="contactNumber" name="contactNumber" class="form-control" value="">
+                            <input type="tel" id="contactNumber" name="contactNumber" class="form-control" th:value="${patient.contactNumber}">
                         </div>
                         
                         <div class="form-group">
                             <label for="email">Email Address</label>
-                            <input type="email" id="email" name="email" class="form-control" value="">
+                            <input type="email" id="email" name="email" class="form-control" th:value="${patient.email}">
                         </div>
                         
                         <div class="form-group">
                             <label for="address1">Address 1</label>
-                            <input type="text" id="address1" name="address1" class="form-control" value="">
+                            <input type="text" id="address1" name="address1" class="form-control" th:value="${patient.address != null ? patient.address.addressLine1 : ''}">
                         </div>
                         
                         <div class="form-group">
                             <label for="address2">Address 2</label>
-                            <input type="text" id="address2" name="address2" class="form-control" value="">
+                            <input type="text" id="address2" name="address2" class="form-control" th:value="${patient.address != null ? patient.address.addressLine2 : ''}">
                         </div>
                         
                         <div class="form-group">
                             <label for="address3">Address 3</label>
-                            <input type="text" id="address3" name="address3" class="form-control" value="">
+                            <input type="text" id="address3" name="address3" class="form-control" th:value="${patient.address != null ? patient.address.addressLine3 : ''}">
                         </div>
                         
                         <div class="form-group">
                             <label for="country">Country</label>
-                            <input type="text" id="country" name="country" class="form-control" value="">
+                            <input type="text" id="country" name="country" class="form-control" th:value="${patient.address != null ? patient.address.country : ''}">
                         </div>
                         
                         <div class="form-group">
                             <label for="state">State</label>
-                            <input type="text" id="state" name="state" class="form-control" value="">
+                            <input type="text" id="state" name="state" class="form-control" th:value="${patient.address != null ? patient.address.state : ''}">
                         </div>
                         
                         <div class="form-group">
                             <label for="town">Town</label>
-                            <input type="text" id="town" name="town" class="form-control" value="">
+                            <input type="text" id="town" name="town" class="form-control" th:value="${patient.address != null ? patient.address.town : ''}">
                         </div>
                         
                         <div class="form-group">
                             <label for="pinCode">Pin Code</label>
-                            <input type="text" id="pinCode" name="pinCode" class="form-control" value="">
+                            <input type="text" id="pinCode" name="pinCode" class="form-control" th:value="${patient.address != null ? patient.address.pinCode : ''}">
                         </div>
                         
                         <div class="form-actions">
                             <button type="button" id="back-btn" class="btn btn-secondary">BACK</button>
-                            <button type="submit" id="submit-btn" class="btn btn-success">SAVE PATIENT</button>
+                            <button type="submit" id="submit-btn" class="btn btn-success">UPDATE PATIENT</button>
                         </div>
                     </form>
                 </div>
@@ -440,6 +441,9 @@
                     contactForm.addEventListener('submit', function(e) {
                         e.preventDefault();
                         
+                        // Get patient ID
+                        const patientId = document.getElementById('patientId').value;
+                        
                         // Get personal information
                         const firstName = document.getElementById('firstName').value;
                         const lastName = document.getElementById('lastName').value;
@@ -449,7 +453,6 @@
                         const age = document.getElementById('age').value;
                         const maritalStatus = document.getElementById('maritalStatus').value;
                         const bloodType = document.getElementById('bloodType').value;
-                        const status = document.getElementById('status').value;
                         
                         // Get contact information
                         const contactNumber = document.getElementById('contactNumber').value;
@@ -472,7 +475,6 @@
                             age: parseInt(age),
                             maritalStatus: maritalStatus,
                             bloodType: bloodType,
-                            status: status,
                             contactNumber: contactNumber,
                             email: email,
                             address: {
@@ -486,11 +488,11 @@
                             }
                         };
                         
-                        console.log('Sending patient data:', JSON.stringify(patientData));
+                        console.log('Sending updated patient data:', JSON.stringify(patientData));
                         
-                        // Send data to server
-                        fetch('/api/patients', {
-                            method: 'POST',
+                        // Send data to server using PUT request for update
+                        fetch('/api/patients/' + patientId, {
+                            method: 'PUT',
                             headers: {
                                 'Content-Type': 'application/json'
                             },
@@ -508,14 +510,14 @@
                         })
                         .then(data => {
                             console.log('Success:', data);
-                            alert('Patient profile created successfully!');
+                            alert('Patient profile updated successfully!');
                             
                             // Redirect to patient list
                             window.location.href = '/patient/list';
                         })
                         .catch((error) => {
                             console.error('Error:', error);
-                            alert('Error creating patient profile: ' + error.message);
+                            alert('Error updating patient profile: ' + error.message);
                         });
                     });
                 }

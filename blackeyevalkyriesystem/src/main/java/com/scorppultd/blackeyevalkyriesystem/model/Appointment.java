@@ -26,6 +26,8 @@ public class Appointment {
     
     private String status; // pending, confirmed, completed, cancelled
     
+    private LocalDateTime completionTime;
+    
     private String notes;
     
     private String doctorName;
@@ -101,6 +103,14 @@ public class Appointment {
     
     public void setScheduledTime(LocalDateTime scheduledTime) {
         this.scheduledTime = scheduledTime;
+    }
+    
+    public LocalDateTime getCompletionTime() {
+        return completionTime;
+    }
+    
+    public void setCompletionTime(LocalDateTime completionTime) {
+        this.completionTime = completionTime;
     }
     
     public String getStatus() {
