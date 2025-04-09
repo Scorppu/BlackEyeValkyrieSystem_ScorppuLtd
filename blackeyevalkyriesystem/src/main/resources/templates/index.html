@@ -143,13 +143,50 @@
                 </div>
             </div>
             
-            <!-- NB Section -->
+            <!-- Duty Status Section -->
             <div class="content-card">
-                <h2>NB</h2>
-                <!-- This would contain notification content -->
-                <!-- Placeholder for notification content -->
+                <h2>Duty Status</h2>
                 <div style="height: min(22vh, 150px); display: flex; justify-content: center; align-items: center;">
-                    <span style="color: var(--secondary-text);">No notifications</span>
+                    <div class="duty-status-container">
+                        <div class="chart-container">
+                            <h3>Doctors</h3>
+                            <div class="bar-chart">
+                                <div class="bar-container">
+                                    <div class="bar on-duty" id="doctors-on-duty-bar">
+                                        <span class="bar-value" id="doctors-on-duty-value">0</span>
+                                    </div>
+                                    <div class="bar-label">On Duty</div>
+                                </div>
+                                <div class="bar-container">
+                                    <div class="bar off-duty" id="doctors-off-duty-bar">
+                                        <span class="bar-value" id="doctors-off-duty-value">0</span>
+                                    </div>
+                                    <div class="bar-label">Off Duty</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="chart-container">
+                            <h3>Nurses</h3>
+                            <div class="bar-chart">
+                                <div class="bar-container">
+                                    <div class="bar on-duty" id="nurses-on-duty-bar">
+                                        <span class="bar-value" id="nurses-on-duty-value">0</span>
+                                    </div>
+                                    <div class="bar-label">On Duty</div>
+                                </div>
+                                <div class="bar-container">
+                                    <div class="bar off-duty" id="nurses-off-duty-bar">
+                                        <span class="bar-value" id="nurses-off-duty-value">0</span>
+                                    </div>
+                                    <div class="bar-label">Off Duty</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div style="text-align: center; margin-top: 1rem;">
+                    <a href="/duty-status" class="btn btn-outline">more...</a>
                 </div>
             </div>
         </div>

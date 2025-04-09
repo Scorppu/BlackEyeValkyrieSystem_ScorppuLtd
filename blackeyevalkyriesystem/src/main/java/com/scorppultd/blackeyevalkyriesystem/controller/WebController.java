@@ -7,12 +7,16 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.stream.Collectors;
 import com.scorppultd.blackeyevalkyriesystem.model.Appointment;
 import com.scorppultd.blackeyevalkyriesystem.model.Patient;
 import com.scorppultd.blackeyevalkyriesystem.service.AppointmentService;
@@ -20,7 +24,13 @@ import com.scorppultd.blackeyevalkyriesystem.service.PatientService;
 import com.scorppultd.blackeyevalkyriesystem.service.DoctorService;
 import com.scorppultd.blackeyevalkyriesystem.model.Doctor;
 import com.scorppultd.blackeyevalkyriesystem.model.Visit;
-
+import com.scorppultd.blackeyevalkyriesystem.service.DutyStatusService;
+import com.scorppultd.blackeyevalkyriesystem.model.DutyStatus;
+import com.scorppultd.blackeyevalkyriesystem.model.User;
+import com.scorppultd.blackeyevalkyriesystem.service.UserService;
+import com.scorppultd.blackeyevalkyriesystem.model.Nurse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Controller for handling general application pages
@@ -31,14 +41,21 @@ public class WebController {
     private final PatientService patientService;
     private final AppointmentService appointmentService;
     private final DoctorService doctorService;
+    private final UserService userService;
+    private final DutyStatusService dutyStatusService;
+    private static final Logger logger = LoggerFactory.getLogger(WebController.class);
     
     @Autowired
     public WebController(PatientService patientService, 
                         AppointmentService appointmentService,
-                        DoctorService doctorService) {
+                        DoctorService doctorService,
+                        UserService userService,
+                        DutyStatusService dutyStatusService) {
         this.patientService = patientService;
         this.appointmentService = appointmentService;
         this.doctorService = doctorService;
+        this.userService = userService;
+        this.dutyStatusService = dutyStatusService;
     }
 
     /**
@@ -75,6 +92,133 @@ public class WebController {
     public String settings(HttpServletRequest request, Model model) {
         model.addAttribute("request", request);
         return "settings";
+    }
+
+    @GetMapping("/duty-status")
+    public String dutyStatus(HttpServletRequest request, Model model) {
+        try {
+            logger.info("Duty status page requested");
+            model.addAttribute("request", request);
+            
+            // Fetch all doctors using DoctorService
+            List<Map<String, Object>> doctors = new ArrayList<>();
+            try {
+                List<Doctor> doctorsList = doctorService.getAllDoctors();
+                logger.info("Retrieved {} raw doctors from service", doctorsList.size());
+                
+                // Calculate doctors on duty count for stats
+                int doctorsOnDuty = 0;
+                
+                for (Doctor doctor : doctorsList) {
+                    Map<String, Object> doctorMap = new HashMap<>();
+                    doctorMap.put("id", doctor.getId());
+                    doctorMap.put("firstName", doctor.getFirstName() != null ? doctor.getFirstName() : "");
+                    doctorMap.put("lastName", doctor.getLastName() != null ? doctor.getLastName() : "");
+                    doctorMap.put("email", doctor.getEmail() != null ? doctor.getEmail() : "");
+                    doctorMap.put("specialization", doctor.getSpecialization() != null ? doctor.getSpecialization() : "General");
+                    
+                    // Fetch duty status for this doctor
+                    boolean isOnDuty = false;
+                    try {
+                        Optional<DutyStatus> dutyStatus = dutyStatusService.getLatestDutyStatus(doctor);
+                        isOnDuty = dutyStatus.isPresent() && dutyStatus.get().isOnDuty();
+                        if (isOnDuty) {
+                            doctorsOnDuty++;
+                        }
+                    } catch (Exception e) {
+                        logger.warn("Error fetching duty status for doctor {}: {}", doctor.getId(), e.getMessage());
+                    }
+                    
+                    doctorMap.put("dutyStatus", isOnDuty);
+                    doctors.add(doctorMap);
+                }
+                
+                model.addAttribute("doctorsOnDuty", doctorsOnDuty);
+                logger.info("Processed {} doctors for view, {} on duty", doctors.size(), doctorsOnDuty);
+                
+                // Log some sample doctor data for troubleshooting
+                if (!doctors.isEmpty()) {
+                    logger.info("Sample doctor data: {}", doctors.get(0));
+                }
+            } catch (Exception e) {
+                logger.error("Error fetching doctors: {}", e.getMessage(), e);
+                // Continue with empty list
+            }
+            
+            // Create a service method to get users by role and use it here
+            List<Map<String, Object>> nurses = new ArrayList<>();
+            try {
+                List<User> nursesList = userService.findByRole(User.UserRole.NURSE);
+                logger.info("Retrieved {} raw nurses from service", nursesList.size());
+                
+                // Calculate nurses on duty count for stats
+                int nursesOnDuty = 0;
+                
+                for (User nurse : nursesList) {
+                    Map<String, Object> nurseMap = new HashMap<>();
+                    nurseMap.put("id", nurse.getId());
+                    nurseMap.put("firstName", nurse.getFirstName() != null ? nurse.getFirstName() : "");
+                    nurseMap.put("lastName", nurse.getLastName() != null ? nurse.getLastName() : "");
+                    nurseMap.put("email", nurse.getEmail() != null ? nurse.getEmail() : "");
+                    
+                    // Get department with safe handling
+                    String department = "General";
+                    try {
+                        // Try to cast to Nurse if possible
+                        if (nurse instanceof Nurse) {
+                            Nurse nurseObj = (Nurse) nurse;
+                            if (nurseObj.getDepartment() != null && !nurseObj.getDepartment().isEmpty()) {
+                                department = nurseObj.getDepartment();
+                            }
+                        }
+                    } catch (Exception e) {
+                        // If casting fails, use default department
+                        logger.warn("Could not cast User to Nurse for ID: {}", nurse.getId());
+                    }
+                    nurseMap.put("department", department);
+                    
+                    // Fetch duty status for this nurse
+                    boolean isOnDuty = false;
+                    try {
+                        Optional<DutyStatus> dutyStatus = dutyStatusService.getLatestDutyStatus(nurse);
+                        isOnDuty = dutyStatus.isPresent() && dutyStatus.get().isOnDuty();
+                        if (isOnDuty) {
+                            nursesOnDuty++;
+                        }
+                    } catch (Exception e) {
+                        logger.warn("Error fetching duty status for nurse {}: {}", nurse.getId(), e.getMessage());
+                    }
+                    
+                    nurseMap.put("dutyStatus", isOnDuty);
+                    nurses.add(nurseMap);
+                }
+                
+                model.addAttribute("nursesOnDuty", nursesOnDuty);
+                logger.info("Processed {} nurses for view, {} on duty", nurses.size(), nursesOnDuty);
+                
+                // Log some sample nurse data for troubleshooting
+                if (!nurses.isEmpty()) {
+                    logger.info("Sample nurse data: {}", nurses.get(0));
+                }
+            } catch (Exception e) {
+                logger.error("Error fetching nurses: {}", e.getMessage(), e);
+                // Continue with empty list
+            }
+            
+            model.addAttribute("doctors", doctors);
+            model.addAttribute("nurses", nurses);
+            
+            // Log final model state
+            logger.info("Final model contents - doctors: {}, nurses: {}", 
+                        doctors.size(), nurses.size());
+            
+            logger.info("Rendering Detail-DutyStatus template");
+            return "Detail-DutyStatus";
+        } catch (Exception e) {
+            logger.error("Error in dutyStatus controller method: {}", e.getMessage(), e);
+            model.addAttribute("errorMessage", "An error occurred while loading duty status: " + e.getMessage());
+            return "error";
+        }
     }
     
     /**

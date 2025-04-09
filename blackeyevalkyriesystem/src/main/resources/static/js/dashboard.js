@@ -312,4 +312,138 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     }
+
+    // Initialize duty status charts if they exist
+    const dutyStatusContainer = document.querySelector('.duty-status-container');
+    if (dutyStatusContainer) {
+        // Set initial heights for bars
+        initializeDutyBars();
+        // Fetch data
+        fetchDutyStatusData();
+    }
 });
+
+// Initialize duty bar charts with minimum heights
+function initializeDutyBars() {
+    const bars = document.querySelectorAll('.duty-status-container .bar');
+    bars.forEach(bar => {
+        bar.style.height = '30px'; // Set initial height
+    });
+}
+
+// Function to fetch duty status data and update charts
+function fetchDutyStatusData() {
+    // Fetch on-duty users
+    fetch('/api/duty/on-duty')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(dutyData => {
+            updateDutyStatusCharts(dutyData);
+        })
+        .catch(error => {
+            console.error('Error fetching duty status data:', error);
+            // Set default values in case of error
+            const defaultData = [];
+            updateDutyStatusCharts(defaultData);
+        });
+    
+    // Also fetch total counts of doctors and nurses
+    fetch('/api/users/counts')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(countsData => {
+            // Store total counts for later use
+            window.totalDoctors = countsData.doctorCount || 10; // Default to 10 if not available
+            window.totalNurses = countsData.nurseCount || 10; // Default to 10 if not available
+            
+            // Update charts again with the total counts
+            const dutyStatusElement = document.querySelector('#doctors-on-duty-value');
+            if (dutyStatusElement && dutyStatusElement.dataset.count) {
+                updateDutyStatusCharts(JSON.parse(dutyStatusElement.dataset.count));
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching user counts:', error);
+            // Set default values in case of error
+            window.totalDoctors = 10;
+            window.totalNurses = 10;
+        });
+}
+
+// Function to update duty status charts
+function updateDutyStatusCharts(dutyData) {
+    // Count doctors and nurses on duty
+    let doctorsOnDuty = 0;
+    let nursesOnDuty = 0;
+    
+    // If we have duty data, count doctors and nurses
+    if (Array.isArray(dutyData)) {
+        dutyData.forEach(user => {
+            if (user.user && user.isOnDuty) {
+                if (user.user.role === 'DOCTOR') {
+                    doctorsOnDuty++;
+                } else if (user.user.role === 'NURSE') {
+                    nursesOnDuty++;
+                }
+            }
+        });
+    }
+    
+    // Store the counts for later use
+    const doctorsOnDutyElement = document.querySelector('#doctors-on-duty-value');
+    if (doctorsOnDutyElement) {
+        doctorsOnDutyElement.textContent = doctorsOnDuty;
+        doctorsOnDutyElement.dataset.count = JSON.stringify(dutyData);
+    }
+    
+    const nursesOnDutyElement = document.querySelector('#nurses-on-duty-value');
+    if (nursesOnDutyElement) {
+        nursesOnDutyElement.textContent = nursesOnDuty;
+    }
+    
+    const totalDoctors = window.totalDoctors || 10;
+    const totalNurses = window.totalNurses || 10;
+    
+    // Calculate doctors off duty
+    const doctorsOffDuty = Math.max(0, totalDoctors - doctorsOnDuty);
+    const doctorsOffDutyElement = document.querySelector('#doctors-off-duty-value');
+    if (doctorsOffDutyElement) {
+        doctorsOffDutyElement.textContent = doctorsOffDuty;
+    }
+    
+    // Calculate nurses off duty
+    const nursesOffDuty = Math.max(0, totalNurses - nursesOnDuty);
+    const nursesOffDutyElement = document.querySelector('#nurses-off-duty-value');
+    if (nursesOffDutyElement) {
+        nursesOffDutyElement.textContent = nursesOffDuty;
+    }
+    
+    // Update bar heights based on proportions
+    updateBarHeight('doctors-on-duty-bar', doctorsOnDuty, totalDoctors);
+    updateBarHeight('doctors-off-duty-bar', doctorsOffDuty, totalDoctors);
+    updateBarHeight('nurses-on-duty-bar', nursesOnDuty, totalNurses);
+    updateBarHeight('nurses-off-duty-bar', nursesOffDuty, totalNurses);
+}
+
+// Helper function to update bar height
+function updateBarHeight(elementId, value, total) {
+    const barElement = document.getElementById(elementId);
+    if (barElement) {
+        // Calculate height percentage (minimum 10%, maximum 100%)
+        const percentage = total > 0 ? Math.max(10, Math.min(100, (value / total) * 100)) : 10;
+        
+        // Convert percentage to actual height (based on parent container's height)
+        const containerHeight = 80; // The height we set in CSS for bar-chart
+        const heightValue = Math.max(30, (percentage / 100) * containerHeight);
+        
+        barElement.style.height = `${heightValue}px`;
+    }
+}
