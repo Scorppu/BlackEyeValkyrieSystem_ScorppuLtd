@@ -58,4 +58,9 @@ public class User {
         DOCTOR,
         NURSE
     }
+    
+    // Get the full name by combining first name and last name
+    public String getFullName() {
+        return this.firstName + " " + this.lastName;
+    }
 } 
