@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6"
+      layout:decorate="~{layout/main}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${isEdit != null && isEdit ? 'Edit User' : 'Create User'} + ' - BlackEyeValkyrieSystem'">Create User - BlackEyeValkyrieSystem</title>
+    
+    <th:block layout:fragment="head">
+        <!-- User Create specific CSS -->
+        <style>
+            .user-form-container {
+                width: 100%;
+                padding-bottom: 2rem;
+            }
+            
+            .content-card {
+                padding: 1.5rem;
+                border-radius: 0.5rem;
+                background-color: var(--secondary-bg);
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                min-height: 80vh;
+                height: auto;
+                overflow-y: auto;
+            }
+            
+            .form-wrapper {
+                position: relative;
+                width: 100%;
+            }
+            
+            .form-group {
+                margin-bottom: 1.5rem;
+            }
+            
+            .form-group label {
+                display: block;
+                margin-bottom: 0.5rem;
+                font-weight: 500;
+                color: var(--text-color);
+            }
+            
+            .form-control {
+                width: 100%;
+                padding: 0.75rem 1rem;
+                font-size: 1rem;
+                border: 1px solid var(--border-color);
+                border-radius: 0.5rem;
+                background-color: var(--input-bg);
+                color: var(--text-color);
+                transition: border-color 0.2s, box-shadow 0.2s;
+                box-sizing: border-box;
+            }
+            
+            .form-control:focus {
+                border-color: var(--accent-color);
+                outline: none;
+                box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.15);
+            }
+            
+            .form-actions {
+                margin-top: 2rem;
+                display: flex;
+                gap: 1rem;
+                position: sticky;
+                bottom: 0;
+                background-color: var(--secondary-bg);
+                padding: 1rem 0;
+                border-top: 1px solid var(--border-color);
+            }
+            
+            .btn {
+                padding: 0.75rem 1.5rem;
+                font-size: 1rem;
+                font-weight: 600;
+                border-radius: 0.5rem;
+                border: none;
+                cursor: pointer;
+                transition: background-color 0.2s, transform 0.2s;
+            }
+            
+            .btn:active {
+                transform: translateY(1px);
+            }
+            
+            .btn-primary {
+                background-color: var(--accent-color);
+                color: white;
+            }
+            
+            .btn-primary:hover {
+                background-color: #7b26cd;
+            }
+            
+            .btn-secondary {
+                background-color: var(--secondary-bg);
+                color: var(--text-color);
+            }
+            
+            .btn-secondary:hover {
+                background-color: #e0e0e0;
+            }
+            
+            .text-muted {
+                color: var(--secondary-text);
+                font-size: 0.875rem;
+                margin-top: 0.25rem;
+            }
+            
+            .alert {
+                padding: 1rem;
+                border-radius: 0.5rem;
+                margin-bottom: 1.5rem;
+            }
+            
+            .alert-danger {
+                background-color: #ffdddd;
+                color: #cf1717;
+                border: 1px solid #ffbbbb;
+            }
+            
+            .password-group {
+                position: relative;
+            }
+            
+            .password-toggle {
+                position: absolute;
+                right: 1rem;
+                top: 50%;
+                transform: translateY(-50%);
+                background: none;
+                border: none;
+                color: var(--secondary-text);
+                cursor: pointer;
+            }
+            
+            .field-error {
+                color: #cf1717;
+                font-size: 0.875rem;
+                margin-top: 0.25rem;
+            }
+            
+            /* Fix for scrollbar issues */
+            body, html {
+                overflow-x: hidden;
+                height: 100%;
+            }
+            
+            .header-container {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 2rem;
+            }
+            
+            /* Modal styles */
+            .modal {
+                display: none;
+                position: fixed;
+                z-index: 1000;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.5);
+            }
+            
+            .modal-content {
+                background-color: var(--primary-bg);
+                margin: 15% auto;
+                padding: 20px;
+                border-radius: 8px;
+                width: 400px;
+                max-width: 90%;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            }
+            
+            .modal-title {
+                margin-top: 0;
+                margin-bottom: 15px;
+                font-size: 1.5rem;
+            }
+            
+            .modal-title.success {
+                color: #23b27e;
+            }
+            
+            .modal-title.error {
+                color: #ff4d4d;
+            }
+            
+            .modal-body {
+                margin-bottom: 20px;
+            }
+            
+            .modal-footer {
+                display: flex;
+                justify-content: flex-end;
+                gap: 10px;
+            }
+            
+            .btn-success {
+                background-color: #23b27e;
+                color: white;
+            }
+            
+            .btn-success:hover {
+                background-color: #1c9063;
+            }
+            
+            /* Radio button styling */
+            .radio-group {
+                display: flex;
+                align-items: center;
+                gap: 1.5rem;
+            }
+            
+            .radio-option {
+                display: flex;
+                align-items: center;
+            }
+            
+            .radio-option input[type="radio"] {
+                margin-right: 0.5rem;
+            }
+            
+            /* Unauthorized access styling */
+            .unauthorized-access {
+                max-width: 600px;
+                margin: 0 auto;
+                text-align: center;
+                padding: 2rem;
+                background-color: var(--secondary-bg);
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                margin-top: 2rem;
+            }
+            
+            .unauthorized-access h1 {
+                color: #ff4d4d;
+                margin-bottom: 1rem;
+            }
+            
+            .unauthorized-access a {
+                display: inline-block;
+                margin-top: 1rem;
+                padding: 0.75rem 1.5rem;
+                background-color: var(--accent-color);
+                color: white;
+                text-decoration: none;
+                border-radius: 4px;
+                font-weight: 500;
+            }
+            
+            .unauthorized-access a:hover {
+                background-color: #7b26cd;
+            }
+        </style>
+    </th:block>
+</head>
+<body>
+    <div>
+        <header class="header" layout:fragment="custom-header">
+            <div class="header-container">
+                <h1 th:text="${isEdit != null && isEdit ? 'Edit User' : 'Create User'}">Create User</h1>
+                
+                <a href="/user/list" class="btn btn-secondary">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M10 12.6667L5.33333 8.00001L10 3.33334" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Back to Users
+                </a>
+            </div>
+        </header>
+        
+        <div layout:fragment="content" style="margin-top: 2rem; height: calc(100vh - 130px);">
+            <div class="user-form-container">
+                <div class="content-card">
+                    <div id="alerts" style="display: none;">
+                        <div class="alert alert-danger"></div>
+                    </div>
+                    
+                    <div class="form-wrapper">
+                        <form id="user-form" th:object="${user}">
+                            <!-- Add hidden input for user ID when in edit mode -->
+                            <input type="hidden" id="userId" name="id" th:if="${isEdit != null && isEdit}" th:value="*{id}">
+                            
+                            <div class="form-group">
+                                <label for="username">Username</label>
+                                <input type="text" id="username" name="username" class="form-control" th:field="*{username}" required>
+                                <small class="text-muted">Note: 'admin' is a reserved username</small>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="password">Password</label>
+                                <input type="password" id="password" name="password" class="form-control" th:field="*{password}" th:required="${isEdit == null || !isEdit}">
+                                <small class="text-muted" th:if="${isEdit != null && isEdit}">Leave empty to keep current password</small>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="firstName">First Name</label>
+                                <input type="text" id="firstName" name="firstName" class="form-control" th:field="*{firstName}" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="lastName">Last Name</label>
+                                <input type="text" id="lastName" name="lastName" class="form-control" th:field="*{lastName}" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="email">Email</label>
+                                <input type="email" id="email" name="email" class="form-control" th:field="*{email}" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="phoneNumber">Phone Number</label>
+                                <input type="tel" id="phoneNumber" name="phoneNumber" class="form-control" th:field="*{phoneNumber}">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="licenseKey">License key</label>
+                                <input type="text" id="licenseKey" name="licenseKey" class="form-control" th:field="*{licenseKey}" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="role">Role</label>
+                                <select id="role" name="role" class="form-control" th:field="*{role}" required>
+                                    <option value=""></option>
+                                    <option value="ADMIN">Administrator</option>
+                                    <option value="DOCTOR">Doctor</option>
+                                    <option value="NURSE">Nurse</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Status</label>
+                                <div class="radio-group">
+                                    <div class="radio-option">
+                                        <input type="radio" id="active-true" name="active" value="true" th:field="*{active}">
+                                        <label for="active-true">Active</label>
+                                    </div>
+                                    <div class="radio-option">
+                                        <input type="radio" id="active-false" name="active" value="false" th:field="*{active}">
+                                        <label for="active-false">Inactive</label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary" th:text="${isEdit != null && isEdit ? 'Update User' : 'Create User'}">Create User</button>
+                                <a href="/user/list" class="btn btn-secondary">Cancel</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Success modal -->
+            <div id="successModal" class="modal">
+                <div class="modal-content">
+                    <h3 id="successTitle" class="modal-title success">Success</h3>
+                    <div class="modal-body">
+                        <p id="successMessage">Operation completed successfully.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button id="successOk" class="btn btn-success">OK</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <th:block layout:fragment="scripts">
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const form = document.getElementById('user-form');
+                const alertBox = document.getElementById('alerts');
+                const alertContent = document.querySelector('.alert-danger');
+                const isEditMode = document.getElementById('userId') !== null;
+                
+                // Success modal elements
+                const successModal = document.getElementById('successModal');
+                const successTitle = document.getElementById('successTitle');
+                const successMessage = document.getElementById('successMessage');
+                const successOkButton = document.getElementById('successOk');
+                
+                // Handle success modal
+                successOkButton.addEventListener('click', function() {
+                    successModal.style.display = 'none';
+                    // Redirect to user list
+                    window.location.href = '/user/list';
+                });
+                
+                // Close modal when clicking outside
+                window.addEventListener('click', function(event) {
+                    if (event.target === successModal) {
+                        successModal.style.display = 'none';
+                        window.location.href = '/user/list';
+                    }
+                });
+                
+                // Function to show success modal
+                function showSuccessModal(message) {
+                    successMessage.textContent = message;
+                    successModal.style.display = 'block';
+                }
+                
+                // Ensure content card fills available space
+                const contentCard = document.querySelector('.content-card');
+                const adjustContentCardHeight = () => {
+                    const contentContainer = document.querySelector('[layout\\:fragment="content"]');
+                    if (contentContainer) {
+                        contentCard.style.height = (contentContainer.offsetHeight - 20) + 'px';
+                    }
+                };
+                
+                // Adjust height on load and resize
+                adjustContentCardHeight();
+                window.addEventListener('resize', adjustContentCardHeight);
+                
+                if (form) {
+                    form.addEventListener('submit', function(e) {
+                        e.preventDefault();
+                        
+                        // Hide any previous alerts
+                        alertBox.style.display = 'none';
+                        
+                        // Get form data
+                        const formData = new FormData(form);
+                        const userData = {};
+                        
+                        formData.forEach((value, key) => {
+                            // Convert string "true"/"false" to boolean for active field
+                            if (key === 'active') {
+                                userData[key] = value === 'true';
+                            } else {
+                                userData[key] = value;
+                            }
+                        });
+                        
+                        // Determine endpoint and method based on if we're in edit mode
+                        const endpoint = isEditMode 
+                            ? `/api/users/${userData.id}`
+                            : '/api/users';
+                            
+                        const method = isEditMode ? 'PUT' : 'POST';
+                        
+                        // Remove empty password if in edit mode
+                        if (isEditMode && !userData.password) {
+                            delete userData.password;
+                        }
+                        
+                        // Make API request
+                        fetch(endpoint, {
+                            method: method,
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(userData)
+                        })
+                        .then(response => {
+                            if (!response.ok) {
+                                // Get more detailed error information
+                                return response.text().then(text => {
+                                    console.error('Server error response:', text);
+                                    
+                                    // Try to parse the error response as JSON
+                                    let errorMessage = `Server responded with status: ${response.status} ${response.statusText}`;
+                                    try {
+                                        const errorData = JSON.parse(text);
+                                        if (errorData.error) {
+                                            // Use the specific error message from the server
+                                            errorMessage = errorData.error;
+                                        }
+                                    } catch (e) {
+                                        // If the response is not valid JSON, try to extract a meaningful message from the text
+                                        if (text && text.includes('error')) {
+                                            const matches = text.match(/"error"\s*:\s*"([^"]+)"/);
+                                            if (matches && matches.length > 1) {
+                                                errorMessage = matches[1];
+                                            }
+                                        }
+                                    }
+                                    
+                                    throw new Error(errorMessage);
+                                });
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            const action = isEditMode ? 'updated' : 'created';
+                            
+                            // Show success modal instead of alert
+                            showSuccessModal(`User ${action} successfully!`);
+                        })
+                        .catch((error) => {
+                            console.error('Error:', error);
+                            alertContent.textContent = `Error ${isEditMode ? 'updating' : 'creating'} user: ${error.message}`;
+                            alertBox.style.display = 'block';
+                            
+                            // Scroll to the top to show the error
+                            contentCard.scrollTop = 0;
+                        });
+                    });
+                }
+            });
+        </script>
+    </th:block>
+</body>
+</html> 

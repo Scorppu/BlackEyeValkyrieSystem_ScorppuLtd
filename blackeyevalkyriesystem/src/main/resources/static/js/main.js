@@ -9,31 +9,55 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Dropdown menus in sidebar
+    // Dropdown menus in sidebar - improved implementation
     const dropdownLinks = document.querySelectorAll('.dropdown-toggle');
     
     if (dropdownLinks.length > 0) {
+        // Remove any existing click event listeners first to prevent duplicates
         dropdownLinks.forEach(function(link) {
+            // Clone the node to remove all event listeners
+            const newLink = link.cloneNode(true);
+            link.parentNode.replaceChild(newLink, link);
+        });
+        
+        // Re-query the elements after replacing them
+        const refreshedDropdownLinks = document.querySelectorAll('.dropdown-toggle');
+        
+        // Add new click event listeners
+        refreshedDropdownLinks.forEach(function(link) {
             link.addEventListener('click', function(e) {
+                console.log('Dropdown toggle clicked'); // Debug log
                 e.preventDefault();
+                e.stopPropagation(); // Stop event bubbling
+                
+                // Toggle expanded class
                 this.classList.toggle('expanded');
+                
+                // Handle the dropdown menu
                 const submenu = this.nextElementSibling;
-                if (submenu.style.maxHeight) {
-                    submenu.style.maxHeight = null;
-                } else {
-                    submenu.style.maxHeight = submenu.scrollHeight + "px";
+                if (submenu && submenu.classList.contains('dropdown-menu')) {
+                    if (submenu.classList.contains('active')) {
+                        submenu.classList.remove('active');
+                        submenu.style.maxHeight = null;
+                    } else {
+                        submenu.classList.add('active');
+                        submenu.style.maxHeight = submenu.scrollHeight + "px";
+                    }
                 }
             });
         });
         
         // Auto-expand dropdown if a child is active
-        dropdownLinks.forEach(function(link) {
+        refreshedDropdownLinks.forEach(function(link) {
             const submenu = link.nextElementSibling;
-            const hasActiveChild = submenu.querySelector('.active');
-            
-            if (hasActiveChild) {
-                link.classList.add('expanded');
-                submenu.style.maxHeight = submenu.scrollHeight + "px";
+            if (submenu && submenu.classList.contains('dropdown-menu')) {
+                const hasActiveChild = submenu.querySelector('.active');
+                
+                if (hasActiveChild) {
+                    link.classList.add('expanded');
+                    submenu.classList.add('active');
+                    submenu.style.maxHeight = submenu.scrollHeight + "px";
+                }
             }
         });
     }
@@ -130,5 +154,91 @@ document.addEventListener('DOMContentLoaded', function() {
             
             ageField.value = age;
         });
+    }
+    
+    // User profile dropdown handling
+    const userProfileToggle = document.getElementById('user-profile-toggle');
+    const userProfileDropdown = document.getElementById('user-profile-dropdown');
+    const profileArrow = document.querySelector('.profile-arrow');
+    
+    if (userProfileToggle && userProfileDropdown) {
+        userProfileToggle.addEventListener('click', function() {
+            if (userProfileDropdown.classList.contains('active')) {
+                // Add animation class for disappearing
+                userProfileDropdown.style.animation = 'popdown 0.2s ease-out forwards';
+                
+                // Wait for animation to complete before hiding
+                setTimeout(() => {
+                    userProfileDropdown.classList.remove('active');
+                    profileArrow.classList.remove('flipped');
+                }, 200);
+            } else {
+                // Show and animate appearance
+                userProfileDropdown.classList.add('active');
+                userProfileDropdown.style.animation = 'popup 0.2s ease-out';
+                profileArrow.classList.add('flipped');
+            }
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!userProfileToggle.contains(event.target) && 
+                !userProfileDropdown.contains(event.target) && 
+                userProfileDropdown.classList.contains('active')) {
+                
+                // Add animation class for disappearing
+                userProfileDropdown.style.animation = 'popdown 0.2s ease-out forwards';
+                
+                // Wait for animation to complete before hiding
+                setTimeout(() => {
+                    userProfileDropdown.classList.remove('active');
+                    profileArrow.classList.remove('flipped');
+                }, 200);
+            }
+        });
+    }
+    
+    // Duty status toggle
+    const dutyToggleBtn = document.getElementById('duty-toggle');
+    const dutyStatusText = document.getElementById('duty-status');
+    
+    if (dutyToggleBtn && dutyStatusText) {
+        // Check local storage for duty status
+        let isOnDuty = localStorage.getItem('dutyStatus') === 'on';
+        let dutyTime = localStorage.getItem('dutyTime') || getCurrentTime();
+        
+        updateDutyStatus(isOnDuty, dutyTime);
+        
+        dutyToggleBtn.addEventListener('click', function() {
+            isOnDuty = !isOnDuty;
+            dutyTime = getCurrentTime();
+            
+            // Save to localStorage
+            localStorage.setItem('dutyStatus', isOnDuty ? 'on' : 'off');
+            localStorage.setItem('dutyTime', dutyTime);
+            
+            updateDutyStatus(isOnDuty, dutyTime);
+        });
+    }
+    
+    function updateDutyStatus(isOnDuty, time) {
+        if (dutyToggleBtn && dutyStatusText) {
+            if (isOnDuty) {
+                dutyStatusText.textContent = `On Duty Since ${time}`;
+                dutyToggleBtn.textContent = 'Off Duty';
+                dutyToggleBtn.classList.remove('off');
+            } else {
+                dutyStatusText.textContent = `Last On Duty ${time}`;
+                dutyToggleBtn.textContent = 'On Duty';
+                dutyToggleBtn.classList.add('off');
+            }
+        }
+    }
+    
+    function getCurrentTime() {
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        return `${hours}:${minutes}`;
     }
 }); 

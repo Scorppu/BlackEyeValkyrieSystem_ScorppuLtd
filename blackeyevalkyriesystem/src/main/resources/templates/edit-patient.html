@@ -5,10 +5,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Patient Profile - BlackEyeValkyrieSystem</title>
+    <title>Edit Patient Profile - BlackEyeValkyrieSystem</title>
     
     <th:block layout:fragment="head">
-        <!-- Create Patient specific CSS -->
+        <!-- Edit Patient specific CSS -->
         <style>
             .main-container {
                 display: flex;
@@ -125,12 +125,6 @@
                 box-shadow: 0 0 0 2px rgba(138, 43, 226, 0.2);
             }
             
-            input.form-control {
-                box-sizing: border-box;
-                appearance: none;
-                padding-right: 2.5rem;
-            }
-
             select.form-control {
                 appearance: none;
                 background-image: url("data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4 6L8 10L12 6' stroke='white' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
@@ -191,119 +185,6 @@
                 margin-left: auto;
                 margin-right: auto;
             }
-            
-            .drug-allergies-container {
-                margin-top: 0.5rem;
-            }
-            
-            .drug-selection-container {
-                display: flex;
-                gap: 0.5rem;
-                align-items: flex-start;
-            }
-            
-            .allergies-table {
-                width: 100%;
-                border-collapse: collapse;
-                margin-top: 0.5rem;
-            }
-            
-            .allergies-table th {
-                text-align: left;
-                padding: 0.5rem;
-                font-weight: 500;
-                border-bottom: 1px solid var(--border-color);
-                color: var(--secondary-text);
-            }
-            
-            .allergies-table td {
-                padding: 0.5rem;
-                border-bottom: 1px solid var(--border-color);
-                color: var(--primary-text);
-            }
-            
-            .allergies-table .empty-allergies-row td {
-                text-align: center;
-                font-style: italic;
-                color: var(--secondary-text);
-            }
-            
-            .remove-allergy-btn {
-                display: inline-flex;
-                align-items: center;
-                gap: 0.25rem;
-                padding: 0.25rem 0.5rem;
-                border: 1px solid var(--border-color);
-                background-color: rgba(255, 0, 0, 0.05);
-                color: #ff5252;
-                border-radius: 0.25rem;
-                cursor: pointer;
-                transition: background-color 0.2s;
-            }
-            
-            .remove-allergy-btn:hover {
-                background-color: rgba(255, 0, 0, 0.1);
-            }
-            
-            .remove-allergy-btn svg {
-                width: 14px;
-                height: 14px;
-            }
-            
-            .mt-3 {
-                margin-top: 1rem;
-            }
-            
-            .mb-4 {
-                margin-bottom: 1.5rem;
-            }
-            
-            .search-container {
-                position: relative;
-                flex: 1;
-            }
-            
-            .drugs-dropdown {
-                position: absolute;
-                top: 100%;
-                left: 0;
-                right: 0;
-                max-height: 300px;
-                overflow-y: auto;
-                background-color: var(--primary-bg);
-                border: 1px solid var(--border-color);
-                border-radius: 0.5rem;
-                z-index: 1000;
-                display: none;
-                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            }
-            
-            .drug-item {
-                padding: 0.75rem 1rem;
-                cursor: pointer;
-                transition: background-color 0.2s;
-                border-bottom: 1px solid var(--border-color);
-            }
-            
-            .drug-item:last-child {
-                border-bottom: none;
-            }
-            
-            .drug-item:hover {
-                background-color: rgba(138, 43, 226, 0.1);
-            }
-            
-            .drug-name {
-                font-weight: 500;
-                color: var(--primary-text);
-            }
-            
-            .no-results {
-                padding: 0.75rem 1rem;
-                color: var(--secondary-text);
-                font-style: italic;
-                text-align: center;
-            }
         </style>
     </th:block>
 </head>
@@ -332,11 +213,11 @@
                 </div>
                 
                 <div id="personal-info-tab" class="tab-content active">
-                    <p>Please fill in the personal information form on the right.</p>
+                    <p>Please edit the personal information form on the right.</p>
                 </div>
                 
                 <div id="contact-info-tab" class="tab-content">
-                    <p>Please fill in the contact information form on the right.</p>
+                    <p>Please edit the contact information form on the right.</p>
                 </div>
             </div>
             
@@ -345,52 +226,53 @@
                 <!-- Personal Information Form -->
                 <div id="personal-info-form" class="form-section active">
                     <h2>Personal information</h2>
-                    <p>Please insert patient's personal information</p>
+                    <p>Please update patient's personal information</p>
                     
                     <form id="patient-form">
+                        <input type="hidden" id="patientId" name="patientId" th:value="${patient.id}">
+                        
                         <div class="form-group">
                             <label for="firstName">First name</label>
-                            <input type="text" id="firstName" name="firstName" class="form-control" value="">
+                            <input type="text" id="firstName" name="firstName" class="form-control" th:value="${patient.firstName}">
                         </div>
                         
                         <div class="form-group">
                             <label for="lastName">Last name</label>
-                            <input type="text" id="lastName" name="lastName" class="form-control" value="">
+                            <input type="text" id="lastName" name="lastName" class="form-control" th:value="${patient.lastName}">
                         </div>
                         
                         <div class="form-group">
                             <label for="sex">Sex</label>
-                            <select id="sex" name="sex" class="form-control" value="">
-                                <option value=""></option>
-                                <option value="Male">Male</option>
-                                <option value="Female">Female</option>
-                                <option value="Other">Other</option>
+                            <select id="sex" name="sex" class="form-control">
+                                <option value="Male" th:selected="${patient.sex == true}">Male</option>
+                                <option value="Female" th:selected="${patient.sex == false}">Female</option>
+                                <option value="Other" th:selected="${patient.sex == null}">Other</option>
                             </select>
                         </div>
                         
                         <div class="form-group">
                             <label for="relativeName">Relative Name</label>
-                            <input type="text" id="relativeName" name="relativeName" class="form-control" value="">
+                            <input type="text" id="relativeName" name="relativeName" class="form-control" th:value="${patient.relativeName}">
                         </div>
                         
                         <div class="form-group">
                             <label for="dateOfBirth">Date Of Birth</label>
-                            <input type="date" id="dateOfBirth" name="dateOfBirth" class="form-control" value="">
+                            <input type="date" id="dateOfBirth" name="dateOfBirth" class="form-control" th:value="${patient.dateOfBirth}">
                         </div>
                         
                         <div class="form-group">
                             <label for="age">Age</label>
-                            <input type="number" id="age" name="age" class="form-control" value="" readonly>
+                            <input type="number" id="age" name="age" class="form-control" th:value="${patient.age}" readonly>
                         </div>
                         
                         <div class="form-group">
                             <label for="maritalStatus">Marital Status</label>
                             <select id="maritalStatus" name="maritalStatus" class="form-control">
                                 <option value=""></option>
-                                <option value="Single">Single</option>
-                                <option value="Married">Married</option>
-                                <option value="Divorced">Divorced</option>
-                                <option value="Widowed">Widowed</option>
+                                <option value="Single" th:selected="${patient.maritalStatus == 'Single'}">Single</option>
+                                <option value="Married" th:selected="${patient.maritalStatus == 'Married'}">Married</option>
+                                <option value="Divorced" th:selected="${patient.maritalStatus == 'Divorced'}">Divorced</option>
+                                <option value="Widowed" th:selected="${patient.maritalStatus == 'Widowed'}">Widowed</option>
                             </select>
                         </div>
                         
@@ -398,50 +280,17 @@
                             <label for="bloodType">Blood Type</label>
                             <select id="bloodType" name="bloodType" class="form-control">
                                 <option value=""></option>
-                                <option value="A+">A+</option>
-                                <option value="A-">A-</option>
-                                <option value="B+">B+</option>
-                                <option value="B-">B-</option>
-                                <option value="AB+">AB+</option>
-                                <option value="AB-">AB-</option>
-                                <option value="O+">O+</option>
-                                <option value="O-">O-</option>
+                                <option value="A+" th:selected="${patient.bloodType == 'A+'}">A+</option>
+                                <option value="A-" th:selected="${patient.bloodType == 'A-'}">A-</option>
+                                <option value="B+" th:selected="${patient.bloodType == 'B+'}">B+</option>
+                                <option value="B-" th:selected="${patient.bloodType == 'B-'}">B-</option>
+                                <option value="AB+" th:selected="${patient.bloodType == 'AB+'}">AB+</option>
+                                <option value="AB-" th:selected="${patient.bloodType == 'AB-'}">AB-</option>
+                                <option value="O+" th:selected="${patient.bloodType == 'O+'}">O+</option>
+                                <option value="O-" th:selected="${patient.bloodType == 'O-'}">O-</option>
                             </select>
                         </div>
-
-                        <!-- Drug Allergies -->
-                        <div class="form-group mb-4">
-                            <label for="drugAllergies">Drug Allergies</label>
-                            <div class="drug-allergies-container">
-                                <div class="drug-selection-container">
-                                    <div class="search-container">
-                                        <input type="text" id="drugAllergyInput" class="form-control" placeholder="Search and select drugs...">
-                                        <div id="drugsDropdown" class="drugs-dropdown">
-                                            <!-- Drugs will be dynamically added here -->
-                                        </div>
-                                    </div>
-                                    <button type="button" id="addAllergyBtn" class="btn btn-primary">Add</button>
-                                </div>
-                                <div class="allergies-list-container mt-3">
-                                    <table class="allergies-table">
-                                        <thead>
-                                            <tr>
-                                                <th>Drug Name</th>
-                                                <th>Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="allergiesList">
-                                            <tr class="empty-allergies-row">
-                                                <td colspan="2">No drug allergies selected</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                                <!-- Hidden input to store the selected drug allergies -->
-                                <input type="hidden" id="drugAllergies" name="drugAllergies">
-                            </div>
-                        </div>
-
+                        
                         <div class="form-actions">
                             <button type="button" id="next-btn" class="btn btn-primary">NEXT</button>
                         </div>
@@ -451,57 +300,57 @@
                 <!-- Contact Information Form -->
                 <div id="contact-info-form" class="form-section">
                     <h2>Contact Information</h2>
-                    <p>Please insert patient's contact information</p>
+                    <p>Please update patient's contact information</p>
                     
                     <form id="contact-form">
                         <div class="form-group">
                             <label for="contactNumber">Phone / Mobile</label>
-                            <input type="tel" id="contactNumber" name="contactNumber" class="form-control" value="">
+                            <input type="tel" id="contactNumber" name="contactNumber" class="form-control" th:value="${patient.contactNumber}">
                         </div>
                         
                         <div class="form-group">
                             <label for="email">Email Address</label>
-                            <input type="email" id="email" name="email" class="form-control" value="">
+                            <input type="email" id="email" name="email" class="form-control" th:value="${patient.email}">
                         </div>
                         
                         <div class="form-group">
                             <label for="address1">Address 1</label>
-                            <input type="text" id="address1" name="address1" class="form-control" value="">
+                            <input type="text" id="address1" name="address1" class="form-control" th:value="${patient.address != null ? patient.address.addressLine1 : ''}">
                         </div>
                         
                         <div class="form-group">
                             <label for="address2">Address 2</label>
-                            <input type="text" id="address2" name="address2" class="form-control" value="">
+                            <input type="text" id="address2" name="address2" class="form-control" th:value="${patient.address != null ? patient.address.addressLine2 : ''}">
                         </div>
                         
                         <div class="form-group">
                             <label for="address3">Address 3</label>
-                            <input type="text" id="address3" name="address3" class="form-control" value="">
+                            <input type="text" id="address3" name="address3" class="form-control" th:value="${patient.address != null ? patient.address.addressLine3 : ''}">
                         </div>
                         
                         <div class="form-group">
                             <label for="country">Country</label>
-                            <input type="text" id="country" name="country" class="form-control" value="">
+                            <input type="text" id="country" name="country" class="form-control" th:value="${patient.address != null ? patient.address.country : ''}">
                         </div>
                         
                         <div class="form-group">
                             <label for="state">State</label>
-                            <input type="text" id="state" name="state" class="form-control" value="">
+                            <input type="text" id="state" name="state" class="form-control" th:value="${patient.address != null ? patient.address.state : ''}">
                         </div>
                         
                         <div class="form-group">
                             <label for="town">Town</label>
-                            <input type="text" id="town" name="town" class="form-control" value="">
+                            <input type="text" id="town" name="town" class="form-control" th:value="${patient.address != null ? patient.address.town : ''}">
                         </div>
                         
                         <div class="form-group">
                             <label for="pinCode">Pin Code</label>
-                            <input type="text" id="pinCode" name="pinCode" class="form-control" value="">
+                            <input type="text" id="pinCode" name="pinCode" class="form-control" th:value="${patient.address != null ? patient.address.pinCode : ''}">
                         </div>
                         
                         <div class="form-actions">
                             <button type="button" id="back-btn" class="btn btn-secondary">BACK</button>
-                            <button type="submit" id="submit-btn" class="btn btn-success">SAVE PATIENT</button>
+                            <button type="submit" id="submit-btn" class="btn btn-success">UPDATE PATIENT</button>
                         </div>
                     </form>
                 </div>
@@ -510,12 +359,9 @@
     </div>
     
     <th:block layout:fragment="scripts">
-        <script th:inline="javascript">
-            // Initialize allDrugs from the controller data
-            const allDrugsData = /*[[${allDrugs}]]*/ [];
-            
+        <script>
+            // Tab navigation for personal to contact info
             document.addEventListener('DOMContentLoaded', function() {
-                // Tab navigation for personal to contact info
                 const nextButton = document.getElementById('next-btn');
                 const backButton = document.getElementById('back-btn');
                 const tabItems = document.querySelectorAll('.tab-item');
@@ -595,6 +441,9 @@
                     contactForm.addEventListener('submit', function(e) {
                         e.preventDefault();
                         
+                        // Get patient ID
+                        const patientId = document.getElementById('patientId').value;
+                        
                         // Get personal information
                         const firstName = document.getElementById('firstName').value;
                         const lastName = document.getElementById('lastName').value;
@@ -604,7 +453,6 @@
                         const age = document.getElementById('age').value;
                         const maritalStatus = document.getElementById('maritalStatus').value;
                         const bloodType = document.getElementById('bloodType').value;
-                        const status = document.getElementById('status').value;
                         
                         // Get contact information
                         const contactNumber = document.getElementById('contactNumber').value;
@@ -627,9 +475,6 @@
                             age: parseInt(age),
                             maritalStatus: maritalStatus,
                             bloodType: bloodType,
-                            status: status,
-                            drugAllergies: document.getElementById('drugAllergies').value.split(',').filter(id => id.trim() !== ''),
-
                             contactNumber: contactNumber,
                             email: email,
                             address: {
@@ -643,11 +488,11 @@
                             }
                         };
                         
-                        console.log('Sending patient data:', JSON.stringify(patientData));
+                        console.log('Sending updated patient data:', JSON.stringify(patientData));
                         
-                        // Send data to server
-                        fetch('/api/patients', {
-                            method: 'POST',
+                        // Send data to server using PUT request for update
+                        fetch('/api/patients/' + patientId, {
+                            method: 'PUT',
                             headers: {
                                 'Content-Type': 'application/json'
                             },
@@ -665,19 +510,19 @@
                         })
                         .then(data => {
                             console.log('Success:', data);
-                            alert('Patient profile created successfully!');
+                            alert('Patient profile updated successfully!');
                             
                             // Redirect to patient list
                             window.location.href = '/patient/list';
                         })
                         .catch((error) => {
                             console.error('Error:', error);
-                            alert('Error creating patient profile: ' + error.message);
+                            alert('Error updating patient profile: ' + error.message);
                         });
                     });
                 }
                 
-                // Calculate age based on date of birth
+                // Calculate age from date of birth
                 const dobField = document.getElementById('dateOfBirth');
                 const ageField = document.getElementById('age');
                 
@@ -709,249 +554,6 @@
                         
                         ageField.value = age;
                     }
-                }
-            });
-
-            // Drug allergies management
-            document.addEventListener('DOMContentLoaded', function() {
-                const drugAllergyInput = document.getElementById('drugAllergyInput');
-                const drugsDropdown = document.getElementById('drugsDropdown');
-                const addAllergyBtn = document.getElementById('addAllergyBtn');
-                const allergiesList = document.getElementById('allergiesList');
-                const drugAllergiesInput = document.getElementById('drugAllergies');
-                const selectedAllergies = new Set();
-                const drugMap = {};
-                
-                // Get drugs data from the pre-initialized variable
-                const allDrugs = allDrugsData || [];
-                
-                // Debugging - log the drugs to console
-                console.log('Available drugs:', allDrugs);
-                
-                // Create a map of drug IDs to drug names
-                if (Array.isArray(allDrugs)) {
-                    allDrugs.forEach(drug => {
-                        // Handle different property structures
-                        const drugId = drug.id || '';
-                        const drugName = drug.name || drug.drugName || drug.genericName || '';
-                        if (drugId) {
-                            drugMap[drugId] = drugName;
-                        }
-                    });
-                } else {
-                    console.error('allDrugs is not properly initialized:', allDrugs);
-                }
-                
-                console.log('Drug name mapping:', drugMap);
-                
-                // Show warning if no drugs are loaded
-                if (!Array.isArray(allDrugs) || allDrugs.length === 0) {
-                    console.error('No drugs available in the system');
-                    // Add a visual warning to the page
-                    const warningDiv = document.createElement('div');
-                    warningDiv.style.color = '#ff9800';
-                    warningDiv.style.padding = '0.5rem 0';
-                    warningDiv.textContent = 'Warning: No drugs available in the system. Contact administrator.';
-                    document.querySelector('.drug-selection-container').after(warningDiv);
-                }
-                
-                // Set up input event listener for drug search
-                drugAllergyInput.addEventListener('input', function() {
-                    filterDrugs(this.value);
-                });
-                
-                // Hide dropdown when clicking outside
-                document.addEventListener('click', function(e) {
-                    if (!drugAllergyInput.contains(e.target) && !drugsDropdown.contains(e.target)) {
-                        drugsDropdown.style.display = 'none';
-                    }
-                });
-                
-                // Show dropdown when input is focused
-                drugAllergyInput.addEventListener('focus', function() {
-                    if (this.value.length > 0) {
-                        filterDrugs(this.value);
-                    }
-                });
-                
-                // Function to filter and display drugs based on search input
-                function filterDrugs(searchText) {
-                    // Clear the dropdown
-                    drugsDropdown.innerHTML = '';
-                    
-                    if (!searchText || searchText.length < 2) {
-                        drugsDropdown.style.display = 'none';
-                        return;
-                    }
-                    
-                    // Debugging
-                    console.log('Filtering drugs with search text:', searchText);
-                    console.log('Available drugs for filtering:', allDrugs);
-                    
-                    // Make sure allDrugs is an array with the expected properties
-                    if (!Array.isArray(allDrugs) || allDrugs.length === 0) {
-                        console.error('allDrugs is not properly initialized:', allDrugs);
-                        
-                        // Show no results message
-                        const noResults = document.createElement('div');
-                        noResults.className = 'no-results';
-                        noResults.textContent = 'Error loading drugs. Please try again.';
-                        drugsDropdown.appendChild(noResults);
-                        drugsDropdown.style.display = 'block';
-                        return;
-                    }
-                    
-                    // Filter drugs based on search text
-                    const searchLower = searchText.toLowerCase();
-                    const filteredDrugs = allDrugs.filter(drug => {
-                        // Determine the property to use for drug name
-                        const drugName = drug.name || drug.drugName || drug.genericName || '';
-                        return drugName.toLowerCase().includes(searchLower);
-                    });
-                    
-                    console.log('Filtered drugs:', filteredDrugs);
-                    
-                    // Display filtered drugs
-                    if (filteredDrugs.length > 0) {
-                        filteredDrugs.forEach(drug => {
-                            // Determine the drug ID and name properties
-                            const drugId = drug.id || '';
-                            const drugName = drug.name || drug.drugName || drug.genericName || '';
-                            
-                            const drugItem = document.createElement('div');
-                            drugItem.className = 'drug-item';
-                            drugItem.setAttribute('data-id', drugId);
-                            drugItem.setAttribute('data-name', drugName);
-                            drugItem.innerHTML = `<div class="drug-name">${drugName}</div>`;
-                            
-                            // Add click event to select the drug
-                            drugItem.addEventListener('click', function() {
-                                selectDrug(this.getAttribute('data-id'), this.getAttribute('data-name'));
-                            });
-                            
-                            drugsDropdown.appendChild(drugItem);
-                        });
-                        
-                        drugsDropdown.style.display = 'block';
-                    } else {
-                        // Show no results message
-                        const noResults = document.createElement('div');
-                        noResults.className = 'no-results';
-                        noResults.textContent = 'No matching drugs found';
-                        drugsDropdown.appendChild(noResults);
-                        drugsDropdown.style.display = 'block';
-                    }
-                }
-                
-                // Function to select a drug from the dropdown
-                function selectDrug(drugId, drugName) {
-                    drugAllergyInput.value = drugName;
-                    drugsDropdown.style.display = 'none';
-                    
-                    // Store selected drug ID to use when adding to allergies
-                    drugAllergyInput.setAttribute('data-selected-id', drugId);
-                }
-                
-                // Function to update the hidden input with selected drug IDs
-                function updateDrugAllergiesInput() {
-                    drugAllergiesInput.value = Array.from(selectedAllergies).join(',');
-                }
-                
-                // Function to add a drug allergy
-                function addDrugAllergy() {
-                    const drugName = drugAllergyInput.value;
-                    if (!drugName) return;
-                    
-                    // Get the drug ID from the input attribute
-                    const drugId = drugAllergyInput.getAttribute('data-selected-id');
-                    
-                    if (!drugId) {
-                        alert('Please select a valid drug from the list');
-                        return;
-                    }
-                    
-                    // Check if already selected
-                    if (selectedAllergies.has(drugId)) {
-                        alert('This drug is already in the allergies list');
-                        drugAllergyInput.value = '';
-                        return;
-                    }
-                    
-                    // Remove empty row if it exists
-                    const emptyRow = allergiesList.querySelector('.empty-allergies-row');
-                    if (emptyRow) {
-                        emptyRow.remove();
-                    }
-                    
-                    // Create new row for the allergy
-                    const row = document.createElement('tr');
-                    row.setAttribute('data-drug-id', drugId);
-                    row.innerHTML = `
-                        <td>${drugName}</td>
-                        <td>
-                            <button type="button" class="remove-allergy-btn">
-                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M2 4H3.33333H14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <path d="M5.33334 4V2.66667C5.33334 2.31305 5.47382 1.97391 5.72387 1.72386C5.97392 1.47381 6.31305 1.33334 6.66668 1.33334H9.33334C9.68697 1.33334 10.0261 1.47381 10.2762 1.72386C10.5262 1.97391 10.6667 2.31305 10.6667 2.66667V4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <path d="M12.6667 4V13.3333C12.6667 13.687 12.5262 14.0261 12.2762 14.2761C12.0261 14.5262 11.687 14.6667 11.3333 14.6667H4.66668C4.31305 14.6667 3.97392 14.5262 3.72387 14.2761C3.47382 14.0261 3.33334 13.687 3.33334 13.3333V4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
-                                Remove
-                            </button>
-                        </td>
-                    `;
-                    
-                    allergiesList.appendChild(row);
-                    selectedAllergies.add(drugId);
-                    updateDrugAllergiesInput();
-                    
-                    // Clear input and selected data
-                    drugAllergyInput.value = '';
-                    drugAllergyInput.removeAttribute('data-selected-id');
-                }
-                
-                // Add drug allergy when clicking the add button
-                if (addAllergyBtn) {
-                    addAllergyBtn.addEventListener('click', addDrugAllergy);
-                }
-                
-                // Add drug allergy when pressing Enter in the input field
-                if (drugAllergyInput) {
-                    drugAllergyInput.addEventListener('keydown', function(e) {
-                        if (e.key === 'Enter') {
-                            e.preventDefault();
-                            if (drugsDropdown.style.display === 'block') {
-                                // If dropdown is open and an item is selected, use that
-                                const firstItem = drugsDropdown.querySelector('.drug-item');
-                                if (firstItem) {
-                                    selectDrug(firstItem.getAttribute('data-id'), firstItem.getAttribute('data-name'));
-                                }
-                            }
-                            addDrugAllergy();
-                        }
-                    });
-                }
-                
-                // Remove drug allergy when clicking the remove button
-                if (allergiesList) {
-                    allergiesList.addEventListener('click', function(e) {
-                        const removeBtn = e.target.closest('.remove-allergy-btn');
-                        if (removeBtn) {
-                            const row = removeBtn.closest('tr');
-                            const drugId = row.getAttribute('data-drug-id');
-                            
-                            row.remove();
-                            selectedAllergies.delete(drugId);
-                            updateDrugAllergiesInput();
-                            
-                            // Add empty row if no allergies left
-                            if (selectedAllergies.size === 0) {
-                                const emptyRow = document.createElement('tr');
-                                emptyRow.className = 'empty-allergies-row';
-                                emptyRow.innerHTML = '<td colspan="2">No drug allergies selected</td>';
-                                allergiesList.appendChild(emptyRow);
-                            }
-                        }
-                    });
                 }
             });
         </script>

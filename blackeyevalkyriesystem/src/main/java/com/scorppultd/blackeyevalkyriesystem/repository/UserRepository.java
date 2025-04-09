@@ -22,6 +22,7 @@ public interface UserRepository extends MongoRepository<User, String> {
     
     // Find by contact info
     Optional<User> findByEmail(String email);
+    Optional<User> findByUsername(String username);
     List<User> findByPhoneNumber(String phoneNumber);
     
     // Find by status
@@ -34,4 +35,6 @@ public interface UserRepository extends MongoRepository<User, String> {
     List<User> findByAddress_City(String city);
     List<User> findByAddress_State(String state);
     List<User> findByAddress_Country(String country);
+
+    long countByRole(User.UserRole role);
 } 

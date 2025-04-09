@@ -49,6 +49,17 @@ public class ConsultationViewController {
     }
 
     /**
+     * Helper method to get the last visit date from a patient's visits list
+     */
+    private LocalDate getLastVisitDate(Patient patient) {
+        if (patient.getVisits() != null && !patient.getVisits().isEmpty()) {
+            // Assuming visits are already sorted by date in descending order
+            return patient.getVisits().get(0).getVisitDate();
+        }
+        return null;
+    }
+
+    /**
      * Display the consultation queue page
      */
     @GetMapping
@@ -60,6 +71,9 @@ public class ConsultationViewController {
         if (!scheduledConsultations.isEmpty()) {
             Consultation nextConsultation = scheduledConsultations.get(0);
             Patient nextPatient = nextConsultation.getPatient();
+            
+            // Add last visit date to model
+            model.addAttribute("nextPatientLastVisit", getLastVisitDate(nextPatient));
             model.addAttribute("nextPatient", nextPatient);
             
             // Remove the next patient from the list to get the remaining patients
@@ -68,9 +82,16 @@ public class ConsultationViewController {
                     .map(Consultation::getPatient)
                     .collect(Collectors.toList());
             
+            // Add last visit dates for queued patients
+            List<LocalDate> queuedPatientsLastVisits = queuedPatients.stream()
+                    .map(this::getLastVisitDate)
+                    .collect(Collectors.toList());
+            
             model.addAttribute("queuedPatients", queuedPatients);
+            model.addAttribute("queuedPatientsLastVisits", queuedPatientsLastVisits);
         } else {
             model.addAttribute("queuedPatients", List.of());
+            model.addAttribute("queuedPatientsLastVisits", List.of());
         }
         
         return "consultation-queue";

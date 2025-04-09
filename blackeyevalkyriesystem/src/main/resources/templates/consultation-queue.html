@@ -121,7 +121,7 @@
                             <td th:text="${nextPatient.id}">123412434</td>
                             <td th:text="${nextPatient.age}">18</td>
                             <td th:text="${nextPatient.sex ? 'Female' : 'Male'}">Female</td>
-                            <td th:text="${nextPatient.lastVisit}">IP0001</td>
+                            <td th:text="${#temporals.format(nextPatientLastVisit, 'dd MMM yyyy')}">IP0001</td>
                             <td>
                                 <a th:href="@{/consultation/create/{id}(id=${nextPatient.id})}" class="consultation-btn">Begin consultation</a>
                             </td>
@@ -147,12 +147,12 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr th:each="patient : ${queuedPatients}">
+                        <tr th:each="patient, iterStat : ${queuedPatients}">
                             <td th:text="${patient.firstName + ' ' + patient.lastName}">John Carter</td>
                             <td th:text="${patient.id}">019238744</td>
                             <td th:text="${patient.age}">18</td>
                             <td th:text="${patient.sex ? 'Female' : 'Male'}">Male</td>
-                            <td th:text="${patient.lastVisit}">OP0011</td>
+                            <td th:text="${#temporals.format(queuedPatientsLastVisits[iterStat.index], 'dd MMM yyyy')}">OP0011</td>
                         </tr>
                         <tr th:if="${queuedPatients.empty}">
                             <td colspan="5" class="empty-state">No more patients in queue</td>

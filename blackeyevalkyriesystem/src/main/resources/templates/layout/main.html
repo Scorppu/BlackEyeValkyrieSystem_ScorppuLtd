@@ -5,7 +5,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark light">
     <title>BlackEyeValkyrieSystem - <th:block th:include=":: title">Title</th:block></title>
+    
+    <!-- Critical CSS for preventing theme flash -->
+    <style>
+        /* Hide content until CSS is loaded to prevent flash */
+        html {
+            visibility: hidden;
+        }
+        
+        /* Default dark theme variables */
+        :root {
+            color-scheme: dark;
+            --primary-bg: #0a0a23;
+            --secondary-bg: #111133;
+            --primary-text: #ffffff;
+            --secondary-text: #b3b3ff;
+            --accent-color: #8a2be2;
+            --input-bg: #111133;
+            --border-color: #222266;
+            --icon-stroke: #ffffff;
+        }
+        
+        /* Light theme variables */
+        :root.light-mode {
+            color-scheme: light;
+            --primary-bg: #f5f5fa;
+            --secondary-bg: #ffffff;
+            --primary-text: #333366;
+            --secondary-text: #4d4d80;
+            --accent-color: #8a2be2;
+            --input-bg: #f0f0fa;
+            --border-color: #ddddee;
+            --icon-stroke: #333366;
+        }
+        
+        /* Apply base styles immediately */
+        body {
+            background-color: var(--primary-bg);
+            color: var(--primary-text);
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        /* Show content once CSS is applied */
+        .theme-initialized {
+            visibility: visible;
+        }
+    </style>
+    
+    <!-- Immediate theme detection script - must run before any rendering -->
+    <script>
+        (function() {
+            // Get saved theme preference
+            var savedTheme = localStorage.getItem('theme');
+            // Set the theme class before any rendering
+            if (savedTheme === 'dark') {
+                document.documentElement.classList.remove('light-mode');
+            } else {
+                document.documentElement.classList.add('light-mode');
+            }
+            // Flag that theme is initialized to make content visible
+            document.addEventListener('DOMContentLoaded', function() {
+                document.documentElement.classList.add('theme-initialized');
+            });
+        })();
+    </script>
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -75,17 +142,32 @@
                     </a>
                 </div>
                 
-                <a href="/appointments" class="nav-item" th:classappend="${request != null && request.requestURI == '/appointments' ? 'active' : ''}">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12.6667 2.66667H3.33333C2.59695 2.66667 2 3.26362 2 4.00001V13.3333C2 14.0697 2.59695 14.6667 3.33333 14.6667H12.6667C13.403 14.6667 14 14.0697 14 13.3333V4.00001C14 3.26362 13.403 2.66667 12.6667 2.66667Z" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M10.6667 1.33333V4" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M5.33334 1.33333V4" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M2 6.66667H14" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                <a href="#" class="nav-item dropdown-toggle" th:classappend="${request != null && request.requestURI.startsWith('/appointment') ? 'expanded' : ''}">
+                    <div class="nav-item-content">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12.6667 2.66667H3.33333C2.59695 2.66667 2 3.26362 2 4.00001V13.3333C2 14.0697 2.59695 14.6667 3.33333 14.6667H12.6667C13.403 14.6667 14 14.0697 14 13.3333V4.00001C14 3.26362 13.403 2.66667 12.6667 2.66667Z" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M10.6667 1.33333V4" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M5.33334 1.33333V4" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M2 6.66667H14" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Appointment Scheduling
+                    </div>
+                    <svg class="dropdown-arrow" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4 6L8 10L12 6" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
-                    Appointment Scheduling
                 </a>
-                
-                
+
+                <div class="dropdown-menu" th:classappend="${request != null && request.requestURI.startsWith('/appointment') ? 'active' : ''}">
+                    <a href="/appointment/timeline" class="nav-item nav-subitem" th:classappend="${request != null && request.requestURI == '/appointment/timeline' ? 'active' : ''}">
+                        Appointment Timeline
+                    </a>
+                    
+                    <a href="/appointment/create" class="nav-item nav-subitem" th:classappend="${request != null && request.requestURI == '/appointment/create' ? 'active' : ''}">
+                        Create Appointment
+                    </a>
+                </div>
+
+
                 <a href="/consultation" class="nav-item" th:classappend="${request != null && request.requestURI == '/consultation' ? 'active' : ''}">
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M6 14.6667V13.3333C6 12.8 6.2 12.4 6.6 12C7 11.6 7.4 11.3333 8 11.3333H13.3333" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
@@ -97,6 +179,7 @@
                     Consultation Module
                 </a>
                 
+
                 <!-- Drugs Menu (Admin Only) -->
                 <a href="#" class="nav-item dropdown-toggle" th:classappend="${request != null && #strings.startsWith(request.requestURI, '/drugs') ? 'expanded' : ''}" sec:authorize="hasRole('ADMIN')">
                     <div class="nav-item-content">
@@ -131,6 +214,32 @@
                     </a>
                 </div>
             
+
+                <!-- New Users dropdown menu item - Only visible to ADMIN -->
+                <a sec:authorize="hasRole('ROLE_ADMIN')" href="#" class="nav-item dropdown-toggle" th:classappend="${request != null && request.requestURI.startsWith('/user') ? 'expanded' : ''}">
+                    <div class="nav-item-content">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M10.6667 14V12.6667C10.6667 11.9594 10.3857 11.2811 9.88562 10.781C9.38552 10.281 8.70724 10 8 10H3.33333C2.62609 10 1.9478 10.281 1.44771 10.781C0.947617 11.2811 0.666666 11.9594 0.666666 12.6667V14" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M5.66667 7.33333C7.13943 7.33333 8.33333 6.13943 8.33333 4.66667C8.33333 3.19391 7.13943 2 5.66667 2C4.19391 2 3 3.19391 3 4.66667C3 6.13943 4.19391 7.33333 5.66667 7.33333Z" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M15.3333 14V12.6667C15.3328 12.0758 15.1362 11.5019 14.7742 11.0349C14.4122 10.5679 13.9053 10.2344 13.3333 10.0867" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M10.6667 2.08667C11.2406 2.2335 11.7492 2.56712 12.1118 3.03488C12.4744 3.50264 12.6709 4.07769 12.6709 4.67C12.6709 5.26232 12.4744 5.83737 12.1118 6.30513C11.7492 6.77289 11.2406 7.1065 10.6667 7.25334" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Users
+                    </div>
+                    <svg class="dropdown-arrow" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4 6L8 10L12 6" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </a>
+
+                <div sec:authorize="hasRole('ROLE_ADMIN')" class="dropdown-menu" th:classappend="${request != null && request.requestURI.startsWith('/user') ? 'active' : ''}">
+                    <a href="/user/list" class="nav-item nav-subitem" th:classappend="${request != null && request.requestURI == '/user/list' ? 'active' : ''}">
+                        User List
+                    </a>
+                    
+                    <a href="/user/create" class="nav-item nav-subitem" th:classappend="${request != null && request.requestURI == '/user/create' ? 'active' : ''}">
+                        Create User
+                    </a>
+                </div>
                 
                 <a href="/settings" class="nav-item" th:classappend="${request != null && request.requestURI == '/settings' ? 'active' : ''}">
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -143,18 +252,29 @@
             </nav>  
                 
             
-            <!-- User Profile -->
-            <div class="user-profile">
-                <div class="avatar">
-                    <span>JC</span>
+            <!-- User Profile Container -->
+            <div class="user-profile-container">
+                <!-- User Profile Dropdown -->
+                <div class="user-profile-dropdown" id="user-profile-dropdown">
+                    <div class="duty-status" id="duty-status" sec:authorize="hasRole('ROLE_DOCTOR')">On Duty Since 20:00</div>
+                    <div class="profile-actions">
+                        <a href="/logout" class="btn-logout" th:classappend="${!#authorization.expression('hasRole(''ROLE_DOCTOR'')')} ? 'full-width' : ''">Logout</a>
+                        <button type="button" class="btn-duty" id="duty-toggle" sec:authorize="hasRole('ROLE_DOCTOR')">Off Duty</button>
+                    </div>
                 </div>
-                <div class="user-info">
-                    <div class="user-name">John Carter</div>
-                    <div class="user-role">Account settings</div>
+                
+                <!-- User Profile -->
+                <div class="user-profile" id="user-profile-toggle">
+                    <div class="avatar">
+                        <span th:text="${#authentication.principal.username.substring(0,2).toUpperCase()}">JC</span>
+                    </div>
+                    <div class="user-info">
+                        <div class="user-name" th:text="${#authentication.principal.fullName != null ? #authentication.principal.fullName : #authentication.principal.username}">AA BB</div>
+                    </div>
+                    <svg class="profile-arrow" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4 10L8 6L12 10" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
                 </div>
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M4 6L8 10L12 6" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
             </div>
             
             <!-- Theme Toggle will be added by JavaScript -->
@@ -184,8 +304,9 @@
             return true;
         });
         
-        // Theme toggling functionality
+        // Dropdown navigation handling
         document.addEventListener('DOMContentLoaded', function() {
+
             const themeToggleBtn = document.getElementById('theme-toggle-btn');
             const moonIcon = document.getElementById('moon-icon');
             const sunIcon = document.getElementById('sun-icon');
@@ -236,26 +357,17 @@
                 }
             });
             
-            // Dropdown navigation handling (existing functionality)
-            const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
-            
-            dropdownToggles.forEach(function(toggle) {
-                toggle.addEventListener('click', function() {
-                    this.classList.toggle('expanded');
-                    const dropdown = this.nextElementSibling;
-                    if (dropdown.classList.contains('dropdown-menu')) {
-                        if (dropdown.classList.contains('active')) {
-                            dropdown.classList.remove('active');
-                        } else {
-                            dropdown.classList.add('active');
-                        }
-                    }
-                });
-            });
+            /**
+             * We're removing the duplicate dropdown handling code that was here
+             * This will be managed by main.js to avoid conflicts
+             */
+
         });
     </script>
     <script th:src="@{/js/main.js}"></script>
     <script th:src="@{/js/theme-toggle.js}"></script>
+    <script th:src="@{/js/duty-status.js}"></script>
+    <script th:src="@{/js/user-profile.js}"></script>
     
     <!-- Page specific scripts -->
     <th:block layout:fragment="scripts"></th:block>

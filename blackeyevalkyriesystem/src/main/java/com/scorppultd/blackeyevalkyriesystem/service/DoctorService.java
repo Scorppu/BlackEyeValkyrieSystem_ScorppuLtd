@@ -21,4 +21,13 @@ public interface DoctorService {
     List<Doctor> getDoctorsByDepartment(String department);
     List<Doctor> getDoctorsByExperienceGreaterThan(Integer years);
     List<Doctor> getDoctorsByAvailableDay(String dayOfWeek);
+    
+    // Get doctor by email
+    Optional<Doctor> getDoctorByEmail(String email);
+    
+    // Get doctor by name (full name match)
+    Optional<Doctor> getDoctorByName(String fullName);
+    
+    // Get doctors by name (partial match)
+    List<Doctor> getDoctorsByNameContaining(String name);
 } 
