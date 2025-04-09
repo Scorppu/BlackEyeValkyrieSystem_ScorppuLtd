@@ -67,51 +67,55 @@ public class SecurityConfig {
     }
     
     @Bean
-    public InMemoryUserDetailsManager inMemoryUserDetailsManager() {
-        // Create default admin user
-        UserDetails adminUser = User.builder()
-            .username("admin")
-            .password(passwordEncoder().encode("admin"))
-            .roles("ADMIN")
-            .build();
-            
-        return new InMemoryUserDetailsManager(adminUser);
-    }
-    
-    @Bean
-    public UserDetailsService databaseUserDetailsService() {
-        return username -> userService.findUserByUsername(username)
-            .map(user -> {
-                // Check if the user account is active
-                if (!user.isActive()) {
-                    throw new UsernameNotFoundException("User account is not active: " + username);
+    public UserDetailsService userDetailsService() {
+        return username -> {
+            // First try to find the user in the database
+            try {
+                return userService.findUserByUsername(username)
+                    .map(user -> {
+                        if (!user.isActive()) {
+                            throw new UsernameNotFoundException("User account is not active: " + username);
+                        }
+                        
+                        String fullName = user.getFirstName() + " " + user.getLastName();
+                        
+                        return new CustomUserDetails(
+                            user.getUsername(),
+                            user.getPassword(),
+                            user.isActive(),
+                            true,
+                            true,
+                            true,
+                            Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + user.getRole().name())),
+                            fullName
+                        );
+                    })
+                    .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+            } catch (Exception e) {
+                // If database lookup fails, check if it's the admin user
+                if ("admin".equals(username)) {
+                    return new CustomUserDetails(
+                        "admin",
+                        passwordEncoder().encode("admin"),
+                        true,
+                        true,
+                        true,
+                        true,
+                        Collections.singletonList(new SimpleGrantedAuthority("ROLE_ADMIN")),
+                        "System Administrator"
+                    );
                 }
-                
-                return new org.springframework.security.core.userdetails.User(
-                    user.getUsername(),
-                    user.getPassword(),
-                    // Pass the active status to the UserDetails
-                    user.isActive(), // enabled
-                    true, // accountNonExpired
-                    true, // credentialsNonExpired
-                    true, // accountNonLocked
-                    Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
-                );
-            })
-            .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+                throw e;
+            }
+        };
     }
     
     @Bean
     public AuthenticationManager authenticationManager() {
-        DaoAuthenticationProvider inMemoryProvider = new DaoAuthenticationProvider();
-        inMemoryProvider.setUserDetailsService(inMemoryUserDetailsManager());
-        inMemoryProvider.setPasswordEncoder(passwordEncoder());
-        
-        DaoAuthenticationProvider databaseProvider = new DaoAuthenticationProvider();
-        databaseProvider.setUserDetailsService(databaseUserDetailsService());
-        databaseProvider.setPasswordEncoder(passwordEncoder());
-        
-        return new ProviderManager(Arrays.asList(inMemoryProvider, databaseProvider));
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+        authProvider.setUserDetailsService(userDetailsService());
+        authProvider.setPasswordEncoder(passwordEncoder());
+        return new ProviderManager(authProvider);
     }
     
     @Bean

@@ -215,7 +215,7 @@
                         <span th:text="${#authentication.principal.username.substring(0,2).toUpperCase()}">JC</span>
                     </div>
                     <div class="user-info">
-                        <div class="user-name" th:text="${#authentication.principal.username}">John Carter</div>
+                        <div class="user-name" th:text="${#authentication.principal.fullName != null ? #authentication.principal.fullName : #authentication.principal.username}">AA BB</div>
                     </div>
                     <svg class="profile-arrow" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M4 10L8 6L12 10" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
@@ -313,6 +313,7 @@
     <script th:src="@{/js/main.js}"></script>
     <script th:src="@{/js/theme-toggle.js}"></script>
     <script th:src="@{/js/duty-status.js}"></script>
+    <script th:src="@{/js/user-profile.js}"></script>
     
     <!-- Page specific scripts -->
     <th:block layout:fragment="scripts"></th:block>
