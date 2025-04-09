@@ -8,7 +8,6 @@
     <title>Patient Profile - BlackEyeValkyrieSystem</title>
     
     <th:block layout:fragment="head">
-        <!-- Create Patient specific CSS -->
         <style>
             .main-container {
                 display: flex;
@@ -69,22 +68,22 @@
                 display: block;
             }
             
-            .form-container {
+            .info-container {
                 background-color: var(--secondary-bg);
                 border-radius: 0.5rem;
                 padding: 2rem;
                 flex-grow: 1;
             }
             
-            .form-section {
+            .info-section {
                 display: none;
             }
             
-            .form-section.active {
+            .info-section.active {
                 display: block;
             }
             
-            .form-section h2 {
+            .info-section h2 {
                 margin-top: 0;
                 margin-bottom: 0.5rem;
                 font-size: 1.5rem;
@@ -92,98 +91,68 @@
                 color: var(--primary-text);
             }
             
-            .form-section p {
+            .info-section p {
                 margin-top: 0;
                 margin-bottom: 2rem;
                 color: var(--secondary-text);
             }
             
-            .form-group {
+            .info-group {
                 margin-bottom: 1.5rem;
             }
             
-            .form-group label {
+            .info-group label {
                 display: block;
                 margin-bottom: 0.5rem;
                 font-weight: 500;
                 color: var(--secondary-text);
             }
             
-            .form-control {
+            .info-value {
                 width: 100%;
                 padding: 0.75rem 1rem;
                 background-color: var(--primary-bg);
-                border: 1px solid var(--border-color);
                 border-radius: 0.5rem;
                 color: var(--primary-text);
                 font-size: 1rem;
+                min-height: 2.5rem;
+                box-sizing: border-box;
+                border: 1px solid var(--border-color);
             }
             
-            .form-control:focus {
-                outline: none;
-                border-color: var(--accent-color);
-                box-shadow: 0 0 0 2px rgba(138, 43, 226, 0.2);
+            .allergies-table {
+                width: 100%;
+                border-collapse: collapse;
             }
             
-            select.form-control {
-                appearance: none;
-                background-image: url("data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4 6L8 10L12 6' stroke='white' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-                background-repeat: no-repeat;
-                background-position: right 1rem center;
-                padding-right: 2.5rem;
+            .allergies-table th, 
+            .allergies-table td {
+                padding: 0.75rem;
+                text-align: left;
+                border-bottom: 1px solid var(--border-color);
             }
             
-            .form-actions {
-                display: flex;
-                justify-content: flex-end;
-                gap: 1rem;
-                margin-top: 2rem;
-            }
-            
-            .btn {
-                padding: 0.75rem 1.5rem;
-                border: none;
-                border-radius: 0.5rem;
+            .allergies-table th {
+                background-color: rgba(138, 43, 226, 0.1);
                 font-weight: 600;
-                cursor: pointer;
-                transition: background-color 0.2s;
-            }
-            
-            .btn-primary {
-                background-color: var(--accent-color);
-                color: white;
-            }
-            
-            .btn-primary:hover {
-                background-color: #7b26cd;
-            }
-            
-            .btn-secondary {
-                background-color: rgba(255, 255, 255, 0.1);
                 color: var(--primary-text);
             }
             
-            .btn-secondary:hover {
-                background-color: rgba(255, 255, 255, 0.15);
+            .allergies-table tbody tr:hover {
+                background-color: rgba(138, 43, 226, 0.05);
             }
             
-            .btn-success {
-                background-color: #23b27e;
-                color: white;
+            .empty-allergies-row td {
+                color: var(--secondary-text);
+                font-style: italic;
             }
             
-            .btn-success:hover {
-                background-color: #1e9d6e;
+            .mt-3 {
+                margin-top: 1rem;
             }
             
-            .header-container {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 2rem;
-                max-width: 1200px;
-                margin-left: auto;
-                margin-right: auto;
+            .mb-4 {
+                margin-bottom: 1.5rem;
             }
         </style>
     </th:block>
@@ -211,137 +180,193 @@
                         Contact Information
                     </div>
                 </div>
+                
             </div>
             
-            <!-- Right Column - Form Content -->
-            <div class="form-container" id="form-content-container">
-                <!-- Personal Information Form -->
-                <div id="personal-info-form" class="form-section active">
-                    <h2>Personal information</h2>
-                    <p>Below is patient's personal information</p>
-                    <fieldset disabled>
-                    <form id="patient-form">
-                        <div class="form-group">
-                            <label for="firstName">First name</label>
-                            <input type="text" id="firstName" name="firstName" class="form-control">
+            <!-- Right Column - Information Display -->
+            <div class="info-container" id="info-content-container">
+                <!-- Personal Information Display -->
+                <div id="personal-info-section" class="info-section active">
+                    <h2>Personal Information</h2>
+                    <p>Patient's personal information details</p>
+                    
+                    <div class="info-group">
+                        <label>First name</label>
+                        <div class="info-value" id="firstName"></div>
+                    </div>
+                    
+                    <div class="info-group">
+                        <label>Last name</label>
+                        <div class="info-value" id="lastName"></div>
+                    </div>
+                    
+                    <div class="info-group">
+                        <label>Sex</label>
+                        <div class="info-value" id="sex"></div>
+                    </div>
+                    
+                    <div class="info-group">
+                        <label>Relative Name</label>
+                        <div class="info-value" id="relativeName"></div>
+                    </div>
+                    
+                    <div class="info-group">
+                        <label>Date Of Birth</label>
+                        <div class="info-value" id="dateOfBirth"></div>
+                    </div>
+                    
+                    <div class="info-group">
+                        <label>Age</label>
+                        <div class="info-value" id="age"></div>
+                    </div>
+                    
+                    <div class="info-group">
+                        <label>Marital Status</label>
+                        <div class="info-value" id="maritalStatus"></div>
+                    </div>
+                    
+                    <div class="info-group">
+                        <label>Blood Type</label>
+                        <div class="info-value" id="bloodType"></div>
+                    </div>
+
+                    <!-- Drug Allergies -->
+                    <div class="info-group mb-4">
+                        <label>Drug Allergies</label>
+                        <div class="allergies-list-container mt-3">
+                            <table class="allergies-table">
+                                <thead>
+                                    <tr>
+                                        <th>Drug Name</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="allergiesList">
+                                    <tr class="empty-allergies-row">
+                                        <td>No drug allergies recorded</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
-                        
-                        <div class="form-group">
-                            <label for="lastName">Last name</label>
-                            <input type="text" id="lastName" name="lastName" class="form-control">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="sex">Sex</label>
-                            <select id="sex" name="sex" class="form-control">
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="relativeName">Relative Name</label>
-                            <input type="text" id="relativeName" name="relativeName" class="form-control">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="dateOfBirth">Date Of Birth</label>
-                            <input type="date" id="dateOfBirth" name="dateOfBirth" class="form-control">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="age">Age</label>
-                            <input type="number" id="age" name="age" class="form-control" readonly>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="maritalStatus">Marital Status</label>
-                            <select id="maritalStatus" name="maritalStatus" class="form-control">
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="bloodType">Blood Type</label>
-                            <select id="bloodType" name="bloodType" class="form-control">
-                            </select>
-                        </div>
-                    </fieldset>
-                    </form>
+                    </div>
                 </div>
                 
-                <!-- Contact Information Form -->
-                <div id="contact-info-form" class="form-section">
+                <!-- Contact Information Display -->
+                <div id="contact-info-section" class="info-section">
                     <h2>Contact Information</h2>
-                    <p>Below is patient's contact information</p>
-                    <fieldset disabled>
-                    <form id="contact-form">
-                        <div class="form-group">
-                            <label for="contactNumber">Phone / Mobile</label>
-                            <input type="tel" id="contactNumber" name="contactNumber" class="form-control">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="email">Email Address</label>
-                            <input type="email" id="email" name="email" class="form-control">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="address1">Address 1</label>
-                            <input type="text" id="address1" name="address1" class="form-control">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="address2">Address 2</label>
-                            <input type="text" id="address2" name="address2" class="form-control">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="address3">Address 3</label>
-                            <input type="text" id="address3" name="address3" class="form-control">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="country">Country</label>
-                            <input type="text" id="country" name="country" class="form-control">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="state">State</label>
-                            <input type="text" id="state" name="state" class="form-control">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="town">Town</label>
-                            <input type="text" id="town" name="town" class="form-control">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="pinCode">Pin Code</label>
-                            <input type="text" id="pinCode" name="pinCode" class="form-control">
-                        </div>
-                    </fieldset>
-                    </form>
+                    <p>Patient's contact information details</p>
+                    
+                    <div class="info-group">
+                        <label>Phone / Mobile</label>
+                        <div class="info-value" id="contactNumber"></div>
+                    </div>
+                    
+                    <div class="info-group">
+                        <label>Email Address</label>
+                        <div class="info-value" id="email"></div>
+                    </div>
+                    
+                    <div class="info-group">
+                        <label>Address 1</label>
+                        <div class="info-value" id="address1"></div>
+                    </div>
+                    
+                    <div class="info-group">
+                        <label>Address 2</label>
+                        <div class="info-value" id="address2"></div>
+                    </div>
+                    
+                    <div class="info-group">
+                        <label>Address 3</label>
+                        <div class="info-value" id="address3"></div>
+                    </div>
+                    
+                    <div class="info-group">
+                        <label>Country</label>
+                        <div class="info-value" id="country"></div>
+                    </div>
+                    
+                    <div class="info-group">
+                        <label>State</label>
+                        <div class="info-value" id="state"></div>
+                    </div>
+                    
+                    <div class="info-group">
+                        <label>Town</label>
+                        <div class="info-value" id="town"></div>
+                    </div>
+                    
+                    <div class="info-group">
+                        <label>Pin Code</label>
+                        <div class="info-value" id="pinCode"></div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
     
     <th:block layout:fragment="scripts">
-        <script>
-            // Tab navigation for personal to contact info
+        <script th:inline="javascript">
+            // Get patient data from Thymeleaf
+            const patient = /*[[${patient}]]*/ {};
+            const drugNamesMap = /*[[${drugNamesMap}]]*/ {};
+            
             document.addEventListener('DOMContentLoaded', function() {
-                const tabItems = document.querySelectorAll('.tab-item');
-                const personalInfoForm = document.getElementById('personal-info-form');
-                const contactInfoForm = document.getElementById('contact-info-form');
+                // Populate personal information
+                if (patient) {
+                    document.getElementById('firstName').textContent = patient.firstName || '';
+                    document.getElementById('lastName').textContent = patient.lastName || '';
+                    document.getElementById('sex').textContent = patient.sex ? 'Male' : 'Female';
+                    document.getElementById('relativeName').textContent = patient.relativeName || '';
+                    document.getElementById('dateOfBirth').textContent = patient.dateOfBirth || '';
+                    document.getElementById('age').textContent = patient.age || '';
+                    document.getElementById('maritalStatus').textContent = patient.maritalStatus || '';
+                    document.getElementById('bloodType').textContent = patient.bloodType || '';
+                    
+                    // Populate contact information
+                    if (patient.address) {
+                        document.getElementById('contactNumber').textContent = patient.contactNumber || '';
+                        document.getElementById('email').textContent = patient.email || '';
+                        document.getElementById('address1').textContent = patient.address.addressLine1 || '';
+                        document.getElementById('address2').textContent = patient.address.addressLine2 || '';
+                        document.getElementById('address3').textContent = patient.address.addressLine3 || '';
+                        document.getElementById('country').textContent = patient.address.country || '';
+                        document.getElementById('state').textContent = patient.address.state || '';
+                        document.getElementById('town').textContent = patient.address.town || '';
+                        document.getElementById('pinCode').textContent = patient.address.pinCode || '';
+                    }
+                    
+                    // Populate drug allergies
+                    if (patient.drugAllergies && patient.drugAllergies.length > 0) {
+                        const allergiesList = document.getElementById('allergiesList');
+                        const emptyRow = allergiesList.querySelector('.empty-allergies-row');
+                        if (emptyRow) {
+                            emptyRow.remove();
+                        }
+                        
+                        patient.drugAllergies.forEach(drugId => {
+                            const drugName = drugNamesMap[drugId] || 'Unknown Drug';
+                            const row = document.createElement('tr');
+                            row.innerHTML = `<td>${drugName}</td>`;
+                            allergiesList.appendChild(row);
+                        });
+                    }
+                }
                 
-                // Switch between form sections based on tab
-                function switchFormSection(tabId) {
-                    // Hide all form sections
-                    document.querySelectorAll('.form-section').forEach(section => {
+                // Tab navigation
+                const tabItems = document.querySelectorAll('.tab-item');
+                const personalInfoSection = document.getElementById('personal-info-section');
+                const contactInfoSection = document.getElementById('contact-info-section');
+                
+                // Switch between sections based on tab
+                function switchSection(tabId) {
+                    // Hide all sections
+                    document.querySelectorAll('.info-section').forEach(section => {
                         section.classList.remove('active');
                     });
                     
-                    // Show the correct form section
+                    // Show the correct section
                     if (tabId === 'personal-info-tab') {
-                        personalInfoForm.classList.add('active');
+                        personalInfoSection.classList.add('active');
                         document.querySelectorAll('.tab-item').forEach(tab => {
                             if (tab.dataset.target === 'personal-info-tab') {
                                 tab.classList.add('active');
@@ -352,7 +377,7 @@
                         document.getElementById('personal-info-tab').classList.add('active');
                         document.getElementById('contact-info-tab').classList.remove('active');
                     } else if (tabId === 'contact-info-tab') {
-                        contactInfoForm.classList.add('active');
+                        contactInfoSection.classList.add('active');
                         document.querySelectorAll('.tab-item').forEach(tab => {
                             if (tab.dataset.target === 'contact-info-tab') {
                                 tab.classList.add('active');
@@ -369,58 +394,11 @@
                 tabItems.forEach(function(tab) {
                     tab.addEventListener('click', function() {
                         const targetId = this.dataset.target;
-                        switchFormSection(targetId);
+                        switchSection(targetId);
                     });
                 });
-
-                // Function to populate patient information
-                function populatePatientInfo(patient) {
-                    // Hide loading, show patient info
-                    document.getElementById('loading-container').style.display = 'none';
-                    document.getElementById('patient-info').style.display = 'block';
-                    
-                    // Set field values from patient object
-                    document.getElementById('patient-id').textContent = patient.id || '';
-                    document.getElementById('first-name').textContent = patient.firstName || '';
-                    document.getElementById('last-name').textContent = patient.lastName || '';
-                    document.getElementById('sex').textContent = patient.sex || '';
-                    document.getElementById('relative-name').textContent = patient.relativeName || '';
-                    document.getElementById('date-of-birth').textContent = patient.dateOfBirth || '';
-                    document.getElementById('age').textContent = patient.age || '';
-                    document.getElementById('marital-status').textContent = patient.maritalStatus || '';
-                    document.getElementById('blood-type').textContent = patient.bloodType || '';
-                    
-                    document.getElementById('contact-number').textContent = patient.contactNumber || '';
-                    document.getElementById('email').textContent = patient.email || '';
-                    document.getElementById('address1').textContent = patient.address1 || '';
-                    document.getElementById('address2').textContent = patient.address2 || '';
-                    document.getElementById('address3').textContent = patient.address3 || '';                    
-                    
-                    document.getElementById('country').textContent = patient.country || '';
-                    document.getElementById('state').textContent = patient.state || '';
-                    document.getElementById('town').textContent = patient.town || '';
-                    document.getElementById('pin-code').textContent = patient.pinCode || '';
-                }
-
-                // Make API request to get patient information
-                function fetchPatientInfo() {
-                    fetch(`/api/patients/${patientId}`).then(response => {
-                        if (!response.ok) {
-                            throw new Error(`HTTP error! Status: ${response.status}`);
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        populatePatientInfo(data);
-                    })
-                    .catch(error => {
-                        showError(`Failed to load patient information: ${error.message}`);
-                        console.error('Error:', error);
-                    });
-                }
-                window.onload = fetchPatientInfo;
             });
         </script>
     </th:block>
 </body>
-</html>
+</html> 

@@ -41,6 +41,8 @@ public class SecurityConfig {
                 // Static resources and login page are publicly accessible
                 .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
                 .requestMatchers("/login").permitAll()
+                // Admin-only pages
+                .requestMatchers("/drugs/**").hasRole("ADMIN")
                 // Require authentication for API endpoints
                 .requestMatchers("/api/users/**").hasRole("ADMIN")
                 // All other requests need authentication

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/main}">
+<head>
+    <title>Add Drug Interaction</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="container">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Add Drug Interaction</h4>
+                </div>
+                <div class="card-body">
+                    <form th:action="@{/drugs/interactions/add}" method="post" th:object="${interaction}">
+                        <div class="mb-3">
+                            <label for="primaryDrug" class="form-label">Primary Drug</label>
+                            <select class="form-select" id="primaryDrug" th:field="*{primaryDrug}" required>
+                                <option value="">-- Select Primary Drug --</option>
+                                <option th:each="drug : ${drugs}" 
+                                        th:value="${drug.id}" 
+                                        th:text="${drug.name + ' (' + drug.code + ')'}">Drug Name</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="interactingDrug" class="form-label">Interacting Drug</label>
+                            <select class="form-select" id="interactingDrug" th:field="*{interactingDrug}" required>
+                                <option value="">-- Select Interacting Drug --</option>
+                                <option th:each="drug : ${drugs}" 
+                                        th:value="${drug.id}" 
+                                        th:text="${drug.name + ' (' + drug.code + ')'}">Drug Name</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="severity" class="form-label">Severity Level</label>
+                            <select class="form-select" id="severity" th:field="*{severity}" required>
+                                <option value="">-- Select Severity --</option>
+                                <option th:each="level : ${severityLevels}" 
+                                        th:value="${level}" 
+                                        th:text="${level}">Severity Level</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" th:field="*{description}" 
+                                      rows="4" placeholder="Describe the interaction, effects, and recommendations"></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <button type="submit" class="btn btn-primary">Add Interaction</button>
+                            <a th:href="@{/drugs/interactions}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 
