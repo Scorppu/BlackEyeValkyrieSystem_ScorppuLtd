@@ -101,9 +101,9 @@
                 <input type="text" placeholder="Search patient by name or ID...">
             </div>
 
-            <!-- Next in Queue Section -->
+            <!-- Current Appointments Section -->
             <div class="queue-section">
-                <h2 class="queue-title">Next in Queue</h2>
+                <h2 class="queue-title">Overdue Appointments</h2>
                 <table class="queue-table">
                     <thead>
                         <tr>
@@ -121,21 +121,31 @@
                             <td th:text="${nextPatient.id}">123412434</td>
                             <td th:text="${nextPatient.age}">18</td>
                             <td th:text="${nextPatient.sex ? 'Female' : 'Male'}">Female</td>
-                            <td th:text="${#temporals.format(nextPatientLastVisit, 'dd MMM yyyy')}">IP0001</td>
+                            <td th:text="${nextPatientLastVisit != null ? #temporals.format(nextPatientLastVisit, 'dd MMM yyyy') : 'No visits'}">IP0001</td>
                             <td>
                                 <a th:href="@{/consultation/create/{id}(id=${nextPatient.id})}" class="consultation-btn">Begin consultation</a>
                             </td>
                         </tr>
-                        <tr th:if="${nextPatient == null}">
-                            <td colspan="6" class="empty-state">No patients in queue</td>
+                        <tr th:each="patient, iterStat : ${queuedPatients}">
+                            <td th:text="${patient.firstName + ' ' + patient.lastName}">John Carter</td>
+                            <td th:text="${patient.id}">019238744</td>
+                            <td th:text="${patient.age}">18</td>
+                            <td th:text="${patient.sex ? 'Female' : 'Male'}">Male</td>
+                            <td th:text="${queuedPatientsLastVisits[iterStat.index] != null ? #temporals.format(queuedPatientsLastVisits[iterStat.index], 'dd MMM yyyy') : 'No visits'}">OP0011</td>
+                            <td>
+                                <a th:href="@{/consultation/create/{id}(id=${patient.id})}" class="consultation-btn">Begin consultation</a>
+                            </td>
+                        </tr>
+                        <tr th:if="${nextPatient == null && queuedPatients.empty}">
+                            <td colspan="6" class="empty-state">No overdue appointments</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
 
-            <!-- Others in Queue Section -->
+            <!-- Future Appointments Section -->
             <div class="queue-section">
-                <h2 class="queue-title">Others in Queue</h2>
+                <h2 class="queue-title">Upcoming Appointments</h2>
                 <table class="queue-table">
                     <thead>
                         <tr>
@@ -147,22 +157,22 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr th:each="patient, iterStat : ${queuedPatients}">
+                        <tr th:each="patient, iterStat : ${futurePatients}">
                             <td th:text="${patient.firstName + ' ' + patient.lastName}">John Carter</td>
                             <td th:text="${patient.id}">019238744</td>
                             <td th:text="${patient.age}">18</td>
                             <td th:text="${patient.sex ? 'Female' : 'Male'}">Male</td>
-                            <td th:text="${#temporals.format(queuedPatientsLastVisits[iterStat.index], 'dd MMM yyyy')}">OP0011</td>
+                            <td th:text="${futurePatientsLastVisits[iterStat.index] != null ? #temporals.format(futurePatientsLastVisits[iterStat.index], 'dd MMM yyyy') : 'No visits'}">OP0011</td>
                         </tr>
-                        <tr th:if="${queuedPatients.empty}">
-                            <td colspan="5" class="empty-state">No more patients in queue</td>
+                        <tr th:if="${futurePatients.empty}">
+                            <td colspan="5" class="empty-state">No upcoming appointments</td>
                         </tr>
                     </tbody>
                 </table>
                 
                 <!-- Pagination information -->
-                <div class="pagination-info" th:if="${!queuedPatients.empty}">
-                    <span th:text="${'1 - 10 of ' + queuedPatients.size()}">1 - 10 of 256</span>
+                <div class="pagination-info" th:if="${!futurePatients.empty}">
+                    <span th:text="${'1 - ' + futurePatients.size() + ' of ' + futurePatients.size()}">1 - 10 of 256</span>
                 </div>
             </div>
         </div>

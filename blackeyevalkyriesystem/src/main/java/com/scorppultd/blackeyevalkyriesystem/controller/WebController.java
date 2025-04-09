@@ -7,12 +7,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PostMapping;
-
+import org.springframework.beans.factory.annotation.Autowired;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.ArrayList;
+import java.util.stream.Collectors;
 import com.scorppultd.blackeyevalkyriesystem.model.Appointment;
 import com.scorppultd.blackeyevalkyriesystem.model.Patient;
 import com.scorppultd.blackeyevalkyriesystem.service.AppointmentService;
@@ -111,24 +112,43 @@ public class WebController {
             HttpServletRequest request, 
             Model model) {
         
-        model.addAttribute("request", request);
-        
-        // Get sorted patients for patient selection
-        List<Patient> patients = patientService.getAllPatientsSorted(sortBy, direction);
-        
-        // Add patients to the model
-        model.addAttribute("patients", patients);
-        
-        // Pagination information (simplified for now)
-        model.addAttribute("currentPage", page);
-        model.addAttribute("totalPatients", patients.size());
-        model.addAttribute("rowsPerPage", rowsPerPage);
-        
-        // Sort parameters
-        model.addAttribute("currentSortBy", sortBy);
-        model.addAttribute("currentDirection", direction);
-        
-        return "appointment-create";
+        try {
+            model.addAttribute("request", request);
+            
+            // Only load essential patient data
+            List<Patient> patients = patientService.getAllPatientsSorted(sortBy, direction)
+                .stream()
+                .map(p -> {
+                    Patient simplified = new Patient();
+                    simplified.setId(p.getId());
+                    simplified.setFirstName(p.getFirstName());
+                    simplified.setLastName(p.getLastName());
+                    simplified.setAge(p.getAge());
+                    simplified.setSex(p.getSex());
+                    simplified.setContactNumber(p.getContactNumber());
+                    simplified.setStatus(p.getStatus());
+                    return simplified;
+                })
+                .collect(Collectors.toList());
+            
+            // Add patients to the model
+            model.addAttribute("patients", patients);
+            
+            // Pagination information
+            model.addAttribute("currentPage", page);
+            model.addAttribute("totalPatients", patients.size());
+            model.addAttribute("rowsPerPage", rowsPerPage);
+            
+            // Sort parameters
+            model.addAttribute("currentSortBy", sortBy);
+            model.addAttribute("currentDirection", direction);
+            
+            return "appointment-create";
+        } catch (Exception e) {
+            System.err.println("Error rendering appointment-create template: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
     }
     
     @PostMapping("/appointment/create")
