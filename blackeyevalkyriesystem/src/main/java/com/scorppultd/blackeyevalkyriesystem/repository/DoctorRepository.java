@@ -8,6 +8,7 @@ import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import com.scorppultd.blackeyevalkyriesystem.model.Doctor;
+import com.scorppultd.blackeyevalkyriesystem.model.User.UserRole;
 
 @Repository
 public interface DoctorRepository extends MongoRepository<Doctor, String> {
@@ -16,6 +17,9 @@ public interface DoctorRepository extends MongoRepository<Doctor, String> {
     Optional<Doctor> findByLicenseNumber(String licenseNumber);
     List<Doctor> findBySpecialization(String specialization);
     List<Doctor> findByYearsOfExperienceGreaterThan(Integer years);
+    
+    // Find by role
+    List<Doctor> findByRole(UserRole role);
     
     // Find by department and position
     List<Doctor> findByDepartment(String department);
@@ -36,4 +40,15 @@ public interface DoctorRepository extends MongoRepository<Doctor, String> {
     
     // Find doctors by office number
     List<Doctor> findByOfficeNumber(String officeNumber);
+    
+    // Find doctors by name (partial match on first name OR last name)
+    @Query("{ $or: [ { 'firstName': { $regex: ?0, $options: 'i' } }, { 'lastName': { $regex: ?0, $options: 'i' } } ] }")
+    List<Doctor> findByNameContaining(String name);
+    
+    // Find doctor by email
+    Optional<Doctor> findByEmail(String email);
+    
+    // Find doctor by full name (exact match on first + last name)
+    @Query("{ $and: [ { 'firstName': ?0 }, { 'lastName': ?1 } ] }")
+    Optional<Doctor> findByFirstNameAndLastName(String firstName, String lastName);
 } 

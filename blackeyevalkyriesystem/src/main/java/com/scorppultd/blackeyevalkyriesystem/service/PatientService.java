@@ -2,12 +2,14 @@ package com.scorppultd.blackeyevalkyriesystem.service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Comparator;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.scorppultd.blackeyevalkyriesystem.model.Patient;
+import com.scorppultd.blackeyevalkyriesystem.model.Visit;
 import com.scorppultd.blackeyevalkyriesystem.repository.PatientRepository;
 
 @Service
@@ -17,33 +19,52 @@ public class PatientService {
     private PatientRepository patientRepository;
     
     public List<Patient> getAllPatients() {
-        return patientRepository.findAll();
+        List<Patient> patients = patientRepository.findAll();
+        sortVisitsByDate(patients);
+        return patients;
     }
     
     public List<Patient> getAllPatientsSorted(String sortBy, String direction) {
         Sort.Direction dir = direction.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
         
         // Map the sortBy parameter to the actual field name in the document
+        List<Patient> patients;
         switch (sortBy.toLowerCase()) {
             case "name":
-                return patientRepository.findAll(Sort.by(dir, "lastName", "firstName"));
+                patients = patientRepository.findAll(Sort.by(dir, "lastName", "firstName"));
+                break;
             case "patientid":
-                return patientRepository.findAll(Sort.by(dir, "id"));
+                patients = patientRepository.findAll(Sort.by(dir, "id"));
+                break;
             case "age":
-                return patientRepository.findAll(Sort.by(dir, "age"));
+                patients = patientRepository.findAll(Sort.by(dir, "age"));
+                break;
             case "gender":
-                return patientRepository.findAll(Sort.by(dir, "sex"));
+                patients = patientRepository.findAll(Sort.by(dir, "sex"));
+                break;
             case "contact":
-                return patientRepository.findAll(Sort.by(dir, "contactNumber"));
+                patients = patientRepository.findAll(Sort.by(dir, "contactNumber"));
+                break;
             case "status":
-                return patientRepository.findAll(Sort.by(dir, "status"));
+                patients = patientRepository.findAll(Sort.by(dir, "status"));
+                break;
             default:
-                return patientRepository.findAll(Sort.by(dir, "lastName"));
+                patients = patientRepository.findAll(Sort.by(dir, "lastName"));
+                break;
         }
+        
+        sortVisitsByDate(patients);
+        return patients;
     }
     
     public Optional<Patient> getPatientById(String id) {
-        return patientRepository.findById(id);
+        Optional<Patient> patientOpt = patientRepository.findById(id);
+        patientOpt.ifPresent(patient -> {
+            if (patient.getVisits() != null && !patient.getVisits().isEmpty()) {
+                patient.getVisits().sort(Comparator.comparing(Visit::getVisitDate).reversed());
+            }
+        });
+        return patientOpt;
     }
     
     public Patient savePatient(Patient patient) {
@@ -52,5 +73,17 @@ public class PatientService {
     
     public void deletePatient(String id) {
         patientRepository.deleteById(id);
+    }
+    
+    /**
+     * Sort visits by date (descending) for all patients in the list
+     * @param patients List of patients whose visits need to be sorted
+     */
+    private void sortVisitsByDate(List<Patient> patients) {
+        for (Patient patient : patients) {
+            if (patient.getVisits() != null && !patient.getVisits().isEmpty()) {
+                patient.getVisits().sort(Comparator.comparing(Visit::getVisitDate).reversed());
+            }
+        }
     }
 } 
