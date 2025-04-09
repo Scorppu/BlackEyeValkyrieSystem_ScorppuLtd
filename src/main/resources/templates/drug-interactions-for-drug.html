@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/main}">
+<head>
+    <title>Drug Interactions</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="container">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 th:if="${drug}" th:text="'Interactions for ' + ${drug.name}">Drug Interactions</h4>
+                    <h4 th:unless="${drug}">Drug Interactions</h4>
+                    <div>
+                        <a th:href="@{/drugs/interactions/add}" class="btn btn-primary">Add New Interaction</a>
+                        <a th:href="@{/drugs/interactions}" class="btn btn-secondary">All Interactions</a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div th:if="${drug}" class="mb-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <strong>Drug Information</strong>
+                            </div>
+                            <div class="card-body">
+                                <table class="table table-bordered">
+                                    <tr>
+                                        <th style="width: 20%">Name</th>
+                                        <td th:text="${drug.name}">Drug name</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Code</th>
+                                        <td th:text="${drug.code}">Drug code</td>
+                                    </tr>
+                                    <tr th:if="${drug.description}">
+                                        <th>Description</th>
+                                        <td th:text="${drug.description}">Drug description</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h5>Known Interactions</h5>
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Interacting Drug</th>
+                                <th>Severity</th>
+                                <th>Description</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:if="${interactions.empty}">
+                                <td colspan="4" class="text-center">No interactions found</td>
+                            </tr>
+                            <tr th:each="interaction : ${interactions}">
+                                <td>
+                                    <!-- Determine which drug to show (the one that's not the current drug) -->
+                                    <span th:if="${drug != null && drug.id == interaction.drugA.id}" 
+                                          th:text="${interaction.drugB.name}">Interacting Drug</span>
+                                    <span th:if="${drug != null && drug.id == interaction.drugB.id}" 
+                                          th:text="${interaction.drugA.name}">Interacting Drug</span>
+                                    <!-- If no specific drug view, show both drugs -->
+                                    <span th:if="${drug == null}">
+                                        <span th:text="${interaction.drugA.name}">Drug A</span>
+                                        <span class="mx-2">+</span>
+                                        <span th:text="${interaction.drugB.name}">Drug B</span>
+                                    </span>
+                                </td>
+                                <td>
+                                    <span th:if="${interaction.severity == 'MILD'}" class="badge bg-info">Mild</span>
+                                    <span th:if="${interaction.severity == 'MODERATE'}" class="badge bg-warning">Moderate</span>
+                                    <span th:if="${interaction.severity == 'SEVERE'}" class="badge bg-danger">Severe</span>
+                                </td>
+                                <td th:text="${interaction.description}">Description</td>
+                                <td>
+                                    <a th:href="@{/drugs/interactions/edit/{id}(id=${interaction.id})}" class="btn btn-sm btn-primary">Edit</a>
+                                    <a th:href="@{/drugs/interactions/delete/{id}(id=${interaction.id})}" 
+                                       class="btn btn-sm btn-danger"
+                                       onclick="return confirm('Are you sure you want to delete this interaction?')">Delete</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 
