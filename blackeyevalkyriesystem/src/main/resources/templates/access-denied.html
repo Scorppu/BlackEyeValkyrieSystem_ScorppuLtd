@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Access Denied - BlackEyeValkyrieSystem</title>
+    
+    <th:block layout:fragment="head">
+        <style>
+            .unauthorized-access {
+                max-width: 600px;
+                margin: 0 auto;
+                text-align: center;
+                padding: 2rem;
+                background-color: var(--secondary-bg);
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                margin-top: 2rem;
+            }
+            
+            .unauthorized-access h1 {
+                color: #ff4d4d;
+                margin-bottom: 1rem;
+            }
+            
+            .unauthorized-access a {
+                display: inline-block;
+                margin-top: 1rem;
+                padding: 0.75rem 1.5rem;
+                background-color: var(--accent-color);
+                color: white;
+                text-decoration: none;
+                border-radius: 4px;
+                font-weight: 500;
+            }
+            
+            .unauthorized-access a:hover {
+                background-color: #7b26cd;
+            }
+        </style>
+    </th:block>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="unauthorized-access">
+            <h1>Access Denied</h1>
+            <p>You do not have permission to view this page. This feature is restricted to administrators only.</p>
+            <a href="/">Return to Dashboard</a>
+        </div>
+    </div>
+</body>
+</html> 

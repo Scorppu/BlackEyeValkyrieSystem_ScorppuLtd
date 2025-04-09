@@ -55,4 +55,10 @@ public class WebController {
         model.addAttribute("request", request);
         return "error";
     }
+    
+    @GetMapping("/access-denied")
+    public String accessDenied(HttpServletRequest request, Model model) {
+        model.addAttribute("request", request);
+        return "access-denied";
+    }
 } 

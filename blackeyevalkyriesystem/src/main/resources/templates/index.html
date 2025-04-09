@@ -30,19 +30,19 @@
                 
                 <div class="chart-container">
                     <div class="donut-chart">
-                        <svg width="150" height="150" viewBox="0 0 150 150">
+                        <svg width="100%" height="100%" viewBox="0 0 130 130">
                             <!-- Background circle -->
-                            <circle cx="75" cy="75" r="60" fill="none" stroke="#111133" stroke-width="15" />
+                            <circle cx="65" cy="65" r="55" fill="none" stroke="#111133" stroke-width="14" />
                             
                             <!-- Blue progress circle (Discharged) -->
-                            <circle cx="75" cy="75" r="60" fill="none" stroke="#30A9DE" stroke-width="15"
-                                    stroke-dasharray="377" stroke-dashoffset="302"
-                                    transform="rotate(-90 75 75)" />
+                            <circle cx="65" cy="65" r="55" fill="none" stroke="#30A9DE" stroke-width="14"
+                                    stroke-dasharray="345" stroke-dashoffset="276"
+                                    transform="rotate(-90 65 65)" />
                             
                             <!-- Purple progress circle (Admitted) -->
-                            <circle cx="75" cy="75" r="60" fill="none" stroke="#8A2BE2" stroke-width="15"
-                                    stroke-dasharray="377" stroke-dashoffset="188"
-                                    transform="rotate(-90 75 75)" />
+                            <circle cx="65" cy="65" r="55" fill="none" stroke="#8A2BE2" stroke-width="14"
+                                    stroke-dasharray="345" stroke-dashoffset="173"
+                                    transform="rotate(-90 65 65)" />
                         </svg>
                         <div class="chart-center">
                             <div class="chart-value">150k</div>
@@ -148,7 +148,7 @@
                 <h2>NB</h2>
                 <!-- This would contain notification content -->
                 <!-- Placeholder for notification content -->
-                <div style="height: 200px; display: flex; justify-content: center; align-items: center;">
+                <div style="height: min(22vh, 150px); display: flex; justify-content: center; align-items: center;">
                     <span style="color: var(--secondary-text);">No notifications</span>
                 </div>
             </div>
