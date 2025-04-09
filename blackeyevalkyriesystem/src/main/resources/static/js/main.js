@@ -163,15 +163,37 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (userProfileToggle && userProfileDropdown) {
         userProfileToggle.addEventListener('click', function() {
-            userProfileDropdown.classList.toggle('active');
-            profileArrow.classList.toggle('flipped');
+            if (userProfileDropdown.classList.contains('active')) {
+                // Add animation class for disappearing
+                userProfileDropdown.style.animation = 'popdown 0.2s ease-out forwards';
+                
+                // Wait for animation to complete before hiding
+                setTimeout(() => {
+                    userProfileDropdown.classList.remove('active');
+                    profileArrow.classList.remove('flipped');
+                }, 200);
+            } else {
+                // Show and animate appearance
+                userProfileDropdown.classList.add('active');
+                userProfileDropdown.style.animation = 'popup 0.2s ease-out';
+                profileArrow.classList.add('flipped');
+            }
         });
         
         // Close dropdown when clicking outside
         document.addEventListener('click', function(event) {
-            if (!userProfileToggle.contains(event.target) && !userProfileDropdown.contains(event.target)) {
-                userProfileDropdown.classList.remove('active');
-                profileArrow.classList.remove('flipped');
+            if (!userProfileToggle.contains(event.target) && 
+                !userProfileDropdown.contains(event.target) && 
+                userProfileDropdown.classList.contains('active')) {
+                
+                // Add animation class for disappearing
+                userProfileDropdown.style.animation = 'popdown 0.2s ease-out forwards';
+                
+                // Wait for animation to complete before hiding
+                setTimeout(() => {
+                    userProfileDropdown.classList.remove('active');
+                    profileArrow.classList.remove('flipped');
+                }, 200);
             }
         });
     }
