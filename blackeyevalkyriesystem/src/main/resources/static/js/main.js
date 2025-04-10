@@ -9,6 +9,105 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    // Implement search functionality for sidebar
+    const searchInput = document.getElementById('sidebar-search');
+    const clearSearchButton = document.getElementById('clear-search');
+    
+    if (searchInput) {
+        // Show/hide clear button based on input content
+        searchInput.addEventListener('input', function() {
+            const searchText = this.value.toLowerCase().trim();
+            clearSearchButton.style.display = searchText.length > 0 ? 'block' : 'none';
+            
+            // Filter sidebar items
+            filterSidebarItems(searchText);
+        });
+        
+        // Add clear button functionality
+        if (clearSearchButton) {
+            clearSearchButton.addEventListener('click', function() {
+                searchInput.value = '';
+                clearSearchButton.style.display = 'none';
+                // Trigger the input event to reset the sidebar
+                searchInput.dispatchEvent(new Event('input'));
+            });
+        }
+        
+        // Handle Escape key to clear search
+        searchInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                this.value = '';
+                clearSearchButton.style.display = 'none';
+                // Trigger the input event to reset the sidebar
+                this.dispatchEvent(new Event('input'));
+            }
+        });
+    }
+    
+    // Function to filter sidebar items based on search text
+    function filterSidebarItems(searchText) {
+        const navItems = document.querySelectorAll('.nav-item');
+        
+        navItems.forEach(function(item) {
+            // Get the text content of the item (excluding any sub-items)
+            const itemContent = item.querySelector('.nav-item-content') || item;
+            const itemText = itemContent.textContent.toLowerCase().trim();
+            
+            // For dropdown items, check if it's a parent dropdown
+            const isDropdownToggle = item.classList.contains('dropdown-toggle');
+            const dropdownMenu = isDropdownToggle ? item.nextElementSibling : null;
+            
+            // Check if item or any of its children match the search
+            if (searchText === '') {
+                // If search is empty, show everything
+                item.style.display = '';
+                if (dropdownMenu) {
+                    dropdownMenu.style.display = '';
+                    // Reset the subitems display
+                    dropdownMenu.querySelectorAll('.nav-subitem').forEach(subitem => {
+                        subitem.style.display = '';
+                    });
+                }
+            } else {
+                // If this is a regular nav item
+                if (!isDropdownToggle) {
+                    item.style.display = itemText.includes(searchText) ? '' : 'none';
+                } else {
+                    // If this is a dropdown, check all child items
+                    const subItems = dropdownMenu.querySelectorAll('.nav-subitem');
+                    let hasVisibleChild = false;
+                    
+                    // Check each subitem for matches
+                    subItems.forEach(function(subItem) {
+                        const subItemText = subItem.textContent.toLowerCase().trim();
+                        const subItemMatches = subItemText.includes(searchText);
+                        
+                        // Show/hide subitem based on match
+                        subItem.style.display = subItemMatches ? '' : 'none';
+                        
+                        if (subItemMatches) {
+                            hasVisibleChild = true;
+                        }
+                    });
+                    
+                    // Show parent dropdown if either the dropdown text matches or any child matches
+                    const parentMatches = itemText.includes(searchText);
+                    item.style.display = (parentMatches || hasVisibleChild) ? '' : 'none';
+                    
+                    // If parent or any child matches, expand the dropdown
+                    if (parentMatches || hasVisibleChild) {
+                        dropdownMenu.style.display = '';
+                        dropdownMenu.classList.add('active');
+                        dropdownMenu.style.maxHeight = dropdownMenu.scrollHeight + "px";
+                        item.classList.add('expanded');
+                    } else {
+                        dropdownMenu.style.display = 'none';
+                    }
+                }
+            }
+        });
+    }
+    
     // Dropdown menus in sidebar - improved implementation
     const dropdownLinks = document.querySelectorAll('.dropdown-toggle');
     
