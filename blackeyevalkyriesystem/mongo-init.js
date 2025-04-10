@@ -32,19 +32,43 @@ db.createCollection("patient", {
     validator: {
         $jsonSchema: {
             bsonType: "object",
-            required: ["name", "dateOfBirth", "gender"],
+            required: ["firstName", "lastName", "dateOfBirth"],
             properties: {
-                name: {
+                firstName: {
                     bsonType: "string",
                     description: "must be a string and is required"
+                },
+                lastName: {
+                    bsonType: "string",
+                    description: "must be a string and is required"
+                },
+                sex: {
+                    bsonType: "bool",
+                    description: "must be a boolean"
                 },
                 dateOfBirth: {
                     bsonType: "date",
                     description: "must be a date and is required"
                 },
-                gender: {
-                    enum: ["Male", "Female", "Other"],
-                    description: "can only be one of the enum values and is required"
+                age: {
+                    bsonType: "int",
+                    description: "must be an integer"
+                },
+                relativeName: {
+                    bsonType: "string",
+                    description: "must be a string if the field exists"
+                },
+                maritalStatus: {
+                    bsonType: "string",
+                    description: "must be a string if the field exists"
+                },
+                bloodType: {
+                    bsonType: "string",
+                    description: "must be a string if the field exists"
+                },
+                drugAllergies: {
+                    bsonType: "array",
+                    description: "must be an array if the field exists"
                 },
                 contactNumber: {
                     bsonType: "string",
@@ -55,12 +79,29 @@ db.createCollection("patient", {
                     description: "must be a string if the field exists"
                 },
                 address: {
+                    bsonType: "object",
+                    description: "must be an object if the field exists",
+                    properties: {
+                        addressLine1: { bsonType: "string" },
+                        addressLine2: { bsonType: "string" },
+                        addressLine3: { bsonType: "string" },
+                        country: { bsonType: "string" },
+                        state: { bsonType: "string" },
+                        town: { bsonType: "string" },
+                        pinCode: { bsonType: "string" }
+                    }
+                },
+                status: {
                     bsonType: "string",
                     description: "must be a string if the field exists"
                 },
-                medicalHistory: {
-                    bsonType: "string",
-                    description: "must be a string if the field exists"
+                createDate: {
+                    bsonType: "date",
+                    description: "must be a date if the field exists"
+                },
+                updateDate: {
+                    bsonType: "date",
+                    description: "must be a date if the field exists"
                 }
             }
         }
@@ -95,7 +136,7 @@ db.createCollection("appointment", {
 });
 
 // Create indexes
-db.patient.createIndex({ "name": 1 });
+db.patient.createIndex({ "lastName": 1, "firstName": 1 });
 db.patient.createIndex({ "email": 1 }, { unique: true, sparse: true });
 db.appointment.createIndex({ "patientId": 1 });
 db.appointment.createIndex({ "appointmentDate": 1 }); 
