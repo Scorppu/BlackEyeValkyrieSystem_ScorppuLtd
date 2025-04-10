@@ -85,12 +85,26 @@
         }
         select.info-value {
             width: 100%;
-            padding: 8px 12px;
+            padding: 8px 6px;
             background-color: var(--input-bg);
             border: 1px solid var(--border-color);
             border-radius: 4px;
             color: var(--primary-text);
             appearance: auto;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+        /* Style for dropdown options to ensure full text is displayed */
+        select.info-value option {
+            white-space: normal;
+            padding: 6px;
+            min-width: 250px;
+        }
+        /* Make sure the select itself is large enough */
+        #templateSelect {
+            width: 100%;
+            min-width: 200px;
         }
         .drug-cart {
             min-height: 150px;
@@ -316,7 +330,7 @@
 
                 <!-- Prescription Section -->
                 <div class="row">
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <div class="info-section">
                             <h2 class="section-label">Filter by Category</h2>
                             <select id="templateSelect" class="info-value" onchange="selectTemplateFromDropdown(this)">
@@ -433,7 +447,9 @@
         </div>
     </div>
 
-    <script layout:fragment="script">
+    <!-- Move script outside of layout:fragment to ensure it's loaded directly -->
+    <th: block layout:fragment="scripts">
+    <script>
         let prescriptionItemIndex = 0;
         let selectedTemplate = ''; // No default template selected - show all drugs by default
         let allDrugs = []; // Will store all drugs
@@ -606,7 +622,7 @@
         function selectTemplateFromDropdown(selectElement) {
             const template = selectElement.value;
             selectedTemplate = template;
-            console.log(`Template selected: ${template}`);
+            console.log(`Template selected: "${template}"`);
             
             // Update the templateSelect element to reflect the current selection
             if (selectElement.id !== 'templateSelect') {
@@ -627,14 +643,22 @@
             // Clear selected drugs when changing template
             selectedDrugs = [];
             document.getElementById('addSelectedBtn').disabled = true;
+            
+            // Log the current state
+            console.log(`Selected template: "${selectedTemplate}"`);
+            console.log(`Selected drugs count: ${selectedDrugs.length}`);
         }
         
         function filterDrugsByTemplate(template) {
             const drugList = document.getElementById('drugList');
             const items = drugList.querySelectorAll('li.drug-item');
             
+            console.log(`Filtering drugs by template: "${template}"`);
+            console.log(`Total drugs found: ${items.length}`);
+            
             if (!template || template === '') {
                 // Show all drugs if no template is selected
+                console.log('No template selected, showing all drugs');
                 items.forEach(item => {
                     item.style.display = 'flex';
                 });
@@ -647,13 +671,24 @@
             // Hide/show drugs based on template
             items.forEach(item => {
                 const drugTemplate = item.getAttribute('data-template');
-                if (drugTemplate === template) {
+                const drugName = item.getAttribute('data-name');
+                console.log(`Drug: ${drugName}`);
+                console.log(`  Expected template: "${template}"`);
+                console.log(`  Actual template: "${drugTemplate}"`);
+                console.log(`  Template comparison: "${drugTemplate?.trim().toLowerCase()}" === "${template.trim().toLowerCase()}"`);
+                
+                // Make comparison case-insensitive and trim whitespace
+                if (drugTemplate && drugTemplate.trim().toLowerCase() === template.trim().toLowerCase()) {
+                    console.log(`  ✓ Match found for drug: ${drugName}`);
                     item.style.display = 'flex';
                     visibleCount++;
                 } else {
+                    console.log(`  ✗ No match for drug: ${drugName}`);
                     item.style.display = 'none';
                 }
             });
+            
+            console.log(`Visible drugs count: ${visibleCount}`);
             
             // Show empty message if no drugs visible
             if (visibleCount === 0) {
@@ -664,17 +699,31 @@
                 document.getElementById('emptyDrugList').style.display = 'none';
             }
             
-            // Update the drug dropdown options to match filtered items
-            updateDrugSelectOptions(template);
+            // Only update drug select options if the element exists
+            const drugSelect = document.getElementById('drugSelect');
+            if (drugSelect) {
+                updateDrugSelectOptions(template);
+            }
         }
         
         function updateDrugSelectOptions(template) {
             const drugSelect = document.getElementById('drugSelect');
+            
+            // Check if the element exists
+            if (!drugSelect) {
+                console.warn('Drug select element not found, skipping option update');
+                return;
+            }
+            
+            console.log(`Updating drug select options for template: "${template}"`);
+            
             drugSelect.innerHTML = '<option value="">Select drug</option>';
             
             const drugList = document.getElementById('drugList');
             const visibleItems = Array.from(drugList.querySelectorAll('li.drug-item'))
                 .filter(item => item.style.display !== 'none');
+            
+            console.log(`Found ${visibleItems.length} visible drug items`);
             
             visibleItems.forEach(item => {
                 const id = item.getAttribute('data-id');
@@ -720,10 +769,15 @@
         }
         
         // Handle drug selection to pre-fill dose
-        document.getElementById('drugSelect').addEventListener('change', function() {
-            const selectedOption = this.options[this.selectedIndex];
-            if (selectedOption.dataset.dosageInstructions) {
-                document.getElementById('doseInput').value = selectedOption.dataset.dosageInstructions;
+        document.addEventListener('DOMContentLoaded', function() {
+            const drugSelect = document.getElementById('drugSelect');
+            if (drugSelect) {
+                drugSelect.addEventListener('change', function() {
+                    const selectedOption = this.options[this.selectedIndex];
+                    if (selectedOption.dataset.dosageInstructions) {
+                        document.getElementById('doseInput').value = selectedOption.dataset.dosageInstructions;
+                    }
+                });
             }
         });
         
@@ -786,13 +840,48 @@
         
         // Load initial template on page load
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM content loaded, initializing drug list');
+            
             // Initialize the drug dropdown with all drugs
             const drugSelect = document.getElementById('drugSelect');
             const drugList = document.getElementById('drugList');
             
+            // Add event listener for the template select dropdown
+            const templateSelect = document.getElementById('templateSelect');
+            if (templateSelect) {
+                console.log('Adding event listener to template select');
+                // Add a direct event listener as a fallback
+                templateSelect.addEventListener('change', function() {
+                    const template = this.value;
+                    console.log(`Template change detected via event listener: "${template}"`);
+                    selectTemplateFromDropdown(this);
+                });
+                
+                // Force immediate filtering based on any initial selection
+                const currentTemplate = templateSelect.value;
+                if (currentTemplate) {
+                    console.log(`Initial template selection detected: "${currentTemplate}"`);
+                    filterDrugsByTemplate(currentTemplate);
+                } else {
+                    console.log('No initial template selection, showing all drugs');
+                }
+                
+                console.log('Template select element found and initialized');
+            } else {
+                console.warn('Template select element not found');
+            }
+            
             // Store all drug items 
             if (drugList) {
                 const drugItems = drugList.querySelectorAll('.drug-item');
+                console.log(`Found ${drugItems.length} drug items in the list`);
+                
+                // Log the template categories for debugging
+                drugItems.forEach(item => {
+                    const name = item.getAttribute('data-name');
+                    const template = item.getAttribute('data-template');
+                    console.log(`Drug: ${name}, Template: "${template}"`);
+                });
                 
                 // Add keyboard support for multi-selection
                 document.addEventListener('keydown', function(e) {
@@ -818,31 +907,34 @@
                     infoSpan.innerHTML = ' (Use Ctrl/Cmd for multi-selection)';
                     drugListHeader.querySelector('span:first-child').appendChild(infoSpan);
                 }
-            }
-            
-            // Add sort/filter tooltip to make it more intuitive
-            const templateSelect = document.getElementById('templateSelect');
-            if (templateSelect) {
-                templateSelect.parentNode.querySelector('.section-label').textContent = 'Filter by Category';
+            } else {
+                console.warn('Drug list element not found');
             }
         });
         
         // Confirm diagnosis button
-        document.getElementById('confirmDiagnosis').addEventListener('click', function() {
-            const diagnosisInput = document.querySelector('input[name="diagnoses[0].diagnosisName"]');
-            if (diagnosisInput.value.trim() === '') {
-                alert('Please enter a diagnosis');
-                return;
+        document.addEventListener('DOMContentLoaded', function() {
+            const confirmDiagnosisBtn = document.getElementById('confirmDiagnosis');
+            if (confirmDiagnosisBtn) {
+                confirmDiagnosisBtn.addEventListener('click', function() {
+                    const diagnosisInput = document.querySelector('input[name="diagnoses[0].diagnosisName"]');
+                    if (diagnosisInput.value.trim() === '') {
+                        alert('Please enter a diagnosis');
+                        return;
+                    }
+                    
+                    this.textContent = 'Diagnosis Confirmed';
+                    this.style.backgroundColor = '#4CAF50';
+                    diagnosisInput.setAttribute('readonly', 'readonly');
+                    setTimeout(() => {
+                        this.textContent = 'Confirm diagnosis';
+                        this.style.backgroundColor = '';
+                    }, 2000);
+                });
             }
-            
-            this.textContent = 'Diagnosis Confirmed';
-            this.style.backgroundColor = '#4CAF50';
-            diagnosisInput.setAttribute('readonly', 'readonly');
-            setTimeout(() => {
-                this.textContent = 'Confirm diagnosis';
-                this.style.backgroundColor = '';
-            }, 2000);
         });
     </script>
+</th:block>
+
 </body>
 </html>
