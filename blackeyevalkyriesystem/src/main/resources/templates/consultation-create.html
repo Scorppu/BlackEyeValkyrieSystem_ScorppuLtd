@@ -377,8 +377,15 @@
                                         th:data-dosage="${drug.dosageInstructions}"
                                         th:data-route="${drug.routeOfAdministration}"
                                         th:data-template="${drug.templateCategory}"
+                                        th:data-is-allergen="${consultation.patient.drugAllergies != null && consultation.patient.drugAllergies.contains(drug.id)}"
                                         onclick="toggleDrugSelection(this)">
-                                        <div><strong th:text="${drug.name}">Drug Name</strong></div>
+                                        <div>
+                                            <strong th:text="${drug.name}" th:style="${consultation.patient.drugAllergies != null && consultation.patient.drugAllergies.contains(drug.id) ? 'color: #ff0000;' : ''}">Drug Name</strong>
+                                            <span th:if="${consultation.patient.drugAllergies != null && consultation.patient.drugAllergies.contains(drug.id)}" 
+                                                  class="allergen-indicator" 
+                                                  title="Patient is allergic to this drug"
+                                                  style="color: #ff0000; margin-left: 5px;">⚠️</span>
+                                        </div>
                                         <div style="text-align: right; color: var(--secondary-text); font-size: 0.9em;">
                                             <span th:if="${drug.dosageInstructions}" th:text="${drug.dosageInstructions}">Dosage</span>
                                             <span th:if="${drug.routeOfAdministration}" th:text="'(' + ${drug.routeOfAdministration} + ')'">Route</span>
@@ -459,6 +466,17 @@
         let selectedDrugs = []; // Will store selected drug elements
         
         function toggleDrugSelection(element) {
+            // Check if this is an allergen
+            const isAllergen = element.getAttribute('data-is-allergen') === 'true';
+            
+            // If it's an allergen, show a confirmation dialog
+            if (isAllergen && !element.classList.contains('selected')) {
+                const drugName = element.getAttribute('data-name');
+                if (!confirm(`WARNING: Patient is allergic to ${drugName}. Are you sure you want to select this medication?`)) {
+                    return; // User cancelled the selection
+                }
+            }
+            
             // Toggle selected class
             element.classList.toggle('selected');
             
@@ -919,6 +937,18 @@
             } else {
                 console.warn('Drug list element not found');
             }
+            
+            // Apply styles to allergens for better visibility
+            document.querySelectorAll('.drug-item[data-is-allergen="true"]').forEach(item => {
+                // Add a subtle background color to make allergenic drugs stand out more
+                item.style.backgroundColor = 'rgba(255, 0, 0, 0.05)';
+                
+                // Add a border on the left side
+                item.style.borderLeft = '3px solid #ff0000';
+                
+                // Add some padding to account for the border
+                item.style.paddingLeft = '7px';
+            });
         });
         
         // Confirm diagnosis button
