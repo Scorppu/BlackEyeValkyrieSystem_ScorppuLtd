@@ -266,7 +266,6 @@
                         <thead>
                             <tr>
                                 <th width="40">
-                                    <input type="checkbox" class="select-checkbox" id="selectAll">
                                 </th>
                                 <th>
                                     <a th:href="@{/appointment/create(sortBy='name', direction=${currentSortBy == 'name' && currentDirection == 'asc' ? 'desc' : 'asc'})}">
@@ -376,12 +375,38 @@
                 
                 // check if exist
                 if (selectAllCheckbox) {
+                    // Remove the select all functionality since we only want one checkbox checked at a time
                     selectAllCheckbox.addEventListener('change', function() {
-                        patientCheckboxes.forEach(checkbox => {
-                            checkbox.checked = selectAllCheckbox.checked;
-                        });
+                        if (this.checked) {
+                            // Uncheck all patient checkboxes first
+                            patientCheckboxes.forEach(checkbox => {
+                                checkbox.checked = false;
+                            });
+                            
+                            // Check only the first patient checkbox if any exist
+                            if (patientCheckboxes.length > 0) {
+                                patientCheckboxes[0].checked = true;
+                            }
+                            
+                            // Uncheck the select all box (it's just used as a trigger now)
+                            this.checked = false;
+                        }
                     });
                 }
+                
+                // Add event listeners to patient checkboxes for radio-button-like behavior
+                patientCheckboxes.forEach(checkbox => {
+                    checkbox.addEventListener('change', function() {
+                        if (this.checked) {
+                            // If this checkbox is checked, uncheck all other patient checkboxes
+                            patientCheckboxes.forEach(otherCheckbox => {
+                                if (otherCheckbox !== this) {
+                                    otherCheckbox.checked = false;
+                                }
+                            });
+                        }
+                    });
+                });
                 
                 // Handle rows per page change
                 const rowsPerPageSelect = document.getElementById('rowsPerPage');
