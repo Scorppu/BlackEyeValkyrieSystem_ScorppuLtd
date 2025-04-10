@@ -13,18 +13,23 @@ import com.scorppultd.blackeyevalkyriesystem.model.Prescription;
 import com.scorppultd.blackeyevalkyriesystem.repository.ConsultationRepository;
 import com.scorppultd.blackeyevalkyriesystem.repository.PrescriptionRepository;
 import com.scorppultd.blackeyevalkyriesystem.service.ConsultationService;
+import com.scorppultd.blackeyevalkyriesystem.service.AppointmentService;
+import com.scorppultd.blackeyevalkyriesystem.model.Appointment;
 
 @Service
 public class ConsultationServiceImpl implements ConsultationService {
 
     private final ConsultationRepository consultationRepository;
     private final PrescriptionRepository prescriptionRepository;
+    private final AppointmentService appointmentService;
 
     @Autowired
     public ConsultationServiceImpl(ConsultationRepository consultationRepository, 
-                                  PrescriptionRepository prescriptionRepository) {
+                                  PrescriptionRepository prescriptionRepository,
+                                  AppointmentService appointmentService) {
         this.consultationRepository = consultationRepository;
         this.prescriptionRepository = prescriptionRepository;
+        this.appointmentService = appointmentService;
     }
 
     @Override
@@ -57,7 +62,30 @@ public class ConsultationServiceImpl implements ConsultationService {
         // Update the updatedAt timestamp
         consultation.setUpdatedAt(LocalDateTime.now());
         
+        // If the consultation status is completed and it has an appointmentId, update the appointment status
+        if ("Completed".equals(consultation.getStatus()) && consultation.getAppointmentId() != null) {
+            updateAppointmentStatus(consultation.getAppointmentId(), "completed");
+        }
+        
         return consultationRepository.save(consultation);
+    }
+
+    /**
+     * Helper method to update the status of an appointment
+     */
+    private void updateAppointmentStatus(String appointmentId, String status) {
+        try {
+            Optional<Appointment> appointmentOpt = appointmentService.getAppointmentById(appointmentId);
+            if (appointmentOpt.isPresent()) {
+                Appointment appointment = appointmentOpt.get();
+                appointment.setStatus(status);
+                appointment.setCompletionTime(LocalDateTime.now());
+                appointmentService.updateAppointment(appointment);
+            }
+        } catch (Exception e) {
+            // Log error but don't fail the consultation update
+            System.err.println("Failed to update appointment status: " + e.getMessage());
+        }
     }
 
     @Override
@@ -166,5 +194,52 @@ public class ConsultationServiceImpl implements ConsultationService {
     @Override
     public List<Consultation> getDoctorConsultationsForPeriod(String doctorId, LocalDateTime start, LocalDateTime end) {
         return consultationRepository.findByConsultationDateTimeBetweenAndDoctorIdOrderByConsultationDateTime(start, end, doctorId);
+    }
+
+    @Override
+    public Optional<Consultation> getConsultationByAppointmentId(String appointmentId) {
+        return consultationRepository.findByAppointmentId(appointmentId);
+    }
+    
+    @Override
+    public Consultation createConsultationFromAppointment(String appointmentId) throws Exception {
+        Optional<Appointment> appointmentOpt = appointmentService.getAppointmentById(appointmentId);
+        
+        if (appointmentOpt.isEmpty()) {
+            throw new RuntimeException("Appointment not found with id: " + appointmentId);
+        }
+        
+        Appointment appointment = appointmentOpt.get();
+        
+        // Check if a consultation already exists for this appointment
+        Optional<Consultation> existingConsultation = getConsultationByAppointmentId(appointmentId);
+        if (existingConsultation.isPresent()) {
+            return existingConsultation.get();
+        }
+        
+        // Create a new consultation
+        Consultation consultation = new Consultation();
+        consultation.setPatient(appointment.getPatient());
+        consultation.setConsultationDateTime(LocalDateTime.now());
+        consultation.setConsultationType(appointment.getAppointmentType() != null ? 
+                appointment.getAppointmentType() : "General Consultation");
+        consultation.setStatus("In-Progress");
+        consultation.setAppointmentId(appointmentId);
+        
+        // Set default vital signs
+        Consultation.VitalSigns vitalSigns = new Consultation.VitalSigns();
+        vitalSigns.setTemperature(37.0);
+        vitalSigns.setBloodPressure("120/80");
+        vitalSigns.setHeartRate(70);
+        vitalSigns.setRespiratoryRate(16);
+        vitalSigns.setWeight(70.0);
+        vitalSigns.setHeight(170.0);
+        consultation.setVitalSigns(vitalSigns);
+        
+        // Initialize empty diagnosis
+        consultation.setDiagnoses(List.of(new Consultation.Diagnosis()));
+        
+        // Save the new consultation
+        return createConsultation(consultation);
     }
 } 

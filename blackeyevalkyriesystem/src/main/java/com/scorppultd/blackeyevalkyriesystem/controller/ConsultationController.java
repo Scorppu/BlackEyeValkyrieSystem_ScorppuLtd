@@ -189,4 +189,25 @@ public class ConsultationController {
         List<Consultation> consultations = consultationService.getDoctorConsultationsForPeriod(doctorId, start, end);
         return new ResponseEntity<>(consultations, HttpStatus.OK);
     }
+
+    // Get consultation by appointment ID
+    @GetMapping("/appointment/{appointmentId}")
+    @PreAuthorize("hasAnyRole('DOCTOR', 'NURSE', 'ADMIN')")
+    public ResponseEntity<Consultation> getConsultationByAppointmentId(@PathVariable String appointmentId) {
+        Optional<Consultation> consultation = consultationService.getConsultationByAppointmentId(appointmentId);
+        return consultation.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
+    // Create consultation from appointment
+    @PostMapping("/from-appointment/{appointmentId}")
+    @PreAuthorize("hasAnyRole('DOCTOR', 'ADMIN')")
+    public ResponseEntity<Consultation> createConsultationFromAppointment(@PathVariable String appointmentId) {
+        try {
+            Consultation consultation = consultationService.createConsultationFromAppointment(appointmentId);
+            return new ResponseEntity<>(consultation, HttpStatus.CREATED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
 } 

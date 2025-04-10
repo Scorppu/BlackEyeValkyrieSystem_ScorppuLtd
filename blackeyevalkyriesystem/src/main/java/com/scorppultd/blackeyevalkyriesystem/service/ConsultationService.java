@@ -43,4 +43,8 @@ public interface ConsultationService {
     // Reporting operations
     List<Consultation> getRecentConsultationsByPatient(String patientId);
     List<Consultation> getDoctorConsultationsForPeriod(String doctorId, LocalDateTime start, LocalDateTime end);
+    
+    // Appointment related operations
+    Optional<Consultation> getConsultationByAppointmentId(String appointmentId);
+    Consultation createConsultationFromAppointment(String appointmentId) throws Exception;
 } 

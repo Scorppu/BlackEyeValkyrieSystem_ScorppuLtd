@@ -297,7 +297,9 @@ public class ConsultationViewController {
      * Display the consultation create page for a specific patient
      */
     @GetMapping("/create/{patientId}")
-    public String showConsultationCreate(@PathVariable String patientId, Model model) {
+    public String showConsultationCreate(@PathVariable String patientId, 
+                                        @RequestParam(required = false) String appointmentId,
+                                        Model model) {
         Optional<Patient> patientOpt = patientService.getPatientById(patientId);
         
         if (patientOpt.isEmpty()) {
@@ -306,49 +308,74 @@ public class ConsultationViewController {
         }
         
         Patient patient = patientOpt.get();
+        Consultation consultation;
         
-        // Check if there's an existing in-progress consultation for this patient
+        // First, check if appointmentId is provided and a consultation already exists for it
+        if (appointmentId != null && !appointmentId.isEmpty()) {
+            Optional<Consultation> existingConsultationForAppointment = 
+                    consultationService.getConsultationByAppointmentId(appointmentId);
+            
+            if (existingConsultationForAppointment.isPresent()) {
+                // Use the existing consultation for this appointment
+                consultation = existingConsultationForAppointment.get();
+                System.out.println("Found existing consultation for appointment ID: " + appointmentId);
+                
+                // If the consultation was Completed, reset it to In-Progress for editing
+                if ("Completed".equals(consultation.getStatus())) {
+                    consultation.setStatus("In-Progress");
+                    consultation = consultationService.updateConsultation(consultation);
+                    System.out.println("Reset completed consultation to In-Progress for editing");
+                }
+                
+                model.addAttribute("consultation", consultation);
+                addDrugInfoToModel(model);
+                return "consultation-create";
+            }
+        }
+            
+        // If no existing consultation for appointment, check for in-progress consultations
         List<Consultation> inProgressConsultations = consultationService.getConsultationsByPatientIdAndStatus(
                 patientId, "In-Progress");
         
-        Consultation consultation;
-        
         if (!inProgressConsultations.isEmpty()) {
-            // Use the existing consultation
+            // Use the existing in-progress consultation
             consultation = inProgressConsultations.get(0);
-        } else {
-            // Create a new consultation object
-            consultation = new Consultation();
-            consultation.setPatient(patient);
-            consultation.setConsultationDateTime(LocalDateTime.now());
-            consultation.setConsultationType("General Consultation");
-            consultation.setStatus("In-Progress");
+            System.out.println("Using existing in-progress consultation");
             
-            // Set default vital signs
-            VitalSigns vitalSigns = new VitalSigns();
-            vitalSigns.setTemperature(37.0);
-            vitalSigns.setBloodPressure("120/80");
-            vitalSigns.setHeartRate(70);
-            vitalSigns.setRespiratoryRate(16);
-            vitalSigns.setWeight(70.0);
-            vitalSigns.setHeight(170.0);
-            consultation.setVitalSigns(vitalSigns);
-            
-            // Initialize empty diagnosis
-            consultation.setDiagnoses(List.of(new Diagnosis()));
-            
-            // Get the doctor (for now just get the first available doctor)
-            List<Doctor> doctors = doctorService.getAllDoctors();
-            if (!doctors.isEmpty()) {
-                consultation.setDoctor(doctors.get(0));
+            // If appointmentId is provided and the consultation doesn't have it, update it
+            if (appointmentId != null && !appointmentId.isEmpty() && 
+                (consultation.getAppointmentId() == null || consultation.getAppointmentId().isEmpty())) {
+                consultation.setAppointmentId(appointmentId);
+                consultation = consultationService.updateConsultation(consultation);
+                System.out.println("Updated existing consultation with appointment ID: " + appointmentId);
             }
-            
-            // Save the new consultation
-            consultation = consultationService.createConsultation(consultation);
+        } else if (appointmentId != null && !appointmentId.isEmpty()) {
+            // Create new consultation from appointment
+            try {
+                consultation = consultationService.createConsultationFromAppointment(appointmentId);
+                System.out.println("Created new consultation from appointment ID: " + appointmentId);
+            } catch (Exception e) {
+                // If failed to create from appointment, create a new generic consultation
+                consultation = createNewConsultation(patient);
+                consultation.setAppointmentId(appointmentId);
+                consultation = consultationService.updateConsultation(consultation);
+                System.out.println("Created generic consultation with appointment ID: " + appointmentId);
+            }
+        } else {
+            // Create a new generic consultation without appointment association
+            consultation = createNewConsultation(patient);
+            System.out.println("Created new generic consultation without appointment");
         }
         
         model.addAttribute("consultation", consultation);
-        
+        addDrugInfoToModel(model);
+        return "consultation-create";
+    }
+    
+    /**
+     * Helper method to add drug-related information to the model
+     */
+    private void addDrugInfoToModel(Model model) {
         // Add drug templates
         List<String> drugTemplates = List.of(
             "In-House Dispensary", 
@@ -362,12 +389,11 @@ public class ConsultationViewController {
         );
         model.addAttribute("drugTemplates", drugTemplates);
         
-        // Add all drugs from database instead of just In-House Dispensary
+        // Add all drugs from database
         List<Drug> defaultDrugs = drugService.getAllDrugs();
         model.addAttribute("defaultDrugs", defaultDrugs);
         
         // Add count of drugs in each template for diagnostics
-        // This helps verify if data is being retrieved from the database
         java.util.Map<String, Integer> drugCounts = new java.util.HashMap<>();
         for (String template : drugTemplates) {
             List<Drug> drugs = drugService.getDrugsByTemplateCategory(template);
@@ -377,16 +403,47 @@ public class ConsultationViewController {
         
         // Add total count of all drugs for diagnostics
         model.addAttribute("totalDrugCount", drugService.getAllDrugs().size());
-        
-        return "consultation-create";
     }
 
     /**
-     * Handle saving the consultation with diagnosis and prescriptions
+     * Helper method to create a new consultation
+     */
+    private Consultation createNewConsultation(Patient patient) {
+        Consultation consultation = new Consultation();
+        consultation.setPatient(patient);
+        consultation.setConsultationDateTime(LocalDateTime.now());
+        consultation.setConsultationType("General Consultation");
+        consultation.setStatus("In-Progress");
+        
+        // Set default vital signs
+        VitalSigns vitalSigns = new VitalSigns();
+        vitalSigns.setTemperature(37.0);
+        vitalSigns.setBloodPressure("120/80");
+        vitalSigns.setHeartRate(70);
+        vitalSigns.setRespiratoryRate(16);
+        vitalSigns.setWeight(70.0);
+        vitalSigns.setHeight(170.0);
+        consultation.setVitalSigns(vitalSigns);
+        
+        // Initialize empty diagnosis
+        consultation.setDiagnoses(List.of(new Diagnosis()));
+        
+        // Get the doctor (for now just get the first available doctor)
+        List<Doctor> doctors = doctorService.getAllDoctors();
+        if (!doctors.isEmpty()) {
+            consultation.setDoctor(doctors.get(0));
+        }
+        
+        // Save the new consultation
+        return consultationService.createConsultation(consultation);
+    }
+
+    /**
+     * Save a consultation
      */
     @PostMapping("/save")
     public String saveConsultation(@ModelAttribute Consultation consultation) {
-        // Get the existing consultation from the database
+        // Find the existing consultation
         Optional<Consultation> existingConsultationOpt = consultationService.getConsultationById(consultation.getId());
         
         if (existingConsultationOpt.isEmpty()) {
@@ -395,15 +452,16 @@ public class ConsultationViewController {
         
         Consultation existingConsultation = existingConsultationOpt.get();
         
-        // Update the fields that can be edited by the doctor
+        // Update the consultation with the form values
         existingConsultation.setClinicalNotes(consultation.getClinicalNotes());
+        existingConsultation.setDiagnoses(consultation.getDiagnoses());
         
-        // Update diagnoses
-        if (consultation.getDiagnoses() != null && !consultation.getDiagnoses().isEmpty()) {
-            existingConsultation.setDiagnoses(consultation.getDiagnoses());
+        // Ensure we preserve the appointmentId if it exists
+        if (consultation.getAppointmentId() != null) {
+            existingConsultation.setAppointmentId(consultation.getAppointmentId());
         }
         
-        // If prescription data was submitted, create a new prescription
+        // Handle prescription if it exists
         if (consultation.getPrescription() != null && 
             consultation.getPrescription().getPrescriptionItems() != null && 
             !consultation.getPrescription().getPrescriptionItems().isEmpty()) {

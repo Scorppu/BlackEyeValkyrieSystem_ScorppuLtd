@@ -90,6 +90,7 @@
             border: 1px solid var(--border-color);
             border-radius: 4px;
             color: var(--primary-text);
+            -webkit-appearance: none;
             appearance: auto;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -314,6 +315,8 @@
             <!-- Consultation Transcript Section -->
             <form th:action="@{/consultation/save}" method="post" th:object="${consultation}">
                 <input type="hidden" th:field="*{id}" />
+                <input type="hidden" th:field="*{prescription.id}" th:if="${consultation.prescription != null}" />
+                <input type="hidden" th:field="*{appointmentId}" />
                 
                 <div class="info-section">
                     <h2 class="section-label">Consultation Transcript:</h2>
@@ -352,11 +355,11 @@
                                         <li th:each="entry : ${drugCounts}" 
                                             th:text="${entry.key + ': ' + entry.value}"
                                             th:attr="data-drug-count=${entry.value},data-template=${entry.key}">Template: 0</li>
-                                    </ul>
+                            </ul>
                                     <div th:if="${totalDrugCount == 0}" style="color: #ff5c5c; margin-top: 5px;">
                                         No drugs found in database. Using fallback data.
-                                    </div>
-                                </div>
+                        </div>
+                    </div>
                                 
                                 <!-- Drug List Header -->
                                 <div style="font-weight: bold; padding: 8px 10px; background-color: var(--input-bg); border-radius: 4px 4px 0 0; border: 1px solid var(--border-color); display: flex; justify-content: space-between;">
@@ -392,7 +395,7 @@
                                 </div>
                                 
                                 <!-- Add Selected button -->
-                                <button id="addSelectedBtn" class="add-selected-btn" onclick="addSelectedDrugsToCart()" disabled>
+                                <button type="button" id="addSelectedBtn" class="add-selected-btn" onclick="addSelectedDrugsToCart()" disabled>
                                     Add Selected
                                 </button>
                                 <div style="clear: both;"></div>
@@ -448,7 +451,7 @@
     </div>
 
     <!-- Move script outside of layout:fragment to ensure it's loaded directly -->
-    <th: block layout:fragment="scripts">
+    <th:block layout:fragment="scripts">
     <script>
         let prescriptionItemIndex = 0;
         let selectedTemplate = ''; // No default template selected - show all drugs by default
@@ -613,10 +616,16 @@
                 <input type="hidden" name="prescription.prescriptionItems[${itemIndex}].dosage" value="${dosage}">
                 <input type="hidden" name="prescription.prescriptionItems[${itemIndex}].duration" value="${days} days">
                 <input type="hidden" name="prescription.prescriptionItems[${itemIndex}].quantity" value="${qty}">
+                <!-- Ensure prescription is bound to the consultation object -->
+                <input type="hidden" name="prescription.enabled" value="true">
             `;
             
             // Add to cart
             document.getElementById('drugCart').appendChild(cartItem);
+            
+            // Debug info - log cart item count
+            console.log(`Added drug to cart: ${drugName}`);
+            console.log(`Current prescription items count: ${prescriptionItemIndex}`);
         }
         
         function selectTemplateFromDropdown(selectElement) {
@@ -917,19 +926,19 @@
             const confirmDiagnosisBtn = document.getElementById('confirmDiagnosis');
             if (confirmDiagnosisBtn) {
                 confirmDiagnosisBtn.addEventListener('click', function() {
-                    const diagnosisInput = document.querySelector('input[name="diagnoses[0].diagnosisName"]');
-                    if (diagnosisInput.value.trim() === '') {
-                        alert('Please enter a diagnosis');
-                        return;
-                    }
-                    
-                    this.textContent = 'Diagnosis Confirmed';
-                    this.style.backgroundColor = '#4CAF50';
-                    diagnosisInput.setAttribute('readonly', 'readonly');
-                    setTimeout(() => {
-                        this.textContent = 'Confirm diagnosis';
-                        this.style.backgroundColor = '';
-                    }, 2000);
+            const diagnosisInput = document.querySelector('input[name="diagnoses[0].diagnosisName"]');
+            if (diagnosisInput.value.trim() === '') {
+                alert('Please enter a diagnosis');
+                return;
+            }
+            
+            this.textContent = 'Diagnosis Confirmed';
+            this.style.backgroundColor = '#4CAF50';
+            diagnosisInput.setAttribute('readonly', 'readonly');
+            setTimeout(() => {
+                this.textContent = 'Confirm diagnosis';
+                this.style.backgroundColor = '';
+            }, 2000);
                 });
             }
         });

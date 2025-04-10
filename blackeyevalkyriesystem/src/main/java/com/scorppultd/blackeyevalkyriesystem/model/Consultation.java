@@ -54,6 +54,9 @@ public class Consultation {
     @DBRef
     private Prescription prescription;
     
+    // Reference to the original appointment
+    private String appointmentId;
+    
     // Audit fields
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -78,17 +81,18 @@ public class Consultation {
     @AllArgsConstructor
     @Builder
     public static class Diagnosis {
-        private String diagnosisCode; // ICD code
         private String diagnosisName;
+        private String diagnosisCode;
         private String diagnosisType; // Primary, Secondary
-        private String notes;
+        private LocalDate diagnosisDate;
+        private String diagnosisNotes;
     }
     
-    // Helper methods
+    // Helper method to add diagnosis
     public void addDiagnosis(Diagnosis diagnosis) {
-        if (diagnoses == null) {
-            diagnoses = new ArrayList<>();
+        if (this.diagnoses == null) {
+            this.diagnoses = new ArrayList<>();
         }
-        diagnoses.add(diagnosis);
+        this.diagnoses.add(diagnosis);
     }
 } 
