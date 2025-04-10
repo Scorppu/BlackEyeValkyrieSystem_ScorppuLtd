@@ -31,6 +31,7 @@ import com.scorppultd.blackeyevalkyriesystem.service.UserService;
 import com.scorppultd.blackeyevalkyriesystem.model.Nurse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.time.LocalDate;
 
 /**
  * Controller for handling general application pages
@@ -302,8 +303,61 @@ public class WebController {
     public String appointmentTimeline(HttpServletRequest request, Model model) {
         model.addAttribute("request", request);
         
-        model.addAttribute("doctorsOnDuty", 100);
-        model.addAttribute("admittedPatients", 50);
+        // Calculate actual doctors on duty
+        int doctorsOnDuty = 0;
+        try {
+            List<Doctor> doctorsList = doctorService.getAllDoctors();
+            for (Doctor doctor : doctorsList) {
+                try {
+                    Optional<DutyStatus> dutyStatus = dutyStatusService.getLatestDutyStatus(doctor);
+                    if (dutyStatus.isPresent() && dutyStatus.get().isOnDuty()) {
+                        doctorsOnDuty++;
+                    }
+                } catch (Exception e) {
+                    logger.warn("Error checking duty status for doctor {}: {}", doctor.getId(), e.getMessage());
+                }
+            }
+            logger.info("Found {} doctors on duty for timeline page", doctorsOnDuty);
+        } catch (Exception e) {
+            logger.error("Error calculating doctors on duty: {}", e.getMessage(), e);
+            // Default to 0 if there's an error
+            doctorsOnDuty = 0;
+        }
+        
+        // Calculate patients seen today
+        int patientsToday = 0;
+        try {
+            // Get all appointments
+            List<Appointment> allAppointments = appointmentService.getAllAppointments();
+            
+            // Get today's date
+            LocalDate today = LocalDate.now();
+            
+            // Filter appointments to only include those scheduled for today
+            if (allAppointments != null) {
+                List<Appointment> todayAppointments = allAppointments.stream()
+                    .filter(appointment -> {
+                        if (appointment.getScheduledTime() != null) {
+                            LocalDate appointmentDate = appointment.getScheduledTime().toLocalDate();
+                            return appointmentDate.equals(today);
+                        }
+                        return false;
+                    })
+                    .collect(Collectors.toList());
+                
+                // Count the appointments for today
+                patientsToday = todayAppointments.size();
+                
+                logger.info("Found {} appointments scheduled for today", patientsToday);
+            }
+        } catch (Exception e) {
+            logger.error("Error calculating today's patients: {}", e.getMessage(), e);
+            // Default to 0 if there's an error
+            patientsToday = 0;
+        }
+        
+        model.addAttribute("doctorsOnDuty", doctorsOnDuty);
+        model.addAttribute("patientsToday", patientsToday);
         
         return "appointment-timeline";
     }
