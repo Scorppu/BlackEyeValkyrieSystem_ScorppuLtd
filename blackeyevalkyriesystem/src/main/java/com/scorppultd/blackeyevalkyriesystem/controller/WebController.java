@@ -64,6 +64,68 @@ public class WebController {
     @GetMapping("/")
     public String index(HttpServletRequest request, Model model) {
         model.addAttribute("request", request);
+        
+        // Calculate duty status counts for dashboard display
+        try {
+            // Get doctors duty status
+            int doctorsOnDuty = 0;
+            int doctorsOffDuty = 0;
+            
+            List<Doctor> doctorsList = doctorService.getAllDoctors();
+            for (Doctor doctor : doctorsList) {
+                boolean isOnDuty = false;
+                try {
+                    Optional<DutyStatus> dutyStatus = dutyStatusService.getLatestDutyStatus(doctor);
+                    isOnDuty = dutyStatus.isPresent() && dutyStatus.get().isOnDuty();
+                } catch (Exception e) {
+                    logger.warn("Error checking duty status for doctor {}: {}", doctor.getId(), e.getMessage());
+                }
+                
+                if (isOnDuty) {
+                    doctorsOnDuty++;
+                } else {
+                    doctorsOffDuty++;
+                }
+            }
+            
+            // Get nurses duty status
+            int nursesOnDuty = 0;
+            int nursesOffDuty = 0;
+            
+            List<User> nursesList = userService.findByRole(User.UserRole.NURSE);
+            for (User nurse : nursesList) {
+                boolean isOnDuty = false;
+                try {
+                    Optional<DutyStatus> dutyStatus = dutyStatusService.getLatestDutyStatus(nurse);
+                    isOnDuty = dutyStatus.isPresent() && dutyStatus.get().isOnDuty();
+                } catch (Exception e) {
+                    logger.warn("Error checking duty status for nurse {}: {}", nurse.getId(), e.getMessage());
+                }
+                
+                if (isOnDuty) {
+                    nursesOnDuty++;
+                } else {
+                    nursesOffDuty++;
+                }
+            }
+            
+            // Add duty status counts to model
+            model.addAttribute("doctorsOnDuty", doctorsOnDuty);
+            model.addAttribute("doctorsOffDuty", doctorsOffDuty);
+            model.addAttribute("nursesOnDuty", nursesOnDuty);
+            model.addAttribute("nursesOffDuty", nursesOffDuty);
+            
+            logger.info("Home page duty stats - doctors: {}/{}, nurses: {}/{}", 
+                        doctorsOnDuty, doctorsOffDuty, nursesOnDuty, nursesOffDuty);
+        } catch (Exception e) {
+            logger.error("Error calculating duty status for homepage: {}", e.getMessage(), e);
+            // Set defaults if there's an error
+            model.addAttribute("doctorsOnDuty", 0);
+            model.addAttribute("doctorsOffDuty", 0);
+            model.addAttribute("nursesOnDuty", 0);
+            model.addAttribute("nursesOffDuty", 0);
+        }
+        
         return "index";
     }
     

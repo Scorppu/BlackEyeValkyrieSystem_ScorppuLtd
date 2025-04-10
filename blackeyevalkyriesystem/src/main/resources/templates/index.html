@@ -153,13 +153,13 @@
                             <div class="bar-chart">
                                 <div class="bar-container">
                                     <div class="bar on-duty" id="doctors-on-duty-bar">
-                                        <span class="bar-value" id="doctors-on-duty-value">0</span>
+                                        <span class="bar-value" id="doctors-on-duty-value" th:text="${doctorsOnDuty != null ? doctorsOnDuty : 0}"></span>
                                     </div>
                                     <div class="bar-label">On Duty</div>
                                 </div>
                                 <div class="bar-container">
                                     <div class="bar off-duty" id="doctors-off-duty-bar">
-                                        <span class="bar-value" id="doctors-off-duty-value">0</span>
+                                        <span class="bar-value" id="doctors-off-duty-value" th:text="${doctorsOffDuty != null ? doctorsOffDuty : 0}"></span>
                                     </div>
                                     <div class="bar-label">Off Duty</div>
                                 </div>
@@ -171,13 +171,13 @@
                             <div class="bar-chart">
                                 <div class="bar-container">
                                     <div class="bar on-duty" id="nurses-on-duty-bar">
-                                        <span class="bar-value" id="nurses-on-duty-value">0</span>
+                                        <span class="bar-value" id="nurses-on-duty-value" th:text="${nursesOnDuty != null ? nursesOnDuty : 0}"></span>
                                     </div>
                                     <div class="bar-label">On Duty</div>
                                 </div>
                                 <div class="bar-container">
                                     <div class="bar off-duty" id="nurses-off-duty-bar">
-                                        <span class="bar-value" id="nurses-off-duty-value">0</span>
+                                        <span class="bar-value" id="nurses-off-duty-value" th:text="${nursesOffDuty != null ? nursesOffDuty : 0}"></span>
                                     </div>
                                     <div class="bar-label">Off Duty</div>
                                 </div>

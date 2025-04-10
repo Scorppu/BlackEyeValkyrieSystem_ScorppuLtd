@@ -199,18 +199,16 @@
                         <tr>
                             <th>Name</th>
                             <th>Specialization</th>
-                            <th>Email</th>
                             <th>Status</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr th:if="${doctors == null || doctors.empty}">
-                            <td colspan="4" class="empty-state">No doctors found</td>
+                            <td colspan="3" class="empty-state">No doctors found</td>
                         </tr>
                         <tr th:if="${doctors != null}" th:each="doctor : ${doctors}">
-                            <td th:text="${doctor.firstName + ' ' + doctor.lastName}">John Doe</td>
-                            <td th:text="${doctor.specialization}">Cardiology</td>
-                            <td th:text="${doctor.email}">john.doe@example.com</td>
+                            <td th:text="${doctor.firstName + ' ' + doctor.lastName}"></td>
+                            <td th:text="${doctor.specialization}"></td>
                             <td>
                                 <span th:if="${doctor.dutyStatus}" class="status-on">On Duty</span>
                                 <span th:unless="${doctor.dutyStatus}" class="status-off">Off Duty</span>
@@ -240,18 +238,16 @@
                         <tr>
                             <th>Name</th>
                             <th>Department</th>
-                            <th>Email</th>
                             <th>Status</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr th:if="${nurses == null || nurses.empty}">
-                            <td colspan="4" class="empty-state">No nurses found</td>
+                            <td colspan="3" class="empty-state">No nurses found</td>
                         </tr>
                         <tr th:if="${nurses != null}" th:each="nurse : ${nurses}">
-                            <td th:text="${nurse.firstName + ' ' + nurse.lastName}">Jane Doe</td>
-                            <td th:text="${nurse.department}">General</td>
-                            <td th:text="${nurse.email}">jane.doe@example.com</td>
+                            <td th:text="${nurse.firstName + ' ' + nurse.lastName}"></td>
+                            <td th:text="${nurse.department}"></td>
                             <td>
                                 <span th:if="${nurse.dutyStatus}" class="status-on">On Duty</span>
                                 <span th:unless="${nurse.dutyStatus}" class="status-off">Off Duty</span>
