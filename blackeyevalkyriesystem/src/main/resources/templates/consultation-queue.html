@@ -112,6 +112,7 @@
                             <th>Age</th>
                             <th>Gender</th>
                             <th>Last Recent Visit</th>
+                            <th>Scheduled Time</th>
                             <th></th>
                         </tr>
                     </thead>
@@ -122,6 +123,7 @@
                             <td th:text="${nextPatient.age}">18</td>
                             <td th:text="${nextPatient.sex ? 'Female' : 'Male'}">Female</td>
                             <td th:text="${nextPatientLastVisit != null ? #temporals.format(nextPatientLastVisit, 'dd MMM yyyy') : 'No visits'}">IP0001</td>
+                            <td th:text="${nextPatientAppointmentTime != null ? #temporals.format(nextPatientAppointmentTime, 'dd MMM yyyy HH:mm') : 'Not scheduled'}">10:00 AM</td>
                             <td>
                                 <a th:href="@{/consultation/create/{id}(id=${nextPatient.id})}" class="consultation-btn">Begin consultation</a>
                             </td>
@@ -132,12 +134,13 @@
                             <td th:text="${patient.age}">18</td>
                             <td th:text="${patient.sex ? 'Female' : 'Male'}">Male</td>
                             <td th:text="${queuedPatientsLastVisits[iterStat.index] != null ? #temporals.format(queuedPatientsLastVisits[iterStat.index], 'dd MMM yyyy') : 'No visits'}">OP0011</td>
+                            <td th:text="${queuedPatientsAppointmentTimes != null && queuedPatientsAppointmentTimes[patient.id] != null ? #temporals.format(queuedPatientsAppointmentTimes[patient.id], 'dd MMM yyyy HH:mm') : 'Not scheduled'}">10:00 AM</td>
                             <td>
                                 <a th:href="@{/consultation/create/{id}(id=${patient.id})}" class="consultation-btn">Begin consultation</a>
                             </td>
                         </tr>
                         <tr th:if="${nextPatient == null && queuedPatients.empty}">
-                            <td colspan="6" class="empty-state">No overdue appointments</td>
+                            <td colspan="7" class="empty-state">No overdue appointments</td>
                         </tr>
                     </tbody>
                 </table>
@@ -154,6 +157,7 @@
                             <th>Age</th>
                             <th>Gender</th>
                             <th>Last Recent Visit</th>
+                            <th>Scheduled Time</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -163,9 +167,10 @@
                             <td th:text="${patient.age}">18</td>
                             <td th:text="${patient.sex ? 'Female' : 'Male'}">Male</td>
                             <td th:text="${futurePatientsLastVisits[iterStat.index] != null ? #temporals.format(futurePatientsLastVisits[iterStat.index], 'dd MMM yyyy') : 'No visits'}">OP0011</td>
+                            <td th:text="${futurePatientsAppointmentTimes != null && futurePatientsAppointmentTimes[patient.id] != null ? #temporals.format(futurePatientsAppointmentTimes[patient.id], 'dd MMM yyyy HH:mm') : 'Not scheduled'}">10:00 AM</td>
                         </tr>
                         <tr th:if="${futurePatients.empty}">
-                            <td colspan="5" class="empty-state">No upcoming appointments</td>
+                            <td colspan="6" class="empty-state">No upcoming appointments</td>
                         </tr>
                     </tbody>
                 </table>

@@ -2,6 +2,9 @@ package com.scorppultd.blackeyevalkyriesystem.controller;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+// import java.time.ZoneId;
+// import java.time.ZoneOffset;
+// import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -15,6 +18,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.scorppultd.blackeyevalkyriesystem.model.Consultation;
 import com.scorppultd.blackeyevalkyriesystem.model.Doctor;
@@ -74,6 +79,31 @@ public class ConsultationViewController {
      */
     @GetMapping
     public String showConsultationQueue(Model model) {
+        // Get the currently logged-in user
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        
+        // Check if the user is an admin
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        
+        final Doctor currentDoctor;
+        
+        if (!isAdmin) {
+            // If not an admin, find the doctor by username
+            Optional<Doctor> currentDoctorOpt = doctorService.getDoctorByUsername(username);
+            if (currentDoctorOpt.isEmpty()) {
+                // If not a doctor, redirect to an error page or show a message
+                model.addAttribute("error", "You must be logged in as a doctor to view this page");
+                return "error";
+            }
+            currentDoctor = currentDoctorOpt.get();
+            System.out.println("Current doctor: " + currentDoctor.getFirstName() + " " + currentDoctor.getLastName());
+        } else {
+            System.out.println("Current user is an admin, will show all appointments");
+            currentDoctor = null;
+        }
+        
         // Try different status values since there might be a case sensitivity issue
         List<Appointment> allAppointments = appointmentService.getAllAppointments();
         System.out.println("Total appointments in the database: " + allAppointments.size());
@@ -85,7 +115,9 @@ public class ConsultationViewController {
                               ", Status: '" + appointment.getStatus() + "'" +
                               ", Patient: " + (appointment.getPatient() != null ? 
                                              appointment.getPatient().getFirstName() + " " + 
-                                             appointment.getPatient().getLastName() : "null"));
+                                             appointment.getPatient().getLastName() : "null") +
+                              ", Doctor: " + (appointment.getDoctorName() != null ? 
+                                            appointment.getDoctorName() : "null"));
         }
         
         // Try to find appointments with various possible status values
@@ -136,24 +168,60 @@ public class ConsultationViewController {
         
         System.out.println("After removing completed/cancelled appointments: " + scheduledAppointments.size());
         
+        // Filter appointments to only include those assigned to the current doctor if not an admin
+        if (!isAdmin && currentDoctor != null) {
+            scheduledAppointments = scheduledAppointments.stream()
+                    .filter(a -> a.getDoctorName() != null && a.getDoctorName().equals(currentDoctor.getFirstName() + " " + currentDoctor.getLastName()))
+                    .collect(Collectors.toList());
+            
+            System.out.println("After filtering for current doctor: " + scheduledAppointments.size());
+        } else if (isAdmin) {
+            System.out.println("Admin user - showing all appointments: " + scheduledAppointments.size());
+        }
+        
         for (Appointment appointment : scheduledAppointments) {
             System.out.println("Appointment ID: " + appointment.getId() + 
                               ", Scheduled Time: " + appointment.getScheduledTime() + 
                               ", Status: " + appointment.getStatus() +
                               ", Patient: " + (appointment.getPatient() != null ? 
                                              appointment.getPatient().getFirstName() + " " + 
-                                             appointment.getPatient().getLastName() : "null"));
+                                             appointment.getPatient().getLastName() : "null") +
+                              ", Doctor: " + (appointment.getDoctorName() != null ? 
+                                            appointment.getDoctorName() : "null"));
         }
         
+        // Get current time
         LocalDateTime now = LocalDateTime.now();
         
         // Split appointments into overdue and future
         List<Appointment> overdueAppointments = scheduledAppointments.stream()
-                .filter(a -> a.getScheduledTime() != null && a.getScheduledTime().isBefore(now))
+                .filter(a -> {
+                    if (a.getScheduledTime() == null) return false;
+                    LocalDateTime scheduledTime = a.getScheduledTime();
+                    
+                    // Debug logging for time comparison
+                    System.out.println("Comparing appointment time: " + scheduledTime + " with current time: " + now);
+                    
+                    // An appointment is overdue if its scheduled time is before the current time
+                    boolean isOverdue = scheduledTime.isBefore(now);
+                    System.out.println("Appointment is overdue: " + isOverdue);
+                    return isOverdue;
+                })
                 .collect(Collectors.toList());
         
         List<Appointment> upcomingAppointments = scheduledAppointments.stream()
-                .filter(a -> a.getScheduledTime() != null && (a.getScheduledTime().isEqual(now) || a.getScheduledTime().isAfter(now)))
+                .filter(a -> {
+                    if (a.getScheduledTime() == null) return false;
+                    LocalDateTime scheduledTime = a.getScheduledTime();
+                    
+                    // Debug logging for time comparison
+                    System.out.println("Comparing upcoming appointment time: " + scheduledTime + " with current time: " + now);
+                    
+                    // An appointment is upcoming if its scheduled time is after or equal to the current time
+                    boolean isUpcoming = !scheduledTime.isBefore(now);
+                    System.out.println("Appointment is upcoming: " + isUpcoming);
+                    return isUpcoming;
+                })
                 .collect(Collectors.toList());
         
         // Debug logging
@@ -163,24 +231,28 @@ public class ConsultationViewController {
         // Get patient info and visit dates for overdue appointments
         List<Patient> overduePatients = new ArrayList<>();
         List<LocalDate> overduePatientsLastVisits = new ArrayList<>();
+        Map<String, LocalDateTime> overdueAppointmentTimes = new HashMap<>();
         
         for (Appointment appointment : overdueAppointments) {
             Patient patient = appointment.getPatient();
             if (patient != null) {
                 overduePatients.add(patient);
                 overduePatientsLastVisits.add(getLastVisitDate(patient));
+                overdueAppointmentTimes.put(patient.getId(), appointment.getScheduledTime());
             }
         }
         
         // Get patient info and visit dates for upcoming appointments
         List<Patient> upcomingPatients = new ArrayList<>();
         List<LocalDate> upcomingPatientsLastVisits = new ArrayList<>();
+        Map<String, LocalDateTime> upcomingAppointmentTimes = new HashMap<>();
         
         for (Appointment appointment : upcomingAppointments) {
             Patient patient = appointment.getPatient();
             if (patient != null) {
                 upcomingPatients.add(patient);
                 upcomingPatientsLastVisits.add(getLastVisitDate(patient));
+                upcomingAppointmentTimes.put(patient.getId(), appointment.getScheduledTime());
             }
         }
         
@@ -191,6 +263,8 @@ public class ConsultationViewController {
         // Add data to model
         model.addAttribute("nextPatient", !overduePatients.isEmpty() ? overduePatients.get(0) : null);
         model.addAttribute("nextPatientLastVisit", !overduePatientsLastVisits.isEmpty() ? overduePatientsLastVisits.get(0) : null);
+        model.addAttribute("nextPatientAppointmentTime", !overduePatients.isEmpty() ? 
+            overdueAppointmentTimes.get(overduePatients.get(0).getId()) : null);
         
         List<Patient> remainingOverduePatients = overduePatients.size() > 1 ? 
                 overduePatients.subList(1, overduePatients.size()) : new ArrayList<>();
@@ -199,9 +273,11 @@ public class ConsultationViewController {
         
         model.addAttribute("queuedPatients", remainingOverduePatients);
         model.addAttribute("queuedPatientsLastVisits", remainingOverduePatientsLastVisits);
+        model.addAttribute("queuedPatientsAppointmentTimes", overdueAppointmentTimes);
         
         model.addAttribute("futurePatients", upcomingPatients);
         model.addAttribute("futurePatientsLastVisits", upcomingPatientsLastVisits);
+        model.addAttribute("futurePatientsAppointmentTimes", upcomingAppointmentTimes);
         
         // Store appointment IDs for consultation creation
         Map<String, String> patientAppointmentMap = new HashMap<>();

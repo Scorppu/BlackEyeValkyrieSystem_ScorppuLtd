@@ -30,4 +30,7 @@ public interface DoctorService {
     
     // Get doctors by name (partial match)
     List<Doctor> getDoctorsByNameContaining(String name);
+    
+    // Get doctor by username
+    Optional<Doctor> getDoctorByUsername(String username);
 } 
