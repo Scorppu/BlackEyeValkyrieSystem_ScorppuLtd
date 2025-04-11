@@ -630,12 +630,11 @@
                         </button>
                     </div>
                 </div>
-                <input type="hidden" name="prescription.prescriptionItems[${itemIndex}].drug.id" value="${drugId}">
-                <input type="hidden" name="prescription.prescriptionItems[${itemIndex}].dosage" value="${dosage}">
-                <input type="hidden" name="prescription.prescriptionItems[${itemIndex}].duration" value="${days} days">
-                <input type="hidden" name="prescription.prescriptionItems[${itemIndex}].quantity" value="${qty}">
-                <!-- Ensure prescription is bound to the consultation object -->
-                <input type="hidden" name="prescription.enabled" value="true">
+                <!-- Use a simplified field naming for better binding -->
+                <input type="hidden" name="drugIds[]" value="${drugId}">
+                <input type="hidden" name="drugDosages[]" value="${dosage}">
+                <input type="hidden" name="drugDurations[]" value="${days} days">
+                <input type="hidden" name="drugQuantities[]" value="${qty}">
             `;
             
             // Add to cart
@@ -808,61 +807,15 @@
             }
         });
         
-        function removeFromCart(button, index) {
-            // Get the cart item
-            const cartItem = button.closest('div').parentNode;
-            const drugId = cartItem.getAttribute('data-drug-id');
-            const drugName = cartItem.querySelector('strong').textContent;
-            const dosageText = cartItem.querySelector('div > div:first-child').textContent;
-            const dosage = dosageText.split(' - ')[1] || '';
-            
-            // Get template from the currently selected option
-            let template = '';
-            const templateSelect = document.getElementById('templateSelect');
-            if (templateSelect) {
-                template = templateSelect.value;
+        function removeFromCart(buttonElement, itemIndex) {
+            // Find the parent cart item and remove it
+            const cartItem = buttonElement.closest('[data-drug-id]');
+            if (cartItem) {
+                cartItem.remove();
+                console.log(`Removed drug from cart at index: ${itemIndex}`);
+                
+                // Note: We don't need to update indexes as each item uses its own unique name
             }
-            
-            // Only add back to the list if no template filter is applied
-            if (!template || template === '') {
-                // Add drug back to the list
-                addDrugBackToList(drugId, drugName, dosage);
-            }
-            
-            // Remove the cart item
-            cartItem.remove();
-            
-            // Note: We don't decrement prescriptionItemIndex to avoid index conflicts
-        }
-        
-        function addDrugBackToList(drugId, drugName, dosage) {
-            // Create a new list item for the drug
-            const listItem = document.createElement('li');
-            listItem.className = 'drug-item';
-            listItem.setAttribute('data-id', drugId);
-            listItem.setAttribute('data-name', drugName);
-            listItem.setAttribute('data-dosage', dosage);
-            listItem.setAttribute('data-template', ''); // Template may not be known
-            listItem.onclick = function() { toggleDrugSelection(this); };
-            
-            // Create the name div
-            const nameDiv = document.createElement('div');
-            nameDiv.innerHTML = `<strong>${drugName}</strong>`;
-            
-            // Create the details div
-            const detailsDiv = document.createElement('div');
-            detailsDiv.style.textAlign = 'right';
-            detailsDiv.style.color = 'var(--secondary-text)';
-            detailsDiv.style.fontSize = '0.9em';
-            detailsDiv.textContent = dosage;
-            
-            // Add divs to list item
-            listItem.appendChild(nameDiv);
-            listItem.appendChild(detailsDiv);
-            
-            // Add to the drug list
-            const drugList = document.getElementById('drugList');
-            drugList.appendChild(listItem);
         }
         
         // Load initial template on page load

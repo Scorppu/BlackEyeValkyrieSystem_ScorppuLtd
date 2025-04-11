@@ -442,59 +442,162 @@ public class ConsultationViewController {
      * Save a consultation
      */
     @PostMapping("/save")
-    public String saveConsultation(@ModelAttribute Consultation consultation) {
-        // Find the existing consultation
-        Optional<Consultation> existingConsultationOpt = consultationService.getConsultationById(consultation.getId());
+    public String saveConsultation(
+            @ModelAttribute Consultation consultation,
+            @RequestParam(value = "drugIds", required = false) String[] drugIds,
+            @RequestParam(value = "drugDosages", required = false) String[] drugDosages,
+            @RequestParam(value = "drugDurations", required = false) String[] drugDurations,
+            @RequestParam(value = "drugQuantities", required = false) String[] drugQuantities) {
         
-        if (existingConsultationOpt.isEmpty()) {
-            return "redirect:/consultation?error=consultation-not-found";
+        try {
+            // Debug logging
+            System.out.println("Saving consultation: " + consultation.getId());
+            System.out.println("Drug IDs: " + (drugIds != null ? drugIds.length : "null"));
+            
+            // Find the existing consultation
+            Optional<Consultation> existingConsultationOpt = consultationService.getConsultationById(consultation.getId());
+            
+            if (existingConsultationOpt.isEmpty()) {
+                System.out.println("Error: Consultation not found with ID: " + consultation.getId());
+                return "redirect:/consultation?error=consultation-not-found";
+            }
+            
+            Consultation existingConsultation = existingConsultationOpt.get();
+            
+            // Update the consultation with the form values
+            existingConsultation.setClinicalNotes(consultation.getClinicalNotes());
+            
+            // Handle diagnoses safely
+            if (consultation.getDiagnoses() != null && !consultation.getDiagnoses().isEmpty()) {
+                existingConsultation.setDiagnoses(consultation.getDiagnoses());
+            }
+            
+            // Ensure we preserve the appointmentId if it exists
+            if (consultation.getAppointmentId() != null) {
+                existingConsultation.setAppointmentId(consultation.getAppointmentId());
+            }
+            
+            // Handle drugs if any were added to the cart
+            if (drugIds != null && drugIds.length > 0) {
+                System.out.println("Processing " + drugIds.length + " drug items");
+                
+                // Create a new prescription
+                Prescription prescription = new Prescription();
+                
+                // Set patient using existing consultation's patient
+                if (existingConsultation.getPatient() != null) {
+                    prescription.setPatient(existingConsultation.getPatient());
+                } else {
+                    System.out.println("Warning: Patient is null in the consultation");
+                }
+                
+                // Set doctor information safely
+                if (existingConsultation.getDoctor() != null) {
+                    String doctorFullName = existingConsultation.getDoctor().getFirstName() + 
+                                           " " + existingConsultation.getDoctor().getLastName();
+                    prescription.setDoctorName(doctorFullName);
+                    prescription.setDoctorId(existingConsultation.getDoctor().getId());
+                } else {
+                    System.out.println("Warning: Doctor is null in the consultation, fetching current doctor");
+                    // Get the currently logged-in doctor
+                    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+                    String username = authentication.getName();
+                    
+                    Optional<Doctor> currentDoctorOpt = doctorService.getDoctorByUsername(username);
+                    if (currentDoctorOpt.isPresent()) {
+                        Doctor currentDoctor = currentDoctorOpt.get();
+                        String doctorFullName = currentDoctor.getFirstName() + " " + currentDoctor.getLastName();
+                        prescription.setDoctorName(doctorFullName);
+                        prescription.setDoctorId(currentDoctor.getId());
+                        
+                        // Also update the consultation with this doctor
+                        existingConsultation.setDoctor(currentDoctor);
+                        System.out.println("Updated consultation with current doctor: " + doctorFullName);
+                    } else {
+                        System.out.println("Warning: Could not find current doctor, using default");
+                        prescription.setDoctorName("Unknown Doctor");
+                    }
+                }
+                
+                // Set dates
+                prescription.setPrescriptionDate(LocalDate.now());
+                // Set validity to 30 days from now
+                prescription.setValidUntil(LocalDate.now().plusDays(30));
+                
+                // Set status
+                prescription.setStatus("active");
+                
+                // Create prescription items from form data
+                List<Prescription.PrescriptionItem> prescriptionItems = new ArrayList<>();
+                
+                for (int i = 0; i < drugIds.length; i++) {
+                    try {
+                        // Only process if we have all the data for this item
+                        if (drugDosages != null && drugDurations != null && drugQuantities != null &&
+                            i < drugDosages.length && i < drugDurations.length && i < drugQuantities.length) {
+                            
+                            String drugId = drugIds[i];
+                            System.out.println("Processing drug item: " + drugId);
+                            
+                            // Find the drug by ID
+                            Optional<Drug> drugOpt = drugService.getDrugById(drugId);
+                            if (drugOpt.isPresent()) {
+                                Prescription.PrescriptionItem item = new Prescription.PrescriptionItem();
+                                item.setDrug(drugOpt.get());
+                                item.setDosage(drugDosages[i]);
+                                item.setDuration(drugDurations[i]);
+                                try {
+                                    item.setQuantity(Integer.parseInt(drugQuantities[i]));
+                                } catch (NumberFormatException e) {
+                                    System.out.println("Warning: Invalid quantity format: " + drugQuantities[i]);
+                                    item.setQuantity(1); // Default to 1 if parsing fails
+                                }
+                                
+                                // Add default values for other fields
+                                item.setFrequency("As directed");
+                                item.setRefillable(false);
+                                item.setRefillsRemaining(0);
+                                
+                                prescriptionItems.add(item);
+                            } else {
+                                System.out.println("Warning: Drug not found with ID: " + drugId);
+                            }
+                        }
+                    } catch (Exception e) {
+                        System.out.println("Error processing prescription item " + i + ": " + e.getMessage());
+                    }
+                }
+                
+                // Only save prescription if we have items
+                if (!prescriptionItems.isEmpty()) {
+                    prescription.setPrescriptionItems(prescriptionItems);
+                    
+                    try {
+                        // Save prescription and link to consultation
+                        Prescription savedPrescription = prescriptionService.createPrescription(prescription);
+                        existingConsultation.setPrescription(savedPrescription);
+                        System.out.println("Created prescription with " + prescriptionItems.size() + " items");
+                    } catch (Exception e) {
+                        System.out.println("Error saving prescription: " + e.getMessage());
+                        e.printStackTrace();
+                    }
+                } else {
+                    System.out.println("No valid prescription items to save");
+                }
+            } else {
+                System.out.println("No drug items submitted");
+            }
+            
+            // Mark consultation as completed
+            existingConsultation.setStatus("Completed");
+            consultationService.updateConsultation(existingConsultation);
+            
+            return "redirect:/consultation?success=consultation-completed";
+            
+        } catch (Exception e) {
+            System.out.println("Error saving consultation: " + e.getMessage());
+            e.printStackTrace();
+            return "redirect:/consultation?error=save-failed&message=" + e.getClass().getSimpleName();
         }
-        
-        Consultation existingConsultation = existingConsultationOpt.get();
-        
-        // Update the consultation with the form values
-        existingConsultation.setClinicalNotes(consultation.getClinicalNotes());
-        existingConsultation.setDiagnoses(consultation.getDiagnoses());
-        
-        // Ensure we preserve the appointmentId if it exists
-        if (consultation.getAppointmentId() != null) {
-            existingConsultation.setAppointmentId(consultation.getAppointmentId());
-        }
-        
-        // Handle prescription if it exists
-        if (consultation.getPrescription() != null && 
-            consultation.getPrescription().getPrescriptionItems() != null && 
-            !consultation.getPrescription().getPrescriptionItems().isEmpty()) {
-            
-            // Create a new prescription
-            Prescription prescription = new Prescription();
-            // Set patient using existing consultation's patient
-            prescription.setPatient(existingConsultation.getPatient());
-            
-            // Set doctor information
-            String doctorFullName = existingConsultation.getDoctor().getFirstName() + 
-                                   " " + existingConsultation.getDoctor().getLastName();
-            prescription.setDoctorName(doctorFullName);
-            prescription.setDoctorId(existingConsultation.getDoctor().getId());
-            
-            // Set dates
-            prescription.setPrescriptionDate(LocalDate.now());
-            // Set validity to 30 days from now
-            prescription.setValidUntil(LocalDate.now().plusDays(30));
-            
-            // Set status and items
-            prescription.setStatus("active");
-            prescription.setPrescriptionItems(consultation.getPrescription().getPrescriptionItems());
-            
-            // Save prescription and link to consultation
-            Prescription savedPrescription = prescriptionService.createPrescription(prescription);
-            existingConsultation.setPrescription(savedPrescription);
-        }
-        
-        // Mark consultation as completed
-        existingConsultation.setStatus("Completed");
-        consultationService.updateConsultation(existingConsultation);
-        
-        return "redirect:/consultation?success=consultation-completed";
     }
 } 

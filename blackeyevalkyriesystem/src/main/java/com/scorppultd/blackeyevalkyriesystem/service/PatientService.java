@@ -29,32 +29,41 @@ public class PatientService {
         
         // Map the sortBy parameter to the actual field name in the document
         List<Patient> patients;
-        switch (sortBy.toLowerCase()) {
-            case "name":
-                patients = patientRepository.findAll(Sort.by(dir, "lastName", "firstName"));
-                break;
-            case "patientid":
-                patients = patientRepository.findAll(Sort.by(dir, "id"));
-                break;
-            case "age":
-                patients = patientRepository.findAll(Sort.by(dir, "age"));
-                break;
-            case "gender":
-                patients = patientRepository.findAll(Sort.by(dir, "sex"));
-                break;
-            case "contact":
-                patients = patientRepository.findAll(Sort.by(dir, "contactNumber"));
-                break;
-            case "status":
-                patients = patientRepository.findAll(Sort.by(dir, "status"));
-                break;
-            default:
-                patients = patientRepository.findAll(Sort.by(dir, "lastName"));
-                break;
+        try {
+            switch (sortBy.toLowerCase()) {
+                case "name":
+                    patients = patientRepository.findAll(Sort.by(dir, "lastName", "firstName"));
+                    break;
+                case "patientid":
+                    patients = patientRepository.findAll(Sort.by(dir, "id"));
+                    break;
+                case "age":
+                    patients = patientRepository.findAll(Sort.by(dir, "age"));
+                    break;
+                case "gender":
+                    patients = patientRepository.findAll(Sort.by(dir, "sex"));
+                    break;
+                case "contact":
+                    patients = patientRepository.findAll(Sort.by(dir, "contactNumber"));
+                    break;
+                case "status":
+                    patients = patientRepository.findAll(Sort.by(dir, "status"));
+                    break;
+                default:
+                    patients = patientRepository.findAll(Sort.by(dir, "lastName"));
+                    break;
+            }
+            
+            sortVisitsByDate(patients);
+            return patients;
+        } catch (Exception e) {
+            // Log the error
+            System.err.println("Error in getAllPatientsSorted: " + e.getMessage());
+            e.printStackTrace();
+            
+            // Return empty list instead of throwing exception
+            return patientRepository.findAll();
         }
-        
-        sortVisitsByDate(patients);
-        return patients;
     }
     
     public Optional<Patient> getPatientById(String id) {

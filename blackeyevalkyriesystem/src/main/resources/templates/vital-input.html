@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Record Vital Signs - BlackEyeValkyrieSystem</title>
+    
+    <th:block layout:fragment="head">
+        <style>
+            .main-container {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 0 1rem;
+            }
+            
+            .section-header {
+                margin-bottom: 2rem;
+            }
+            
+            .section-header h2 {
+                font-size: 2.5rem;
+                color: var(--primary-text);
+                margin-bottom: 0.5rem;
+            }
+            
+            .section-header p {
+                color: var(--secondary-text);
+                font-size: 1.1rem;
+            }
+            
+            .form-section {
+                background-color: var(--secondary-bg);
+                border-radius: 0.75rem;
+                padding: 2rem;
+                margin-bottom: 2rem;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            }
+            
+            .form-section-header {
+                margin-bottom: 1.5rem;
+            }
+            
+            .form-section-header h3 {
+                font-size: 1.5rem;
+                margin-bottom: 0.5rem;
+                color: var(--primary-text);
+            }
+            
+            .patient-info-grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 1.5rem;
+                margin-bottom: 1rem;
+            }
+            
+            .info-item {
+                margin-bottom: 0.75rem;
+            }
+            
+            .info-label {
+                font-size: 1rem;
+                color: var(--secondary-text);
+                display: block;
+                margin-bottom: 0.25rem;
+            }
+            
+            .info-value {
+                font-weight: 600;
+                font-size: 1.1rem;
+                color: var(--primary-text);
+            }
+            
+            .form-group {
+                margin-bottom: 1.5rem;
+            }
+            
+            .form-label {
+                display: block;
+                margin-bottom: 0.75rem;
+                font-weight: 600;
+                color: var(--primary-text);
+                font-size: 1.1rem;
+            }
+            
+            .form-row {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1.5rem;
+                margin-bottom: 1.5rem;
+                align-items: start;
+            }
+            
+            .form-control {
+                width: 100%;
+                max-width: 200px;
+                padding: 1rem;
+                border: 1px solid var(--border-color);
+                border-radius: 0.5rem;
+                background-color: var(--input-bg);
+                color: var(--primary-text);
+                font-size: 1.1rem;
+            }
+            
+            .form-control:focus {
+                border-color: var(--accent-color);
+                outline: none;
+                box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.2);
+            }
+            
+            .btn-group {
+                display: flex;
+                gap: 1.5rem;
+                margin-top: 2rem;
+                justify-content: flex-end;
+            }
+            
+            .btn {
+                padding: 1rem 2rem;
+                border: none;
+                border-radius: 0.5rem;
+                font-weight: 600;
+                cursor: pointer;
+                font-size: 1.1rem;
+            }
+            
+            .btn-primary {
+                background-color: var(--accent-color);
+                color: white;
+            }
+            
+            .btn-primary:hover {
+                background-color: #7126ab;
+            }
+            
+            .btn-secondary {
+                background-color: var(--secondary-bg);
+                color: var(--primary-text);
+            }
+            
+            .btn-secondary:hover {
+                background-color: #e0e0e0;
+            }
+            
+            .alert {
+                padding: 1rem;
+                margin-bottom: 1rem;
+                border-radius: 0.5rem;
+            }
+            
+            .alert-success {
+                background-color: rgba(46, 204, 113, 0.1);
+                color: #2ecc71;
+                border: 1px solid rgba(46, 204, 113, 0.3);
+            }
+            
+            .alert-error {
+                background-color: rgba(231, 76, 60, 0.1);
+                color: #e74c3c;
+                border: 1px solid rgba(231, 76, 60, 0.3);
+            }
+        </style>
+    </th:block>
+</head>
+<body>
+    <h1 layout:fragment="header-title">Record Vital Signs</h1>
+    
+    <div layout:fragment="content">
+        <div class="main-container">
+            <div class="section-header">
+                <h2>Patient Vital Signs</h2>
+                <p>Record vital signs for the patient appointment</p>
+            </div>
+            
+            <!-- Success message -->
+            <div class="alert alert-success" th:if="${param.success}" th:text="${param.success == 'vitalSaved' ? 'Vital signs saved successfully!' : 'Operation completed successfully'}">
+                Vital signs saved successfully!
+            </div>
+            
+            <!-- Error message -->
+            <div class="alert alert-error" th:if="${param.error}" th:text="${param.error == 'appointmentNotFound' ? 'Appointment not found!' : 'An error occurred'}">
+                An error occurred!
+            </div>
+            
+            <!-- Patient Information Section -->
+            <div class="form-section">
+                <div class="form-section-header">
+                    <h3 th:text="${appointment.patient.firstName + ' ' + appointment.patient.lastName}">John Doe</h3>
+                </div>
+                <div class="patient-info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Age</span>
+                        <span class="info-value" th:text="${appointment.patient.age}">45</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Gender</span>
+                        <span class="info-value" th:text="${appointment.patient.sex ? 'Male' : 'Female'}">Male</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Appointment Date</span>
+                        <span class="info-value" th:text="${appointment.scheduledTime != null ? #temporals.format(appointment.scheduledTime, 'yyyy-MM-dd HH:mm') : 'Not Scheduled'}">2023-01-01 10:00</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Vital Signs Form -->
+            <form th:action="@{'/vital/input/' + ${appointment.id}}" method="post">
+                <div class="form-section">
+                    <div class="form-section-header">
+                        <h3>Vital Signs</h3>
+                        <p>Record the patient's vital measurements</p>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="temperature">Temperature (°C)</label>
+                            <input type="number" step="0.1" class="form-control" id="temperature" name="temperature" 
+                                  th:value="${appointment.vitalSigns != null ? appointment.vitalSigns.temperature : ''}" placeholder="Enter temperature">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label" for="bloodPressure">Blood Pressure</label>
+                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                <input type="number" class="form-control" id="highBloodPressure" name="highBloodPressure" 
+                                      th:value="${appointment.vitalSigns != null ? appointment.vitalSigns.highBloodPressure : ''}" placeholder="Systolic">
+                                <span style="font-weight: bold; font-size: 1.8rem; margin: 0 0.5rem;">/</span>
+                                <input type="number" class="form-control" id="lowBloodPressure" name="lowBloodPressure" 
+                                      th:value="${appointment.vitalSigns != null ? appointment.vitalSigns.lowBloodPressure : ''}" placeholder="Diastolic">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="heartRate">Heart Rate (bpm)</label>
+                            <input type="number" class="form-control" id="heartRate" name="heartRate" 
+                                  th:value="${appointment.vitalSigns != null ? appointment.vitalSigns.heartRate : ''}" placeholder="Enter heart rate">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label" for="respiratoryRate">Respiratory Rate (breaths/min)</label>
+                            <input type="number" class="form-control" id="respiratoryRate" name="respiratoryRate" 
+                                  th:value="${appointment.vitalSigns != null ? appointment.vitalSigns.respiratoryRate : ''}" placeholder="Enter respiratory rate">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="oxygenSaturation">Oxygen Saturation (%)</label>
+                            <input type="number" step="0.1" class="form-control" id="oxygenSaturation" name="oxygenSaturation" 
+                                  th:value="${appointment.vitalSigns != null ? appointment.vitalSigns.oxygenSaturation : ''}" placeholder="Enter oxygen saturation">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label" for="weight">Weight (kg)</label>
+                            <input type="number" step="0.1" class="form-control" id="weight" name="weight" 
+                                  th:value="${appointment.vitalSigns != null ? appointment.vitalSigns.weight : ''}" placeholder="Enter weight" oninput="calculateBMI()">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="height">Height (cm)</label>
+                            <input type="number" step="0.1" class="form-control" id="height" name="height" 
+                                  th:value="${appointment.vitalSigns != null ? appointment.vitalSigns.height : ''}" placeholder="Enter height" oninput="calculateBMI()">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label" for="bmi">BMI (kg/m²)</label>
+                            <input type="number" step="0.1" class="form-control" id="bmi" name="bmi" 
+                                  th:value="${appointment.vitalSigns != null ? appointment.vitalSigns.bmi : ''}" readonly>
+                        </div>
+                    </div>
+                    
+                    <div class="btn-group">
+                        <a href="/vital/list" class="btn btn-secondary">Back</a>
+                        <button type="submit" class="btn btn-primary">Save Vital</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <th:block layout:fragment="scripts">
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                console.log('Vital input form loaded');
+                calculateBMI();
+            });
+            
+            function calculateBMI() {
+                const weight = document.getElementById('weight').value;
+                const height = document.getElementById('height').value;
+                const bmiField = document.getElementById('bmi');
+                
+                if (weight && height && height > 0) {
+                    // BMI = weight (kg) / (height (m))^2
+                    const heightInMeters = height / 100;
+                    const bmi = weight / (heightInMeters * heightInMeters);
+                    bmiField.value = bmi.toFixed(1);
+                } else {
+                    bmiField.value = '';
+                }
+            }
+        </script>
+    </th:block>
+</body>
+</html> 

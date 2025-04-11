@@ -104,7 +104,12 @@
                     <path d="M7.33333 12.6667C10.2789 12.6667 12.6667 10.2789 12.6667 7.33333C12.6667 4.38781 10.2789 2 7.33333 2C4.38781 2 2 4.38781 2 7.33333C2 10.2789 4.38781 12.6667 7.33333 12.6667Z" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
                     <path d="M14 14.0001L11.1 11.1001" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
-                <input type="text" placeholder="Search for...">
+                <input type="text" id="sidebar-search" placeholder="Search for..." autocomplete="off">
+                <button type="button" id="clear-search" class="search-clear" style="display: none;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M18 6L6 18M6 6l12 12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
             </div>
             
             <!-- Navigation -->
@@ -167,7 +172,18 @@
                     </a>
                 </div>
 
-
+                <!-- Vital Input - only visible to nurses -->
+                <a href="/vital/list" class="nav-item" sec:authorize="hasRole('ROLE_NURSE')" th:classappend="${request != null && request.requestURI.startsWith('/vital') ? 'active' : ''}">
+                    <div class="nav-item-content">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M11.3333 1.33334H4.66667C3.93029 1.33334 3.33334 1.93029 3.33334 2.66667V13.3333C3.33334 14.0697 3.93029 14.6667 4.66667 14.6667H11.3333C12.0697 14.6667 12.6667 14.0697 12.6667 13.3333V2.66667C12.6667 1.93029 12.0697 1.33334 11.3333 1.33334Z" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M8 11.3333V12" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M8 4V8" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Vital Input
+                    </div>
+                </a>
+                
                 <a href="/consultation" class="nav-item" th:classappend="${request != null && request.requestURI == '/consultation' ? 'active' : ''}">
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M6 14.6667V13.3333C6 12.8 6.2 12.4 6.6 12C7 11.6 7.4 11.3333 8 11.3333H13.3333" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
