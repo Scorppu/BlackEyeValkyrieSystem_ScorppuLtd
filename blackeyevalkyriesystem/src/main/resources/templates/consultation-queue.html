@@ -62,6 +62,43 @@
             padding: 20px;
             color: var(--secondary-text);
         }
+        .status-pending {
+            background-color: rgba(230, 184, 0, 0.15);
+            color: #e6b800;
+            font-weight: 500;
+        }
+        .status-vitalsChecked {
+            background-color: rgba(46, 184, 46, 0.15);
+            color: #2eb82e;
+            font-weight: 500;
+        }
+        .status-default {
+            color: var(--secondary-text);
+            font-weight: 500;
+        }
+        .appointment-item {
+            padding: 3px 0;
+            display: flex;
+            align-items: center;
+            font-size: 0.95em;
+        }
+        .appointment-item:not(:last-child) {
+            border-bottom: 1px dashed rgba(138, 43, 226, 0.2);
+            margin-bottom: 4px;
+        }
+        .appointment-time {
+            margin-right: 8px;
+        }
+        .appointment-status {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+        .status-info {
+            display: flex;
+            flex-direction: column;
+        }
     </style>
 </head>
 
@@ -78,40 +115,36 @@
                 <table class="queue-table">
                     <thead>
                         <tr>
-                            <th>Name</th>
+                            <th>Patient Name</th>
                             <th>Patient ID</th>
                             <th>Age</th>
                             <th>Gender</th>
-                            <th>Last Recent Visit</th>
+                            <th>Last Visit</th>
                             <th>Scheduled Time</th>
-                            <th></th>
+                            <th>Status</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr th:if="${nextPatient != null}">
-                            <td th:text="${nextPatient.firstName + ' ' + nextPatient.lastName}">Sophie Moore</td>
-                            <td th:text="${nextPatient.id}">123412434</td>
-                            <td th:text="${nextPatient.age}">18</td>
-                            <td th:text="${nextPatient.sex ? 'Female' : 'Male'}">Female</td>
-                            <td th:text="${nextPatientLastVisit != null ? #temporals.format(nextPatientLastVisit, 'dd MMM yyyy') : 'No visits'}">IP0001</td>
-                            <td th:text="${nextPatientAppointmentTime != null ? #temporals.format(nextPatientAppointmentTime, 'dd MMM yyyy HH:mm') : 'Not scheduled'}">10:00 AM</td>
+                        <tr th:each="appointment : ${overdueAppointments}" th:if="${appointment.patient != null}">
+                            <td th:text="${appointment.patient.firstName + ' ' + appointment.patient.lastName}">Sophie Moore</td>
+                            <td th:text="${appointment.patient.id}">123412434</td>
+                            <td th:text="${appointment.patient.age}">18</td>
+                            <td th:text="${appointment.patient.sex ? 'Female' : 'Male'}">Female</td>
+                            <td th:with="lastVisit=${@consultationViewController.getLastVisitDate(appointment.patient)}" 
+                                th:text="${lastVisit != null ? #temporals.format(lastVisit, 'dd MMM yyyy') : 'No visits'}">IP0001</td>
+                            <td th:text="${appointment.scheduledTime != null ? #temporals.format(appointment.scheduledTime, 'dd MMM yyyy HH:mm') : 'Not scheduled'}">10:00 AM</td>
                             <td>
-                                <a th:href="@{/consultation/create/{id}(id=${nextPatient.id}, appointmentId=${patientAppointmentMap[nextPatient.id]})}" class="consultation-btn">Begin consultation</a>
+                                <span th:if="${appointment.status == 'pending'}" class="status-pending appointment-status">Pending</span>
+                                <span th:if="${appointment.status == 'vitalChecked'}" class="status-vitalsChecked appointment-status">Vitals Checked</span>
+                                <span th:if="${appointment.status != 'pending' && appointment.status != 'vitalChecked'}" class="status-default appointment-status" th:text="${appointment.status}">Status</span>
+                            </td>
+                            <td>
+                                <a th:href="@{/consultation/create/{id}(id=${appointment.patient.id}, appointmentId=${appointment.id})}" class="consultation-btn">Begin consultation</a>
                             </td>
                         </tr>
-                        <tr th:each="patient, iterStat : ${queuedPatients}">
-                            <td th:text="${patient.firstName + ' ' + patient.lastName}">John Carter</td>
-                            <td th:text="${patient.id}">019238744</td>
-                            <td th:text="${patient.age}">18</td>
-                            <td th:text="${patient.sex ? 'Female' : 'Male'}">Male</td>
-                            <td th:text="${queuedPatientsLastVisits[iterStat.index] != null ? #temporals.format(queuedPatientsLastVisits[iterStat.index], 'dd MMM yyyy') : 'No visits'}">OP0011</td>
-                            <td th:text="${queuedPatientsAppointmentTimes != null && queuedPatientsAppointmentTimes[patient.id] != null ? #temporals.format(queuedPatientsAppointmentTimes[patient.id], 'dd MMM yyyy HH:mm') : 'Not scheduled'}">10:00 AM</td>
-                            <td>
-                                <a th:href="@{/consultation/create/{id}(id=${patient.id}, appointmentId=${patientAppointmentMap[patient.id]})}" class="consultation-btn">Begin consultation</a>
-                            </td>
-                        </tr>
-                        <tr th:if="${nextPatient == null && queuedPatients.empty}">
-                            <td colspan="7" class="empty-state">No overdue appointments</td>
+                        <tr th:if="${overdueAppointments.empty}">
+                            <td colspan="8" class="empty-state">No overdue appointments</td>
                         </tr>
                     </tbody>
                 </table>
@@ -123,32 +156,39 @@
                 <table class="queue-table">
                     <thead>
                         <tr>
-                            <th>Name</th>
+                            <th>Patient Name</th>
                             <th>Patient ID</th>
                             <th>Age</th>
                             <th>Gender</th>
-                            <th>Last Recent Visit</th>
+                            <th>Last Visit</th>
                             <th>Scheduled Time</th>
+                            <th>Status</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr th:each="patient, iterStat : ${futurePatients}">
-                            <td th:text="${patient.firstName + ' ' + patient.lastName}">John Carter</td>
-                            <td th:text="${patient.id}">019238744</td>
-                            <td th:text="${patient.age}">18</td>
-                            <td th:text="${patient.sex ? 'Female' : 'Male'}">Male</td>
-                            <td th:text="${futurePatientsLastVisits[iterStat.index] != null ? #temporals.format(futurePatientsLastVisits[iterStat.index], 'dd MMM yyyy') : 'No visits'}">OP0011</td>
-                            <td th:text="${futurePatientsAppointmentTimes != null && futurePatientsAppointmentTimes[patient.id] != null ? #temporals.format(futurePatientsAppointmentTimes[patient.id], 'dd MMM yyyy HH:mm') : 'Not scheduled'}">10:00 AM</td>
+                        <tr th:each="appointment : ${upcomingAppointments}" th:if="${appointment.patient != null}">
+                            <td th:text="${appointment.patient.firstName + ' ' + appointment.patient.lastName}">Sophie Moore</td>
+                            <td th:text="${appointment.patient.id}">123412434</td>
+                            <td th:text="${appointment.patient.age}">18</td>
+                            <td th:text="${appointment.patient.sex ? 'Female' : 'Male'}">Female</td>
+                            <td th:with="lastVisit=${@consultationViewController.getLastVisitDate(appointment.patient)}" 
+                                th:text="${lastVisit != null ? #temporals.format(lastVisit, 'dd MMM yyyy') : 'No visits'}">IP0001</td>
+                            <td th:text="${appointment.scheduledTime != null ? #temporals.format(appointment.scheduledTime, 'dd MMM yyyy HH:mm') : 'Not scheduled'}">10:00 AM</td>
+                            <td>
+                                <span th:if="${appointment.status == 'pending'}" class="status-pending appointment-status">Pending</span>
+                                <span th:if="${appointment.status == 'vitalChecked'}" class="status-vitalsChecked appointment-status">Vitals Checked</span>
+                                <span th:if="${appointment.status != 'pending' && appointment.status != 'vitalChecked'}" class="status-default appointment-status" th:text="${appointment.status}">Status</span>
+                            </td>
                         </tr>
-                        <tr th:if="${futurePatients.empty}">
-                            <td colspan="6" class="empty-state">No upcoming appointments</td>
+                        <tr th:if="${upcomingAppointments.empty}">
+                            <td colspan="7" class="empty-state">No upcoming appointments</td>
                         </tr>
                     </tbody>
                 </table>
                 
                 <!-- Pagination information -->
-                <div class="pagination-info" th:if="${!futurePatients.empty}">
-                    <span th:text="${'1 - ' + futurePatients.size() + ' of ' + futurePatients.size()}">1 - 10 of 256</span>
+                <div class="pagination-info" th:if="${!upcomingAppointments.empty}">
+                    <span th:text="${'1 - ' + upcomingAppointments.size() + ' of ' + upcomingAppointments.size()}">1 - 10 of 256</span>
                 </div>
             </div>
         </div>

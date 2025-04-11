@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.Comparator;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -66,7 +67,7 @@ public class ConsultationViewController {
     /**
      * Helper method to get the last visit date from a patient's visits list
      */
-    private LocalDate getLastVisitDate(Patient patient) {
+    public LocalDate getLastVisitDate(Patient patient) {
         if (patient.getVisits() != null && !patient.getVisits().isEmpty()) {
             // Assuming visits are already sorted by date in descending order
             return patient.getVisits().get(0).getVisitDate();
@@ -228,67 +229,34 @@ public class ConsultationViewController {
         System.out.println("Overdue appointments: " + overdueAppointments.size());
         System.out.println("Upcoming appointments: " + upcomingAppointments.size());
         
-        // Get patient info and visit dates for overdue appointments
-        List<Patient> overduePatients = new ArrayList<>();
-        List<LocalDate> overduePatientsLastVisits = new ArrayList<>();
-        Map<String, LocalDateTime> overdueAppointmentTimes = new HashMap<>();
+        // Sort appointments by their scheduled time
+        overdueAppointments.sort(Comparator.comparing(
+            appointment -> appointment.getScheduledTime() != null ? appointment.getScheduledTime() : LocalDateTime.MAX
+        ));
         
-        for (Appointment appointment : overdueAppointments) {
-            Patient patient = appointment.getPatient();
-            if (patient != null) {
-                overduePatients.add(patient);
-                overduePatientsLastVisits.add(getLastVisitDate(patient));
-                overdueAppointmentTimes.put(patient.getId(), appointment.getScheduledTime());
-            }
+        upcomingAppointments.sort(Comparator.comparing(
+            appointment -> appointment.getScheduledTime() != null ? appointment.getScheduledTime() : LocalDateTime.MAX
+        ));
+        
+        // Pass appointment lists directly to the model without grouping by patient
+        model.addAttribute("overdueAppointments", overdueAppointments);
+        model.addAttribute("upcomingAppointments", upcomingAppointments);
+
+        // For backward compatibility, keep some of the existing variables
+        // but they may not be used in the updated view
+        Patient nextPatient = null;
+        LocalDate nextPatientLastVisit = null;
+        LocalDateTime nextPatientAppointmentTime = null;
+
+        if (!overdueAppointments.isEmpty() && overdueAppointments.get(0).getPatient() != null) {
+            nextPatient = overdueAppointments.get(0).getPatient();
+            nextPatientLastVisit = getLastVisitDate(nextPatient);
+            nextPatientAppointmentTime = overdueAppointments.get(0).getScheduledTime();
         }
-        
-        // Get patient info and visit dates for upcoming appointments
-        List<Patient> upcomingPatients = new ArrayList<>();
-        List<LocalDate> upcomingPatientsLastVisits = new ArrayList<>();
-        Map<String, LocalDateTime> upcomingAppointmentTimes = new HashMap<>();
-        
-        for (Appointment appointment : upcomingAppointments) {
-            Patient patient = appointment.getPatient();
-            if (patient != null) {
-                upcomingPatients.add(patient);
-                upcomingPatientsLastVisits.add(getLastVisitDate(patient));
-                upcomingAppointmentTimes.put(patient.getId(), appointment.getScheduledTime());
-            }
-        }
-        
-        // Debug logging
-        System.out.println("Overdue patients: " + overduePatients.size());
-        System.out.println("Upcoming patients: " + upcomingPatients.size());
-        
-        // Add data to model
-        model.addAttribute("nextPatient", !overduePatients.isEmpty() ? overduePatients.get(0) : null);
-        model.addAttribute("nextPatientLastVisit", !overduePatientsLastVisits.isEmpty() ? overduePatientsLastVisits.get(0) : null);
-        model.addAttribute("nextPatientAppointmentTime", !overduePatients.isEmpty() ? 
-            overdueAppointmentTimes.get(overduePatients.get(0).getId()) : null);
-        
-        List<Patient> remainingOverduePatients = overduePatients.size() > 1 ? 
-                overduePatients.subList(1, overduePatients.size()) : new ArrayList<>();
-        List<LocalDate> remainingOverduePatientsLastVisits = overduePatientsLastVisits.size() > 1 ? 
-                overduePatientsLastVisits.subList(1, overduePatientsLastVisits.size()) : new ArrayList<>();
-        
-        model.addAttribute("queuedPatients", remainingOverduePatients);
-        model.addAttribute("queuedPatientsLastVisits", remainingOverduePatientsLastVisits);
-        model.addAttribute("queuedPatientsAppointmentTimes", overdueAppointmentTimes);
-        
-        model.addAttribute("futurePatients", upcomingPatients);
-        model.addAttribute("futurePatientsLastVisits", upcomingPatientsLastVisits);
-        model.addAttribute("futurePatientsAppointmentTimes", upcomingAppointmentTimes);
-        
-        // Store appointment IDs for consultation creation
-        Map<String, String> patientAppointmentMap = new HashMap<>();
-        
-        for (Appointment appointment : overdueAppointments) {
-            if (appointment.getPatient() != null) {
-                patientAppointmentMap.put(appointment.getPatient().getId(), appointment.getId());
-            }
-        }
-        
-        model.addAttribute("patientAppointmentMap", patientAppointmentMap);
+
+        model.addAttribute("nextPatient", nextPatient);
+        model.addAttribute("nextPatientLastVisit", nextPatientLastVisit);
+        model.addAttribute("nextPatientAppointmentTime", nextPatientAppointmentTime);
         
         return "consultation-queue";
     }
