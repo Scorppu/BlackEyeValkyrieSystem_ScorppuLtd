@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.Comparator;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -15,8 +16,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.scorppultd.blackeyevalkyriesystem.model.Drug;
 import com.scorppultd.blackeyevalkyriesystem.model.Patient;
+import com.scorppultd.blackeyevalkyriesystem.model.Consultation;
 import com.scorppultd.blackeyevalkyriesystem.service.DrugService;
 import com.scorppultd.blackeyevalkyriesystem.service.PatientService;
+import com.scorppultd.blackeyevalkyriesystem.service.ConsultationService;
 
 /**
  * Controller for handling patient-related views and operations
@@ -27,11 +30,13 @@ public class PatientViewController {
 
     private final PatientService patientService;
     private final DrugService drugService;
+    private final ConsultationService consultationService;
 
     @Autowired
-    public PatientViewController(PatientService patientService, DrugService drugService) {
+    public PatientViewController(PatientService patientService, DrugService drugService, ConsultationService consultationService) {
         this.patientService = patientService;
         this.drugService = drugService;
+        this.consultationService = consultationService;
     }
 
     /**
@@ -137,13 +142,31 @@ public class PatientViewController {
                         (existing, replacement) -> existing
                     ));
                 
+                // Get patient's past consultations
+                List<Consultation> pastConsultations = consultationService.getConsultationsByPatient(id);
+                
+                // Sort consultations by date, most recent first
+                pastConsultations.sort(Comparator.comparing(Consultation::getConsultationDateTime).reversed());
+                
+                // Filter completed consultations only
+                pastConsultations = pastConsultations.stream()
+                    .filter(c -> "Completed".equals(c.getStatus()))
+                    .collect(Collectors.toList());
+                
+                // Limit to most recent 10 consultations
+                if (pastConsultations.size() > 10) {
+                    pastConsultations = pastConsultations.subList(0, 10);
+                }
+                
                 model.addAttribute("patient", patient);
                 model.addAttribute("allDrugs", allDrugs);
                 model.addAttribute("drugNamesMap", drugNamesMap);
+                model.addAttribute("pastConsultations", pastConsultations);
                 return "patient-profile";
             }
         } catch (Exception e) {
             // Failed to find patient
+            System.err.println("Error retrieving patient: " + e.getMessage());
         }
         return "redirect:/patient/list";
     }
