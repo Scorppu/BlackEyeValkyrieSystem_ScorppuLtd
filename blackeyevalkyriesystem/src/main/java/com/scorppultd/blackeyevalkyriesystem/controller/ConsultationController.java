@@ -210,4 +210,20 @@ public class ConsultationController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
+
+    /**
+     * Update the vital signs of a consultation
+     */
+    @PutMapping("/{id}/vital-signs")
+    @PreAuthorize("hasAnyRole('DOCTOR', 'ADMIN')")
+    public ResponseEntity<Consultation> updateConsultationVitalSigns(
+            @PathVariable String id, 
+            @RequestBody Consultation.VitalSigns vitalSigns) {
+        try {
+            Consultation updatedConsultation = consultationService.updateConsultationVitalSigns(id, vitalSigns);
+            return new ResponseEntity<>(updatedConsultation, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
 } 

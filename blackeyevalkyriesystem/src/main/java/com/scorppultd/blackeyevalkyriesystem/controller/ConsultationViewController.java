@@ -440,6 +440,44 @@ public class ConsultationViewController {
                 existingConsultation.setDiagnoses(consultation.getDiagnoses());
             }
             
+            // Update vital signs from the form
+            if (consultation.getVitalSigns() != null) {
+                System.out.println("Updating vital signs from form submission");
+                System.out.println("Form vital signs - Height: " + consultation.getVitalSigns().getHeight());
+                System.out.println("Form vital signs - Weight: " + consultation.getVitalSigns().getWeight());
+                System.out.println("Form vital signs - Temperature: " + consultation.getVitalSigns().getTemperature());
+                System.out.println("Form vital signs - Blood Pressure: " + consultation.getVitalSigns().getBloodPressure());
+                
+                // Get the existing vital signs or create new ones if not present
+                Consultation.VitalSigns existingVitals = existingConsultation.getVitalSigns();
+                if (existingVitals == null) {
+                    existingVitals = new Consultation.VitalSigns();
+                    existingConsultation.setVitalSigns(existingVitals);
+                }
+                
+                // Copy values from form
+                existingVitals.setHeight(consultation.getVitalSigns().getHeight());
+                existingVitals.setWeight(consultation.getVitalSigns().getWeight());
+                existingVitals.setTemperature(consultation.getVitalSigns().getTemperature());
+                existingVitals.setBloodPressure(consultation.getVitalSigns().getBloodPressure());
+                existingVitals.setHeartRate(consultation.getVitalSigns().getHeartRate());
+                existingVitals.setRespiratoryRate(consultation.getVitalSigns().getRespiratoryRate());
+                existingVitals.setOxygenSaturation(consultation.getVitalSigns().getOxygenSaturation());
+                
+                // Calculate BMI if height and weight are available
+                if (existingVitals.getHeight() != null && existingVitals.getWeight() != null && 
+                    existingVitals.getHeight() > 0) {
+                    double heightInMeters = existingVitals.getHeight() / 100.0; // Convert cm to meters
+                    double bmi = existingVitals.getWeight() / (heightInMeters * heightInMeters);
+                    // Round to 1 decimal place
+                    bmi = Math.round(bmi * 10.0) / 10.0;
+                    existingVitals.setBmi(bmi);
+                    System.out.println("Calculated BMI: " + bmi);
+                }
+            } else {
+                System.out.println("Warning: No vital signs data in form submission");
+            }
+            
             // Ensure we preserve the appointmentId if it exists
             if (consultation.getAppointmentId() != null) {
                 existingConsultation.setAppointmentId(consultation.getAppointmentId());

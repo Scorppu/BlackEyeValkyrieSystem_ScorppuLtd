@@ -214,7 +214,16 @@ public class ConsultationServiceImpl implements ConsultationService {
         // Check if a consultation already exists for this appointment
         Optional<Consultation> existingConsultation = getConsultationByAppointmentId(appointmentId);
         if (existingConsultation.isPresent()) {
-            return existingConsultation.get();
+            Consultation consultation = existingConsultation.get();
+            // Check if we need to update the vitals from the appointment
+            if (appointment.getVitalSigns() != null && 
+                (consultation.getVitalSigns() == null || 
+                 isUsingDefaultVitals(consultation.getVitalSigns()))) {
+                System.out.println("Updating vitals on existing consultation for appointment ID: " + appointmentId);
+                updateConsultationVitalsFromAppointment(consultation, appointment);
+                consultation = updateConsultation(consultation);
+            }
+            return consultation;
         }
         
         // Create a new consultation
@@ -226,20 +235,134 @@ public class ConsultationServiceImpl implements ConsultationService {
         consultation.setStatus("In-Progress");
         consultation.setAppointmentId(appointmentId);
         
-        // Set default vital signs
+        // Create empty vital signs
         Consultation.VitalSigns vitalSigns = new Consultation.VitalSigns();
-        vitalSigns.setTemperature(37.0);
-        vitalSigns.setBloodPressure("120/80");
-        vitalSigns.setHeartRate(70);
-        vitalSigns.setRespiratoryRate(16);
-        vitalSigns.setWeight(70.0);
-        vitalSigns.setHeight(170.0);
         consultation.setVitalSigns(vitalSigns);
+        
+        // Update vitals from appointment if available
+        if (appointment.getVitalSigns() != null) {
+            updateConsultationVitalsFromAppointment(consultation, appointment);
+        } else {
+            System.out.println("No vital signs found for appointment ID: " + appointmentId);
+        }
         
         // Initialize empty diagnosis
         consultation.setDiagnoses(List.of(new Consultation.Diagnosis()));
         
         // Save the new consultation
         return createConsultation(consultation);
+    }
+    
+    /**
+     * Check if the vital signs are using default values
+     */
+    private boolean isUsingDefaultVitals(Consultation.VitalSigns vitalSigns) {
+        // If any vital sign has null values, we need to update from appointment
+        return vitalSigns.getTemperature() == null || 
+               vitalSigns.getBloodPressure() == null || 
+               vitalSigns.getHeight() == null || 
+               vitalSigns.getWeight() == null;
+    }
+    
+    /**
+     * Helper method to update a consultation's vital signs from an appointment
+     */
+    private void updateConsultationVitalsFromAppointment(Consultation consultation, Appointment appointment) {
+        if (appointment.getVitalSigns() == null) {
+            return;
+        }
+        
+        Appointment.VitalSigns appointmentVitals = appointment.getVitalSigns();
+        Consultation.VitalSigns consultationVitals = consultation.getVitalSigns();
+        if (consultationVitals == null) {
+            consultationVitals = new Consultation.VitalSigns();
+            consultation.setVitalSigns(consultationVitals);
+        }
+        
+        // Add debug logging
+        System.out.println("Appointment vital signs found for appointment ID: " + appointment.getId());
+        System.out.println("Temperature: " + appointmentVitals.getTemperature());
+        System.out.println("High BP: " + appointmentVitals.getHighBloodPressure());
+        System.out.println("Low BP: " + appointmentVitals.getLowBloodPressure());
+        System.out.println("Heart Rate: " + appointmentVitals.getHeartRate());
+        System.out.println("Respiratory Rate: " + appointmentVitals.getRespiratoryRate());
+        System.out.println("Weight: " + appointmentVitals.getWeight());
+        System.out.println("Height: " + appointmentVitals.getHeight());
+        
+        // Transfer vital sign values from appointment to consultation
+        if (appointmentVitals.getTemperature() != null) {
+            consultationVitals.setTemperature(appointmentVitals.getTemperature());
+            System.out.println("Setting consultation temperature to: " + appointmentVitals.getTemperature());
+        }
+        
+        // Format blood pressure from appointment's high and low values
+        if (appointmentVitals.getHighBloodPressure() != null && appointmentVitals.getLowBloodPressure() != null) {
+            String bloodPressure = appointmentVitals.getHighBloodPressure() + "/" + appointmentVitals.getLowBloodPressure();
+            consultationVitals.setBloodPressure(bloodPressure);
+            System.out.println("Setting consultation blood pressure to: " + bloodPressure);
+        }
+        
+        if (appointmentVitals.getHeartRate() != null) {
+            consultationVitals.setHeartRate(appointmentVitals.getHeartRate());
+            System.out.println("Setting consultation heart rate to: " + appointmentVitals.getHeartRate());
+        }
+        
+        if (appointmentVitals.getRespiratoryRate() != null) {
+            consultationVitals.setRespiratoryRate(appointmentVitals.getRespiratoryRate());
+            System.out.println("Setting consultation respiratory rate to: " + appointmentVitals.getRespiratoryRate());
+        }
+        
+        if (appointmentVitals.getWeight() != null) {
+            consultationVitals.setWeight(appointmentVitals.getWeight());
+            System.out.println("Setting consultation weight to: " + appointmentVitals.getWeight());
+        }
+        
+        if (appointmentVitals.getHeight() != null) {
+            consultationVitals.setHeight(appointmentVitals.getHeight());
+            System.out.println("Setting consultation height to: " + appointmentVitals.getHeight());
+        }
+        
+        if (appointmentVitals.getOxygenSaturation() != null) {
+            consultationVitals.setOxygenSaturation(appointmentVitals.getOxygenSaturation());
+            System.out.println("Setting consultation oxygen saturation to: " + appointmentVitals.getOxygenSaturation());
+        }
+        
+        // Add debug logging to check vital signs in the consultation
+        System.out.println("Consultation vital signs after transfer:");
+        System.out.println("Temperature: " + consultation.getVitalSigns().getTemperature());
+        System.out.println("Blood Pressure: " + consultation.getVitalSigns().getBloodPressure());
+        System.out.println("Heart Rate: " + consultation.getVitalSigns().getHeartRate());
+        System.out.println("Respiratory Rate: " + consultation.getVitalSigns().getRespiratoryRate());
+        System.out.println("Weight: " + consultation.getVitalSigns().getWeight());
+        System.out.println("Height: " + consultation.getVitalSigns().getHeight());
+    }
+
+    @Override
+    public Consultation updateConsultationVitalSigns(String consultationId, Consultation.VitalSigns vitalSigns) {
+        Optional<Consultation> consultationOpt = consultationRepository.findById(consultationId);
+        if (consultationOpt.isEmpty()) {
+            throw new RuntimeException("Consultation not found with id: " + consultationId);
+        }
+        
+        Consultation consultation = consultationOpt.get();
+        
+        // Update the vital signs on the consultation only
+        consultation.setVitalSigns(vitalSigns);
+        
+        // Update the timestamp
+        consultation.setUpdatedAt(LocalDateTime.now());
+        
+        // Log the update for debugging purposes
+        System.out.println("Updating vital signs for consultation ID: " + consultationId);
+        System.out.println("Temperature: " + vitalSigns.getTemperature());
+        System.out.println("Blood Pressure: " + vitalSigns.getBloodPressure());
+        System.out.println("Heart Rate: " + vitalSigns.getHeartRate());
+        System.out.println("Respiratory Rate: " + vitalSigns.getRespiratoryRate());
+        System.out.println("Weight: " + vitalSigns.getWeight());
+        System.out.println("Height: " + vitalSigns.getHeight());
+        System.out.println("Oxygen Saturation: " + vitalSigns.getOxygenSaturation());
+        
+        // Save and return the updated consultation
+        return consultationRepository.save(consultation);
     }
 } 

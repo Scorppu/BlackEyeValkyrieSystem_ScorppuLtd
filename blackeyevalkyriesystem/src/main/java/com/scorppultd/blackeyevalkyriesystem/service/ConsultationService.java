@@ -47,4 +47,12 @@ public interface ConsultationService {
     // Appointment related operations
     Optional<Consultation> getConsultationByAppointmentId(String appointmentId);
     Consultation createConsultationFromAppointment(String appointmentId) throws Exception;
+    
+    /**
+     * Updates only the vital signs of a consultation without affecting the appointment data
+     * @param consultationId ID of the consultation to update
+     * @param vitalSigns New vital signs to set
+     * @return The updated consultation
+     */
+    Consultation updateConsultationVitalSigns(String consultationId, Consultation.VitalSigns vitalSigns);
 } 

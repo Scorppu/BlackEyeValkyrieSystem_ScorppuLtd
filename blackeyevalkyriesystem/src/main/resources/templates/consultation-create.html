@@ -260,64 +260,86 @@
                 <h1>Consultation</h1>
             </div>
 
-            <div class="row">
-                <!-- Patient Information Section -->
-                <div class="col-md-6">
-                    <div class="info-section">
-                        <h2 class="section-label">Patient Information</h2>
-                        <div class="info-grid">
-                            <div class="info-item">
-                                <span class="info-label">Visit ID</span>
-                                <span class="info-value" th:text="${consultation.id}">OP8021</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Appointment Type</span>
-                                <span class="info-value" th:text="${consultation.consultationType}">General Consultation</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Patient Name</span>
-                                <span class="info-value" th:text="${consultation.patient.firstName + ' ' + consultation.patient.lastName}">Somebody</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Patient Age</span>
-                                <span class="info-value" th:text="${consultation.patient.age}">20</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Patient Vitals Section -->
-                <div class="col-md-6">
-                    <div class="info-section">
-                        <h2 class="section-label">Patient Vitals</h2>
-                        <div class="info-grid">
-                            <div class="info-item">
-                                <span class="info-label">Height</span>
-                                <span class="info-value" th:text="${consultation.vitalSigns.height + ' cm'}">175</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Weight</span>
-                                <span class="info-value" th:text="${consultation.vitalSigns.weight + ' kg'}">70kg</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Temperature</span>
-                                <span class="info-value" th:text="${consultation.vitalSigns.temperature + '°C'}">37.5°C</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Blood Pressure (sbp/dbp)</span>
-                                <span class="info-value" th:text="${consultation.vitalSigns.bloodPressure + ' (mmHg)'}">120/80 (mmHg)</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Consultation Transcript Section -->
             <form th:action="@{/consultation/save}" method="post" th:object="${consultation}">
                 <input type="hidden" th:field="*{id}" />
                 <input type="hidden" th:field="*{prescription.id}" th:if="${consultation.prescription != null}" />
                 <input type="hidden" th:field="*{appointmentId}" />
                 
+                <div class="row">
+                    <!-- Patient Information Section -->
+                    <div class="col-md-6">
+                        <div class="info-section">
+                            <h2 class="section-label">Patient Information</h2>
+                            <div class="info-grid">
+                                <div class="info-item">
+                                    <span class="info-label">Visit ID</span>
+                                    <span class="info-value" th:text="${consultation.id}">OP8021</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Appointment Type</span>
+                                    <span class="info-value" th:text="${consultation.consultationType}">General Consultation</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Patient Name</span>
+                                    <span class="info-value" th:text="${consultation.patient.firstName + ' ' + consultation.patient.lastName}">Somebody</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Patient Age</span>
+                                    <span class="info-value" th:text="${consultation.patient.age}">20</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Patient Vitals Section -->
+                    <div class="col-md-6">
+                        <div class="info-section">
+                            <h2 class="section-label">Patient Vitals</h2>
+                            <div class="info-grid">
+                                <div class="info-item">
+                                    <span class="info-label">Height</span>
+                                    <input type="number" step="0.1" class="info-value editable-vital" id="height" th:field="*{vitalSigns.height}" placeholder="cm">
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Weight</span>
+                                    <input type="number" step="0.1" class="info-value editable-vital" id="weight" th:field="*{vitalSigns.weight}" placeholder="kg">
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Temperature</span>
+                                    <input type="number" step="0.1" class="info-value editable-vital" id="temperature" th:field="*{vitalSigns.temperature}" placeholder="°C">
+                                </div>
+                                
+                                <!-- Replace separate BP fields with a combined horizontal layout -->
+                                <div class="info-item">
+                                    <span class="info-label">Blood Pressure</span>
+                                    <div style="display: flex; align-items: center;">
+                                        <input type="number" class="info-value editable-vital" id="systolicBP" placeholder="Systolic" min="0" max="300" style="flex: 1; margin-right: 5px;">
+                                        <span style="font-weight: bold; margin: 0 5px; color: var(--secondary-text);">/</span>
+                                        <input type="number" class="info-value editable-vital" id="diastolicBP" placeholder="Diastolic" min="0" max="200" style="flex: 1; margin-left: 5px;">
+                                    </div>
+                                </div>
+                                
+                                <div class="info-item">
+                                    <span class="info-label">Heart Rate</span>
+                                    <input type="number" class="info-value editable-vital" id="heartRate" th:field="*{vitalSigns.heartRate}" placeholder="bpm">
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Respiratory Rate</span>
+                                    <input type="number" class="info-value editable-vital" id="respiratoryRate" th:field="*{vitalSigns.respiratoryRate}" placeholder="breaths/min">
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Oxygen Saturation</span>
+                                    <input type="number" step="0.1" class="info-value editable-vital" id="oxygenSaturation" th:field="*{vitalSigns.oxygenSaturation}" placeholder="%">
+                                </div>
+                                <!-- Hidden field to store the combined BP value -->
+                                <input type="hidden" id="combinedBP" th:field="*{vitalSigns.bloodPressure}">
+                            </div>
+                            <button type="button" class="confirm-btn" id="confirmVitals" style="margin-top: 15px;">Confirm Vitals</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Consultation Transcript Section -->
                 <div class="info-section">
                     <h2 class="section-label">Consultation Transcript:</h2>
                     <textarea class="transcript-box" th:field="*{clinicalNotes}" placeholder="Enter consultation notes here..."></textarea>
@@ -417,7 +439,10 @@
                     <div id="drugCart" class="drug-cart">
                         <!-- Cart items will be added here dynamically -->
                     </div>
-                    <button type="submit" class="checkout-btn">Checkout <span class="checkout-icon">→</span></button>
+                    <button type="submit" class="checkout-btn" id="checkoutButton" disabled>Checkout <span class="checkout-icon">→</span></button>
+                    <div id="checkoutMessage" style="clear: both; padding-top: 10px; color: #ff5c5c; display: none;">
+                        Please confirm both Vitals and Diagnosis before checkout
+                    </div>
                 </div>
             </form>
             
@@ -904,27 +929,198 @@
             });
         });
         
-        // Confirm diagnosis button
+        // Add event listener for the update vitals button
         document.addEventListener('DOMContentLoaded', function() {
+            const confirmVitalsBtn = document.getElementById('confirmVitals');
+            if (confirmVitalsBtn) {
+                // Initialize the data-locked attribute
+                confirmVitalsBtn.setAttribute('data-locked', 'false');
+                confirmVitalsBtn.addEventListener('click', confirmVitalSigns);
+            }
+            
+            // Initialize the confirm diagnosis button with toggle functionality
             const confirmDiagnosisBtn = document.getElementById('confirmDiagnosis');
             if (confirmDiagnosisBtn) {
-                confirmDiagnosisBtn.addEventListener('click', function() {
+                // Initialize the data-locked attribute
+                confirmDiagnosisBtn.setAttribute('data-locked', 'false');
+                confirmDiagnosisBtn.addEventListener('click', confirmDiagnosis);
+            }
+            
+            // Initialize Blood Pressure fields from the combined value
+            initializeBloodPressureFields();
+            
+            // Set up form submission event to combine BP values
+            const consultationForm = document.querySelector('form[action*="/consultation/save"]');
+            if (consultationForm) {
+                consultationForm.addEventListener('submit', function(e) {
+                    combineBPValues();
+                });
+            }
+            
+            // Initialize checkout button state
+            updateCheckoutState();
+        });
+        
+        // Function to initialize blood pressure fields by splitting the combined value
+        function initializeBloodPressureFields() {
+            const combinedBPField = document.getElementById('combinedBP');
+            const systolicField = document.getElementById('systolicBP');
+            const diastolicField = document.getElementById('diastolicBP');
+            
+            if (combinedBPField && systolicField && diastolicField) {
+                const combinedValue = combinedBPField.value;
+                if (combinedValue && combinedValue.includes('/')) {
+                    const [systolic, diastolic] = combinedValue.split('/');
+                    systolicField.value = systolic.trim();
+                    diastolicField.value = diastolic.trim();
+                }
+            }
+        }
+        
+        // Function to combine Systolic and Diastolic values into a single BP value
+        function combineBPValues() {
+            const systolicField = document.getElementById('systolicBP');
+            const diastolicField = document.getElementById('diastolicBP');
+            const combinedBPField = document.getElementById('combinedBP');
+            
+            if (systolicField && diastolicField && combinedBPField) {
+                const systolic = systolicField.value.trim();
+                const diastolic = diastolicField.value.trim();
+                
+                if (systolic && diastolic) {
+                    combinedBPField.value = systolic + '/' + diastolic;
+                } else if (systolic) {
+                    combinedBPField.value = systolic;
+                } else if (diastolic) {
+                    combinedBPField.value = '0/' + diastolic;
+                } else {
+                    combinedBPField.value = '';
+                }
+            }
+        }
+        
+        // Function to check if checkout should be enabled
+        function updateCheckoutState() {
+            const vitalsConfirmed = document.getElementById('confirmVitals').getAttribute('data-locked') === 'true';
+            const diagnosisConfirmed = document.getElementById('confirmDiagnosis').getAttribute('data-locked') === 'true';
+            const checkoutButton = document.getElementById('checkoutButton');
+            const checkoutMessage = document.getElementById('checkoutMessage');
+            
+            if (vitalsConfirmed && diagnosisConfirmed) {
+                // Both are confirmed, enable checkout
+                checkoutButton.disabled = false;
+                checkoutMessage.style.display = 'none';
+            } else {
+                // One or both are not confirmed, disable checkout
+                checkoutButton.disabled = true;
+                checkoutMessage.style.display = 'block';
+                
+                // Update message with specific details
+                let message = 'Please confirm ';
+                if (!vitalsConfirmed && !diagnosisConfirmed) {
+                    message += 'both Vitals and Diagnosis';
+                } else if (!vitalsConfirmed) {
+                    message += 'Vitals';
+                } else {
+                    message += 'Diagnosis';
+                }
+                message += ' before checkout';
+                checkoutMessage.textContent = message;
+            }
+        }
+        
+        // Function to confirm vital signs (locks the input fields)
+        function confirmVitalSigns() {
+            // Get all vital sign input fields
+            const vitalFields = document.querySelectorAll('.editable-vital');
+            const confirmBtn = document.getElementById('confirmVitals');
+            
+            // Check if fields are currently locked (toggling behavior)
+            const isCurrentlyLocked = confirmBtn.getAttribute('data-locked') === 'true';
+            
+            if (isCurrentlyLocked) {
+                // Unlock fields - make them editable again
+                vitalFields.forEach(field => {
+                    field.removeAttribute('readonly');
+                    // Reset styling
+                    field.style.backgroundColor = '';
+                    field.style.color = '';
+                    field.style.borderColor = '';
+                });
+                
+                // Update button
+                confirmBtn.textContent = 'Confirm Vitals';
+                confirmBtn.style.backgroundColor = 'var(--accent-color)';
+                confirmBtn.setAttribute('data-locked', 'false');
+
+            } else {
+                // Lock fields - make them readonly
+                vitalFields.forEach(field => {
+                    field.setAttribute('readonly', 'readonly');
+                    // Add a visual indicator that the fields are locked
+                    field.style.color = 'var(--secondary-text)';
+                });
+                
+                // Update button
+                confirmBtn.textContent = 'Edit Vitals';
+                confirmBtn.style.backgroundColor = '#4CAF50';
+                confirmBtn.setAttribute('data-locked', 'true');
+                
+            }
+            
+            // Update checkout button state
+            updateCheckoutState();
+        }
+        
+        // Function to confirm diagnosis (locks the diagnosis input and transcript fields)
+        function confirmDiagnosis() {
+            // Get the diagnosis input and consultation transcript fields
             const diagnosisInput = document.querySelector('input[name="diagnoses[0].diagnosisName"]');
+            const transcriptField = document.querySelector('textarea[name="clinicalNotes"]');
+            const confirmBtn = document.getElementById('confirmDiagnosis');
+            
+            // Check if diagnosis is empty
             if (diagnosisInput.value.trim() === '') {
                 alert('Please enter a diagnosis');
                 return;
             }
             
-            this.textContent = 'Diagnosis Confirmed';
-            this.style.backgroundColor = '#4CAF50';
-            diagnosisInput.setAttribute('readonly', 'readonly');
-            setTimeout(() => {
-                this.textContent = 'Confirm diagnosis';
-                this.style.backgroundColor = '';
-            }, 2000);
-                });
+            // Check if fields are currently locked (toggling behavior)
+            const isCurrentlyLocked = confirmBtn.getAttribute('data-locked') === 'true';
+            
+            if (isCurrentlyLocked) {
+                // Unlock fields - make them editable again
+                diagnosisInput.removeAttribute('readonly');
+                transcriptField.removeAttribute('readonly');
+                
+                // Reset styling
+                diagnosisInput.style.backgroundColor = '';
+                diagnosisInput.style.color = '';
+                transcriptField.style.backgroundColor = '';
+                transcriptField.style.color = '';
+                
+                // Update button
+                confirmBtn.textContent = 'Confirm Diagnosis';
+                confirmBtn.style.backgroundColor = 'var(--accent-color)';
+                confirmBtn.setAttribute('data-locked', 'false');
+            } else {
+                // Lock fields - make them readonly
+                diagnosisInput.setAttribute('readonly', 'readonly');
+                transcriptField.setAttribute('readonly', 'readonly');
+                
+                // Add a visual indicator that the fields are locked
+                diagnosisInput.style.color = 'var(--secondary-text)';
+                transcriptField.style.color = 'var(--secondary-text)';
+                
+                // Update button
+                confirmBtn.textContent = 'Edit Diagnosis';
+                confirmBtn.style.backgroundColor = '#4CAF50';
+                confirmBtn.setAttribute('data-locked', 'true');
             }
-        });
+            
+            // Update checkout button state
+            updateCheckoutState();
+        }
     </script>
 </th:block>
 
