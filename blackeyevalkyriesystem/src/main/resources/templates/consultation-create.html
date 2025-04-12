@@ -339,6 +339,67 @@
                     </div>
                 </div>
 
+                <!-- Past Consultations Section -->
+                <div class="info-section" th:if="${pastConsultations != null && !pastConsultations.isEmpty()}">
+                    <h2 class="section-label" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="togglePastConsultations()">
+                        Patient's Past Consultations
+                        <span id="toggleIcon" style="font-size: 18px; transition: transform 0.3s;">▼</span>
+                    </h2>
+                    <div id="pastConsultationsContent" class="past-consultations-container" style="max-height: 300px; overflow-y: auto;">
+                        <table class="table" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
+                            <thead>
+                                <tr style="background-color: var(--secondary-bg); border-bottom: 1px solid var(--border-color);">
+                                    <th style="padding: 10px; text-align: left;">Date</th>
+                                    <th style="padding: 10px; text-align: left;">Doctor</th>
+                                    <th style="padding: 10px; text-align: left;">Height</th>
+                                    <th style="padding: 10px; text-align: left;">Weight</th>
+                                    <th style="padding: 10px; text-align: left;">BP</th>
+                                    <th style="padding: 10px; text-align: left;">Diagnosis</th>
+                                    <th style="padding: 10px; text-align: left;">Notes</th>
+                                    <th style="padding: 10px; text-align: left;">Details</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="pastConsult : ${pastConsultations}" style="border-bottom: 1px solid var(--border-color);">
+                                    <td style="padding: 10px;" th:text="${#temporals.format(pastConsult.consultationDateTime, 'yyyy-MM-dd')}">2023-01-01</td>
+                                    <td style="padding: 10px;" th:text="${pastConsult.doctor != null ? pastConsult.doctor.firstName + ' ' + pastConsult.doctor.lastName : 'Unknown'}">Dr. John Doe</td>
+                                    <td style="padding: 10px;" th:text="${pastConsult.vitalSigns?.height != null ? pastConsult.vitalSigns?.height + ' cm' : 'N/A'}">170 cm</td>
+                                    <td style="padding: 10px;" th:text="${pastConsult.vitalSigns?.weight != null ? pastConsult.vitalSigns?.weight + ' kg' : 'N/A'}">70 kg</td>
+                                    <td style="padding: 10px;" th:text="${pastConsult.vitalSigns?.bloodPressure != null ? pastConsult.vitalSigns?.bloodPressure : 'N/A'}">120/80</td>
+                                    <td style="padding: 10px;" th:text="${pastConsult.diagnosis}">Diagnosis</td>
+                                    <td style="padding: 10px;">
+                                        <div class="consultation-notes" th:text="${#strings.abbreviate(pastConsult.clinicalNotes, 100)}" style="cursor: pointer;" 
+                                             th:attr="data-full-notes=${pastConsult.clinicalNotes}" onclick="showFullNotes(this)">
+                                            Notes preview...
+                                        </div>
+                                    </td>
+                                    <td style="padding: 10px;">
+                                        <button type="button" class="btn-secondary" style="padding: 4px 8px; margin: 0;" 
+                                                th:attr="data-id=${pastConsult.id},
+                                                        data-date=${#temporals.format(pastConsult.consultationDateTime, 'yyyy-MM-dd')},
+                                                        data-diagnosis=${pastConsult.diagnosis},
+                                                        data-notes=${pastConsult.clinicalNotes},
+                                                        data-consultation-type=${pastConsult.consultationType},
+                                                        data-status=${pastConsult.status},
+                                                        data-doctor=${pastConsult.doctor != null ? pastConsult.doctor.firstName + ' ' + pastConsult.doctor.lastName : 'Unknown'},
+                                                        data-bp=${pastConsult.vitalSigns?.bloodPressure},
+                                                        data-temp=${pastConsult.vitalSigns?.temperature},
+                                                        data-hr=${pastConsult.vitalSigns?.heartRate},
+                                                        data-rr=${pastConsult.vitalSigns?.respiratoryRate},
+                                                        data-weight=${pastConsult.vitalSigns?.weight},
+                                                        data-height=${pastConsult.vitalSigns?.height},
+                                                        data-o2=${pastConsult.vitalSigns?.oxygenSaturation},
+                                                        data-bmi=${pastConsult.vitalSigns?.bmi}"
+                                                onclick="showConsultationDetails(this)">
+                                            View
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
                 <!-- Consultation Transcript Section -->
                 <div class="info-section">
                     <h2 class="section-label">Consultation Transcript:</h2>
@@ -476,6 +537,112 @@
                     <div class="modal-footer">
                         <button type="button" class="btn-secondary" onclick="closeModal()">Cancel</button>
                         <button type="button" class="btn-primary" onclick="confirmAddToCart()">Add to Cart</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Past Consultation Notes Modal -->
+            <div id="pastConsultationNotesModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Consultation Notes</h3>
+                        <span class="close" onclick="closeNotesModal()">&times;</span>
+                    </div>
+                    <div class="modal-body">
+                        <div id="fullConsultationNotes" style="white-space: pre-wrap; max-height: 400px; overflow-y: auto;"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn-secondary" onclick="closeNotesModal()">Close</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Full Vitals Modal -->
+            <div id="fullVitalsModal" class="modal">
+                <div class="modal-content" style="width: 600px; max-width: 95%;">
+                    <div class="modal-header">
+                        <h3>Consultation Details</h3>
+                        <span class="close" onclick="closeVitalsModal()">&times;</span>
+                    </div>
+                    <div class="modal-body">
+                        <div id="fullVitalsContent" style="max-height: 500px; overflow-y: auto;">
+                            <div style="margin-bottom: 20px;">
+                                <h4 style="margin-top: 0; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">General Information</h4>
+                                <table style="width: 100%; border-collapse: collapse;">
+                                    <tr>
+                                        <td style="padding: 8px; font-weight: bold; width: 180px;">Consultation ID:</td>
+                                        <td id="modal-id" style="padding: 8px;"></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; font-weight: bold;">Date:</td>
+                                        <td id="modal-date" style="padding: 8px;"></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; font-weight: bold;">Consultation Type:</td>
+                                        <td id="modal-type" style="padding: 8px;"></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; font-weight: bold;">Doctor:</td>
+                                        <td id="modal-doctor" style="padding: 8px;"></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; font-weight: bold;">Status:</td>
+                                        <td id="modal-status" style="padding: 8px;"></td>
+                                    </tr>
+                                </table>
+                            </div>
+
+                            <div style="margin-bottom: 20px;">
+                                <h4 style="margin-top: 0; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">Diagnosis</h4>
+                                <div id="modal-diagnosis" style="padding: 8px; white-space: pre-wrap;"></div>
+                            </div>
+                            
+                            <div style="margin-bottom: 20px;">
+                                <h4 style="margin-top: 0; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">Clinical Notes</h4>
+                                <div id="modal-notes" style="padding: 8px; white-space: pre-wrap; max-height: 150px; overflow-y: auto;"></div>
+                            </div>
+
+                            <div>
+                                <h4 style="margin-top: 0; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">Vital Signs</h4>
+                                <table style="width: 100%; border-collapse: collapse;">
+                                    <tr>
+                                        <td style="padding: 8px; font-weight: bold; width: 180px;">Blood Pressure:</td>
+                                        <td id="modal-bp" style="padding: 8px;"></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; font-weight: bold;">Temperature:</td>
+                                        <td id="modal-temp" style="padding: 8px;"></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; font-weight: bold;">Heart Rate:</td>
+                                        <td id="modal-hr" style="padding: 8px;"></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; font-weight: bold;">Respiratory Rate:</td>
+                                        <td id="modal-rr" style="padding: 8px;"></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; font-weight: bold;">Oxygen Saturation:</td>
+                                        <td id="modal-o2" style="padding: 8px;"></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; font-weight: bold;">Weight:</td>
+                                        <td id="modal-weight" style="padding: 8px;"></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; font-weight: bold;">Height:</td>
+                                        <td id="modal-height" style="padding: 8px;"></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; font-weight: bold;">BMI:</td>
+                                        <td id="modal-bmi" style="padding: 8px;"></td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn-secondary" onclick="closeVitalsModal()">Close</button>
                     </div>
                 </div>
             </div>
@@ -1120,6 +1287,83 @@
             
             // Update checkout button state
             updateCheckoutState();
+        }
+        
+        // Functions for past consultations notes modal
+        function showFullNotes(element) {
+            const fullNotes = element.getAttribute('data-full-notes');
+            document.getElementById('fullConsultationNotes').textContent = fullNotes || 'No notes available';
+            document.getElementById('pastConsultationNotesModal').style.display = 'block';
+        }
+        
+        function closeNotesModal() {
+            document.getElementById('pastConsultationNotesModal').style.display = 'none';
+        }
+        
+        // Function to show consultation details in the modal
+        function showConsultationDetails(element) {
+            const data = element.dataset;
+            
+            // Populate general information
+            document.getElementById('modal-id').textContent = data.id || 'Not available';
+            document.getElementById('modal-date').textContent = data.date || 'Not recorded';
+            document.getElementById('modal-type').textContent = data.consultationType || 'Not recorded';
+            document.getElementById('modal-doctor').textContent = data.doctor || 'Unknown';
+            document.getElementById('modal-status').textContent = data.status || 'Not recorded';
+            
+            // Populate diagnosis and notes
+            document.getElementById('modal-diagnosis').textContent = data.diagnosis || 'No diagnosis recorded';
+            document.getElementById('modal-notes').textContent = data.notes || 'No notes recorded';
+            
+            // Populate vital signs
+            document.getElementById('modal-bp').textContent = data.bp ? data.bp : 'Not recorded';
+            document.getElementById('modal-temp').textContent = data.temp ? data.temp + ' °C' : 'Not recorded';
+            document.getElementById('modal-hr').textContent = data.hr ? data.hr + ' bpm' : 'Not recorded';
+            document.getElementById('modal-rr').textContent = data.rr ? data.rr + ' breaths/min' : 'Not recorded';
+            document.getElementById('modal-o2').textContent = data.o2 ? data.o2 + '%' : 'Not recorded';
+            document.getElementById('modal-weight').textContent = data.weight ? data.weight + ' kg' : 'Not recorded';
+            document.getElementById('modal-height').textContent = data.height ? data.height + ' cm' : 'Not recorded';
+            document.getElementById('modal-bmi').textContent = data.bmi ? data.bmi : 'Not recorded';
+            
+            // Display the modal
+            document.getElementById('fullVitalsModal').style.display = 'block';
+        }
+        
+        function closeVitalsModal() {
+            document.getElementById('fullVitalsModal').style.display = 'none';
+        }
+        
+        // Function to toggle past consultations section
+        function togglePastConsultations() {
+            const content = document.getElementById('pastConsultationsContent');
+            const icon = document.getElementById('toggleIcon');
+            
+            if (content.style.display === 'none') {
+                // Expand
+                content.style.display = 'block';
+                icon.style.transform = 'rotate(0deg)';
+            } else {
+                // Collapse
+                content.style.display = 'none';
+                icon.style.transform = 'rotate(-90deg)';
+            }
+        }
+        
+        // Close the modals when clicking outside of them
+        window.onclick = function(event) {
+            const notesModal = document.getElementById('pastConsultationNotesModal');
+            const vitalsModal = document.getElementById('fullVitalsModal');
+            const drugModal = document.getElementById('drugDetailsModal');
+            
+            if (event.target == notesModal) {
+                notesModal.style.display = 'none';
+            }
+            if (event.target == vitalsModal) {
+                vitalsModal.style.display = 'none';
+            }
+            if (event.target == drugModal) {
+                drugModal.style.display = 'none';
+            }
         }
     </script>
 </th:block>

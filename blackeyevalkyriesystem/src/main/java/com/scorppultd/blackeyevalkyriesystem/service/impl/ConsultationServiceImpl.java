@@ -9,11 +9,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.scorppultd.blackeyevalkyriesystem.model.Consultation;
+import com.scorppultd.blackeyevalkyriesystem.model.Doctor;
 import com.scorppultd.blackeyevalkyriesystem.model.Prescription;
 import com.scorppultd.blackeyevalkyriesystem.repository.ConsultationRepository;
 import com.scorppultd.blackeyevalkyriesystem.repository.PrescriptionRepository;
 import com.scorppultd.blackeyevalkyriesystem.service.ConsultationService;
 import com.scorppultd.blackeyevalkyriesystem.service.AppointmentService;
+import com.scorppultd.blackeyevalkyriesystem.service.DoctorService;
 import com.scorppultd.blackeyevalkyriesystem.model.Appointment;
 
 @Service
@@ -22,14 +24,17 @@ public class ConsultationServiceImpl implements ConsultationService {
     private final ConsultationRepository consultationRepository;
     private final PrescriptionRepository prescriptionRepository;
     private final AppointmentService appointmentService;
+    private final DoctorService doctorService;
 
     @Autowired
     public ConsultationServiceImpl(ConsultationRepository consultationRepository, 
                                   PrescriptionRepository prescriptionRepository,
-                                  AppointmentService appointmentService) {
+                                  AppointmentService appointmentService,
+                                  DoctorService doctorService) {
         this.consultationRepository = consultationRepository;
         this.prescriptionRepository = prescriptionRepository;
         this.appointmentService = appointmentService;
+        this.doctorService = doctorService;
     }
 
     @Override
@@ -205,6 +210,13 @@ public class ConsultationServiceImpl implements ConsultationService {
                 updateConsultationVitalsFromAppointment(consultation, appointment);
                 consultation = updateConsultation(consultation);
             }
+            
+            // Check if doctor should be set or updated
+            if (consultation.getDoctor() == null && appointment.getDoctorName() != null) {
+                updateConsultationDoctorFromAppointment(consultation, appointment);
+                consultation = updateConsultation(consultation);
+            }
+            
             return consultation;
         }
         
@@ -216,6 +228,13 @@ public class ConsultationServiceImpl implements ConsultationService {
                 appointment.getAppointmentType() : "General Consultation");
         consultation.setStatus("In-Progress");
         consultation.setAppointmentId(appointmentId);
+        
+        // Set doctor from appointment if available
+        if (appointment.getDoctorName() != null) {
+            updateConsultationDoctorFromAppointment(consultation, appointment);
+        } else {
+            System.out.println("No doctor name found for appointment ID: " + appointmentId);
+        }
         
         // Create empty vital signs
         Consultation.VitalSigns vitalSigns = new Consultation.VitalSigns();
@@ -359,5 +378,92 @@ public class ConsultationServiceImpl implements ConsultationService {
         } else {
             throw new RuntimeException("Consultation not found with id: " + consultationId);
         }
+    }
+
+    /**
+     * Helper method to update a consultation's doctor from an appointment
+     */
+    private void updateConsultationDoctorFromAppointment(Consultation consultation, Appointment appointment) {
+        if (appointment.getDoctorName() == null || appointment.getDoctorName().trim().isEmpty()) {
+            System.out.println("Doctor name is null or empty for appointment ID: " + appointment.getId());
+            return;
+        }
+        
+        String doctorName = appointment.getDoctorName();
+        System.out.println("Looking up doctor by name: " + doctorName);
+        
+        // First try to find by exact full name
+        Optional<Doctor> doctorByName = doctorService.getDoctorByName(doctorName);
+        
+        if (doctorByName.isPresent()) {
+            System.out.println("Found doctor by exact name match: " + doctorName);
+            consultation.setDoctor(doctorByName.get());
+            System.out.println("Successfully set doctor: " + doctorByName.get().getFullName() + " (ID: " + doctorByName.get().getId() + ")");
+            return;
+        } else {
+            System.out.println("No exact match found for doctor name: " + doctorName);
+        }
+        
+        // If exact match fails, try partial name match and take the first one
+        List<Doctor> doctorsByPartialName = doctorService.getDoctorsByNameContaining(doctorName);
+        
+        if (!doctorsByPartialName.isEmpty()) {
+            Doctor matchedDoctor = doctorsByPartialName.get(0);
+            System.out.println("Found doctor by partial name match: " + matchedDoctor.getFullName());
+            consultation.setDoctor(matchedDoctor);
+            System.out.println("Successfully set doctor: " + matchedDoctor.getFullName() + " (ID: " + matchedDoctor.getId() + ")");
+            return;
+        } else {
+            System.out.println("No partial matches found for doctor name: " + doctorName);
+        }
+        
+        // Try to find by splitting the name into first and last
+        try {
+            String[] nameParts = doctorName.split("\\s+");
+            if (nameParts.length >= 2) {
+                String firstName = nameParts[0];
+                String lastName = nameParts[nameParts.length - 1];
+                
+                System.out.println("Trying to find doctor with first name: " + firstName + " and last name: " + lastName);
+                
+                // Get all doctors and filter manually
+                List<Doctor> allDoctors = doctorService.getAllDoctors();
+                Optional<Doctor> matchedDoctor = allDoctors.stream()
+                    .filter(doc -> doc.getFirstName() != null && doc.getLastName() != null)
+                    .filter(doc -> doc.getFirstName().equalsIgnoreCase(firstName) && doc.getLastName().equalsIgnoreCase(lastName))
+                    .findFirst();
+                
+                if (matchedDoctor.isPresent()) {
+                    System.out.println("Found doctor by first and last name: " + matchedDoctor.get().getFullName());
+                    consultation.setDoctor(matchedDoctor.get());
+                    System.out.println("Successfully set doctor: " + matchedDoctor.get().getFullName() + " (ID: " + matchedDoctor.get().getId() + ")");
+                    return;
+                } else {
+                    System.out.println("No doctor found with first name: " + firstName + " and last name: " + lastName);
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("Error trying to match doctor by first/last name: " + e.getMessage());
+        }
+        
+        // If all else fails, get the first doctor with a similar username or email
+        try {
+            List<Doctor> allDoctors = doctorService.getAllDoctors();
+            Optional<Doctor> anyMatch = allDoctors.stream()
+                .filter(doc -> doc.getUsername() != null && doc.getUsername().toLowerCase().contains(doctorName.toLowerCase())
+                       || doc.getEmail() != null && doc.getEmail().toLowerCase().contains(doctorName.toLowerCase()))
+                .findFirst();
+                
+            if (anyMatch.isPresent()) {
+                System.out.println("Found doctor by username/email match: " + anyMatch.get().getFullName());
+                consultation.setDoctor(anyMatch.get());
+                System.out.println("Successfully set doctor: " + anyMatch.get().getFullName() + " (ID: " + anyMatch.get().getId() + ")");
+                return;
+            }
+        } catch (Exception e) {
+            System.out.println("Error trying to match doctor by username/email: " + e.getMessage());
+        }
+        
+        System.out.println("WARNING: No doctor found with name: " + doctorName + ". Consultation will not have a doctor assigned.");
     }
 } 

@@ -268,73 +268,82 @@ public class ConsultationViewController {
                                         @RequestParam(required = false) String appointmentId,
                                         Model model) {
         Optional<Patient> patientOpt = patientService.getPatientById(patientId);
-        
         if (patientOpt.isEmpty()) {
-            // Redirect to queue page if patient not found
-            return "redirect:/consultation?error=patient-not-found";
+            return "redirect:/patients?error=patient-not-found";
         }
         
         Patient patient = patientOpt.get();
-        Consultation consultation;
         
-        // First, check if appointmentId is provided and a consultation already exists for it
+        // Variables to store consultation
+        Consultation consultationToUse = null;
+        
+        // Check if we have an appointmentId and if a consultation already exists for it
         if (appointmentId != null && !appointmentId.isEmpty()) {
             Optional<Consultation> existingConsultationForAppointment = 
-                    consultationService.getConsultationByAppointmentId(appointmentId);
+                consultationService.getConsultationByAppointmentId(appointmentId);
             
             if (existingConsultationForAppointment.isPresent()) {
-                // Use the existing consultation for this appointment
-                consultation = existingConsultationForAppointment.get();
-                System.out.println("Found existing consultation for appointment ID: " + appointmentId);
-                
-                // If the consultation was Completed, reset it to In-Progress for editing
-                if ("Completed".equals(consultation.getStatus())) {
-                    consultation.setStatus("In-Progress");
-                    consultation = consultationService.updateConsultation(consultation);
-                    System.out.println("Reset completed consultation to In-Progress for editing");
-                }
-                
-                model.addAttribute("consultation", consultation);
-                addDrugInfoToModel(model);
-                return "consultation-create";
+                // Use the existing consultation associated with this appointment
+                consultationToUse = existingConsultationForAppointment.get();
+                System.out.println("Using existing consultation for appointment ID: " + appointmentId);
             }
         }
             
         // If no existing consultation for appointment, check for in-progress consultations
-        List<Consultation> inProgressConsultations = consultationService.getConsultationsByPatientIdAndStatus(
-                patientId, "In-Progress");
-        
-        if (!inProgressConsultations.isEmpty()) {
-            // Use the existing in-progress consultation
-            consultation = inProgressConsultations.get(0);
-            System.out.println("Using existing in-progress consultation");
+        if (consultationToUse == null) {
+            List<Consultation> inProgressConsultations = consultationService.getConsultationsByPatientIdAndStatus(
+                    patientId, "In-Progress");
             
-            // If appointmentId is provided and the consultation doesn't have it, update it
-            if (appointmentId != null && !appointmentId.isEmpty() && 
-                (consultation.getAppointmentId() == null || consultation.getAppointmentId().isEmpty())) {
-                consultation.setAppointmentId(appointmentId);
-                consultation = consultationService.updateConsultation(consultation);
-                System.out.println("Updated existing consultation with appointment ID: " + appointmentId);
+            if (!inProgressConsultations.isEmpty()) {
+                // Use the existing in-progress consultation
+                consultationToUse = inProgressConsultations.get(0);
+                System.out.println("Using existing in-progress consultation");
+                
+                // If appointmentId is provided and the consultation doesn't have it, update it
+                if (appointmentId != null && !appointmentId.isEmpty() && 
+                    (consultationToUse.getAppointmentId() == null || consultationToUse.getAppointmentId().isEmpty())) {
+                    consultationToUse.setAppointmentId(appointmentId);
+                    consultationToUse = consultationService.updateConsultation(consultationToUse);
+                    System.out.println("Updated existing consultation with appointment ID: " + appointmentId);
+                }
+            } else if (appointmentId != null && !appointmentId.isEmpty()) {
+                // Create new consultation from appointment
+                try {
+                    consultationToUse = consultationService.createConsultationFromAppointment(appointmentId);
+                    System.out.println("Created new consultation from appointment ID: " + appointmentId);
+                } catch (Exception e) {
+                    // If failed to create from appointment, create a new generic consultation
+                    consultationToUse = createNewConsultation(patient);
+                    consultationToUse.setAppointmentId(appointmentId);
+                    consultationToUse = consultationService.updateConsultation(consultationToUse);
+                    System.out.println("Created generic consultation with appointment ID: " + appointmentId);
+                }
+            } else {
+                // Create a new generic consultation without appointment association
+                consultationToUse = createNewConsultation(patient);
+                System.out.println("Created new generic consultation without appointment");
             }
-        } else if (appointmentId != null && !appointmentId.isEmpty()) {
-            // Create new consultation from appointment
-            try {
-                consultation = consultationService.createConsultationFromAppointment(appointmentId);
-                System.out.println("Created new consultation from appointment ID: " + appointmentId);
-            } catch (Exception e) {
-                // If failed to create from appointment, create a new generic consultation
-                consultation = createNewConsultation(patient);
-                consultation.setAppointmentId(appointmentId);
-                consultation = consultationService.updateConsultation(consultation);
-                System.out.println("Created generic consultation with appointment ID: " + appointmentId);
-            }
-        } else {
-            // Create a new generic consultation without appointment association
-            consultation = createNewConsultation(patient);
-            System.out.println("Created new generic consultation without appointment");
         }
         
-        model.addAttribute("consultation", consultation);
+        // Get patient's past consultations and add to model
+        List<Consultation> pastConsultations = consultationService.getConsultationsByPatient(patientId);
+        
+        // Sort them by date, most recent first
+        pastConsultations.sort(Comparator.comparing(Consultation::getConsultationDateTime).reversed());
+        
+        // Filter out the current consultation and any in-progress ones
+        final Consultation finalConsultation = consultationToUse;
+        pastConsultations = pastConsultations.stream()
+            .filter(c -> !c.getId().equals(finalConsultation.getId()) && "Completed".equals(c.getStatus()))
+            .collect(Collectors.toList());
+        
+        // Limit to most recent 5 consultations to keep the UI clean
+        if (pastConsultations.size() > 5) {
+            pastConsultations = pastConsultations.subList(0, 5);
+        }
+        
+        model.addAttribute("pastConsultations", pastConsultations);
+        model.addAttribute("consultation", consultationToUse);
         addDrugInfoToModel(model);
         return "consultation-create";
     }

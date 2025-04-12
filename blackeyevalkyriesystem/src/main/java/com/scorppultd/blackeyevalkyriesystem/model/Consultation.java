@@ -25,7 +25,6 @@ public class Consultation {
     
     @DBRef
     private Doctor doctor;
-    
     @DBRef
     private Patient patient;
     
