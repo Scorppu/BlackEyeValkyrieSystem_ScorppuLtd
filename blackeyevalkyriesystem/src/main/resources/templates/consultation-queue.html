@@ -36,6 +36,7 @@
             color: var(--secondary-text);
             border-collapse: separate;
             border-spacing: 0;
+            table-layout: fixed;
         }
         .queue-table th {
             padding: 12px 10px;
@@ -43,6 +44,14 @@
             border-bottom: 1px solid var(--border-color);
             font-weight: 500;
         }
+        .queue-table th:nth-child(1) { width: 15%; } /* Patient Name */
+        .queue-table th:nth-child(2) { width: 20%; } /* Patient ID */
+        .queue-table th:nth-child(3) { width: 6%; }  /* Age */
+        .queue-table th:nth-child(4) { width: 9%; } /* Gender */
+        .queue-table th:nth-child(5) { width: 12%; } /* Last Visit */
+        .queue-table th:nth-child(6) { width: 14%; } /* Scheduled Time */
+        .queue-table th:nth-child(7) { width: 10%; } /* Status */
+        .queue-table th:nth-child(8) { width: 14%; } /* Action (only in first table) */
         .queue-table td {
             padding: 12px 10px;
             text-align: left;
@@ -163,6 +172,7 @@
                             <th>Last Visit</th>
                             <th>Scheduled Time</th>
                             <th>Status</th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -179,6 +189,7 @@
                                 <span th:if="${appointment.status == 'vitalChecked'}" class="status-vitalsChecked appointment-status">Vitals Checked</span>
                                 <span th:if="${appointment.status != 'pending' && appointment.status != 'vitalChecked'}" class="status-default appointment-status" th:text="${appointment.status}">Status</span>
                             </td>
+                            <td></td>
                         </tr>
                         <tr th:if="${upcomingAppointments.empty}">
                             <td colspan="7" class="empty-state">No upcoming appointments</td>

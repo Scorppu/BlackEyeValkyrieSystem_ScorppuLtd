@@ -14,6 +14,7 @@
             margin-bottom: 20px;
             color: var(--secondary-text);
             border: 1px solid var(--border-color);
+            overflow: hidden;
         }
         .section-label {
             font-size: 18px;
@@ -50,12 +51,12 @@
             border: 1px solid var(--border-color);
             border-radius: 4px;
             color: var(--primary-text);
-            padding: 12px;
+            padding: 5px;
             resize: vertical;
         }
         .diagnosis-input {
             width: 100%;
-            padding: 12px;
+            padding: 5px;
             background-color: var(--input-bg);
             border: 1px solid var(--border-color);
             border-radius: 4px;
@@ -338,7 +339,7 @@
                                 <!-- Hidden field to store the combined BP value -->
                                 <input type="hidden" id="combinedBP" th:field="*{vitalSigns.bloodPressure}">
                             </div>
-                            <button type="button" class="confirm-btn" id="confirmVitals" style="margin-top: 15px;">Confirm Vitals</button>
+                            <button type="button" class="confirm-btn" id="confirmVitals">Confirm Vitals</button>
                         </div>
                 </div>
             </div>
