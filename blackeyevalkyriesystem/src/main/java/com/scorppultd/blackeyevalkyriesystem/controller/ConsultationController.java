@@ -121,27 +121,19 @@ public class ConsultationController {
     }
 
     // Add diagnosis to consultation
-    @PostMapping("/{id}/diagnoses")
+    @PostMapping("/{id}/diagnosis")
     @PreAuthorize("hasRole('DOCTOR')")
-    public ResponseEntity<Void> addDiagnosisToConsultation(@PathVariable String id, 
-                                                          @RequestBody Consultation.Diagnosis diagnosis) {
-        consultationService.addDiagnosisToConsultation(id, diagnosis);
+    public ResponseEntity<Void> updateDiagnosis(@PathVariable String id, 
+                                              @RequestBody String diagnosis) {
+        consultationService.updateDiagnosis(id, diagnosis);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
-    // Get consultations by diagnosis name
-    @GetMapping("/diagnosis/name/{diagnosisName}")
+    // Get consultations by diagnosis
+    @GetMapping("/diagnosis/{diagnosis}")
     @PreAuthorize("hasAnyRole('DOCTOR', 'ADMIN')")
-    public ResponseEntity<List<Consultation>> getConsultationsByDiagnosisName(@PathVariable String diagnosisName) {
-        List<Consultation> consultations = consultationService.getConsultationsByDiagnosisName(diagnosisName);
-        return new ResponseEntity<>(consultations, HttpStatus.OK);
-    }
-
-    // Get consultations by diagnosis code
-    @GetMapping("/diagnosis/code/{diagnosisCode}")
-    @PreAuthorize("hasAnyRole('DOCTOR', 'ADMIN')")
-    public ResponseEntity<List<Consultation>> getConsultationsByDiagnosisCode(@PathVariable String diagnosisCode) {
-        List<Consultation> consultations = consultationService.getConsultationsByDiagnosisCode(diagnosisCode);
+    public ResponseEntity<List<Consultation>> getConsultationsByDiagnosis(@PathVariable String diagnosis) {
+        List<Consultation> consultations = consultationService.getConsultationsByDiagnosis(diagnosis);
         return new ResponseEntity<>(consultations, HttpStatus.OK);
     }
 

@@ -141,26 +141,8 @@ public class ConsultationServiceImpl implements ConsultationService {
     }
 
     @Override
-    public void addDiagnosisToConsultation(String consultationId, Consultation.Diagnosis diagnosis) {
-        Optional<Consultation> consultationOpt = consultationRepository.findById(consultationId);
-        if (consultationOpt.isPresent()) {
-            Consultation consultation = consultationOpt.get();
-            consultation.addDiagnosis(diagnosis);
-            consultation.setUpdatedAt(LocalDateTime.now());
-            consultationRepository.save(consultation);
-        } else {
-            throw new RuntimeException("Consultation not found with id: " + consultationId);
-        }
-    }
-
-    @Override
-    public List<Consultation> getConsultationsByDiagnosisName(String diagnosisName) {
-        return consultationRepository.findByDiagnosisName(diagnosisName);
-    }
-
-    @Override
-    public List<Consultation> getConsultationsByDiagnosisCode(String diagnosisCode) {
-        return consultationRepository.findByDiagnosisCode(diagnosisCode);
+    public List<Consultation> getConsultationsByDiagnosis(String diagnosis) {
+        return consultationRepository.findByDiagnosis(diagnosis);
     }
 
     @Override
@@ -247,7 +229,7 @@ public class ConsultationServiceImpl implements ConsultationService {
         }
         
         // Initialize empty diagnosis
-        consultation.setDiagnoses(List.of(new Consultation.Diagnosis()));
+        consultation.setDiagnosis("");
         
         // Save the new consultation
         return createConsultation(consultation);
@@ -364,5 +346,18 @@ public class ConsultationServiceImpl implements ConsultationService {
         
         // Save and return the updated consultation
         return consultationRepository.save(consultation);
+    }
+
+    @Override
+    public void updateDiagnosis(String consultationId, String diagnosis) {
+        Optional<Consultation> consultationOpt = consultationRepository.findById(consultationId);
+        if (consultationOpt.isPresent()) {
+            Consultation consultation = consultationOpt.get();
+            consultation.setDiagnosis(diagnosis);
+            consultation.setUpdatedAt(LocalDateTime.now());
+            consultationRepository.save(consultation);
+        } else {
+            throw new RuntimeException("Consultation not found with id: " + consultationId);
+        }
     }
 } 

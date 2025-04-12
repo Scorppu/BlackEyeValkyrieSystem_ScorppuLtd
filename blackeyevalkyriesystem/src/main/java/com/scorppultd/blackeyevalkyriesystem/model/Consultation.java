@@ -11,7 +11,6 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -45,8 +44,8 @@ public class Consultation {
     private List<String> symptoms;
     private String physicalExamination;
     
-    // Diagnosis and treatment
-    private List<Diagnosis> diagnoses;
+    // Diagnosis and treatment - simplified to a single string
+    private String diagnosis;
     private String treatmentPlan;
     private String clinicalNotes;
     
@@ -74,25 +73,5 @@ public class Consultation {
         private Double weight;
         private Double height;
         private Double bmi;
-    }
-    
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @Builder
-    public static class Diagnosis {
-        private String diagnosisName;
-        private String diagnosisCode;
-        private String diagnosisType; // Primary, Secondary
-        private LocalDate diagnosisDate;
-        private String diagnosisNotes;
-    }
-    
-    // Helper method to add diagnosis
-    public void addDiagnosis(Diagnosis diagnosis) {
-        if (this.diagnoses == null) {
-            this.diagnoses = new ArrayList<>();
-        }
-        this.diagnoses.add(diagnosis);
     }
 } 

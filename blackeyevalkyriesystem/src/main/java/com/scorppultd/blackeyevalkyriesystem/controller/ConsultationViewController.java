@@ -27,7 +27,6 @@ import com.scorppultd.blackeyevalkyriesystem.model.Doctor;
 import com.scorppultd.blackeyevalkyriesystem.model.Drug;
 import com.scorppultd.blackeyevalkyriesystem.model.Patient;
 import com.scorppultd.blackeyevalkyriesystem.model.Prescription;
-import com.scorppultd.blackeyevalkyriesystem.model.Consultation.Diagnosis;
 import com.scorppultd.blackeyevalkyriesystem.model.Consultation.VitalSigns;
 import com.scorppultd.blackeyevalkyriesystem.service.ConsultationService;
 import com.scorppultd.blackeyevalkyriesystem.service.DoctorService;
@@ -394,7 +393,7 @@ public class ConsultationViewController {
         consultation.setVitalSigns(vitalSigns);
         
         // Initialize empty diagnosis
-        consultation.setDiagnoses(List.of(new Diagnosis()));
+        consultation.setDiagnosis("");
         
         // Get the doctor (for now just get the first available doctor)
         List<Doctor> doctors = doctorService.getAllDoctors();
@@ -435,9 +434,10 @@ public class ConsultationViewController {
             // Update the consultation with the form values
             existingConsultation.setClinicalNotes(consultation.getClinicalNotes());
             
-            // Handle diagnoses safely
-            if (consultation.getDiagnoses() != null && !consultation.getDiagnoses().isEmpty()) {
-                existingConsultation.setDiagnoses(consultation.getDiagnoses());
+            // Update diagnosis with the new simplified field
+            if (consultation.getDiagnosis() != null) {
+                existingConsultation.setDiagnosis(consultation.getDiagnosis());
+                System.out.println("Updated diagnosis: " + consultation.getDiagnosis());
             }
             
             // Update vital signs from the form

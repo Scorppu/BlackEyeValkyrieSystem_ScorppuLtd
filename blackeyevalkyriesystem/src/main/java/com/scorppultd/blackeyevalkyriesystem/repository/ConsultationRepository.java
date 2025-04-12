@@ -32,11 +32,7 @@ public interface ConsultationRepository extends MongoRepository<Consultation, St
     List<Consultation> findByConsultationType(String consultationType);
     
     // Find consultations with a specific diagnosis
-    @Query("{'diagnoses.diagnosisName': ?0}")
-    List<Consultation> findByDiagnosisName(String diagnosisName);
-    
-    @Query("{'diagnoses.diagnosisCode': ?0}")
-    List<Consultation> findByDiagnosisCode(String diagnosisCode);
+    List<Consultation> findByDiagnosis(String diagnosis);
     
     // Find consultations for follow-up
     List<Consultation> findByFollowUpDateAndStatus(LocalDate followUpDate, String status);

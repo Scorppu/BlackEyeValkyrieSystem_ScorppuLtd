@@ -32,9 +32,8 @@ public interface ConsultationService {
     Consultation updateConsultationStatus(String id, String status);
     
     // Diagnosis operations
-    void addDiagnosisToConsultation(String consultationId, Consultation.Diagnosis diagnosis);
-    List<Consultation> getConsultationsByDiagnosisName(String diagnosisName);
-    List<Consultation> getConsultationsByDiagnosisCode(String diagnosisCode);
+    void updateDiagnosis(String consultationId, String diagnosis);
+    List<Consultation> getConsultationsByDiagnosis(String diagnosis);
     
     // Prescription operations
     Consultation addPrescriptionToConsultation(String consultationId, Prescription prescription);

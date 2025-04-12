@@ -348,7 +348,7 @@
                 <!-- Final Diagnosis Section -->
                 <div class="info-section">
                     <h2 class="section-label">Final Diagnosis:</h2>
-                    <input type="text" class="diagnosis-input" th:field="*{diagnoses[0].diagnosisName}" placeholder="Enter final diagnosis" />
+                    <input type="text" class="diagnosis-input" th:field="*{diagnosis}" placeholder="Enter final diagnosis" />
                     <button type="button" class="confirm-btn" id="confirmDiagnosis">Confirm diagnosis</button>
                     <div class="clearfix"></div>
                 </div>
@@ -1075,7 +1075,7 @@
         // Function to confirm diagnosis (locks the diagnosis input and transcript fields)
         function confirmDiagnosis() {
             // Get the diagnosis input and consultation transcript fields
-            const diagnosisInput = document.querySelector('input[name="diagnoses[0].diagnosisName"]');
+            const diagnosisInput = document.querySelector('input[name="diagnosis"]');
             const transcriptField = document.querySelector('textarea[name="clinicalNotes"]');
             const confirmBtn = document.getElementById('confirmDiagnosis');
             
