@@ -21,6 +21,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import com.scorppultd.blackeyevalkyriesystem.model.Consultation;
 import com.scorppultd.blackeyevalkyriesystem.model.Doctor;
@@ -38,6 +39,7 @@ import com.scorppultd.blackeyevalkyriesystem.service.AppointmentService;
 
 @Controller
 @RequestMapping("/consultation")
+@PreAuthorize("hasAnyRole('DOCTOR', 'ADMIN')")
 public class ConsultationViewController {
 
     private final ConsultationService consultationService;

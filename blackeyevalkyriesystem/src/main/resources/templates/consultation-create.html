@@ -4,6 +4,8 @@
 
 <head>
     <title>Consultation</title>
+    <!-- Include Chart.js for displaying graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         .info-section {
             background-color: var(--secondary-bg);
@@ -264,65 +266,67 @@
                 <input type="hidden" th:field="*{id}" />
                 <input type="hidden" th:field="*{prescription.id}" th:if="${consultation.prescription != null}" />
                 <input type="hidden" th:field="*{appointmentId}" />
-                
-                <div class="row">
-                    <!-- Patient Information Section -->
-                    <div class="col-md-6">
-                        <div class="info-section">
-                            <h2 class="section-label">Patient Information</h2>
-                            <div class="info-grid">
-                                <div class="info-item">
-                                    <span class="info-label">Visit ID</span>
-                                    <span class="info-value" th:text="${consultation.id}">OP8021</span>
-                                </div>
-                                <div class="info-item">
-                                    <span class="info-label">Appointment Type</span>
-                                    <span class="info-value" th:text="${consultation.consultationType}">General Consultation</span>
-                                </div>
-                                <div class="info-item">
-                                    <span class="info-label">Patient Name</span>
-                                    <span class="info-value" th:text="${consultation.patient.firstName + ' ' + consultation.patient.lastName}">Somebody</span>
-                                </div>
-                                <div class="info-item">
-                                    <span class="info-label">Patient Age</span>
-                                    <span class="info-value" th:text="${consultation.patient.age}">20</span>
-                                </div>
+                <!-- Add hidden input with patient ID -->
+                <input type="hidden" id="patientId" th:value="${consultation.patient != null ? consultation.patient.id : ''}" />
+
+            <div class="row">
+                <!-- Patient Information Section -->
+                <div class="col-md-6">
+                    <div class="info-section">
+                        <h2 class="section-label">Patient Information</h2>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <span class="info-label">Visit ID</span>
+                                <span class="info-value" th:text="${consultation.id}">OP8021</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Appointment Type</span>
+                                <span class="info-value" th:text="${consultation.consultationType}">General Consultation</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Patient Name</span>
+                                <span class="info-value" th:text="${consultation.patient.firstName + ' ' + consultation.patient.lastName}">Somebody</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Patient Age</span>
+                                <span class="info-value" th:text="${consultation.patient.age}">20</span>
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Patient Vitals Section -->
-                    <div class="col-md-6">
-                        <div class="info-section">
-                            <h2 class="section-label">Patient Vitals</h2>
-                            <div class="info-grid">
-                                <div class="info-item">
-                                    <span class="info-label">Height</span>
-                                    <input type="number" step="0.1" class="info-value editable-vital" id="height" th:field="*{vitalSigns.height}" placeholder="cm">
-                                </div>
-                                <div class="info-item">
-                                    <span class="info-label">Weight</span>
-                                    <input type="number" step="0.1" class="info-value editable-vital" id="weight" th:field="*{vitalSigns.weight}" placeholder="kg">
-                                </div>
-                                <div class="info-item">
-                                    <span class="info-label">Temperature</span>
+                <!-- Patient Vitals Section -->
+                <div class="col-md-6">
+                    <div class="info-section">
+                        <h2 class="section-label">Patient Vitals</h2>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <span class="info-label">Height</span>
+                                    <input type="number" step="0.1" class="info-value editable-vital" id="height" th:field="*{vitalSigns.height}" placeholder="cm" >
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Weight</span>
+                                    <input type="number" step="0.1" class="info-value editable-vital" id="weight" th:field="*{vitalSigns.weight}" placeholder="kg" >
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Temperature</span>
                                     <input type="number" step="0.1" class="info-value editable-vital" id="temperature" th:field="*{vitalSigns.temperature}" placeholder="°C">
-                                </div>
+                            </div>
                                 
                                 <!-- Replace separate BP fields with a combined horizontal layout -->
-                                <div class="info-item">
+                            <div class="info-item">
                                     <span class="info-label">Blood Pressure</span>
                                     <div style="display: flex; align-items: center;">
                                         <input type="number" class="info-value editable-vital" id="systolicBP" placeholder="Systolic" min="0" max="300" style="flex: 1; margin-right: 5px;">
                                         <span style="font-weight: bold; margin: 0 5px; color: var(--secondary-text);">/</span>
                                         <input type="number" class="info-value editable-vital" id="diastolicBP" placeholder="Diastolic" min="0" max="200" style="flex: 1; margin-left: 5px;">
-                                    </div>
-                                </div>
+                            </div>
+                        </div>
                                 
                                 <div class="info-item">
                                     <span class="info-label">Heart Rate</span>
                                     <input type="number" class="info-value editable-vital" id="heartRate" th:field="*{vitalSigns.heartRate}" placeholder="bpm">
-                                </div>
+                    </div>
                                 <div class="info-item">
                                     <span class="info-label">Respiratory Rate</span>
                                     <input type="number" class="info-value editable-vital" id="respiratoryRate" th:field="*{vitalSigns.respiratoryRate}" placeholder="breaths/min">
@@ -336,8 +340,8 @@
                             </div>
                             <button type="button" class="confirm-btn" id="confirmVitals" style="margin-top: 15px;">Confirm Vitals</button>
                         </div>
-                    </div>
                 </div>
+            </div>
 
                 <!-- Past Consultations Section -->
                 <div class="info-section" th:if="${pastConsultations != null && !pastConsultations.isEmpty()}">
@@ -351,8 +355,8 @@
                                 <tr style="background-color: var(--secondary-bg); border-bottom: 1px solid var(--border-color);">
                                     <th style="padding: 10px; text-align: left;">Date</th>
                                     <th style="padding: 10px; text-align: left;">Doctor</th>
-                                    <th style="padding: 10px; text-align: left;">Height</th>
-                                    <th style="padding: 10px; text-align: left;">Weight</th>
+                                    <th style="padding: 10px; text-align: left; cursor: pointer; color: var(--accent-color);" onclick="showVitalsHistory('height')" title="Click to view height history">Height <span style="font-size: 12px;">📊</span></th>
+                                    <th style="padding: 10px; text-align: left; cursor: pointer; color: var(--accent-color);" onclick="showVitalsHistory('weight')" title="Click to view weight history">Weight <span style="font-size: 12px;">📊</span></th>
                                     <th style="padding: 10px; text-align: left;">BP</th>
                                     <th style="padding: 10px; text-align: left;">Diagnosis</th>
                                     <th style="padding: 10px; text-align: left;">Notes</th>
@@ -643,6 +647,38 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn-secondary" onclick="closeVitalsModal()">Close</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vitals History Modal -->
+            <div id="vitalsHistoryModal" class="modal">
+                <div class="modal-content" style="width: 600px; max-width: 95%;">
+                    <div class="modal-header">
+                        <h3 id="vitalsHistoryTitle">Patient History</h3>
+                        <span class="close" onclick="closeVitalsHistoryModal()">&times;</span>
+                    </div>
+                    <div class="modal-body">
+                        <div id="vitalsHistoryContent">
+                            <div id="vitalsHistoryChart" style="width: 100%; height: 300px;"></div>
+                            <div id="vitalsHistoryTable" style="margin-top: 20px; max-height: 300px; overflow-y: auto;">
+                                <table style="width: 100%; border-collapse: collapse;">
+                                    <thead>
+                                        <tr style="background-color: var(--secondary-bg); border-bottom: 1px solid var(--border-color);">
+                                            <th style="padding: 10px; text-align: left;">Date</th>
+                                            <th style="padding: 10px; text-align: left;">Value</th>
+                                            <th style="padding: 10px; text-align: left;">Doctor</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="vitalsHistoryTableBody">
+                                        <!-- Will be populated dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn-secondary" onclick="closeVitalsHistoryModal()">Close</button>
                     </div>
                 </div>
             </div>
@@ -1272,7 +1308,7 @@
                 confirmBtn.setAttribute('data-locked', 'false');
             } else {
                 // Lock fields - make them readonly
-                diagnosisInput.setAttribute('readonly', 'readonly');
+            diagnosisInput.setAttribute('readonly', 'readonly');
                 transcriptField.setAttribute('readonly', 'readonly');
                 
                 // Add a visual indicator that the fields are locked
@@ -1354,6 +1390,7 @@
             const notesModal = document.getElementById('pastConsultationNotesModal');
             const vitalsModal = document.getElementById('fullVitalsModal');
             const drugModal = document.getElementById('drugDetailsModal');
+            const vitalsHistoryModal = document.getElementById('vitalsHistoryModal');
             
             if (event.target == notesModal) {
                 notesModal.style.display = 'none';
@@ -1364,6 +1401,249 @@
             if (event.target == drugModal) {
                 drugModal.style.display = 'none';
             }
+            if (event.target == vitalsHistoryModal) {
+                vitalsHistoryModal.style.display = 'none';
+            }
+        }
+
+        // Get the patient ID from the hidden input
+        function getPatientId() {
+            const patientIdField = document.getElementById('patientId');
+            return patientIdField ? patientIdField.value : '';
+        }
+        
+        // Functions for vitals history modal
+        function showVitalsHistory(vitalType) {
+            // Only show history if fields are not locked for editing
+            const confirmBtn = document.getElementById('confirmVitals');
+            const isCurrentlyLocked = confirmBtn && confirmBtn.getAttribute('data-locked') === 'true';
+            if (isCurrentlyLocked) {
+                return; // Don't show history if fields are locked
+            }
+            
+            const modal = document.getElementById('vitalsHistoryModal');
+            const title = document.getElementById('vitalsHistoryTitle');
+            
+            // Set the title based on the vital type
+            title.textContent = vitalType === 'height' ? 'Height History' : 'Weight History';
+            
+            // Show the modal
+            modal.style.display = 'block';
+            
+            // Fetch the patient's history
+            fetchPatientVitalsHistory(getPatientId(), vitalType);
+        }
+        
+        function closeVitalsHistoryModal() {
+            document.getElementById('vitalsHistoryModal').style.display = 'none';
+        }
+        
+        function fetchPatientVitalsHistory(patientId, vitalType) {
+            if (!patientId) {
+                showNoDataMessage(vitalType);
+                return;
+            }
+            
+            // Show loading state
+            const tableBody = document.getElementById('vitalsHistoryTableBody');
+            tableBody.innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 20px;">Loading...</td></tr>';
+            
+            // Fetch data from server
+            fetch(`/api/patient/${patientId}/vitals-history?type=${vitalType}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    displayVitalsHistory(data, vitalType);
+                })
+                .catch(error => {
+                    console.error('Error fetching vitals history:', error);
+                    
+                    // Fall back to past consultations data from the page
+                    const pastConsultations = collectPastConsultationsData();
+                    displayVitalsHistory(pastConsultations, vitalType);
+                });
+        }
+        
+        function collectPastConsultationsData() {
+            // Collect data from the past consultations table that's already on the page
+            const consultations = [];
+            
+            // Try selecting the table rows directly
+            const rows = document.querySelectorAll('.past-consultations-container tbody tr');
+            console.log(`Found ${rows.length} consultation rows`);
+            
+            rows.forEach(row => {
+                // Get the button in this row
+                const button = row.querySelector('button.btn-secondary');
+                if (!button) return;
+                
+                const data = button.dataset;
+                
+                // Log the data we're collecting
+                console.log('Collecting data from consultation row:');
+                console.log(`- Date: ${data.date}`);
+                console.log(`- Height: ${data.height}`);
+                console.log(`- Weight: ${data.weight}`);
+                console.log(`- Doctor: ${data.doctor}`);
+                
+                // Only add if we have relevant data
+                if (data.date && (data.height || data.weight)) {
+                    consultations.push({
+                        date: data.date,
+                        height: data.height,
+                        weight: data.weight,
+                        doctor: data.doctor
+                    });
+                }
+            });
+            
+            console.log(`Collected ${consultations.length} consultations with data`);
+            return consultations;
+        }
+        
+        function displayVitalsHistory(data, vitalType) {
+            const tableBody = document.getElementById('vitalsHistoryTableBody');
+            const chartDiv = document.getElementById('vitalsHistoryChart');
+            
+            // Clear previous data
+            tableBody.innerHTML = '';
+            chartDiv.innerHTML = '';
+            
+            console.log(`Displaying ${vitalType} history`, data);
+            
+            if (!data || data.length === 0) {
+                showNoDataMessage(vitalType);
+                return;
+            }
+            
+            // Filter to only include items with the requested vital type data
+            const filteredData = data.filter(item => {
+                const value = vitalType === 'height' ? item.height : item.weight;
+                return value !== undefined && value !== null && value !== '';
+            });
+            
+            console.log(`After filtering, have ${filteredData.length} records with ${vitalType} data`);
+            
+            if (filteredData.length === 0) {
+                showNoDataMessage(vitalType);
+                return;
+            }
+            
+            // Sort data by date (oldest first) for the chart
+            filteredData.sort((a, b) => new Date(a.date) - new Date(b.date));
+            
+            // Prepare data for chart
+            const chartData = {
+                labels: [],
+                values: []
+            };
+            
+            // Collect data for the chart (chronological order)
+            filteredData.forEach(item => {
+                const value = vitalType === 'height' ? item.height : item.weight;
+                chartData.labels.push(item.date);
+                chartData.values.push(parseFloat(value));
+            });
+            
+            // Create chart if we have data
+            if (chartData.values.length > 0) {
+                createVitalsChart(chartDiv, chartData, vitalType);
+            } else {
+                chartDiv.innerHTML = `<p style="text-align: center; padding: 20px;">No ${vitalType} history data available</p>`;
+            }
+            
+            // Sort data for the table (newest first)
+            const tableData = [...filteredData].sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            // Populate table with newest records first
+            tableData.forEach(item => {
+                const value = vitalType === 'height' ? item.height : item.weight;
+                
+                // Add to table
+                const row = document.createElement('tr');
+                row.style.borderBottom = '1px solid var(--border-color)';
+                
+                const dateCell = document.createElement('td');
+                dateCell.style.padding = '10px';
+                dateCell.textContent = item.date;
+                
+                const valueCell = document.createElement('td');
+                valueCell.style.padding = '10px';
+                valueCell.textContent = `${value} ${vitalType === 'height' ? 'cm' : 'kg'}`;
+                
+                const doctorCell = document.createElement('td');
+                doctorCell.style.padding = '10px';
+                doctorCell.textContent = item.doctor || 'Unknown';
+                
+                row.appendChild(dateCell);
+                row.appendChild(valueCell);
+                row.appendChild(doctorCell);
+                tableBody.appendChild(row);
+            });
+        }
+        
+        function showNoDataMessage(vitalType) {
+            const tableBody = document.getElementById('vitalsHistoryTableBody');
+            const chartDiv = document.getElementById('vitalsHistoryChart');
+            
+            tableBody.innerHTML = `<tr><td colspan="3" style="text-align: center; padding: 20px;">No ${vitalType} history available</td></tr>`;
+            chartDiv.innerHTML = `<p style="text-align: center; padding: 20px;">No ${vitalType} history data available</p>`;
+        }
+        
+        function createVitalsChart(container, data, vitalType) {
+            // Clear previous chart
+            container.innerHTML = '';
+            
+            // Create canvas for the chart
+            const canvas = document.createElement('canvas');
+            container.appendChild(canvas);
+            
+            // Create a line chart using Chart.js
+            const ctx = canvas.getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: vitalType === 'height' ? 'Height (cm)' : 'Weight (kg)',
+                        data: data.values,
+                        borderColor: 'rgb(138, 43, 226)',
+                        backgroundColor: 'rgba(138, 43, 226, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.1,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            title: {
+                                display: true,
+                                text: vitalType === 'height' ? 'Height (cm)' : 'Weight (kg)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            }
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: vitalType === 'height' ? 'Height History' : 'Weight History'
+                        }
+                    }
+                }
+            });
         }
     </script>
 </th:block>
