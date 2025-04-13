@@ -4,6 +4,8 @@
 
 <head>
     <title>Consultation</title>
+    <!-- Include Chart.js for displaying graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         .info-section {
             background-color: var(--secondary-bg);
@@ -12,6 +14,7 @@
             margin-bottom: 20px;
             color: var(--secondary-text);
             border: 1px solid var(--border-color);
+            overflow: hidden;
         }
         .section-label {
             font-size: 18px;
@@ -48,12 +51,12 @@
             border: 1px solid var(--border-color);
             border-radius: 4px;
             color: var(--primary-text);
-            padding: 12px;
+            padding: 5px;
             resize: vertical;
         }
         .diagnosis-input {
             width: 100%;
-            padding: 12px;
+            padding: 5px;
             background-color: var(--input-bg);
             border: 1px solid var(--border-color);
             border-radius: 4px;
@@ -83,22 +86,29 @@
             text-align: left;
             border-bottom: 1px solid var(--border-color);
         }
-        .template-list {
-            padding: 0;
-            list-style-type: none;
-        }
-        .template-item {
-            padding: 8px 12px;
-            cursor: pointer;
+        select.info-value {
+            width: 100%;
+            padding: 8px 6px;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
             border-radius: 4px;
-            transition: background-color 0.2s;
+            color: var(--primary-text);
+            -webkit-appearance: none;
+            appearance: auto;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
         }
-        .template-item:hover {
-            background-color: rgba(138, 43, 226, 0.1);
+        /* Style for dropdown options to ensure full text is displayed */
+        select.info-value option {
+            white-space: normal;
+            padding: 6px;
+            min-width: 250px;
         }
-        .template-item.active {
-            background-color: var(--accent-color);
-            color: white;
+        /* Make sure the select itself is large enough */
+        #templateSelect {
+            width: 100%;
+            min-width: 200px;
         }
         .drug-cart {
             min-height: 150px;
@@ -125,6 +135,124 @@
         .checkout-icon {
             margin-left: 5px;
         }
+        .drug-item {
+            padding: 8px 10px;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            transition: background-color 0.2s;
+        }
+        .drug-item:hover {
+            background-color: rgba(138, 43, 226, 0.1);
+        }
+        .drug-item.selected {
+            background-color: rgba(138, 43, 226, 0.2);
+            border-left: 3px solid var(--accent-color);
+        }
+        .add-selected-btn {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 16px;
+            margin-top: 15px;
+            float: right;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .add-selected-btn:hover {
+            background-color: #7b26cd;
+        }
+        .add-selected-btn:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .modal {
+            display: none; 
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+        }
+        .modal-content {
+            background-color: var(--primary-bg);
+            margin: 10% auto;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            width: 400px;
+            max-width: 90%;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+        .modal-header h3 {
+            margin: 0;
+            color: var(--primary-text);
+        }
+        .close {
+            color: var(--secondary-text);
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .modal-body {
+            margin-bottom: 20px;
+        }
+        .modal-body .form-group {
+            margin-bottom: 15px;
+        }
+        .modal-body label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--primary-text);
+        }
+        .modal-body input, .modal-body select {
+            width: 100%;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            background-color: var(--input-bg);
+            color: var(--primary-text);
+        }
+        .modal-footer {
+            text-align: right;
+            border-top: 1px solid var(--border-color);
+            padding-top: 15px;
+        }
+        .btn-primary {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 15px;
+            cursor: pointer;
+        }
+        .btn-primary:hover {
+            background-color: #7b26cd;
+        }
+        .btn-secondary {
+            background-color: var(--secondary-bg);
+            color: var(--primary-text);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 8px 15px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+        .btn-secondary:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
     </style>
 </head>
 
@@ -134,6 +262,13 @@
             <div class="header-container">
                 <h1>Consultation</h1>
             </div>
+
+            <form th:action="@{/consultation/save}" method="post" th:object="${consultation}">
+                <input type="hidden" th:field="*{id}" />
+                <input type="hidden" th:field="*{prescription.id}" th:if="${consultation.prescription != null}" />
+                <input type="hidden" th:field="*{appointmentId}" />
+                <!-- Add hidden input with patient ID -->
+                <input type="hidden" id="patientId" th:value="${consultation.patient != null ? consultation.patient.id : ''}" />
 
             <div class="row">
                 <!-- Patient Information Section -->
@@ -168,29 +303,109 @@
                         <div class="info-grid">
                             <div class="info-item">
                                 <span class="info-label">Height</span>
-                                <span class="info-value" th:text="${consultation.vitalSigns.height + ' cm'}">175</span>
+                                    <input type="number" step="0.1" class="info-value editable-vital" id="height" th:field="*{vitalSigns.height}" placeholder="cm" >
                             </div>
                             <div class="info-item">
                                 <span class="info-label">Weight</span>
-                                <span class="info-value" th:text="${consultation.vitalSigns.weight + ' kg'}">70kg</span>
+                                    <input type="number" step="0.1" class="info-value editable-vital" id="weight" th:field="*{vitalSigns.weight}" placeholder="kg" >
                             </div>
                             <div class="info-item">
                                 <span class="info-label">Temperature</span>
-                                <span class="info-value" th:text="${consultation.vitalSigns.temperature + '°C'}">37.5°C</span>
+                                    <input type="number" step="0.1" class="info-value editable-vital" id="temperature" th:field="*{vitalSigns.temperature}" placeholder="°C">
                             </div>
+                                
+                                <!-- Replace separate BP fields with a combined horizontal layout -->
                             <div class="info-item">
-                                <span class="info-label">Blood Pressure (sbp/dbp)</span>
-                                <span class="info-value" th:text="${consultation.vitalSigns.bloodPressure + ' (mmHg)'}">120/80 (mmHg)</span>
+                                    <span class="info-label">Blood Pressure</span>
+                                    <div style="display: flex; align-items: center;">
+                                        <input type="number" class="info-value editable-vital" id="systolicBP" placeholder="Systolic" min="0" max="300" style="flex: 1; margin-right: 5px;">
+                                        <span style="font-weight: bold; margin: 0 5px; color: var(--secondary-text);">/</span>
+                                        <input type="number" class="info-value editable-vital" id="diastolicBP" placeholder="Diastolic" min="0" max="200" style="flex: 1; margin-left: 5px;">
                             </div>
                         </div>
+                                
+                                <div class="info-item">
+                                    <span class="info-label">Heart Rate</span>
+                                    <input type="number" class="info-value editable-vital" id="heartRate" th:field="*{vitalSigns.heartRate}" placeholder="bpm">
                     </div>
+                                <div class="info-item">
+                                    <span class="info-label">Respiratory Rate</span>
+                                    <input type="number" class="info-value editable-vital" id="respiratoryRate" th:field="*{vitalSigns.respiratoryRate}" placeholder="breaths/min">
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Oxygen Saturation</span>
+                                    <input type="number" step="0.1" class="info-value editable-vital" id="oxygenSaturation" th:field="*{vitalSigns.oxygenSaturation}" placeholder="%">
+                                </div>
+                                <!-- Hidden field to store the combined BP value -->
+                                <input type="hidden" id="combinedBP" th:field="*{vitalSigns.bloodPressure}">
+                            </div>
+                            <button type="button" class="confirm-btn" id="confirmVitals">Confirm Vitals</button>
+                        </div>
                 </div>
             </div>
 
-            <!-- Consultation Transcript Section -->
-            <form th:action="@{/consultation/save}" method="post" th:object="${consultation}">
-                <input type="hidden" th:field="*{id}" />
-                
+                <!-- Past Consultations Section -->
+                <div class="info-section" th:if="${pastConsultations != null && !pastConsultations.isEmpty()}">
+                    <h2 class="section-label" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="togglePastConsultations()">
+                        Patient's Past Consultations
+                        <span id="toggleIcon" style="font-size: 18px; transition: transform 0.3s;">▼</span>
+                    </h2>
+                    <div id="pastConsultationsContent" class="past-consultations-container" style="max-height: 300px; overflow-y: auto;">
+                        <table class="table" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
+                            <thead>
+                                <tr style="background-color: var(--secondary-bg); border-bottom: 1px solid var(--border-color);">
+                                    <th style="padding: 10px; text-align: left;">Date</th>
+                                    <th style="padding: 10px; text-align: left;">Doctor</th>
+                                    <th style="padding: 10px; text-align: left; cursor: pointer; color: var(--accent-color);" onclick="showVitalsHistory('height')" title="Click to view height history">Height <span style="font-size: 12px;">📊</span></th>
+                                    <th style="padding: 10px; text-align: left; cursor: pointer; color: var(--accent-color);" onclick="showVitalsHistory('weight')" title="Click to view weight history">Weight <span style="font-size: 12px;">📊</span></th>
+                                    <th style="padding: 10px; text-align: left;">BP</th>
+                                    <th style="padding: 10px; text-align: left;">Diagnosis</th>
+                                    <th style="padding: 10px; text-align: left;">Notes</th>
+                                    <th style="padding: 10px; text-align: left;">Details</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="pastConsult : ${pastConsultations}" style="border-bottom: 1px solid var(--border-color);">
+                                    <td style="padding: 10px;" th:text="${#temporals.format(pastConsult.consultationDateTime, 'yyyy-MM-dd')}">2023-01-01</td>
+                                    <td style="padding: 10px;" th:text="${pastConsult.doctor != null ? pastConsult.doctor.firstName + ' ' + pastConsult.doctor.lastName : 'Unknown'}">Dr. John Doe</td>
+                                    <td style="padding: 10px;" th:text="${pastConsult.vitalSigns?.height != null ? pastConsult.vitalSigns?.height + ' cm' : 'N/A'}">170 cm</td>
+                                    <td style="padding: 10px;" th:text="${pastConsult.vitalSigns?.weight != null ? pastConsult.vitalSigns?.weight + ' kg' : 'N/A'}">70 kg</td>
+                                    <td style="padding: 10px;" th:text="${pastConsult.vitalSigns?.bloodPressure != null ? pastConsult.vitalSigns?.bloodPressure : 'N/A'}">120/80</td>
+                                    <td style="padding: 10px;" th:text="${pastConsult.diagnosis}">Diagnosis</td>
+                                    <td style="padding: 10px;">
+                                        <div class="consultation-notes" th:text="${#strings.abbreviate(pastConsult.clinicalNotes, 100)}" style="cursor: pointer;" 
+                                             th:attr="data-full-notes=${pastConsult.clinicalNotes}" onclick="showFullNotes(this)">
+                                            Notes preview...
+                                        </div>
+                                    </td>
+                                    <td style="padding: 10px;">
+                                        <button type="button" class="btn-secondary" style="padding: 4px 8px; margin: 0;" 
+                                                th:attr="data-id=${pastConsult.id},
+                                                        data-date=${#temporals.format(pastConsult.consultationDateTime, 'yyyy-MM-dd')},
+                                                        data-diagnosis=${pastConsult.diagnosis},
+                                                        data-notes=${pastConsult.clinicalNotes},
+                                                        data-consultation-type=${pastConsult.consultationType},
+                                                        data-status=${pastConsult.status},
+                                                        data-doctor=${pastConsult.doctor != null ? pastConsult.doctor.firstName + ' ' + pastConsult.doctor.lastName : 'Unknown'},
+                                                        data-bp=${pastConsult.vitalSigns?.bloodPressure},
+                                                        data-temp=${pastConsult.vitalSigns?.temperature},
+                                                        data-hr=${pastConsult.vitalSigns?.heartRate},
+                                                        data-rr=${pastConsult.vitalSigns?.respiratoryRate},
+                                                        data-weight=${pastConsult.vitalSigns?.weight},
+                                                        data-height=${pastConsult.vitalSigns?.height},
+                                                        data-o2=${pastConsult.vitalSigns?.oxygenSaturation},
+                                                        data-bmi=${pastConsult.vitalSigns?.bmi}"
+                                                onclick="showConsultationDetails(this)">
+                                            View
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Consultation Transcript Section -->
                 <div class="info-section">
                     <h2 class="section-label">Consultation Transcript:</h2>
                     <textarea class="transcript-box" th:field="*{clinicalNotes}" placeholder="Enter consultation notes here..."></textarea>
@@ -199,56 +414,87 @@
                 <!-- Final Diagnosis Section -->
                 <div class="info-section">
                     <h2 class="section-label">Final Diagnosis:</h2>
-                    <input type="text" class="diagnosis-input" th:field="*{diagnoses[0].diagnosisName}" placeholder="Enter final diagnosis" />
+                    <input type="text" class="diagnosis-input" th:field="*{diagnosis}" placeholder="Enter final diagnosis" />
                     <button type="button" class="confirm-btn" id="confirmDiagnosis">Confirm diagnosis</button>
                     <div class="clearfix"></div>
                 </div>
 
                 <!-- Prescription Section -->
                 <div class="row">
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <div class="info-section">
-                            <h2 class="section-label">Template</h2>
-                            <ul class="template-list">
-                                <li class="template-item" onclick="selectTemplate(this, 'In-House Dispensary')">In-House Dispensary</li>
-                                <li class="template-item" onclick="selectTemplate(this, 'Pain Meds - non narcotic')">Pain Meds - non narcotic</li>
+                            <h2 class="section-label">Filter by Category</h2>
+                            <select id="templateSelect" class="info-value" onchange="selectTemplateFromDropdown(this)">
+                                <option value="">All Drugs</option>
+                                <option th:each="template : ${drugTemplates}" 
+                                        th:value="${template}" 
+                                        th:text="${template}">Template Name</option>
+                            </select>
+                            
+                            <!-- Drug List Display -->
+                            <div id="drugListContainer" style="margin-top: 15px; max-height: 300px; overflow-y: auto;">
+                                <h3 class="section-label" style="font-size: 16px; margin-bottom: 10px;">Available Drugs</h3>
+                                
+                                <!-- Diagnostics info (can be made collapsible if needed) -->
+                                <div th:if="${totalDrugCount != null}" style="margin-bottom: 10px; font-size: 0.9em; color: var(--secondary-text); padding: 8px; background-color: rgba(138, 43, 226, 0.05); border-radius: 4px; display: none;">
+                                    <div>Total drugs in database: <span th:text="${totalDrugCount}">0</span></div>
+                                    <div>Template drug counts:</div>
+                                    <ul style="margin: 5px 0; padding-left: 20px;">
+                                        <li th:each="entry : ${drugCounts}" 
+                                            th:text="${entry.key + ': ' + entry.value}"
+                                            th:attr="data-drug-count=${entry.value},data-template=${entry.key}">Template: 0</li>
                             </ul>
+                                    <div th:if="${totalDrugCount == 0}" style="color: #ff5c5c; margin-top: 5px;">
+                                        No drugs found in database. Using fallback data.
                         </div>
                     </div>
-                    <div class="col-md-9">
-                        <div class="info-section">
-                            <table class="prescription-table">
-                                <thead>
-                                    <tr>
-                                        <th>Drug</th>
-                                        <th>Dose</th>
-                                        <th>Days</th>
-                                        <th>Qty</th>
-                                        <th></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>
-                                            <select id="drugSelect" class="info-value">
-                                                <option value="">Select drug</option>
-                                            </select>
-                                        </td>
-                                        <td>
-                                            <input type="text" id="doseInput" class="info-value" placeholder="Dose instructions" />
-                                        </td>
-                                        <td>
-                                            <input type="number" id="daysInput" class="info-value" placeholder="Days" />
-                                        </td>
-                                        <td>
-                                            <input type="number" id="qtyInput" class="info-value" placeholder="Qty" />
-                                        </td>
-                                        <td>
-                                            <button type="button" class="confirm-btn" onclick="addToCart()">Add</button>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                                
+                                <!-- Drug List Header -->
+                                <div style="font-weight: bold; padding: 8px 10px; background-color: var(--input-bg); border-radius: 4px 4px 0 0; border: 1px solid var(--border-color); display: flex; justify-content: space-between;">
+                                    <span>Drug Name (Click to select)</span>
+                                    <span>Details</span>
+                                </div>
+                                
+                                <!-- Drug List -->
+                                <ul id="drugList" class="drug-list" style="list-style-type: none; padding: 0; margin-top: 0; border: 1px solid var(--border-color); border-top: none; border-radius: 0 0 4px 4px;">
+                                    <!-- Initial drug list will be populated with all drugs -->
+                                    <li th:each="drug : ${defaultDrugs}" 
+                                        class="drug-item"
+                                        th:data-id="${drug.id}"
+                                        th:data-name="${drug.name}"
+                                        th:data-dosage="${drug.dosageInstructions}"
+                                        th:data-route="${drug.routeOfAdministration}"
+                                        th:data-template="${drug.templateCategory}"
+                                        th:data-is-allergen="${consultation.patient.drugAllergies != null && consultation.patient.drugAllergies.contains(drug.id)}"
+                                        onclick="toggleDrugSelection(this)">
+                                        <div>
+                                            <strong th:text="${drug.name}" th:style="${consultation.patient.drugAllergies != null && consultation.patient.drugAllergies.contains(drug.id) ? 'color: #ff0000;' : ''}">Drug Name</strong>
+                                            <span th:if="${consultation.patient.drugAllergies != null && consultation.patient.drugAllergies.contains(drug.id)}" 
+                                                  class="allergen-indicator" 
+                                                  title="Patient is allergic to this drug"
+                                                  style="color: #ff0000; margin-left: 5px;">⚠️</span>
+                                        </div>
+                                        <div style="text-align: right; color: var(--secondary-text); font-size: 0.9em;">
+                                            <span th:if="${drug.dosageInstructions}" th:text="${drug.dosageInstructions}">Dosage</span>
+                                            <span th:if="${drug.routeOfAdministration}" th:text="'(' + ${drug.routeOfAdministration} + ')'">Route</span>
+                                        </div>
+                                    </li>
+                                    <li th:if="${#lists.isEmpty(defaultDrugs)}" style="padding: 8px 10px; font-style: italic; color: var(--secondary-text);">
+                                        No drugs available
+                                    </li>
+                                </ul>
+                                
+                                <!-- Empty state message -->
+                                <div id="emptyDrugList" style="text-align: center; padding: 15px; color: var(--secondary-text); font-style: italic; display: none;">
+                                    Select a template to filter drugs by category
+                                </div>
+                                
+                                <!-- Add Selected button -->
+                                <button type="button" id="addSelectedBtn" class="add-selected-btn" onclick="addSelectedDrugsToCart()" disabled>
+                                    Add Selected
+                                </button>
+                                <div style="clear: both;"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -259,111 +505,335 @@
                     <div id="drugCart" class="drug-cart">
                         <!-- Cart items will be added here dynamically -->
                     </div>
-                    <button type="submit" class="checkout-btn">Checkout <span class="checkout-icon">→</span></button>
+                    <button type="submit" class="checkout-btn" id="checkoutButton" disabled>Checkout <span class="checkout-icon">→</span></button>
+                    <div id="checkoutMessage" style="clear: both; padding-top: 10px; color: #ff5c5c; display: none;">
+                        Please confirm both Vitals and Diagnosis before checkout
+                    </div>
                 </div>
             </form>
+            
+            <!-- Drug Details Modal -->
+            <div id="drugDetailsModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Add Drug to Prescription</h3>
+                        <span class="close">&times;</span>
+                    </div>
+                    <div class="modal-body">
+                        <div id="modalDrugsList">
+                            <!-- Selected drugs list will be shown here -->
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="modalDosage">Dosage Instructions:</label>
+                            <input type="text" id="modalDosage" class="form-control">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="modalDays">Duration (days):</label>
+                            <input type="number" id="modalDays" class="form-control" value="7" min="1">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="modalQuantity">Quantity:</label>
+                            <input type="number" id="modalQuantity" class="form-control" value="1" min="1">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn-secondary" onclick="closeModal()">Cancel</button>
+                        <button type="button" class="btn-primary" onclick="confirmAddToCart()">Add to Cart</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Past Consultation Notes Modal -->
+            <div id="pastConsultationNotesModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Consultation Notes</h3>
+                        <span class="close" onclick="closeNotesModal()">&times;</span>
+                    </div>
+                    <div class="modal-body">
+                        <div id="fullConsultationNotes" style="white-space: pre-wrap; max-height: 400px; overflow-y: auto;"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn-secondary" onclick="closeNotesModal()">Close</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Full Vitals Modal -->
+            <div id="fullVitalsModal" class="modal">
+                <div class="modal-content" style="width: 600px; max-width: 95%;">
+                    <div class="modal-header">
+                        <h3>Consultation Details</h3>
+                        <span class="close" onclick="closeVitalsModal()">&times;</span>
+                    </div>
+                    <div class="modal-body">
+                        <div id="fullVitalsContent" style="max-height: 500px; overflow-y: auto;">
+                            <div style="margin-bottom: 20px;">
+                                <h4 style="margin-top: 0; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">General Information</h4>
+                                <table style="width: 100%; border-collapse: collapse;">
+                                    <tr>
+                                        <td style="padding: 8px; font-weight: bold; width: 180px;">Consultation ID:</td>
+                                        <td id="modal-id" style="padding: 8px;"></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; font-weight: bold;">Date:</td>
+                                        <td id="modal-date" style="padding: 8px;"></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; font-weight: bold;">Consultation Type:</td>
+                                        <td id="modal-type" style="padding: 8px;"></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; font-weight: bold;">Doctor:</td>
+                                        <td id="modal-doctor" style="padding: 8px;"></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; font-weight: bold;">Status:</td>
+                                        <td id="modal-status" style="padding: 8px;"></td>
+                                    </tr>
+                                </table>
+                            </div>
+
+                            <div style="margin-bottom: 20px;">
+                                <h4 style="margin-top: 0; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">Diagnosis</h4>
+                                <div id="modal-diagnosis" style="padding: 8px; white-space: pre-wrap;"></div>
+                            </div>
+                            
+                            <div style="margin-bottom: 20px;">
+                                <h4 style="margin-top: 0; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">Clinical Notes</h4>
+                                <div id="modal-notes" style="padding: 8px; white-space: pre-wrap; max-height: 150px; overflow-y: auto;"></div>
+                            </div>
+
+                            <div>
+                                <h4 style="margin-top: 0; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">Vital Signs</h4>
+                                <table style="width: 100%; border-collapse: collapse;">
+                                    <tr>
+                                        <td style="padding: 8px; font-weight: bold; width: 180px;">Blood Pressure:</td>
+                                        <td id="modal-bp" style="padding: 8px;"></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; font-weight: bold;">Temperature:</td>
+                                        <td id="modal-temp" style="padding: 8px;"></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; font-weight: bold;">Heart Rate:</td>
+                                        <td id="modal-hr" style="padding: 8px;"></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; font-weight: bold;">Respiratory Rate:</td>
+                                        <td id="modal-rr" style="padding: 8px;"></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; font-weight: bold;">Oxygen Saturation:</td>
+                                        <td id="modal-o2" style="padding: 8px;"></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; font-weight: bold;">Weight:</td>
+                                        <td id="modal-weight" style="padding: 8px;"></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; font-weight: bold;">Height:</td>
+                                        <td id="modal-height" style="padding: 8px;"></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; font-weight: bold;">BMI:</td>
+                                        <td id="modal-bmi" style="padding: 8px;"></td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn-secondary" onclick="closeVitalsModal()">Close</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vitals History Modal -->
+            <div id="vitalsHistoryModal" class="modal">
+                <div class="modal-content" style="width: 600px; max-width: 95%;">
+                    <div class="modal-header">
+                        <h3 id="vitalsHistoryTitle">Patient History</h3>
+                        <span class="close" onclick="closeVitalsHistoryModal()">&times;</span>
+                    </div>
+                    <div class="modal-body">
+                        <div id="vitalsHistoryContent">
+                            <div id="vitalsHistoryChart" style="width: 100%; height: 300px;"></div>
+                            <div id="vitalsHistoryTable" style="margin-top: 20px; max-height: 300px; overflow-y: auto;">
+                                <table style="width: 100%; border-collapse: collapse;">
+                                    <thead>
+                                        <tr style="background-color: var(--secondary-bg); border-bottom: 1px solid var(--border-color);">
+                                            <th style="padding: 10px; text-align: left;">Date</th>
+                                            <th style="padding: 10px; text-align: left;">Value</th>
+                                            <th style="padding: 10px; text-align: left;">Doctor</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="vitalsHistoryTableBody">
+                                        <!-- Will be populated dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn-secondary" onclick="closeVitalsHistoryModal()">Close</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <script layout:fragment="script">
+    <!-- Move script outside of layout:fragment to ensure it's loaded directly -->
+    <th:block layout:fragment="scripts">
+    <script>
         let prescriptionItemIndex = 0;
-        let selectedTemplate = '';
+        let selectedTemplate = ''; // No default template selected - show all drugs by default
+        let allDrugs = []; // Will store all drugs
+        let selectedDrugs = []; // Will store selected drug elements
         
-        function selectTemplate(element, template) {
-            // Remove active class from all templates
-            document.querySelectorAll('.template-item').forEach(item => {
-                item.classList.remove('active');
-            });
+        function toggleDrugSelection(element) {
+            // Check if this is an allergen
+            const isAllergen = element.getAttribute('data-is-allergen') === 'true';
             
-            // Add active class to selected template
-            element.classList.add('active');
-            selectedTemplate = template;
-            
-            // Load template-specific drugs
-            loadDrugsByTemplate(template);
-        }
-        
-        function loadDrugsByTemplate(template) {
-            // Clear existing options
-            const drugSelect = document.getElementById('drugSelect');
-            drugSelect.innerHTML = '<option value="">Select drug</option>';
-            
-            // Encode template name for URL
-            const encodedTemplate = encodeURIComponent(template);
-            
-            // Fetch drugs based on template
-            fetch(`/api/drugs/template/${encodedTemplate}`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(drugs => {
-                    // Populate select with fetched drugs
-                    drugs.forEach(drug => {
-                        const option = document.createElement('option');
-                        option.value = drug.id;
-                        option.textContent = drug.name;
-                        
-                        // Add drug data as data attributes for later use
-                        option.dataset.dosageInstructions = drug.dosageInstructions || '';
-                        option.dataset.routeOfAdministration = drug.routeOfAdministration || '';
-                        
-                        drugSelect.appendChild(option);
-                    });
-                })
-                .catch(error => {
-                    console.error('Error loading drugs:', error);
-                    // Fallback to static drugs if API fails
-                    addFallbackDrugs(template);
-                });
-        }
-        
-        function addFallbackDrugs(template) {
-            const drugSelect = document.getElementById('drugSelect');
-            
-            if (template === 'In-House Dispensary') {
-                addDrugOption('1', 'Combiflox', '1 tablet twice daily');
-                addDrugOption('2', 'Paracetamol', '1-2 tablets every 4-6 hours');
-                addDrugOption('3', 'Ibuprofen', '1 tablet 3 times daily');
-            } else if (template === 'Pain Meds - non narcotic') {
-                addDrugOption('2', 'Paracetamol', '1-2 tablets every 4-6 hours');
-                addDrugOption('3', 'Ibuprofen', '1 tablet 3 times daily');
-                addDrugOption('4', 'Diclofenac', '50mg 3 times daily');
+            // If it's an allergen, show a confirmation dialog
+            if (isAllergen && !element.classList.contains('selected')) {
+                const drugName = element.getAttribute('data-name');
+                if (!confirm(`WARNING: Patient is allergic to ${drugName}. Are you sure you want to select this medication?`)) {
+                    return; // User cancelled the selection
+                }
             }
             
-            function addDrugOption(id, name, dosage) {
-                const option = document.createElement('option');
-                option.value = id;
-                option.textContent = name;
-                option.dataset.dosageInstructions = dosage;
-                drugSelect.appendChild(option);
+            // Toggle selected class
+            element.classList.toggle('selected');
+            
+            // Update selectedDrugs array
+            if (element.classList.contains('selected')) {
+                // Add to selected drugs
+                selectedDrugs.push(element);
+            } else {
+                // Remove from selected drugs
+                selectedDrugs = selectedDrugs.filter(drug => drug !== element);
             }
+            
+            // Update Add Selected button state
+            document.getElementById('addSelectedBtn').disabled = selectedDrugs.length === 0;
         }
         
-        // Handle drug selection to pre-fill dose
-        document.getElementById('drugSelect').addEventListener('change', function() {
-            const selectedOption = this.options[this.selectedIndex];
-            if (selectedOption.dataset.dosageInstructions) {
-                document.getElementById('doseInput').value = selectedOption.dataset.dosageInstructions;
-            }
-        });
-        
-        function addToCart() {
-            // Get values from form
-            const drugSelect = document.getElementById('drugSelect');
-            const drug = drugSelect.options[drugSelect.selectedIndex].text;
-            const drugId = drugSelect.value;
-            const dose = document.getElementById('doseInput').value;
-            const days = document.getElementById('daysInput').value;
-            const qty = document.getElementById('qtyInput').value;
-            
-            if (!drug || drug === 'Select drug' || !dose || !days || !qty) {
-                alert('Please fill in all fields');
+        function addSelectedDrugsToCart() {
+            if (selectedDrugs.length === 0) {
                 return;
             }
             
+            // Show the drug details modal
+            showDrugDetailsModal();
+        }
+        
+        function showDrugDetailsModal() {
+            // Get the modal
+            const modal = document.getElementById('drugDetailsModal');
+            const modalDrugsList = document.getElementById('modalDrugsList');
+            const modalDosage = document.getElementById('modalDosage');
+            
+            // Clear previous list
+            modalDrugsList.innerHTML = '';
+            
+            // Create list of selected drugs
+            const listHeader = document.createElement('h4');
+            listHeader.textContent = 'Selected Drugs:';
+            listHeader.style.marginTop = '0';
+            listHeader.style.marginBottom = '10px';
+            modalDrugsList.appendChild(listHeader);
+            
+            const drugList = document.createElement('ul');
+            drugList.style.marginBottom = '15px';
+            drugList.style.paddingLeft = '20px';
+            
+            selectedDrugs.forEach(drug => {
+                const li = document.createElement('li');
+                li.textContent = drug.getAttribute('data-name');
+                drugList.appendChild(li);
+            });
+            
+            modalDrugsList.appendChild(drugList);
+            
+            // If only one drug is selected, pre-fill the dosage
+            if (selectedDrugs.length === 1) {
+                modalDosage.value = selectedDrugs[0].getAttribute('data-dosage') || '';
+            } else {
+                modalDosage.value = '';
+            }
+            
+            // Show the modal
+            modal.style.display = 'block';
+            
+            // Get the <span> element that closes the modal
+            const span = document.getElementsByClassName('close')[0];
+            
+            // When the user clicks on <span> (x), close the modal
+            span.onclick = function() {
+                closeModal();
+            };
+            
+            // When the user clicks anywhere outside of the modal, close it
+            window.onclick = function(event) {
+                if (event.target == modal) {
+                    closeModal();
+                }
+            };
+        }
+        
+        function closeModal() {
+            document.getElementById('drugDetailsModal').style.display = 'none';
+        }
+        
+        function confirmAddToCart() {
+            // Get values from modal
+            const dosage = document.getElementById('modalDosage').value;
+            const days = document.getElementById('modalDays').value;
+            const qty = document.getElementById('modalQuantity').value;
+            
+            // Validate inputs
+            if (!dosage) {
+                alert('Please enter dosage instructions');
+                return;
+            }
+            
+            if (!days || days < 1) {
+                alert('Please enter a valid duration');
+                return;
+            }
+            
+            if (!qty || qty < 1) {
+                alert('Please enter a valid quantity');
+                return;
+            }
+            
+            // Process each selected drug
+            selectedDrugs.forEach(drugElement => {
+                const drugId = drugElement.getAttribute('data-id');
+                const drugName = drugElement.getAttribute('data-name');
+                
+                // Add to cart
+                addDrugToCart(drugId, drugName, dosage, days, qty);
+                
+                // Remove from the drug list
+                drugElement.remove();
+            });
+            
+            // Clear selected drugs array
+            selectedDrugs = [];
+            
+            // Disable the Add Selected button
+            document.getElementById('addSelectedBtn').disabled = true;
+            
+            // Close the modal
+            closeModal();
+        }
+        
+        function addDrugToCart(drugId, drugName, dosage, days, qty) {
             // Get the current index for this prescription item
             const itemIndex = prescriptionItemIndex++;
             
@@ -372,11 +842,12 @@
             cartItem.style.padding = '10px';
             cartItem.style.marginBottom = '5px';
             cartItem.style.borderBottom = '1px solid var(--border-color)';
+            cartItem.setAttribute('data-drug-id', drugId);
             
             cartItem.innerHTML = `
                 <div style="display: flex; justify-content: space-between;">
                     <div>
-                        <strong>${drug}</strong> - ${dose}
+                        <strong>${drugName}</strong> - ${dosage}
                     </div>
                     <div>
                         ${days} days - Qty: ${qty}
@@ -388,55 +859,795 @@
                         </button>
                     </div>
                 </div>
-                <input type="hidden" name="prescription.prescriptionItems[${itemIndex}].drug.id" value="${drugId}">
-                <input type="hidden" name="prescription.prescriptionItems[${itemIndex}].dosage" value="${dose}">
-                <input type="hidden" name="prescription.prescriptionItems[${itemIndex}].duration" value="${days} days">
-                <input type="hidden" name="prescription.prescriptionItems[${itemIndex}].quantity" value="${qty}">
+                <!-- Use a simplified field naming for better binding -->
+                <input type="hidden" name="drugIds[]" value="${drugId}">
+                <input type="hidden" name="drugDosages[]" value="${dosage}">
+                <input type="hidden" name="drugDurations[]" value="${days} days">
+                <input type="hidden" name="drugQuantities[]" value="${qty}">
             `;
             
             // Add to cart
             document.getElementById('drugCart').appendChild(cartItem);
             
-            // Clear form
-            drugSelect.selectedIndex = 0;
-            document.getElementById('doseInput').value = '';
-            document.getElementById('daysInput').value = '';
-            document.getElementById('qtyInput').value = '';
+            // Debug info - log cart item count
+            console.log(`Added drug to cart: ${drugName}`);
+            console.log(`Current prescription items count: ${prescriptionItemIndex}`);
         }
         
-        function removeFromCart(button, index) {
-            // Remove the cart item
-            const cartItem = button.closest('div').parentNode;
-            cartItem.remove();
+        function selectTemplateFromDropdown(selectElement) {
+            const template = selectElement.value;
+            selectedTemplate = template;
+            console.log(`Template selected: "${template}"`);
             
-            // Note: We don't decrement prescriptionItemIndex to avoid index conflicts
+            // Update the templateSelect element to reflect the current selection
+            if (selectElement.id !== 'templateSelect') {
+                const templateSelect = document.getElementById('templateSelect');
+                if (templateSelect) {
+                    for (let i = 0; i < templateSelect.options.length; i++) {
+                        if (templateSelect.options[i].value === template) {
+                            templateSelect.selectedIndex = i;
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            // Filter drugs by the selected template
+            filterDrugsByTemplate(template);
+            
+            // Clear selected drugs when changing template
+            selectedDrugs = [];
+            document.getElementById('addSelectedBtn').disabled = true;
+            
+            // Log the current state
+            console.log(`Selected template: "${selectedTemplate}"`);
+            console.log(`Selected drugs count: ${selectedDrugs.length}`);
+        }
+        
+        function filterDrugsByTemplate(template) {
+            const drugList = document.getElementById('drugList');
+            const items = drugList.querySelectorAll('li.drug-item');
+            
+            console.log(`Filtering drugs by template: "${template}"`);
+            console.log(`Total drugs found: ${items.length}`);
+            
+            if (!template || template === '') {
+                // Show all drugs if no template is selected
+                console.log('No template selected, showing all drugs');
+                items.forEach(item => {
+                    item.style.display = 'flex';
+                });
+                document.getElementById('emptyDrugList').style.display = 'none';
+                return;
+            }
+            
+            let visibleCount = 0;
+            
+            // Hide/show drugs based on template
+            items.forEach(item => {
+                const drugTemplate = item.getAttribute('data-template');
+                const drugName = item.getAttribute('data-name');
+                console.log(`Drug: ${drugName}`);
+                console.log(`  Expected template: "${template}"`);
+                console.log(`  Actual template: "${drugTemplate}"`);
+                console.log(`  Template comparison: "${drugTemplate?.trim().toLowerCase()}" === "${template.trim().toLowerCase()}"`);
+                
+                // Make comparison case-insensitive and trim whitespace
+                if (drugTemplate && drugTemplate.trim().toLowerCase() === template.trim().toLowerCase()) {
+                    console.log(`  ✓ Match found for drug: ${drugName}`);
+                    item.style.display = 'flex';
+                    visibleCount++;
+                } else {
+                    console.log(`  ✗ No match for drug: ${drugName}`);
+                    item.style.display = 'none';
+                }
+            });
+            
+            console.log(`Visible drugs count: ${visibleCount}`);
+            
+            // Show empty message if no drugs visible
+            if (visibleCount === 0) {
+                const emptyMessage = document.getElementById('emptyDrugList');
+                emptyMessage.textContent = `No drugs available for "${template}" category`;
+                emptyMessage.style.display = 'block';
+            } else {
+                document.getElementById('emptyDrugList').style.display = 'none';
+            }
+            
+            // Only update drug select options if the element exists
+            const drugSelect = document.getElementById('drugSelect');
+            if (drugSelect) {
+                updateDrugSelectOptions(template);
+            }
+        }
+        
+        function updateDrugSelectOptions(template) {
+            const drugSelect = document.getElementById('drugSelect');
+            
+            // Check if the element exists
+            if (!drugSelect) {
+                console.warn('Drug select element not found, skipping option update');
+                return;
+            }
+            
+            console.log(`Updating drug select options for template: "${template}"`);
+            
+            drugSelect.innerHTML = '<option value="">Select drug</option>';
+            
+            const drugList = document.getElementById('drugList');
+            const visibleItems = Array.from(drugList.querySelectorAll('li.drug-item'))
+                .filter(item => item.style.display !== 'none');
+            
+            console.log(`Found ${visibleItems.length} visible drug items`);
+            
+            visibleItems.forEach(item => {
+                const id = item.getAttribute('data-id');
+                const name = item.getAttribute('data-name');
+                const dosage = item.getAttribute('data-dosage');
+                const route = item.getAttribute('data-route');
+                
+                const option = document.createElement('option');
+                option.value = id;
+                option.textContent = name;
+                option.dataset.dosageInstructions = dosage || '';
+                option.dataset.routeOfAdministration = route || '';
+                
+                drugSelect.appendChild(option);
+            });
+        }
+        
+        function selectDrugFromList(element) {
+            // Get data from the clicked drug
+            const drugId = element.getAttribute('data-id');
+            const drugName = element.getAttribute('data-name');
+            const dosage = element.getAttribute('data-dosage');
+            
+            // Set the drug in dropdown
+            const drugSelect = document.getElementById('drugSelect');
+            for (let i = 0; i < drugSelect.options.length; i++) {
+                if (drugSelect.options[i].value === drugId) {
+                    drugSelect.selectedIndex = i;
+                    break;
+                }
+            }
+            
+            // Set dosage
+            if (dosage) {
+                document.getElementById('doseInput').value = dosage;
+            }
+            
+            // Scroll to the prescription table
+            document.querySelector('.prescription-table').scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            });
+        }
+        
+        // Handle drug selection to pre-fill dose
+        document.addEventListener('DOMContentLoaded', function() {
+            const drugSelect = document.getElementById('drugSelect');
+            if (drugSelect) {
+                drugSelect.addEventListener('change', function() {
+                    const selectedOption = this.options[this.selectedIndex];
+                    if (selectedOption.dataset.dosageInstructions) {
+                        document.getElementById('doseInput').value = selectedOption.dataset.dosageInstructions;
+                    }
+                });
+            }
+        });
+        
+        function removeFromCart(buttonElement, itemIndex) {
+            // Find the parent cart item and remove it
+            const cartItem = buttonElement.closest('[data-drug-id]');
+            if (cartItem) {
+                cartItem.remove();
+                console.log(`Removed drug from cart at index: ${itemIndex}`);
+                
+                // Note: We don't need to update indexes as each item uses its own unique name
+            }
         }
         
         // Load initial template on page load
         document.addEventListener('DOMContentLoaded', function() {
-            // Select first template by default
-            const firstTemplate = document.querySelector('.template-item');
-            if (firstTemplate) {
-                selectTemplate(firstTemplate, firstTemplate.textContent.trim());
+            console.log('DOM content loaded, initializing drug list');
+            
+            // Initialize the drug dropdown with all drugs
+            const drugSelect = document.getElementById('drugSelect');
+            const drugList = document.getElementById('drugList');
+            
+            // Add event listener for the template select dropdown
+            const templateSelect = document.getElementById('templateSelect');
+            if (templateSelect) {
+                console.log('Adding event listener to template select');
+                // Add a direct event listener as a fallback
+                templateSelect.addEventListener('change', function() {
+                    const template = this.value;
+                    console.log(`Template change detected via event listener: "${template}"`);
+                    selectTemplateFromDropdown(this);
+                });
+                
+                // Force immediate filtering based on any initial selection
+                const currentTemplate = templateSelect.value;
+                if (currentTemplate) {
+                    console.log(`Initial template selection detected: "${currentTemplate}"`);
+                    filterDrugsByTemplate(currentTemplate);
+                } else {
+                    console.log('No initial template selection, showing all drugs');
+                }
+                
+                console.log('Template select element found and initialized');
+            } else {
+                console.warn('Template select element not found');
             }
+            
+            // Store all drug items 
+            if (drugList) {
+                const drugItems = drugList.querySelectorAll('.drug-item');
+                console.log(`Found ${drugItems.length} drug items in the list`);
+                
+                // Log the template categories for debugging
+                drugItems.forEach(item => {
+                    const name = item.getAttribute('data-name');
+                    const template = item.getAttribute('data-template');
+                    console.log(`Drug: ${name}, Template: "${template}"`);
+                });
+                
+                // Add keyboard support for multi-selection
+                document.addEventListener('keydown', function(e) {
+                    // Ctrl key (or Cmd key on Mac) for multi-selection
+                    if (e.key === 'Control' || e.key === 'Meta') {
+                        document.body.classList.add('multi-select-mode');
+                    }
+                });
+                
+                document.addEventListener('keyup', function(e) {
+                    if (e.key === 'Control' || e.key === 'Meta') {
+                        document.body.classList.remove('multi-select-mode');
+                    }
+                });
+                
+                // Add helpful tooltip to drug list header
+                const drugListHeader = document.querySelector('.drug-list').previousElementSibling;
+                if (drugListHeader) {
+                    const infoSpan = document.createElement('span');
+                    infoSpan.style.fontSize = '0.8em';
+                    infoSpan.style.fontWeight = 'normal';
+                    infoSpan.style.opacity = '0.7';
+                    infoSpan.innerHTML = ' (Use Ctrl/Cmd for multi-selection)';
+                    drugListHeader.querySelector('span:first-child').appendChild(infoSpan);
+                }
+            } else {
+                console.warn('Drug list element not found');
+            }
+            
+            // Apply styles to allergens for better visibility
+            document.querySelectorAll('.drug-item[data-is-allergen="true"]').forEach(item => {
+                // Add a subtle background color to make allergenic drugs stand out more
+                item.style.backgroundColor = 'rgba(255, 0, 0, 0.05)';
+                
+                // Add a border on the left side
+                item.style.borderLeft = '3px solid #ff0000';
+                
+                // Add some padding to account for the border
+                item.style.paddingLeft = '7px';
+            });
         });
         
-        // Confirm diagnosis button
-        document.getElementById('confirmDiagnosis').addEventListener('click', function() {
-            const diagnosisInput = document.querySelector('input[name="diagnoses[0].diagnosisName"]');
+        // Add event listener for the update vitals button
+        document.addEventListener('DOMContentLoaded', function() {
+            const confirmVitalsBtn = document.getElementById('confirmVitals');
+            if (confirmVitalsBtn) {
+                // Initialize the data-locked attribute
+                confirmVitalsBtn.setAttribute('data-locked', 'false');
+                confirmVitalsBtn.addEventListener('click', confirmVitalSigns);
+            }
+            
+            // Initialize the confirm diagnosis button with toggle functionality
+            const confirmDiagnosisBtn = document.getElementById('confirmDiagnosis');
+            if (confirmDiagnosisBtn) {
+                // Initialize the data-locked attribute
+                confirmDiagnosisBtn.setAttribute('data-locked', 'false');
+                confirmDiagnosisBtn.addEventListener('click', confirmDiagnosis);
+            }
+            
+            // Initialize Blood Pressure fields from the combined value
+            initializeBloodPressureFields();
+            
+            // Set up form submission event to combine BP values
+            const consultationForm = document.querySelector('form[action*="/consultation/save"]');
+            if (consultationForm) {
+                consultationForm.addEventListener('submit', function(e) {
+                    combineBPValues();
+                });
+            }
+            
+            // Initialize checkout button state
+            updateCheckoutState();
+        });
+        
+        // Function to initialize blood pressure fields by splitting the combined value
+        function initializeBloodPressureFields() {
+            const combinedBPField = document.getElementById('combinedBP');
+            const systolicField = document.getElementById('systolicBP');
+            const diastolicField = document.getElementById('diastolicBP');
+            
+            if (combinedBPField && systolicField && diastolicField) {
+                const combinedValue = combinedBPField.value;
+                if (combinedValue && combinedValue.includes('/')) {
+                    const [systolic, diastolic] = combinedValue.split('/');
+                    systolicField.value = systolic.trim();
+                    diastolicField.value = diastolic.trim();
+                }
+            }
+        }
+        
+        // Function to combine Systolic and Diastolic values into a single BP value
+        function combineBPValues() {
+            const systolicField = document.getElementById('systolicBP');
+            const diastolicField = document.getElementById('diastolicBP');
+            const combinedBPField = document.getElementById('combinedBP');
+            
+            if (systolicField && diastolicField && combinedBPField) {
+                const systolic = systolicField.value.trim();
+                const diastolic = diastolicField.value.trim();
+                
+                if (systolic && diastolic) {
+                    combinedBPField.value = systolic + '/' + diastolic;
+                } else if (systolic) {
+                    combinedBPField.value = systolic;
+                } else if (diastolic) {
+                    combinedBPField.value = '0/' + diastolic;
+                } else {
+                    combinedBPField.value = '';
+                }
+            }
+        }
+        
+        // Function to check if checkout should be enabled
+        function updateCheckoutState() {
+            const vitalsConfirmed = document.getElementById('confirmVitals').getAttribute('data-locked') === 'true';
+            const diagnosisConfirmed = document.getElementById('confirmDiagnosis').getAttribute('data-locked') === 'true';
+            const checkoutButton = document.getElementById('checkoutButton');
+            const checkoutMessage = document.getElementById('checkoutMessage');
+            
+            if (vitalsConfirmed && diagnosisConfirmed) {
+                // Both are confirmed, enable checkout
+                checkoutButton.disabled = false;
+                checkoutMessage.style.display = 'none';
+            } else {
+                // One or both are not confirmed, disable checkout
+                checkoutButton.disabled = true;
+                checkoutMessage.style.display = 'block';
+                
+                // Update message with specific details
+                let message = 'Please confirm ';
+                if (!vitalsConfirmed && !diagnosisConfirmed) {
+                    message += 'both Vitals and Diagnosis';
+                } else if (!vitalsConfirmed) {
+                    message += 'Vitals';
+                } else {
+                    message += 'Diagnosis';
+                }
+                message += ' before checkout';
+                checkoutMessage.textContent = message;
+            }
+        }
+        
+        // Function to confirm vital signs (locks the input fields)
+        function confirmVitalSigns() {
+            // Get all vital sign input fields
+            const vitalFields = document.querySelectorAll('.editable-vital');
+            const confirmBtn = document.getElementById('confirmVitals');
+            
+            // Check if fields are currently locked (toggling behavior)
+            const isCurrentlyLocked = confirmBtn.getAttribute('data-locked') === 'true';
+            
+            if (isCurrentlyLocked) {
+                // Unlock fields - make them editable again
+                vitalFields.forEach(field => {
+                    field.removeAttribute('readonly');
+                    // Reset styling
+                    field.style.backgroundColor = '';
+                    field.style.color = '';
+                    field.style.borderColor = '';
+                });
+                
+                // Update button
+                confirmBtn.textContent = 'Confirm Vitals';
+                confirmBtn.style.backgroundColor = 'var(--accent-color)';
+                confirmBtn.setAttribute('data-locked', 'false');
+
+            } else {
+                // Lock fields - make them readonly
+                vitalFields.forEach(field => {
+                    field.setAttribute('readonly', 'readonly');
+                    // Add a visual indicator that the fields are locked
+                    field.style.color = 'var(--secondary-text)';
+                });
+                
+                // Update button
+                confirmBtn.textContent = 'Edit Vitals';
+                confirmBtn.style.backgroundColor = '#4CAF50';
+                confirmBtn.setAttribute('data-locked', 'true');
+                
+            }
+            
+            // Update checkout button state
+            updateCheckoutState();
+        }
+        
+        // Function to confirm diagnosis (locks the diagnosis input and transcript fields)
+        function confirmDiagnosis() {
+            // Get the diagnosis input and consultation transcript fields
+            const diagnosisInput = document.querySelector('input[name="diagnosis"]');
+            const transcriptField = document.querySelector('textarea[name="clinicalNotes"]');
+            const confirmBtn = document.getElementById('confirmDiagnosis');
+            
+            // Check if diagnosis is empty
             if (diagnosisInput.value.trim() === '') {
                 alert('Please enter a diagnosis');
                 return;
             }
             
-            this.textContent = 'Diagnosis Confirmed';
-            this.style.backgroundColor = '#4CAF50';
+            // Check if fields are currently locked (toggling behavior)
+            const isCurrentlyLocked = confirmBtn.getAttribute('data-locked') === 'true';
+            
+            if (isCurrentlyLocked) {
+                // Unlock fields - make them editable again
+                diagnosisInput.removeAttribute('readonly');
+                transcriptField.removeAttribute('readonly');
+                
+                // Reset styling
+                diagnosisInput.style.backgroundColor = '';
+                diagnosisInput.style.color = '';
+                transcriptField.style.backgroundColor = '';
+                transcriptField.style.color = '';
+                
+                // Update button
+                confirmBtn.textContent = 'Confirm Diagnosis';
+                confirmBtn.style.backgroundColor = 'var(--accent-color)';
+                confirmBtn.setAttribute('data-locked', 'false');
+            } else {
+                // Lock fields - make them readonly
             diagnosisInput.setAttribute('readonly', 'readonly');
-            setTimeout(() => {
-                this.textContent = 'Confirm diagnosis';
-                this.style.backgroundColor = '';
-            }, 2000);
-        });
+                transcriptField.setAttribute('readonly', 'readonly');
+                
+                // Add a visual indicator that the fields are locked
+                diagnosisInput.style.color = 'var(--secondary-text)';
+                transcriptField.style.color = 'var(--secondary-text)';
+                
+                // Update button
+                confirmBtn.textContent = 'Edit Diagnosis';
+                confirmBtn.style.backgroundColor = '#4CAF50';
+                confirmBtn.setAttribute('data-locked', 'true');
+            }
+            
+            // Update checkout button state
+            updateCheckoutState();
+        }
+        
+        // Functions for past consultations notes modal
+        function showFullNotes(element) {
+            const fullNotes = element.getAttribute('data-full-notes');
+            document.getElementById('fullConsultationNotes').textContent = fullNotes || 'No notes available';
+            document.getElementById('pastConsultationNotesModal').style.display = 'block';
+        }
+        
+        function closeNotesModal() {
+            document.getElementById('pastConsultationNotesModal').style.display = 'none';
+        }
+        
+        // Function to show consultation details in the modal
+        function showConsultationDetails(element) {
+            const data = element.dataset;
+            
+            // Populate general information
+            document.getElementById('modal-id').textContent = data.id || 'Not available';
+            document.getElementById('modal-date').textContent = data.date || 'Not recorded';
+            document.getElementById('modal-type').textContent = data.consultationType || 'Not recorded';
+            document.getElementById('modal-doctor').textContent = data.doctor || 'Unknown';
+            document.getElementById('modal-status').textContent = data.status || 'Not recorded';
+            
+            // Populate diagnosis and notes
+            document.getElementById('modal-diagnosis').textContent = data.diagnosis || 'No diagnosis recorded';
+            document.getElementById('modal-notes').textContent = data.notes || 'No notes recorded';
+            
+            // Populate vital signs
+            document.getElementById('modal-bp').textContent = data.bp ? data.bp : 'Not recorded';
+            document.getElementById('modal-temp').textContent = data.temp ? data.temp + ' °C' : 'Not recorded';
+            document.getElementById('modal-hr').textContent = data.hr ? data.hr + ' bpm' : 'Not recorded';
+            document.getElementById('modal-rr').textContent = data.rr ? data.rr + ' breaths/min' : 'Not recorded';
+            document.getElementById('modal-o2').textContent = data.o2 ? data.o2 + '%' : 'Not recorded';
+            document.getElementById('modal-weight').textContent = data.weight ? data.weight + ' kg' : 'Not recorded';
+            document.getElementById('modal-height').textContent = data.height ? data.height + ' cm' : 'Not recorded';
+            document.getElementById('modal-bmi').textContent = data.bmi ? data.bmi : 'Not recorded';
+            
+            // Display the modal
+            document.getElementById('fullVitalsModal').style.display = 'block';
+        }
+        
+        function closeVitalsModal() {
+            document.getElementById('fullVitalsModal').style.display = 'none';
+        }
+        
+        // Function to toggle past consultations section
+        function togglePastConsultations() {
+            const content = document.getElementById('pastConsultationsContent');
+            const icon = document.getElementById('toggleIcon');
+            
+            if (content.style.display === 'none') {
+                // Expand
+                content.style.display = 'block';
+                icon.style.transform = 'rotate(0deg)';
+            } else {
+                // Collapse
+                content.style.display = 'none';
+                icon.style.transform = 'rotate(-90deg)';
+            }
+        }
+        
+        // Close the modals when clicking outside of them
+        window.onclick = function(event) {
+            const notesModal = document.getElementById('pastConsultationNotesModal');
+            const vitalsModal = document.getElementById('fullVitalsModal');
+            const drugModal = document.getElementById('drugDetailsModal');
+            const vitalsHistoryModal = document.getElementById('vitalsHistoryModal');
+            
+            if (event.target == notesModal) {
+                notesModal.style.display = 'none';
+            }
+            if (event.target == vitalsModal) {
+                vitalsModal.style.display = 'none';
+            }
+            if (event.target == drugModal) {
+                drugModal.style.display = 'none';
+            }
+            if (event.target == vitalsHistoryModal) {
+                vitalsHistoryModal.style.display = 'none';
+            }
+        }
+
+        // Get the patient ID from the hidden input
+        function getPatientId() {
+            const patientIdField = document.getElementById('patientId');
+            return patientIdField ? patientIdField.value : '';
+        }
+        
+        // Functions for vitals history modal
+        function showVitalsHistory(vitalType) {
+            // Only show history if fields are not locked for editing
+            const confirmBtn = document.getElementById('confirmVitals');
+            const isCurrentlyLocked = confirmBtn && confirmBtn.getAttribute('data-locked') === 'true';
+            if (isCurrentlyLocked) {
+                return; // Don't show history if fields are locked
+            }
+            
+            const modal = document.getElementById('vitalsHistoryModal');
+            const title = document.getElementById('vitalsHistoryTitle');
+            
+            // Set the title based on the vital type
+            title.textContent = vitalType === 'height' ? 'Height History' : 'Weight History';
+            
+            // Show the modal
+            modal.style.display = 'block';
+            
+            // Fetch the patient's history
+            fetchPatientVitalsHistory(getPatientId(), vitalType);
+        }
+        
+        function closeVitalsHistoryModal() {
+            document.getElementById('vitalsHistoryModal').style.display = 'none';
+        }
+        
+        function fetchPatientVitalsHistory(patientId, vitalType) {
+            if (!patientId) {
+                showNoDataMessage(vitalType);
+                return;
+            }
+            
+            // Show loading state
+            const tableBody = document.getElementById('vitalsHistoryTableBody');
+            tableBody.innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 20px;">Loading...</td></tr>';
+            
+            // Fetch data from server
+            fetch(`/api/patient/${patientId}/vitals-history?type=${vitalType}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    displayVitalsHistory(data, vitalType);
+                })
+                .catch(error => {
+                    console.error('Error fetching vitals history:', error);
+                    
+                    // Fall back to past consultations data from the page
+                    const pastConsultations = collectPastConsultationsData();
+                    displayVitalsHistory(pastConsultations, vitalType);
+                });
+        }
+        
+        function collectPastConsultationsData() {
+            // Collect data from the past consultations table that's already on the page
+            const consultations = [];
+            
+            // Try selecting the table rows directly
+            const rows = document.querySelectorAll('.past-consultations-container tbody tr');
+            console.log(`Found ${rows.length} consultation rows`);
+            
+            rows.forEach(row => {
+                // Get the button in this row
+                const button = row.querySelector('button.btn-secondary');
+                if (!button) return;
+                
+                const data = button.dataset;
+                
+                // Log the data we're collecting
+                console.log('Collecting data from consultation row:');
+                console.log(`- Date: ${data.date}`);
+                console.log(`- Height: ${data.height}`);
+                console.log(`- Weight: ${data.weight}`);
+                console.log(`- Doctor: ${data.doctor}`);
+                
+                // Only add if we have relevant data
+                if (data.date && (data.height || data.weight)) {
+                    consultations.push({
+                        date: data.date,
+                        height: data.height,
+                        weight: data.weight,
+                        doctor: data.doctor
+                    });
+                }
+            });
+            
+            console.log(`Collected ${consultations.length} consultations with data`);
+            return consultations;
+        }
+        
+        function displayVitalsHistory(data, vitalType) {
+            const tableBody = document.getElementById('vitalsHistoryTableBody');
+            const chartDiv = document.getElementById('vitalsHistoryChart');
+            
+            // Clear previous data
+            tableBody.innerHTML = '';
+            chartDiv.innerHTML = '';
+            
+            console.log(`Displaying ${vitalType} history`, data);
+            
+            if (!data || data.length === 0) {
+                showNoDataMessage(vitalType);
+                return;
+            }
+            
+            // Filter to only include items with the requested vital type data
+            const filteredData = data.filter(item => {
+                const value = vitalType === 'height' ? item.height : item.weight;
+                return value !== undefined && value !== null && value !== '';
+            });
+            
+            console.log(`After filtering, have ${filteredData.length} records with ${vitalType} data`);
+            
+            if (filteredData.length === 0) {
+                showNoDataMessage(vitalType);
+                return;
+            }
+            
+            // Sort data by date (oldest first) for the chart
+            filteredData.sort((a, b) => new Date(a.date) - new Date(b.date));
+            
+            // Prepare data for chart
+            const chartData = {
+                labels: [],
+                values: []
+            };
+            
+            // Collect data for the chart (chronological order)
+            filteredData.forEach(item => {
+                const value = vitalType === 'height' ? item.height : item.weight;
+                chartData.labels.push(item.date);
+                chartData.values.push(parseFloat(value));
+            });
+            
+            // Create chart if we have data
+            if (chartData.values.length > 0) {
+                createVitalsChart(chartDiv, chartData, vitalType);
+            } else {
+                chartDiv.innerHTML = `<p style="text-align: center; padding: 20px;">No ${vitalType} history data available</p>`;
+            }
+            
+            // Sort data for the table (newest first)
+            const tableData = [...filteredData].sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            // Populate table with newest records first
+            tableData.forEach(item => {
+                const value = vitalType === 'height' ? item.height : item.weight;
+                
+                // Add to table
+                const row = document.createElement('tr');
+                row.style.borderBottom = '1px solid var(--border-color)';
+                
+                const dateCell = document.createElement('td');
+                dateCell.style.padding = '10px';
+                dateCell.textContent = item.date;
+                
+                const valueCell = document.createElement('td');
+                valueCell.style.padding = '10px';
+                valueCell.textContent = `${value} ${vitalType === 'height' ? 'cm' : 'kg'}`;
+                
+                const doctorCell = document.createElement('td');
+                doctorCell.style.padding = '10px';
+                doctorCell.textContent = item.doctor || 'Unknown';
+                
+                row.appendChild(dateCell);
+                row.appendChild(valueCell);
+                row.appendChild(doctorCell);
+                tableBody.appendChild(row);
+            });
+        }
+        
+        function showNoDataMessage(vitalType) {
+            const tableBody = document.getElementById('vitalsHistoryTableBody');
+            const chartDiv = document.getElementById('vitalsHistoryChart');
+            
+            tableBody.innerHTML = `<tr><td colspan="3" style="text-align: center; padding: 20px;">No ${vitalType} history available</td></tr>`;
+            chartDiv.innerHTML = `<p style="text-align: center; padding: 20px;">No ${vitalType} history data available</p>`;
+        }
+        
+        function createVitalsChart(container, data, vitalType) {
+            // Clear previous chart
+            container.innerHTML = '';
+            
+            // Create canvas for the chart
+            const canvas = document.createElement('canvas');
+            container.appendChild(canvas);
+            
+            // Create a line chart using Chart.js
+            const ctx = canvas.getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: vitalType === 'height' ? 'Height (cm)' : 'Weight (kg)',
+                        data: data.values,
+                        borderColor: 'rgb(138, 43, 226)',
+                        backgroundColor: 'rgba(138, 43, 226, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.1,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            title: {
+                                display: true,
+                                text: vitalType === 'height' ? 'Height (cm)' : 'Weight (kg)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            }
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: vitalType === 'height' ? 'Height History' : 'Weight History'
+                        }
+                    }
+                }
+            });
+        }
     </script>
+</th:block>
+
 </body>
 </html>
