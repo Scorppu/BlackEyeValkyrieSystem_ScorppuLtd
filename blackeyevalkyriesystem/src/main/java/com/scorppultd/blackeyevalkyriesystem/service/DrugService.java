@@ -5,7 +5,6 @@ import java.util.Optional;
 import java.io.InputStream;
 
 import com.scorppultd.blackeyevalkyriesystem.model.Drug;
-import com.scorppultd.blackeyevalkyriesystem.model.Drug.Interaction;
 
 public interface DrugService {
     
@@ -28,8 +27,8 @@ public interface DrugService {
     byte[] generateCsvTemplate();
     
     // Interaction management operations
-    Drug addInteractionToDrug(String drugId, Interaction interaction);
+    Drug addInteractionToDrug(String drugId, String interactingDrugId);
     Drug removeInteractionFromDrug(String drugId, String interactingDrugId);
-    List<Interaction> getAllInteractionsForDrug(String drugId);
-    List<Interaction> getAllInteractions();
+    List<String> getAllInteractionsForDrug(String drugId);
+    List<String> getAllInteractions();
 } 

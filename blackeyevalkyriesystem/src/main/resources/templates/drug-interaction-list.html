@@ -3,38 +3,59 @@
 <head>
     <title>Drug Interactions</title>
     <style>
-        .interactions-table {
-            width: 100%;
-            border-collapse: collapse;
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
         }
-        .interactions-table th, .interactions-table td {
-            padding: 12px 15px;
-            text-align: left;
-            border-bottom: 1px solid var(--border-color);
+        
+        .content-header h1 {
+            margin: 0;
         }
-        .interactions-table th {
+        
+        .content-header .btn-primary {
+            background-color: #8A2BE2;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 15px;
+        }
+        
+        .drug-header {
             background-color: rgba(138, 43, 226, 0.1);
+            padding: 15px;
             font-weight: 600;
+            border-radius: 8px 8px 0 0;
+            margin-top: 25px;
+            color: var(--primary-text);
+            border: 1px solid var(--border-color);
+            border-bottom: none;
         }
-        .interactions-table tr:hover {
+        .drug-interactions {
+            border: 1px solid var(--border-color);
+            border-radius: 0 0 8px 8px;
+            margin-bottom: 25px;
+        }
+        .drug-interaction-item {
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .drug-interaction-item:last-child {
+            border-bottom: none;
+        }
+        .drug-interaction-item:hover {
             background-color: var(--hover-bg);
         }
-        .severity-badge {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: 600;
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: var(--secondary-text);
         }
-        .severity-mild { background-color: #e6f4ea; color: #137333; }
-        .severity-moderate { background-color: #fef7e0; color: #b06000; }
-        .severity-severe { background-color: #fce8e6; color: #c5221f; }
-        
-        .severity-1 { background-color: #e6f4ea; color: #137333; }
-        .severity-2 { background-color: #d9ead3; color: #0b5394; }
-        .severity-3 { background-color: #fff2cc; color: #bf9000; }
-        .severity-4 { background-color: #fce5cd; color: #cc0000; }
-        .severity-5 { background-color: #f4cccc; color: #990000; }
     </style>
 </head>
 <body>
@@ -42,15 +63,13 @@
         <div class="content-wrapper">
             <div class="content-header">
                 <h1>Drug Interactions</h1>
-                <div class="actions">
-                    <a href="/drugs/interactions/add" class="btn btn-primary">
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M8 4V12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M4 8H12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        Add Interaction
-                    </a>
-                </div>
+                <a href="/drugs/interactions/add" class="btn btn-primary">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M8 4V12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M4 8H12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Add Interaction
+                </a>
             </div>
             
             <!-- Success message -->
@@ -58,9 +77,16 @@
             <!-- Error message -->
             <div th:if="${error}" class="alert alert-danger" style="margin-bottom: 20px;" th:text="${error}"></div>
             
-            <!-- Interactions Table -->
+            <!-- Search Bar -->
+            <div th:if="${!drugInteractionsMap.isEmpty()}" class="search-container" style="margin-bottom: 20px;">
+                <input type="text" id="interactionSearchInput" class="form-control" placeholder="Search drugs..." 
+                       style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px;" 
+                       oninput="filterInteractions()">
+            </div>
+            
+            <!-- Interactions Display -->
             <div class="content-body">
-                <div th:if="${interactions.isEmpty()}" class="empty-state">
+                <div th:if="${drugInteractionsMap.isEmpty()}" class="empty-state">
                     <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M9 3.6V14.4C9 14.7314 9.26863 15 9.6 15H20.4C20.7314 15 21 14.7314 21 14.4V3.6C21 3.26863 20.7314 3 20.4 3H9.6C9.26863 3 9 3.26863 9 3.6Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                         <path d="M6 7.5V18.3C6 18.6314 6.26863 18.9 6.6 18.9H17.4C17.7314 18.9 18 18.6314 18 18.3V18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -71,59 +97,61 @@
                     <a href="/drugs/interactions/add" class="btn btn-primary">Add Interaction</a>
                 </div>
                 
-                <div th:if="${!interactions.isEmpty()}" class="table-responsive">
-                    <table class="interactions-table">
-                        <thead>
-                            <tr>
-                                <th>Primary Drug</th>
-                                <th>Interacting Drug</th>
-                                <th>Severity</th>
-                                <th>Description</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr th:each="interaction, iterStat : ${interactions}">
-                                <!-- Primary Drug -->
-                                <td th:with="primaryDrug=${drugs.find(d -> d.id == interaction.sourceDrugId)}">
-                                    <span th:text="${primaryDrug != null ? primaryDrug.name : 'Unknown Drug (' + interaction.sourceDrugId + ')'}">Primary Drug</span>
-                                </td>
+                <!-- Loop through each primary drug and its interactions -->
+                <div th:if="${!drugInteractionsMap.isEmpty()}" class="drug-interactions-container">
+                    <div th:each="entry : ${drugInteractionsMap}">
+                        <!-- Find and display the primary drug name -->
+                        <div class="drug-header" th:with="drugId=${entry.key}">
+                            <span th:each="drug : ${drugs}" th:if="${drug.id == drugId}" th:text="${drug.name}">
+                                Primary Drug
+                            </span>
+                        </div>
+                        
+                        <!-- Display interacting drugs -->
+                        <div class="drug-interactions">
+                            <div th:each="interactingDrugId : ${entry.value}" class="drug-interaction-item">
+                                <!-- Find and display the interacting drug name -->
+                                <span th:each="drug : ${drugs}" th:if="${drug.id == interactingDrugId}" th:text="${drug.name}">
+                                    Interacting Drug
+                                </span>
                                 
-                                <!-- Interacting Drug -->
-                                <td th:with="interactingDrug=${drugs.find(d -> d.id == interaction.targetDrugId)}">
-                                    <span th:text="${interactingDrug != null ? interactingDrug.name : 'Unknown Drug (' + interaction.targetDrugId + ')'}">Interacting Drug</span>
-                                </td>
-                                
-                                <!-- Severity badge -->
-                                <td>
-                                    <span th:class="'severity-badge severity-' + ${interaction.severity}"
-                                          th:text="${interaction.severity}">
-                                        Severity
-                                    </span>
-                                </td>
-                                
-                                <!-- Description -->
-                                <td th:text="${interaction.description}">Description</td>
-                                
-                                <!-- Actions -->
-                                <td>
-                                    <div class="btn-group">
-                                        <a th:href="@{/drugs/interactions/delete(drugId=${interaction.sourceDrugId},interactingDrugId=${interaction.targetDrugId})}" 
-                                           class="btn btn-sm btn-danger" 
-                                           onclick="return confirm('Are you sure you want to delete this interaction?');">
-                                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                <path d="M2 4H3.33333H14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                                <path d="M5.33334 4V2.66667C5.33334 2.31305 5.47382 1.97391 5.72387 1.72386C5.97392 1.47381 6.31305 1.33334 6.66668 1.33334H9.33334C9.68697 1.33334 10.0261 1.47381 10.2762 1.72386C10.5262 1.97391 10.6667 2.31305 10.6667 2.66667V4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                                <path d="M12.6667 4V13.3333C12.6667 13.687 12.5262 14.0261 12.2762 14.2761C12.0261 14.5262 11.687 14.6667 11.3333 14.6667H4.66668C4.31305 14.6667 3.97392 14.5262 3.72387 14.2761C3.47382 14.0261 3.33334 13.687 3.33334 13.3333V4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                            </svg>
-                                            Delete
-                                        </a>
-                                    </div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                                <!-- Delete button -->
+                                <a th:href="@{/drugs/interactions/delete(drugId=${entry.key},interactingDrugId=${interactingDrugId})}" 
+                                   class="btn btn-sm btn-danger" 
+                                   onclick="return confirm('Are you sure you want to delete this interaction?');">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M2 4H3.33333H14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M5.33334 4V2.66667C5.33334 2.31305 5.47382 1.97391 5.72387 1.72386C5.97392 1.47381 6.31305 1.33334 6.66668 1.33334H9.33334C9.68697 1.33334 10.0261 1.47381 10.2762 1.72386C10.5262 1.97391 10.6667 2.31305 10.6667 2.66667V4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M12.6667 4V13.3333C12.6667 13.687 12.5262 14.0261 12.2762 14.2761C12.0261 14.5262 11.687 14.6667 11.3333 14.6667H4.66668C4.31305 14.6667 3.97392 14.5262 3.72387 14.2761C3.47382 14.0261 3.33334 13.687 3.33334 13.3333V4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                    Delete
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+                
+                <!-- JavaScript for interaction search functionality -->
+                <script>
+                    function filterInteractions() {
+                        const searchInput = document.getElementById('interactionSearchInput');
+                        const searchTerm = searchInput.value.toLowerCase();
+                        const drugHeaders = document.querySelectorAll('.drug-header');
+                        
+                        drugHeaders.forEach(header => {
+                            const drugName = header.textContent.trim().toLowerCase();
+                            const interactionContainer = header.nextElementSibling;
+                            
+                            if (drugName.includes(searchTerm)) {
+                                header.style.display = '';
+                                interactionContainer.style.display = '';
+                            } else {
+                                header.style.display = 'none';
+                                interactionContainer.style.display = 'none';
+                            }
+                        });
+                    }
+                </script>
             </div>
         </div>
     </div>

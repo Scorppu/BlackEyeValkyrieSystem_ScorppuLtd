@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/main}">
+<head>
+    <title>Add Drug Interaction</title>
+    <style>
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .content-header h1 {
+            margin: 0;
+        }
+        
+        .import-btn {
+            background-color: #8A2BE2;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 15px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .import-btn:hover {
+            background-color: #7b26cd;
+        }
+        
+        .form-container {
+            background-color: var(--secondary-bg);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--primary-text);
+        }
+        .form-select, .form-textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background-color: var(--input-bg);
+            color: var(--primary-text);
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+        .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        .btn-container {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .btn {
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: none;
+        }
+        .btn-primary {
+            background-color: var(--accent-color);
+            color: white;
+            transition: background-color 0.2s;
+        }
+        .btn-primary:hover {
+            background-color: #7b26cd;
+        }
+        .btn-secondary {
+            background-color: var(--input-bg);
+            color: var(--primary-text);
+            border: 1px solid var(--border-color);
+            transition: background-color 0.2s;
+        }
+        .btn-secondary:hover {
+            background-color: var(--hover-bg);
+        }
+        /* Drug list and cart styles */
+        .drugs-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            margin-top: 10px;
+        }
+        .drug-item {
+            padding: 8px 10px;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            transition: background-color 0.2s;
+        }
+        .drug-item:hover {
+            background-color: rgba(138, 43, 226, 0.1);
+        }
+        .drug-item.selected {
+            background-color: rgba(138, 43, 226, 0.2);
+            border-left: 3px solid var(--accent-color);
+        }
+        .add-selected-btn {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 16px;
+            margin-top: 15px;
+            float: right;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .add-selected-btn:hover {
+            background-color: #7b26cd;
+        }
+        .add-selected-btn:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .drug-cart {
+            min-height: 150px;
+            background-color: var(--input-bg);
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 15px;
+            border: 1px solid var(--border-color);
+        }
+        .save-btn {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 16px;
+            float: right;
+            margin-top: 15px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .save-btn:hover {
+            background-color: #7b26cd;
+        }
+        .modal {
+            display: none; 
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+        }
+        .modal-content {
+            background-color: var(--primary-bg);
+            margin: 10% auto;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            width: 400px;
+            max-width: 90%;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+        .modal-header h3 {
+            margin: 0;
+            color: var(--primary-text);
+        }
+        .close {
+            color: var(--secondary-text);
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .modal-body {
+            margin-bottom: 20px;
+        }
+        .modal-body .form-group {
+            margin-bottom: 15px;
+        }
+        .modal-body label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--primary-text);
+        }
+        .modal-body input, .modal-body select {
+            width: 100%;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            background-color: var(--input-bg);
+            color: var(--primary-text);
+        }
+        .modal-footer {
+            text-align: right;
+            border-top: 1px solid var(--border-color);
+            padding-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="content-wrapper">
+            <div class="content-header">
+                <h1>Add Drug Interaction</h1>
+                <a th:href="@{/drugs/interactions/import}" class="import-btn">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M2 11L2 12C2 13.1046 2.89543 14 4 14L12 14C13.1046 14 14 13.1046 14 12L14 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M8 2L8 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M5 5L8 2L11 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Import from CSV
+                </a>
+            </div>
+            
+            <!-- Error message -->
+            <div th:if="${error}" class="alert alert-danger" style="margin-bottom: 20px;" th:text="${error}"></div>
+            
+            <div class="content-body">
+                <!-- Main Drug Selection -->
+                <div class="form-container">
+                    <form id="interactionForm" th:action="@{/drugs/interactions/batch-add}" method="post">
+                        <div class="form-group">
+                            <label for="mainDrug" class="form-label">Main Drug</label>
+                            <select id="mainDrug" name="mainDrug" class="form-select" required onchange="updateDrugsList()">
+                                <option value="">-- Select Main Drug --</option>
+                                <option th:each="drug : ${drugs}" 
+                                        th:value="${drug.id}" 
+                                        th:text="${drug.name}">Drug name</option>
+                            </select>
+                        </div>
+                        <!-- Hidden container for form inputs -->
+                        <div id="formInputsContainer"></div>
+                    </form>
+                </div>
+
+                <!-- Interacting Drugs Selection -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-container">
+                            <h2>Available Drugs</h2>
+                            <div style="margin-bottom: 15px;">
+                                <input type="text" id="drugSearchInput" class="form-control" placeholder="Search drugs..." style="width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px;" oninput="filterDrugsList()">
+                            </div>
+                            <div class="drugs-list" id="drugsList">
+                                <!-- Drug items will be populated dynamically -->
+                                <div class="drug-item" style="font-style: italic; color: var(--secondary-text);">
+                                    Please select a main drug first
+                                </div>
+                            </div>
+                            <button type="button" id="addSelectedBtn" class="add-selected-btn" onclick="addSelectedDrugsToCart()" disabled>
+                                Add Selected
+                            </button>
+                            <div style="clear: both;"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-container">
+                            <h2>Drug Interactions</h2>
+                            <div id="drugCart" class="drug-cart">
+                                <!-- Cart items will be added here dynamically -->
+                                <div style="font-style: italic; color: var(--secondary-text); text-align: center; padding: 20px;">
+                                    No interactions added yet
+                                </div>
+                            </div>
+                            <button type="button" id="saveInteractionsBtn" class="save-btn" onclick="submitInteractions()" disabled>
+                                Save Interactions
+                            </button>
+                            <div style="clear: both;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interaction Details Modal -->
+        <div id="interactionDetailsModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Add Drug Interaction</h3>
+                    <span class="close">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div id="modalDrugsList">
+                        <!-- Selected drugs list will be shown here -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="confirmAddToCart()">Add Interaction</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script layout:fragment="scripts">
+        let selectedDrugs = []; // Will store selected drug elements
+        let interactionIndex = 0; // Counter for interaction items
+        let mainDrugId = ''; // Will store the main drug ID
+        let allDrugs = []; // Will store all drugs
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Log that the script is running
+            console.log("Drug interaction cart UI script loaded");
+            
+            // Load all drugs from the server
+            fetchAllDrugs();
+
+            // Setup event handlers
+            document.getElementById('mainDrug').addEventListener('change', function() {
+                mainDrugId = this.value;
+                updateDrugsList();
+                // Clear the cart when main drug changes
+                clearInteractionCart();
+            });
+
+            // Set up modal close handlers
+            const closeButtons = document.getElementsByClassName('close');
+            for (let i = 0; i < closeButtons.length; i++) {
+                closeButtons[i].onclick = closeModal;
+            }
+
+            // When clicking outside the modal, close it
+            window.onclick = function(event) {
+                const modal = document.getElementById('interactionDetailsModal');
+                if (event.target == modal) {
+                    closeModal();
+                }
+            };
+        });
+
+        function fetchAllDrugs() {
+            // In a real implementation, you might fetch this data via AJAX
+            // For now, we'll use the drugs data that's already in the page
+            allDrugs = [];
+            const drugSelect = document.getElementById('mainDrug');
+            for (let i = 0; i < drugSelect.options.length; i++) {
+                if (drugSelect.options[i].value) {
+                    allDrugs.push({
+                        id: drugSelect.options[i].value,
+                        name: drugSelect.options[i].text
+                    });
+                }
+            }
+            console.log("Loaded " + allDrugs.length + " drugs");
+        }
+
+        function updateDrugsList() {
+            const drugsListElement = document.getElementById('drugsList');
+            drugsListElement.innerHTML = '';
+            selectedDrugs = []; // Clear selected drugs
+            document.getElementById('drugSearchInput').value = ''; // Clear search input
+
+            if (!mainDrugId) {
+                drugsListElement.innerHTML = `
+                    <div class="drug-item" style="font-style: italic; color: var(--secondary-text);">
+                        Please select a main drug first
+                    </div>`;
+                return;
+            }
+
+            console.log("Selected main drug ID: " + mainDrugId);
+            
+            // Fetch available drugs for interaction
+            fetch(`/api/drugs/${mainDrugId}/available-for-interaction`)
+                .then(response => response.json())
+                .then(availableDrugs => {
+                    
+                    // Filter out drugs already in the interaction cart and deduplicate by ID
+                    const uniqueDrugIds = new Set();
+                    const filteredDrugs = availableDrugs
+                        .filter(drug => !isInInteractionCart(drug.id))
+                        .filter(drug => {
+                            // Only include each drug once (by ID)
+                            if (uniqueDrugIds.has(drug.id)) {
+                                return false;
+                            }
+                            uniqueDrugIds.add(drug.id);
+                            return true;
+                        });
+                    
+                    if (filteredDrugs.length === 0) {
+                        drugsListElement.innerHTML = `
+                            <div class="drug-item" style="font-style: italic; color: var(--secondary-text);">
+                                No other drugs available
+                            </div>`;
+                        return;
+                    }
+
+                    // Sort drugs alphabetically by name
+                    filteredDrugs.sort((a, b) => a.name.localeCompare(b.name));
+
+                    // Create drug items for each available drug
+                    filteredDrugs.forEach(drug => {
+                        const drugItem = document.createElement('div');
+                        drugItem.className = 'drug-item';
+                        drugItem.setAttribute('data-id', drug.id);
+                        drugItem.setAttribute('data-name', drug.name);
+                        drugItem.innerHTML = `<div class="drug-name">${drug.name}</div>`;
+                        
+                        // Add click event to select/deselect the drug
+                        drugItem.addEventListener('click', function() {
+                            toggleDrugSelection(this);
+                        });
+                        
+                        drugsListElement.appendChild(drugItem);
+                    });
+
+                    console.log("Added " + filteredDrugs.length + " drugs to the list");
+                    // Update the Add Selected button state
+                    document.getElementById('addSelectedBtn').disabled = true;
+                })
+                .catch(error => {
+                    console.error("Error fetching available drugs:", error);
+                    drugsListElement.innerHTML = `
+                        <div class="drug-item" style="font-style: italic; color: var(--secondary-text);">
+                            Error loading drugs. Please try again.
+                        </div>`;
+                });
+        }
+
+        // Check if a drug is already in the interaction cart
+        function isInInteractionCart(drugId) {
+            const cartItems = document.querySelectorAll('#drugCart [data-drug-id]');
+            for (let i = 0; i < cartItems.length; i++) {
+                if (cartItems[i].getAttribute('data-drug-id') === drugId) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function toggleDrugSelection(element) {
+            // Toggle selected class
+            element.classList.toggle('selected');
+            
+            // Update selectedDrugs array
+            if (element.classList.contains('selected')) {
+                // Add to selected drugs
+                selectedDrugs.push(element);
+            } else {
+                // Remove from selected drugs
+                selectedDrugs = selectedDrugs.filter(drug => drug !== element);
+            }
+            
+            // Update Add Selected button state
+            document.getElementById('addSelectedBtn').disabled = selectedDrugs.length === 0;
+            console.log("Selected drugs: " + selectedDrugs.length);
+        }
+
+        function addSelectedDrugsToCart() {
+            if (selectedDrugs.length === 0) {
+                return;
+            }
+            
+            // Show the interaction details modal
+            showInteractionDetailsModal();
+        }
+
+        function showInteractionDetailsModal() {
+            // Get the modal
+            const modal = document.getElementById('interactionDetailsModal');
+            const modalDrugsList = document.getElementById('modalDrugsList');
+            
+            // Clear previous list
+            modalDrugsList.innerHTML = '';
+            
+            // Create list of selected drugs
+            const listHeader = document.createElement('h4');
+            listHeader.textContent = 'Selected Drugs:';
+            listHeader.style.marginTop = '0';
+            listHeader.style.marginBottom = '10px';
+            modalDrugsList.appendChild(listHeader);
+            
+            const drugList = document.createElement('ul');
+            drugList.style.marginBottom = '15px';
+            drugList.style.paddingLeft = '20px';
+            
+            selectedDrugs.forEach(drug => {
+                const li = document.createElement('li');
+                li.textContent = drug.getAttribute('data-name');
+                drugList.appendChild(li);
+            });
+            
+            modalDrugsList.appendChild(drugList);
+            
+            // Show the modal
+            modal.style.display = 'block';
+            console.log("Opened interaction details modal");
+        }
+
+        function closeModal() {
+            document.getElementById('interactionDetailsModal').style.display = 'none';
+            console.log("Closed interaction details modal");
+        }
+
+        function confirmAddToCart() {
+            // Find the main drug details
+            const mainDrugName = document.getElementById('mainDrug').options[
+                document.getElementById('mainDrug').selectedIndex
+            ].text;
+            
+            // Process each selected drug
+            selectedDrugs.forEach(drugElement => {
+                const drugId = drugElement.getAttribute('data-id');
+                const drugName = drugElement.getAttribute('data-name');
+                
+                // Add to interaction cart
+                addInteractionToCart(drugId, drugName);
+                
+                // Remove from available drugs list
+                drugElement.remove();
+            });
+            
+            // Clear selected drugs array
+            selectedDrugs = [];
+            
+            // Disable the Add Selected button
+            document.getElementById('addSelectedBtn').disabled = true;
+            
+            // Enable Save Interactions button
+            document.getElementById('saveInteractionsBtn').disabled = false;
+            
+            // Close the modal
+            closeModal();
+            console.log("Added interactions to cart");
+        }
+
+        function addInteractionToCart(drugId, drugName) {
+            // Get the interaction cart element
+            const cartElement = document.getElementById('drugCart');
+            
+            // Remove the empty state message if it exists
+            if (cartElement.querySelector('div[style*="font-style: italic"]')) {
+                cartElement.innerHTML = '';
+            }
+            
+            // Get the current index for this interaction
+            const itemIndex = interactionIndex++;
+            
+            // Create cart item element
+            const cartItem = document.createElement('div');
+            cartItem.style.padding = '10px';
+            cartItem.style.marginBottom = '10px';
+            cartItem.style.borderBottom = '1px solid var(--border-color)';
+            cartItem.setAttribute('data-drug-id', drugId);
+            
+            cartItem.innerHTML = `
+                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                    <div>
+                        <strong>${drugName}</strong>
+                    </div>
+                    <div>
+                        <button type="button" onclick="removeFromCart(this, ${itemIndex})" 
+                                style="background: none; border: none; color: #ff5c5c; cursor: pointer;">
+                            Remove
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            // Add to cart
+            cartElement.appendChild(cartItem);
+            
+            // Also add a hidden input to the form
+            addHiddenInput(drugId);
+            
+            // Remove the drug from the available drugs list
+            removeFromDrugsList(drugId);
+        }
+        
+        function addHiddenInput(drugId) {
+            const container = document.getElementById('formInputsContainer');
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'interactingDrugs[]';
+            input.value = drugId;
+            input.setAttribute('data-drug-id', drugId);
+            container.appendChild(input);
+        }
+
+        function removeFromCart(buttonElement, itemIndex) {
+            // Find the parent cart item and remove it
+            const cartItem = buttonElement.closest('[data-drug-id]');
+            if (cartItem) {
+                const drugId = cartItem.getAttribute('data-drug-id');
+                const drugName = cartItem.querySelector('strong').textContent;
+                
+                cartItem.remove();
+                console.log("Removed interaction from cart, index: " + itemIndex);
+                
+                // Also remove the hidden input from the form
+                removeHiddenInput(drugId);
+                
+                // Add the drug back to the available drugs list
+                addToDrugsList(drugId, drugName);
+                
+                // Check if the cart is now empty
+                const cartElement = document.getElementById('drugCart');
+                if (cartElement.children.length === 0) {
+                    cartElement.innerHTML = `
+                        <div style="font-style: italic; color: var(--secondary-text); text-align: center; padding: 20px;">
+                            No interactions added yet
+                        </div>`;
+                    
+                    // Disable Save Interactions button
+                    document.getElementById('saveInteractionsBtn').disabled = true;
+                }
+            }
+        }
+        
+        function removeHiddenInput(drugId) {
+            const inputs = document.querySelectorAll(`input[name="interactingDrugs[]"][data-drug-id="${drugId}"]`);
+            inputs.forEach(input => input.remove());
+        }
+
+        function clearInteractionCart() {
+            const cartElement = document.getElementById('drugCart');
+            
+            // Get all drugs from the cart to add back to list
+            const cartItems = document.querySelectorAll('#drugCart [data-drug-id]');
+            const drugsToReturn = [];
+            
+            cartItems.forEach(item => {
+                drugsToReturn.push({
+                    id: item.getAttribute('data-drug-id'),
+                    name: item.querySelector('strong').textContent
+                });
+            });
+            
+            cartElement.innerHTML = `
+                <div style="font-style: italic; color: var(--secondary-text); text-align: center; padding: 20px;">
+                    No interactions added yet
+                </div>`;
+            
+            // Reset interaction index
+            interactionIndex = 0;
+            
+            // Clear all hidden inputs
+            document.getElementById('formInputsContainer').innerHTML = '';
+            
+            // Disable Save Interactions button
+            document.getElementById('saveInteractionsBtn').disabled = true;
+            
+            // Refresh the available drugs list to include the returned drugs
+            updateDrugsList();
+            
+            console.log("Cleared interaction cart");
+        }
+
+        function submitInteractions() {
+            // Check if we have a main drug selected
+            if (!mainDrugId) {
+                alert('Please select a main drug');
+                return;
+            }
+            
+            // Check if we have any interactions in the cart
+            const cartElement = document.getElementById('drugCart');
+            if (cartElement.querySelector('div[style*="font-style: italic"]')) {
+                alert('Please add some drug interactions first');
+                return;
+            }
+            
+            // Set the main drug ID in the form
+            document.getElementById('mainDrug').value = mainDrugId;
+            
+            // Debug log to see what's being submitted
+            const interactingDrugs = document.querySelectorAll('input[name="interactingDrugs[]"]');
+            console.log("Submitting interactions - Main drug: " + mainDrugId);
+            console.log("Total interacting drugs: " + interactingDrugs.length);
+            interactingDrugs.forEach((input, index) => {
+                console.log("Interaction " + index + ": " + input.value);
+            });
+            
+            // Submit the form
+            document.getElementById('interactionForm').submit();
+            console.log("Submitting interactions form");
+        }
+
+        function removeFromDrugsList(drugId) {
+            const drugListItems = document.querySelectorAll('#drugsList .drug-item');
+            drugListItems.forEach(item => {
+                if (item.getAttribute('data-id') === drugId) {
+                    item.remove();
+                }
+            });
+        }
+
+        function addToDrugsList(drugId, drugName) {
+            // Only add if it's not already in the list
+            if (document.querySelector(`#drugsList .drug-item[data-id="${drugId}"]`)) {
+                return;
+            }
+            
+            const drugsListElement = document.getElementById('drugsList');
+            
+            // Check if the list has the "no drugs available" message
+            const emptyMessage = drugsListElement.querySelector('div[style*="font-style: italic"]');
+            if (emptyMessage) {
+                drugsListElement.innerHTML = '';
+            }
+            
+            // Create a new drug item
+            const drugItem = document.createElement('div');
+            drugItem.className = 'drug-item';
+            drugItem.setAttribute('data-id', drugId);
+            drugItem.setAttribute('data-name', drugName);
+            drugItem.innerHTML = `<div class="drug-name">${drugName}</div>`;
+            
+            // Add click event
+            drugItem.addEventListener('click', function() {
+                toggleDrugSelection(this);
+            });
+            
+            // Add to the list
+            drugsListElement.appendChild(drugItem);
+            
+            // Sort the drug items alphabetically
+            sortDrugsList();
+        }
+        
+        function filterDrugsList() {
+            const searchInput = document.getElementById('drugSearchInput');
+            const searchTerm = searchInput.value.toLowerCase();
+            const drugItems = document.querySelectorAll('#drugsList .drug-item');
+            
+            drugItems.forEach(item => {
+                // Skip the "no drugs available" message
+                if (item.style.fontStyle === 'italic') {
+                    return;
+                }
+                
+                const drugName = item.getAttribute('data-name').toLowerCase();
+                if (drugName.includes(searchTerm)) {
+                    item.style.display = '';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+        
+        function sortDrugsList() {
+            const drugsListElement = document.getElementById('drugsList');
+            const drugItems = Array.from(drugsListElement.querySelectorAll('.drug-item'));
+            const searchTerm = document.getElementById('drugSearchInput').value.toLowerCase();
+            
+            // Filter out the message item
+            const messageItem = drugItems.find(item => item.style.fontStyle === 'italic');
+            const drugItemsToSort = drugItems.filter(item => item.style.fontStyle !== 'italic');
+            
+            // Sort the drug items by name
+            drugItemsToSort.sort((a, b) => {
+                const nameA = a.getAttribute('data-name').toLowerCase();
+                const nameB = b.getAttribute('data-name').toLowerCase();
+                return nameA.localeCompare(nameB);
+            });
+            
+            // Clear the list
+            drugsListElement.innerHTML = '';
+            
+            // Add the message item back if it exists
+            if (messageItem) {
+                drugsListElement.appendChild(messageItem);
+            }
+            
+            // Add the sorted drug items
+            drugItemsToSort.forEach(item => {
+                drugsListElement.appendChild(item);
+                
+                // Restore the visibility state based on current search
+                if (searchTerm) {
+                    const drugName = item.getAttribute('data-name').toLowerCase();
+                    if (!drugName.includes(searchTerm)) {
+                        item.style.display = 'none';
+                    } else {
+                        item.style.display = '';
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html> 

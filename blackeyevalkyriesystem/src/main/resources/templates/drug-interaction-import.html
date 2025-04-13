@@ -48,33 +48,29 @@
             gap: 10px;
             margin-top: 20px;
         }
-        .primary-btn {
-            background-color: var(--accent-color);
-            color: white;
-            border: none;
+        .btn {
+            display: inline-block;
             padding: 10px 20px;
             border-radius: 4px;
-            cursor: pointer;
             font-weight: 500;
+            cursor: pointer;
             transition: background-color 0.2s;
+            border: none;
         }
-        .primary-btn:hover {
+        .btn-primary {
+            background-color: #8A2BE2;
+            color: white;
+        }
+        .btn-primary:hover {
             background-color: #7b26cd;
         }
-        .secondary-btn {
+        .btn-secondary {
             background-color: transparent;
             color: var(--secondary-text);
-            padding: 10px 20px;
-            border-radius: 4px;
-            text-decoration: none;
-            font-weight: 500;
             border: 1px solid var(--border-color);
-            transition: background-color 0.2s;
         }
-        .secondary-btn:hover {
+        .btn-secondary:hover {
             background-color: rgba(138, 43, 226, 0.1);
-            text-decoration: none;
-            color: var(--secondary-text);
         }
         .file-upload {
             position: relative;
@@ -132,20 +128,32 @@
             overflow-x: auto;
         }
         .alert {
-            padding: 12px 16px;
+            padding: 12px 20px;
             margin-bottom: 20px;
             border-radius: 4px;
-            border-left: 4px solid;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
         .alert-success {
-            background-color: rgba(39, 174, 96, 0.1);
-            border-color: #27ae60;
-            color: #27ae60;
+            background-color: rgba(76, 175, 80, 0.1);
+            color: #4CAF50;
+            border: 1px solid rgba(76, 175, 80, 0.2);
         }
         .alert-danger {
-            background-color: rgba(231, 76, 60, 0.1);
-            border-color: #e74c3c;
-            color: #e74c3c;
+            background-color: rgba(244, 67, 54, 0.1);
+            color: #F44336;
+            border: 1px solid rgba(244, 67, 54, 0.2);
+        }
+        .btn-close {
+            background: transparent;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            opacity: 0.5;
+        }
+        .btn-close:hover {
+            opacity: 1;
         }
     </style>
 </head>
@@ -155,24 +163,18 @@
         <div class="container-fluid">
             <div class="header-container">
                 <h1>Import Drug Interactions from CSV</h1>
-                <a th:href="@{/drugs/interactions/add}" class="secondary-btn">Add Single Interaction</a>
+                <a th:href="@{/drugs/interactions/add}" class="btn btn-secondary">Add Single Interaction</a>
             </div>
             
-            <div th:if="${successMessage}" class="alert alert-success">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 5px;">
-                    <path d="M12 22C17.5 22 22 17.5 22 12C22 6.5 17.5 2 12 2C6.5 2 2 6.5 2 12C2 17.5 6.5 22 12 22Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M7.75 12L10.58 14.83L16.25 9.17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                <span th:text="${successMessage}">Success message</span>
+            <!-- Alert Messages -->
+            <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <span th:text="${success}">Success message here</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
             
-            <div th:if="${errorMessage}" class="alert alert-danger">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 5px;">
-                    <path d="M12 22C17.5 22 22 17.5 22 12C22 6.5 17.5 2 12 2C6.5 2 2 6.5 2 12C2 17.5 6.5 22 12 22Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M12 8V13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M11.9945 16H12.0035" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                <span th:text="${errorMessage}">Error message</span>
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <span th:text="${error}">Error message here</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
             
             <div class="form-container">
@@ -190,30 +192,44 @@
                     </div>
                     
                     <div class="btn-container">
-                        <a th:href="@{/drugs/interactions}" class="secondary-btn">Cancel</a>
-                        <button type="submit" class="primary-btn">Import Interactions</button>
+                        <a href="/drugs/interactions" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">Import Interactions</button>
                     </div>
                 </form>
             </div>
             
             <div class="csv-template">
                 <h3 class="csv-template-title">CSV Template Format</h3>
-                <p>Your CSV file should include the following columns in this order:</p>
+                <p>Your CSV file should include the following columns:</p>
                 <div class="csv-format">
-                    primaryDrugId,interactingDrugId,severity,description
+                    primary_drug_name,interacting_drug_name1,interacting_drug_name2,...
                 </div>
-                <p class="form-hint">Example: "1,2,SEVERE,Causes severe blood pressure drop when taken together"</p>
-                <p class="form-hint">Note: The primaryDrugId and interactingDrugId must be valid drug IDs in the system.</p>
-                <p class="form-hint">Severity must be one of: MILD, MODERATE, SEVERE</p>
+                <p class="form-hint">Example: "Acetaminophen,Ibuprofen,Azithromycin,Lisinopril"</p>
+                <p class="form-hint">This imports interactions between Acetaminophen and each of the three drugs.</p>
+                <p class="form-hint">Note: All drugs must already exist in the system. Drug names are case-insensitive.</p>
                 
                 <div class="btn-container">
-                    <a th:href="@{/drugs/interactions/template/download}" class="secondary-btn">Download Template</a>
+                    <a th:href="@{/drugs/interactions/template/download}" class="btn btn-secondary">Download Template</a>
                 </div>
             </div>
         </div>
     </div>
     
-    <script layout:fragment="script">
+    <script layout:fragment="scripts">
+        document.addEventListener('DOMContentLoaded', function() {
+            // File input enhancement
+            const fileInput = document.getElementById('csvFile');
+            const fileLabel = document.getElementById('file-selected');
+            
+            fileInput.addEventListener('change', function() {
+                if (fileInput.files.length > 0) {
+                    fileLabel.textContent = fileInput.files[0].name;
+                } else {
+                    fileLabel.textContent = 'Choose file';
+                }
+            });
+        });
+        
         function updateFileList(input) {
             const fileLabel = document.getElementById('file-selected');
             if (input.files.length > 0) {

@@ -11,15 +11,17 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.scorppultd.blackeyevalkyriesystem.model.Drug;
-import com.scorppultd.blackeyevalkyriesystem.model.Drug.Interaction;
 import com.scorppultd.blackeyevalkyriesystem.service.DrugService;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Optional;
 
 @Controller
 @RequestMapping("/drugs")
@@ -56,8 +58,6 @@ public class DrugViewController {
     @GetMapping("/add")
     public String showAddDrugForm(Model model) {
         model.addAttribute("drug", new Drug());
-        model.addAttribute("allDrugs", drugService.getAllDrugs());
-        model.addAttribute("severityLevels", Arrays.asList(1, 2, 3, 4, 5));
         return "drug-add";
     }
     
@@ -66,74 +66,12 @@ public class DrugViewController {
      */
     @PostMapping("/add")
     public String addDrug(@ModelAttribute Drug drug, 
-                        @RequestParam(value = "interactingDrugs", required = false) List<String> interactingDrugs,
-                        @RequestParam(value = "severities", required = false) List<Integer> severities,
-                        @RequestParam(value = "descriptions", required = false) List<String> descriptions,
                         RedirectAttributes redirectAttributes) {
         // First save the drug to get an ID
+        drug.setInteractingDrugIds(null); // Explicitly set interactions to null
         Drug savedDrug = drugService.createDrug(drug);
         
-        // Debug info
-        System.out.println("Drug saved with ID: " + savedDrug.getId());
-        System.out.println("Interacting drugs: " + (interactingDrugs != null ? interactingDrugs : "null"));
-        System.out.println("Severities: " + (severities != null ? severities : "null"));
-        System.out.println("Descriptions: " + (descriptions != null ? descriptions : "null"));
-        
-        // Now create interactions if any were specified
-        if (interactingDrugs != null && !interactingDrugs.isEmpty() &&
-            severities != null && descriptions != null) {
-            
-            int successCount = 0;
-            StringBuilder errors = new StringBuilder();
-            
-            for (int i = 0; i < interactingDrugs.size(); i++) {
-                String interactingDrugId = interactingDrugs.get(i);
-                System.out.println("Processing interaction #" + i + " with drug ID: " + interactingDrugId);
-                
-                if (interactingDrugId == null || interactingDrugId.isEmpty()) {
-                    System.out.println("Skipping empty drug ID");
-                    continue;  // Skip empty selections
-                }
-                
-                try {
-                    // Get corresponding severity and description
-                    Integer severity = (i < severities.size()) ? severities.get(i) : 1;
-                    String description = (i < descriptions.size()) ? descriptions.get(i) : "";
-                    
-                    System.out.println("Severity: " + severity + ", Description: " + description);
-                    
-                    // Create the interaction object
-                    Interaction interaction = new Interaction(interactingDrugId, severity, description);
-                    
-                    // Add the interaction to the drug
-                    drugService.addInteractionToDrug(savedDrug.getId(), interaction);
-                    System.out.println("Added interaction from " + savedDrug.getId() + " to " + interactingDrugId);
-                    
-                    // Create reciprocal interaction (B → A)
-                    Interaction reciprocalInteraction = new Interaction(savedDrug.getId(), severity, description);
-                    drugService.addInteractionToDrug(interactingDrugId, reciprocalInteraction);
-                    System.out.println("Added interaction from " + interactingDrugId + " to " + savedDrug.getId());
-                
-                    successCount++;
-                } catch (Exception e) {
-                    System.out.println("Error processing interaction: " + e.getMessage());
-                    e.printStackTrace();
-                    errors.append("Error processing interaction: ").append(e.getMessage()).append(". ");
-                }
-            }
-            
-            if (errors.length() > 0) {
-                redirectAttributes.addFlashAttribute("warning", 
-                    "Drug saved, but some interactions could not be created: " + errors.toString());
-            } else if (successCount > 0) {
-                redirectAttributes.addFlashAttribute("success", 
-                    "Drug added successfully with " + successCount + " interaction(s)");
-            } else {
-                redirectAttributes.addFlashAttribute("success", "Drug added successfully");
-            }
-        } else {
-            redirectAttributes.addFlashAttribute("success", "Drug added successfully");
-        }
+        redirectAttributes.addFlashAttribute("success", "Drug added successfully");
         
         return "redirect:/drugs/list";
     }
@@ -228,7 +166,7 @@ public class DrugViewController {
                 model.addAttribute("allDrugs", allDrugs);
                 
                 // Get existing interactions for this drug
-                List<Interaction> existingInteractions = drugService.getAllInteractionsForDrug(id);
+                List<String> existingInteractions = drugService.getAllInteractionsForDrug(id);
                 model.addAttribute("existingInteractions", existingInteractions);
                 
                 model.addAttribute("severityLevels", Arrays.asList(1, 2, 3, 4, 5));
@@ -248,15 +186,12 @@ public class DrugViewController {
     public String updateDrug(@PathVariable String id, 
                             @ModelAttribute Drug drug, 
                             @RequestParam(value = "interactingDrugs", required = false) List<String> interactingDrugs,
-                            @RequestParam(value = "severities", required = false) List<Integer> severities,
-                            @RequestParam(value = "descriptions", required = false) List<String> descriptions,
                             RedirectAttributes redirectAttributes) {
         drug.setId(id); // Ensure ID is set
         drugService.updateDrug(drug);
         
         // Handle interactions if any were specified
-        if (interactingDrugs != null && !interactingDrugs.isEmpty() &&
-            severities != null && descriptions != null) {
+        if (interactingDrugs != null && !interactingDrugs.isEmpty()) {
             
             int successCount = 0;
             StringBuilder errors = new StringBuilder();
@@ -268,19 +203,11 @@ public class DrugViewController {
                 }
                 
                 try {
-                    // Get corresponding severity and description
-                    Integer severity = (i < severities.size()) ? severities.get(i) : 1;
-                    String description = (i < descriptions.size()) ? descriptions.get(i) : "";
-                    
-                    // Create the interaction object
-                    Interaction interaction = new Interaction(interactingDrugId, severity, description);
-                    
                     // Add the interaction to the drug
-                    drugService.addInteractionToDrug(id, interaction);
+                    drugService.addInteractionToDrug(id, interactingDrugId);
                     
                     // Create reciprocal interaction (B → A)
-                    Interaction reciprocalInteraction = new Interaction(id, severity, description);
-                    drugService.addInteractionToDrug(interactingDrugId, reciprocalInteraction);
+                    drugService.addInteractionToDrug(interactingDrugId, id);
                     
                     successCount++;
                 } catch (Exception e) {
@@ -320,33 +247,19 @@ public class DrugViewController {
     @GetMapping("/interactions")
     public String listInteractions(Model model) {
         List<Drug> allDrugs = drugService.getAllDrugs();
-        System.out.println("Found " + allDrugs.size() + " drugs for interactions page");
         model.addAttribute("drugs", allDrugs);
         
-        // Create a list of maps containing both source and target drug information for display
-        List<Map<String, Object>> enhancedInteractions = new ArrayList<>();
+        // Create a map to group interactions by primary drug
+        Map<String, List<String>> drugInteractionsMap = new HashMap<>();
         
         for (Drug drug : allDrugs) {
-            System.out.println("Processing drug: " + drug.getId() + " - " + drug.getName());
-            System.out.println("Drug has interactions: " + (drug.getInteractions() != null ? drug.getInteractions().size() : "null"));
-            
-            if (drug.getInteractions() != null && !drug.getInteractions().isEmpty()) {
-                for (Interaction interaction : drug.getInteractions()) {
-                    System.out.println("  Interaction: " + drug.getId() + " -> " + interaction.getDrugId() + 
-                                    " (Severity: " + interaction.getSeverity() + ")");
-                    
-                    Map<String, Object> interactionData = new HashMap<>();
-                    interactionData.put("sourceDrugId", drug.getId());
-                    interactionData.put("targetDrugId", interaction.getDrugId());
-                    interactionData.put("severity", interaction.getSeverity());
-                    interactionData.put("description", interaction.getDescription());
-                    enhancedInteractions.add(interactionData);
-                }
+            if (drug.getInteractingDrugIds() != null && !drug.getInteractingDrugIds().isEmpty()) {
+                // For each drug with interactions, add its ID and the list of interacting drugs
+                drugInteractionsMap.put(drug.getId(), new ArrayList<>(drug.getInteractingDrugIds()));
             }
         }
         
-        System.out.println("Total enhanced interactions: " + enhancedInteractions.size());
-        model.addAttribute("interactions", enhancedInteractions);
+        model.addAttribute("drugInteractionsMap", drugInteractionsMap);
         return "drug-interaction-list";
     }
     
@@ -354,10 +267,13 @@ public class DrugViewController {
      * Show form to add a new interaction
      */
     @GetMapping("/interactions/add")
-    public String showAddInteractionForm(Model model) {
-        model.addAttribute("drugs", drugService.getAllDrugs());
-        model.addAttribute("severityLevels", Arrays.asList(1, 2, 3, 4, 5));
-        return "drug-interaction-add";
+    public String showAddInteractionForm(Model model) {   
+        // Add required data to the model
+        List<Drug> drugs = drugService.getAllDrugs();
+        model.addAttribute("drugs", drugs);
+        
+        // Return the updated template
+        return "drug-interaction-new";
     }
     
     /**
@@ -367,23 +283,70 @@ public class DrugViewController {
     public String addInteraction(
             @RequestParam("drugA") String drugAId,
             @RequestParam("drugB") String drugBId,
-            @RequestParam("severity") Integer severity,
-            @RequestParam("description") String description,
             RedirectAttributes redirectAttributes) {
         
         try {
             // Create interactions for both drugs (bidirectional)
             // First, add interaction from drug A to drug B
-            Interaction interactionAB = new Interaction(drugBId, severity, description);
-            drugService.addInteractionToDrug(drugAId, interactionAB);
+            drugService.addInteractionToDrug(drugAId, drugBId);
             
             // Then, add interaction from drug B to drug A
-            Interaction interactionBA = new Interaction(drugAId, severity, description);
-            drugService.addInteractionToDrug(drugBId, interactionBA);
+            drugService.addInteractionToDrug(drugBId, drugAId);
             
             redirectAttributes.addFlashAttribute("success", "Drug interaction added successfully");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Error adding interaction: " + e.getMessage());
+        }
+        
+        return "redirect:/drugs/interactions";
+    }
+    
+    /**
+     * Handle form submission for batch adding interactions
+     */
+    @PostMapping("/interactions/batch-add")
+    public String batchAddInteractions(
+            @RequestParam("mainDrug") String mainDrugId,
+            @RequestParam(value = "interactingDrugs[]", required = false) List<String> interactingDrugs,
+            RedirectAttributes redirectAttributes) {
+        
+        if (interactingDrugs == null || interactingDrugs.isEmpty()) {
+            redirectAttributes.addFlashAttribute("error", "No interactions were specified");
+            return "redirect:/drugs/interactions";
+        }
+        
+        int successCount = 0;
+        StringBuilder errors = new StringBuilder();
+        
+        for (int i = 0; i < interactingDrugs.size(); i++) {
+            String interactingDrugId = interactingDrugs.get(i);
+
+            if (interactingDrugId == null || interactingDrugId.isEmpty()) {
+                continue;  // Skip empty selections
+            }
+            
+            try {
+                // Create the interaction from main drug to interacting drug
+                drugService.addInteractionToDrug(mainDrugId, interactingDrugId);
+                
+                // Create reciprocal interaction (interacting drug to main drug)
+                drugService.addInteractionToDrug(interactingDrugId, mainDrugId);
+                
+                successCount++;
+            } catch (Exception e) {
+                errors.append("Error processing interaction with drug ID ").append(interactingDrugId)
+                      .append(": ").append(e.getMessage()).append(". ");
+            }
+        }
+        
+        if (errors.length() > 0) {
+            redirectAttributes.addFlashAttribute("warning", 
+                "Added " + successCount + " interactions successfully, but some interactions could not be created: " + errors.toString());
+        } else if (successCount > 0) {
+            redirectAttributes.addFlashAttribute("success", 
+                "Added " + successCount + " interactions successfully");
+        } else {
+            redirectAttributes.addFlashAttribute("error", "No interactions were created");
         }
         
         return "redirect:/drugs/interactions";
@@ -419,39 +382,172 @@ public class DrugViewController {
         List<Drug> allDrugs = drugService.getAllDrugs();
         model.addAttribute("allDrugs", allDrugs);
         
-        System.out.println("Viewing interactions for drug: " + drugId);
         
         drugService.getDrugById(drugId).ifPresentOrElse(
             drug -> {
                 model.addAttribute("drug", drug);
-                System.out.println("Found drug: " + drug.getName());
-                System.out.println("Drug has interactions: " + (drug.getInteractions() != null ? drug.getInteractions().size() : "null"));
-                
+
                 // Create enhanced interaction view objects
                 List<Map<String, Object>> enhancedInteractions = new ArrayList<>();
-                if (drug.getInteractions() != null) {
-                    for (Interaction interaction : drug.getInteractions()) {
-                        System.out.println("  Interaction: " + drug.getId() + " -> " + interaction.getDrugId() + 
-                                        " (Severity: " + interaction.getSeverity() + ")");
+                if (drug.getInteractingDrugIds() != null) {
+                    // Process each interaction
+                    for (String interactingDrugId : drug.getInteractingDrugIds()) {
                         
                         Map<String, Object> interactionData = new HashMap<>();
                         interactionData.put("sourceDrugId", drug.getId());
-                        interactionData.put("targetDrugId", interaction.getDrugId());
-                        interactionData.put("severity", interaction.getSeverity());
-                        interactionData.put("description", interaction.getDescription());
+                        interactionData.put("targetDrugId", interactingDrugId);
                         enhancedInteractions.add(interactionData);
                     }
                 }
                 
-                System.out.println("Total enhanced interactions: " + enhancedInteractions.size());
                 model.addAttribute("interactions", enhancedInteractions);
             },
             () -> {
-                System.out.println("Drug not found with ID: " + drugId);
                 model.addAttribute("error", "Drug not found");
             }
         );
         
         return "drug-interactions-for-drug";
+    }
+    
+    /**
+     * Show form to import drug interactions from CSV
+     */
+    @GetMapping("/interactions/import")
+    public String showImportInteractionsForm(Model model) {
+        List<Drug> drugs = drugService.getAllDrugs();
+        model.addAttribute("drugs", drugs);
+        return "drug-interaction-import";
+    }
+    
+    /**
+     * Handle CSV file upload and import drug interactions
+     */
+    @PostMapping("/interactions/import")
+    public String importInteractionsFromCsv(@RequestParam("file") MultipartFile[] files, 
+                                          RedirectAttributes redirectAttributes) {
+        if (files.length == 0 || files[0].isEmpty()) {
+            redirectAttributes.addFlashAttribute("error", "Please select at least one CSV file to upload");
+            return "redirect:/drugs/interactions/import";
+        }
+
+        int totalImported = 0;
+        StringBuilder errors = new StringBuilder();
+        
+        // Get all drugs to find IDs by name
+        List<Drug> allDrugs = drugService.getAllDrugs();
+        Map<String, String> drugNameToIdMap = new HashMap<>();
+        
+        // Build a map of drug names to IDs for efficient lookup
+        for (Drug drug : allDrugs) {
+            drugNameToIdMap.put(drug.getName().toLowerCase(), drug.getId());
+        }
+
+        for (MultipartFile file : files) {
+            if (!file.isEmpty()) {
+                try {
+                    // Process the CSV file to import interactions
+                    int successCount = 0;
+                    int skippedCount = 0;
+                    
+                    try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
+                        // Skip header row
+                        String line = reader.readLine();
+                        
+                        // Process data rows
+                        while ((line = reader.readLine()) != null) {
+                            String[] row = line.split(",");
+                            
+                            // Each row should have at least 2 columns (primary drug and at least one interacting drug)
+                            if (row.length >= 2) {
+                                String primaryDrugName = row[0].trim().toLowerCase();
+                                String primaryDrugId = drugNameToIdMap.get(primaryDrugName);
+                                
+                                if (primaryDrugId == null) {
+                                    skippedCount++;
+                                    continue; // Skip this row if primary drug not found
+                                }
+                                
+                                // Process each interacting drug in the row (all columns after the first)
+                                for (int i = 1; i < row.length; i++) {
+                                    String interactingDrugName = row[i].trim().toLowerCase();
+                                    String interactingDrugId = drugNameToIdMap.get(interactingDrugName);
+                                    
+                                    if (interactingDrugId != null) {
+                                        try {
+                                            // Add interactions both ways
+                                            drugService.addInteractionToDrug(primaryDrugId, interactingDrugId);
+                                            drugService.addInteractionToDrug(interactingDrugId, primaryDrugId);
+                                            successCount++;
+                                        } catch (Exception e) {
+                                            // Skip if interaction already exists or other error
+                                            skippedCount++;
+                                        }
+                                    } else {
+                                        skippedCount++;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                    totalImported += successCount;
+                    
+                    if (skippedCount > 0) {
+                        errors.append("Skipped ").append(skippedCount)
+                              .append(" interactions in file '")
+                              .append(file.getOriginalFilename())
+                              .append("' due to errors or duplicate entries. ");
+                    }
+                    
+                } catch (IOException e) {
+                    errors.append("Failed to process file '")
+                          .append(file.getOriginalFilename())
+                          .append("': ")
+                          .append(e.getMessage())
+                          .append(". ");
+                } catch (RuntimeException e) {
+                    errors.append("Error processing file '")
+                          .append(file.getOriginalFilename())
+                          .append("': ")
+                          .append(e.getMessage())
+                          .append(". ");
+                }
+            }
+        }
+
+        if (errors.length() > 0) {
+            redirectAttributes.addFlashAttribute("warning", errors.toString());
+        }
+        
+        if (totalImported > 0) {
+            redirectAttributes.addFlashAttribute("success", 
+                totalImported + " interactions successfully imported");
+        } else {
+            redirectAttributes.addFlashAttribute("error", 
+                "No interactions were imported. Please check your CSV file format.");
+        }
+        
+        return "redirect:/drugs/interactions";
+    }
+    
+    /**
+     * Download CSV template for drug interactions
+     */
+    @GetMapping("/interactions/template/download")
+    public ResponseEntity<byte[]> downloadInteractionsCsvTemplate() {
+        StringBuilder csvBuilder = new StringBuilder();
+        
+        // Add a few example rows
+        csvBuilder.append("Acetaminophen,Ibuprofen,Azithromycin,Hydrochlorothiazide\n");
+        csvBuilder.append("Lisinopril,Albuterol,Ibuprofen\n");
+        csvBuilder.append("Azithromycin,Amoxicillin,Ibuprofen,Lisinopril,Albuterol\n");
+        
+        byte[] csvContent = csvBuilder.toString().getBytes();
+        
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=interaction_template.csv")
+                .header(HttpHeaders.CONTENT_TYPE, "text/csv")
+                .body(csvContent);
     }
 } 

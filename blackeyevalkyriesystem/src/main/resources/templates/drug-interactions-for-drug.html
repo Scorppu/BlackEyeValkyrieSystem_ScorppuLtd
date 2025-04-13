@@ -219,8 +219,6 @@
                     <thead>
                         <tr>
                             <th>Interacting Drug</th>
-                            <th>Severity</th>
-                            <th>Description</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -229,12 +227,6 @@
                             <td th:with="interactingDrug=${allDrugs.find(d -> d.id == interaction.targetDrugId)}">
                                 <span th:text="${interactingDrug != null ? interactingDrug.name : 'Unknown Drug (' + interaction.targetDrugId + ')'}">Interacting Drug</span>
                             </td>
-                            <td>
-                                <span th:class="'badge badge-' + (${interaction.severity <= 2} ? 'mild' : (${interaction.severity <= 4} ? 'moderate' : 'severe'))">
-                                    <span th:text="${interaction.severity <= 2 ? 'Mild' : (interaction.severity <= 4 ? 'Moderate' : 'Severe')}">Severity</span>
-                                </span>
-                            </td>
-                            <td th:text="${interaction.description}">Description</td>
                             <td>
                                 <a th:href="@{/drugs/interactions/delete(drugId=${interaction.sourceDrugId},interactingDrugId=${interaction.targetDrugId})}" class="action-btn delete-btn" 
                                    onclick="return confirm('Are you sure you want to delete this interaction?')">Delete</a>
