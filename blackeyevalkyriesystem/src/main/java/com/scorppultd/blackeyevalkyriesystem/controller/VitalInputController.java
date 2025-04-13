@@ -22,7 +22,7 @@ import jakarta.servlet.http.HttpServletRequest;
 
 @Controller
 @RequestMapping("/vital")
-@PreAuthorize("hasRole('ROLE_NURSE')")
+@PreAuthorize("hasAnyRole('ROLE_NURSE', 'ROLE_ADMIN')")
 public class VitalInputController {
     
     private final AppointmentService appointmentService;
