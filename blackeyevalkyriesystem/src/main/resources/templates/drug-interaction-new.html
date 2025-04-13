@@ -327,6 +327,7 @@
         let interactionIndex = 0; // Counter for interaction items
         let mainDrugId = ''; // Will store the main drug ID
         let allDrugs = []; // Will store all drugs
+        let currentRequestId = 0; // To track the latest fetch request
 
         document.addEventListener('DOMContentLoaded', function() {
             // Log that the script is running
@@ -334,10 +335,15 @@
             
             // Load all drugs from the server
             fetchAllDrugs();
+            
+            // Sort the main drug dropdown
+            sortMainDrugDropdown();
 
             // Setup event handlers
             document.getElementById('mainDrug').addEventListener('change', function() {
+                // Set mainDrugId to empty string when "-- Select Main Drug --" is selected
                 mainDrugId = this.value;
+                console.log("Main drug changed to: " + (mainDrugId ? mainDrugId : "none"));
                 updateDrugsList();
                 // Clear the cart when main drug changes
                 clearInteractionCart();
@@ -357,6 +363,27 @@
                 }
             };
         });
+
+        // Function to sort the main drug dropdown by name
+        function sortMainDrugDropdown() {
+            const select = document.getElementById('mainDrug');
+            const defaultOption = select.options[0]; // Keep the "Select Main Drug" option first
+            
+            // Get all options (excluding the first default one)
+            const options = Array.from(select.options).slice(1);
+            
+            // Sort options by text content (drug name)
+            options.sort((a, b) => a.text.localeCompare(b.text));
+            
+            // Clear the select
+            select.innerHTML = '';
+            
+            // Add back the default option first
+            select.appendChild(defaultOption);
+            
+            // Add sorted options
+            options.forEach(option => select.appendChild(option));
+        }
 
         function fetchAllDrugs() {
             // In a real implementation, you might fetch this data via AJAX
@@ -379,21 +406,50 @@
             drugsListElement.innerHTML = '';
             selectedDrugs = []; // Clear selected drugs
             document.getElementById('drugSearchInput').value = ''; // Clear search input
+            
+            // Increment request ID to invalidate any in-flight requests
+            const requestId = ++currentRequestId;
 
             if (!mainDrugId) {
                 drugsListElement.innerHTML = `
                     <div class="drug-item" style="font-style: italic; color: var(--secondary-text);">
                         Please select a main drug first
                     </div>`;
+                // Disable Add Selected button
+                document.getElementById('addSelectedBtn').disabled = true;
                 return;
             }
 
             console.log("Selected main drug ID: " + mainDrugId);
             
+            // Show loading state
+            drugsListElement.innerHTML = `
+                <div class="drug-item" style="font-style: italic; color: var(--secondary-text);">
+                    Loading available drugs...
+                </div>`;
+            
             // Fetch available drugs for interaction
             fetch(`/api/drugs/${mainDrugId}/available-for-interaction`)
                 .then(response => response.json())
                 .then(availableDrugs => {
+                    // If this is not the most recent request, ignore the results
+                    if (requestId !== currentRequestId) {
+                        console.log("Ignoring stale request results for ID: " + requestId);
+                        return;
+                    }
+                    
+                    // Ensure we still have a valid mainDrugId (user might have changed it while fetch was in progress)
+                    if (!mainDrugId) {
+                        drugsListElement.innerHTML = `
+                            <div class="drug-item" style="font-style: italic; color: var(--secondary-text);">
+                                Please select a main drug first
+                            </div>`;
+                        document.getElementById('addSelectedBtn').disabled = true;
+                        return;
+                    }
+                    
+                    // Clear any previous content
+                    drugsListElement.innerHTML = '';
                     
                     // Filter out drugs already in the interaction cart and deduplicate by ID
                     const uniqueDrugIds = new Set();
@@ -413,6 +469,7 @@
                             <div class="drug-item" style="font-style: italic; color: var(--secondary-text);">
                                 No other drugs available
                             </div>`;
+                        document.getElementById('addSelectedBtn').disabled = true;
                         return;
                     }
 
@@ -440,11 +497,17 @@
                     document.getElementById('addSelectedBtn').disabled = true;
                 })
                 .catch(error => {
+                    // Check if this is still the current request
+                    if (requestId !== currentRequestId) {
+                        return;
+                    }
+                    
                     console.error("Error fetching available drugs:", error);
                     drugsListElement.innerHTML = `
                         <div class="drug-item" style="font-style: italic; color: var(--secondary-text);">
                             Error loading drugs. Please try again.
                         </div>`;
+                    document.getElementById('addSelectedBtn').disabled = true;
                 });
         }
 
