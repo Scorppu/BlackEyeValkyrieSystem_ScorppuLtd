@@ -10,10 +10,15 @@
             color: white;
             border: none;
             border-radius: 6px;
-            padding: 8px 16px;
+            padding: 6px 12px;
             font-weight: 500;
             cursor: pointer;
             transition: background-color 0.2s;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: inline-block;
+            font-size: 0.9em;
         }
         .consultation-btn:hover {
             background-color: #7b26cd;
@@ -44,14 +49,14 @@
             border-bottom: 1px solid var(--border-color);
             font-weight: 500;
         }
-        .queue-table th:nth-child(1) { width: 15%; } /* Patient Name */
+        .queue-table th:nth-child(1) { width: 13%; } /* Patient Name */
         .queue-table th:nth-child(2) { width: 20%; } /* Patient ID */
-        .queue-table th:nth-child(3) { width: 6%; }  /* Age */
+        .queue-table th:nth-child(3) { width: 5%; }  /* Age */
         .queue-table th:nth-child(4) { width: 9%; } /* Gender */
         .queue-table th:nth-child(5) { width: 12%; } /* Last Visit */
         .queue-table th:nth-child(6) { width: 14%; } /* Scheduled Time */
         .queue-table th:nth-child(7) { width: 10%; } /* Status */
-        .queue-table th:nth-child(8) { width: 14%; } /* Action (only in first table) */
+        .queue-table th:nth-child(8) { width: 17%; } /* Action (only in first table) */
         .queue-table td {
             padding: 12px 10px;
             text-align: left;
