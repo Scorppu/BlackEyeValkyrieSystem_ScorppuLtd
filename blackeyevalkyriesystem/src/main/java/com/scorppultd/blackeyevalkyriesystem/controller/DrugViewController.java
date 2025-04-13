@@ -421,6 +421,16 @@ public class DrugViewController {
     }
     
     /**
+     * Display interactive drug interaction map
+     */
+    @GetMapping("/interactions/map") 
+    public String showInteractionMap(Model model) {
+        List<Drug> drugs = drugService.getAllDrugs();
+        model.addAttribute("drugs", drugs);
+        return "drug-interaction-map";
+    }
+    
+    /**
      * Handle CSV file upload and import drug interactions
      */
     @PostMapping("/interactions/import")

@@ -63,6 +63,9 @@
         <div class="content-wrapper">
             <div class="content-header">
                 <h1>Drug Interactions</h1>
+                <a href="/drugs/interactions/map" id="viewMapBtn" class="btn" style="background-color: #4CAF50; color: white; text-decoration: none; padding: 8px 16px; border-radius: 4px;">
+                    View Map
+                </a>
                 <a href="/drugs/interactions/add" class="btn btn-primary">
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M8 4V12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -132,7 +135,7 @@
                 </div>
                 
                 <!-- JavaScript for interaction search functionality -->
-                <script>
+                <script layout:fragment="scripts">
                     function filterInteractions() {
                         const searchInput = document.getElementById('interactionSearchInput');
                         const searchTerm = searchInput.value.toLowerCase();
