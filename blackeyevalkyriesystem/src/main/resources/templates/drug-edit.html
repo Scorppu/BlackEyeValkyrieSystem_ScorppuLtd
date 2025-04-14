@@ -113,6 +113,23 @@
             color: var(--secondary-text);
             margin-bottom: 20px;
         }
+
+        .mb-4 {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-direction: column;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 16px;
+            background-color: var(--input-bg);
+        }
+        
+        /* Animation for spinner */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 
@@ -187,88 +204,55 @@
                                  placeholder="Enter common side effects"></textarea>
                     </div>
                     
-                    <!-- Drug Interactions Section -->
-                    <div class="card" style="background-color: var(--secondary-bg); border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 20px;">
-                        <div class="card-header" style="background-color: rgba(138, 43, 226, 0.1); padding: 12px 16px; border-radius: 8px 8px 0 0; border-bottom: 1px solid var(--border-color);">
-                            <h3 style="margin: 0; font-size: 18px; color: var(--primary-text);">Drug Interactions</h3>
-                            <p style="margin: 5px 0 0 0; font-size: 14px; color: var(--secondary-text);">
-                                Manage interactions with other medications (optional)
-                            </p>
-                        </div>
-                        <div class="card-body" style="padding: 16px;">
-                            <!-- Existing Interactions -->
-                            <div th:if="${!#lists.isEmpty(existingInteractions)}" style="margin-bottom: 20px;">
-                                <h4 style="margin-top: 0; margin-bottom: 10px; font-size: 16px; color: var(--primary-text);">Existing Interactions</h4>
-                                <div class="table-responsive">
-                                    <table class="table" style="width: 100%; border-collapse: collapse;">
-                                        <thead>
-                                            <tr>
-                                                <th style="text-align: left; padding: 8px; border-bottom: 1px solid var(--border-color);">Drug</th>
-                                                <th style="text-align: left; padding: 8px; border-bottom: 1px solid var(--border-color);">Severity</th>
-                                                <th style="text-align: left; padding: 8px; border-bottom: 1px solid var(--border-color);">Description</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr th:each="interaction : ${existingInteractions}">
-                                                <td style="padding: 8px; border-bottom: 1px solid var(--border-color);">
-                                                    <span th:text="${interaction.drugA.id == drug.id ? interaction.drugB.name : interaction.drugA.name}">Other Drug</span>
-                                                </td>
-                                                <td style="padding: 8px; border-bottom: 1px solid var(--border-color);">
-                                                    <span th:text="${interaction.severity}">Severity</span>
-                                                </td>
-                                                <td style="padding: 8px; border-bottom: 1px solid var(--border-color);">
-                                                    <span th:text="${interaction.description}">Description</span>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
+                    <!-- Drug Interactions -->
+                    <div class="card">
+                        <div class="card-body p-4">
+                            <h2 class="card-title fs-6 fw-bold mb-3">Drug Interactions</h2>
+                            
+                            <div class="mb-4">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="text-muted fs-7" th:if="${drug.interactingDrugIds != null and !drug.interactingDrugIds.isEmpty()}" th:text="${drug.interactingDrugIds.size() + ' interaction(s) recorded'}"></span>
+                                    <span class="text-muted fs-7" th:if="${drug.interactingDrugIds == null or drug.interactingDrugIds.isEmpty()}">No interactions recorded</span>
+                                    
+                                    <a th:href="@{/drugs/interactions/drug/{drugId}(drugId=${drug.id})}" class="btn btn-sm btn-outline-secondary" style="font-size: 0.8rem; padding: 4px 8px;">
+                                        View Details
+                                    </a>
                                 </div>
-                                <p style="font-size: 14px; color: var(--secondary-text); margin-top: 10px;">
-                                    To edit existing interactions, go to the Drug Interactions page.
-                                </p>
-                            </div>
+
+                                <div class="alert alert-info fs-7">
+                                    <i class="bi bi-info-circle me-2"></i>
+                                    <span>To edit existing interactions, please visit the <a th:href="@{/drugs/interactions}" class="alert-link">Drug Interactions</a> page.</span>
+                                </div>
                             
-                            <!-- Add New Interactions -->
-                            <h4 style="margin-top: 20px; font-size: 16px; color: var(--primary-text);">Add New Interactions (Optional)</h4>
                             
-                            <!-- Specific Drug Interactions -->
-                            <div id="interactionsContainer">
-                                <div class="interaction-item" style="border: 1px solid var(--border-color); border-radius: 4px; padding: 16px; margin-bottom: 16px; background-color: var(--input-bg);">
-                                    <div class="form-group">
-                                        <label for="interactingDrug0" class="form-label">Interacting Drug</label>
-                                        <select id="interactingDrug0" name="interactingDrugs[0]" class="form-control">
-                                            <option value="">-- Select Drug --</option>
-                                            <option th:each="otherDrug : ${allDrugs}" 
-                                                    th:value="${otherDrug.id}" 
-                                                    th:text="${otherDrug.name}">Drug name</option>
-                                        </select>
+                                <!-- Form for adding new interactions -->
+                                <div th:if="${drug.id != null}">
+                                    <h3 class="fs-7 fw-semibold mb-3">Add New Interactions</h3>
+                                    <div id="newInteractionsContainer">
+                                        <div class="interaction-item" style="border: 1px solid var(--border-color); border-radius: 4px; padding: 16px; margin-bottom: 16px; background-color: var(--input-bg);">
+                                            <div class="form-group">
+                                                <label for="interactingDrug0" class="form-label">Interacting Drug</label>
+                                                <select id="interactingDrug0" name="interactingDrugs" class="form-control">
+                                                    <option value="">Select a drug</option>
+                                                    <option th:each="interactingDrug : ${allDrugs}" 
+                                                            th:value="${interactingDrug.id}" 
+                                                            th:text="${interactingDrug.name}"
+                                                            th:if="${interactingDrug.id != drug.id}"></option>
+                                                </select>
+                                            </div>
+                                        </div>
                                     </div>
                                     
-                                    <div class="form-group">
-                                        <label for="severity0" class="form-label">Interaction Severity</label>
-                                        <select id="severity0" name="severities[0]" class="form-control">
-                                            <option value="">-- Select Severity --</option>
-                                            <option th:each="severity : ${severityLevels}" 
-                                                    th:value="${severity}" 
-                                                    th:text="${severity}">Severity level</option>
-                                        </select>
+                                    <div id="interactionLimit" class="alert alert-warning fs-7 mb-3" style="display: none;">
+                                        <i class="bi bi-exclamation-triangle me-2"></i>
+                                        <span>You can add a maximum of 5 interactions at once.</span>
                                     </div>
                                     
-                                    <div class="form-group">
-                                        <label for="description0" class="form-label">Interaction Description</label>
-                                        <textarea id="description0" name="descriptions[0]" class="form-textarea" 
-                                                placeholder="Describe the interaction and its effects"></textarea>
-                                    </div>
+                                    <button type="button" id="addInteraction" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-plus"></i> Add Another Interaction
+                                    </button>
                                 </div>
                             </div>
-                            
-                            <button type="button" id="addInteraction" class="btn btn-secondary" style="margin-bottom: 10px;">
-                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align: middle; margin-right: 5px;">
-                                    <path d="M8 4V12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <path d="M4 8H12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
-                                Add Another Interaction
-                            </button>
                         </div>
                     </div>
                     
@@ -285,11 +269,19 @@
         document.addEventListener('DOMContentLoaded', function() {
             // Add interaction button functionality
             const addInteractionBtn = document.getElementById('addInteraction');
-            const interactionsContainer = document.getElementById('interactionsContainer');
+            const newInteractionsContainer = document.getElementById('newInteractionsContainer');
+            const limitMessage = document.getElementById('interactionLimit');
             
             let interactionCount = 1;
+            const MAX_INTERACTIONS = 5;
             
             addInteractionBtn.addEventListener('click', function() {
+                // Check if we've reached the maximum number of interactions
+                if (newInteractionsContainer.children.length >= MAX_INTERACTIONS) {
+                    limitMessage.style.display = 'block';
+                    return;
+                }
+                
                 const newInteraction = document.createElement('div');
                 newInteraction.className = 'interaction-item';
                 newInteraction.style = 'border: 1px solid var(--border-color); border-radius: 4px; padding: 16px; margin-bottom: 16px; background-color: var(--input-bg); position: relative;';
@@ -308,67 +300,55 @@
                 const interactingDrugOptions = Array.from(document.querySelector('#interactingDrug0').options)
                     .map(option => `<option value="${option.value}">${option.textContent}</option>`)
                     .join('');
-                    
-                const severityOptions = Array.from(document.querySelector('#severity0').options)
-                    .map(option => `<option value="${option.value}">${option.textContent}</option>`)
-                    .join('');
                 
                 newInteraction.innerHTML = `
                     ${deleteBtn}
                     <div class="form-group">
                         <label for="interactingDrug${interactionCount}" class="form-label">Interacting Drug</label>
-                        <select id="interactingDrug${interactionCount}" name="interactingDrugs[${interactionCount}]" class="form-control">
+                        <select id="interactingDrug${interactionCount}" name="interactingDrugs" class="form-control">
                             ${interactingDrugOptions}
                         </select>
                     </div>
-                    
-                    <div class="form-group">
-                        <label for="severity${interactionCount}" class="form-label">Interaction Severity</label>
-                        <select id="severity${interactionCount}" name="severities[${interactionCount}]" class="form-control">
-                            ${severityOptions}
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="description${interactionCount}" class="form-label">Interaction Description</label>
-                        <textarea id="description${interactionCount}" name="descriptions[${interactionCount}]" class="form-textarea" 
-                                placeholder="Describe the interaction and its effects"></textarea>
-                    </div>
                 `;
                 
-                interactionsContainer.appendChild(newInteraction);
+                newInteractionsContainer.appendChild(newInteraction);
                 interactionCount++;
+                
+                // Show limit message if we've reached the maximum
+                if (newInteractionsContainer.children.length >= MAX_INTERACTIONS) {
+                    limitMessage.style.display = 'block';
+                    addInteractionBtn.disabled = true;
+                }
             });
             
             // Event delegation for remove interaction buttons
-            interactionsContainer.addEventListener('click', function(e) {
+            newInteractionsContainer.addEventListener('click', function(e) {
                 if (e.target.closest('.remove-interaction')) {
                     e.target.closest('.interaction-item').remove();
+                    
+                    // Hide limit message and re-enable button if we're below the max
+                    if (newInteractionsContainer.children.length < MAX_INTERACTIONS) {
+                        limitMessage.style.display = 'none';
+                        addInteractionBtn.disabled = false;
+                    }
                 }
             });
             
             // Add validation to ensure interactions are completed correctly
             const form = document.querySelector('form');
             form.addEventListener('submit', function(e) {
-                const interactingDrugs = document.querySelectorAll('[name^="interactingDrugs"]');
-                let hasEmptyInteraction = false;
+                const interactingDrugs = document.querySelectorAll('[name="interactingDrugs"]');
+                let hasEmptySelection = false;
                 
                 interactingDrugs.forEach(select => {
-                    // Check if this is a partially filled interaction
-                    const index = select.name.match(/\d+/)[0];
-                    const severity = document.querySelector(`[name="severities[${index}]"]`);
-                    const description = document.querySelector(`[name="descriptions[${index}]"]`);
-                    
-                    if ((select.value && (!severity.value || !description.value)) ||
-                        (severity.value && (!select.value || !description.value)) ||
-                        (description.value && (!select.value || !severity.value))) {
-                        hasEmptyInteraction = true;
+                    if (!select.value) {
+                        hasEmptySelection = true;
                     }
                 });
                 
-                if (hasEmptyInteraction) {
+                if (hasEmptySelection) {
                     e.preventDefault();
-                    alert('Please complete all fields for each interaction or remove incomplete interaction fields');
+                    alert('Please select a drug for each interaction or remove empty interaction fields');
                 }
             });
         });

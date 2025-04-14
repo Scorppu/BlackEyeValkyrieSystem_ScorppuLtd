@@ -22,6 +22,10 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import java.util.Collections;
+import org.springframework.http.HttpStatus;
 
 @Controller
 @RequestMapping("/drugs")
@@ -29,6 +33,7 @@ import java.util.Optional;
 public class DrugViewController {
 
     private final DrugService drugService;
+    private static final Logger logger = LoggerFactory.getLogger(DrugViewController.class);
     
     @Autowired
     public DrugViewController(DrugService drugService) {
@@ -156,27 +161,50 @@ public class DrugViewController {
      */
     @GetMapping("/edit/{id}")
     public String showEditDrugForm(@PathVariable String id, Model model, RedirectAttributes redirectAttributes) {
-        drugService.getDrugById(id).ifPresentOrElse(
-            drug -> {
-                model.addAttribute("drug", drug);
-                
-                // Get all other drugs for potential interactions
-                List<Drug> allDrugs = drugService.getAllDrugs();
-                allDrugs.removeIf(d -> d.getId().equals(id)); // Remove current drug
-                model.addAttribute("allDrugs", allDrugs);
-                
-                // Get existing interactions for this drug
-                List<String> existingInteractions = drugService.getAllInteractionsForDrug(id);
-                model.addAttribute("existingInteractions", existingInteractions);
-                
-                model.addAttribute("severityLevels", Arrays.asList(1, 2, 3, 4, 5));
-            },
-            () -> {
-                redirectAttributes.addFlashAttribute("error", "Drug not found");
-                model.addAttribute("redirect", "/drugs/list");
-            }
-        );
-        return model.containsAttribute("redirect") ? "redirect:" + model.getAttribute("redirect") : "drug-edit";
+        try {
+            drugService.getDrugById(id).ifPresentOrElse(
+                drug -> {
+                    model.addAttribute("drug", drug);
+                    
+                    // Get all other drugs for potential interactions
+                    List<Drug> allDrugs = drugService.getAllDrugs();
+                    allDrugs.removeIf(d -> d.getId().equals(id)); // Remove current drug
+                    model.addAttribute("allDrugs", allDrugs);
+                    
+                    // Don't load interactions here - will be loaded via AJAX
+                    // Just add the count for UI display
+                    int interactionCount = drug.getInteractingDrugIds() != null ? drug.getInteractingDrugIds().size() : 0;
+                    model.addAttribute("interactionCount", interactionCount);
+                    
+                    model.addAttribute("severityLevels", Arrays.asList(1, 2, 3, 4, 5));
+                },
+                () -> {
+                    redirectAttributes.addFlashAttribute("error", "Drug not found");
+                    model.addAttribute("redirect", "/drugs/list");
+                }
+            );
+            return model.containsAttribute("redirect") ? "redirect:" + model.getAttribute("redirect") : "drug-edit";
+        } catch (Exception e) {
+            logger.error("Error loading drug edit form for ID {}: {}", id, e.getMessage());
+            redirectAttributes.addFlashAttribute("error", "Error loading drug: " + e.getMessage());
+            return "redirect:/drugs/list";
+        }
+    }
+    
+    /**
+     * API endpoint to get interactions for a drug (for AJAX loading)
+     */
+    @GetMapping("/api/drugs/{id}/interactions")
+    @ResponseBody
+    public ResponseEntity<?> getDrugInteractions(@PathVariable String id) {
+        try {
+            List<String> interactionIds = drugService.getAllInteractionsForDrug(id);
+            return ResponseEntity.ok(interactionIds);
+        } catch (Exception e) {
+            logger.error("Error fetching drug interactions for ID {}: {}", id, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Collections.singletonMap("error", "Failed to load interactions: " + e.getMessage()));
+        }
     }
     
     /**
@@ -187,45 +215,61 @@ public class DrugViewController {
                             @ModelAttribute Drug drug, 
                             @RequestParam(value = "interactingDrugs", required = false) List<String> interactingDrugs,
                             RedirectAttributes redirectAttributes) {
-        drug.setId(id); // Ensure ID is set
-        drugService.updateDrug(drug);
-        
-        // Handle interactions if any were specified
-        if (interactingDrugs != null && !interactingDrugs.isEmpty()) {
+        try {
+            drug.setId(id); // Ensure ID is set
+            drugService.updateDrug(drug);
             
-            int successCount = 0;
-            StringBuilder errors = new StringBuilder();
-            
-            for (int i = 0; i < interactingDrugs.size(); i++) {
-                String interactingDrugId = interactingDrugs.get(i);
-                if (interactingDrugId == null || interactingDrugId.isEmpty()) {
-                    continue;  // Skip empty selections
+            // Handle interactions if any were specified
+            if (interactingDrugs != null && !interactingDrugs.isEmpty()) {
+                
+                // Limit the number of interactions processed at once
+                final int BATCH_SIZE = 10;
+                int totalInteractions = interactingDrugs.size();
+                int successCount = 0;
+                StringBuilder errors = new StringBuilder();
+                
+                // Process interactions in batches to prevent response timeouts
+                for (int batchStart = 0; batchStart < totalInteractions; batchStart += BATCH_SIZE) {
+                    int batchEnd = Math.min(batchStart + BATCH_SIZE, totalInteractions);
+                    List<String> batch = interactingDrugs.subList(batchStart, batchEnd);
+                    
+                    for (String interactingDrugId : batch) {
+                        if (interactingDrugId == null || interactingDrugId.isEmpty()) {
+                            continue;  // Skip empty selections
+                        }
+                        
+                        try {
+                            // Add the interaction to the drug
+                            drugService.addInteractionToDrug(id, interactingDrugId);
+                            
+                            // Create reciprocal interaction (B → A)
+                            drugService.addInteractionToDrug(interactingDrugId, id);
+                            
+                            successCount++;
+                        } catch (Exception e) {
+                            errors.append("Error processing interaction: ").append(e.getMessage()).append(". ");
+                            // Log the error for debugging
+                            logger.error("Error adding interaction between {} and {}: {}", id, interactingDrugId, e.getMessage());
+                        }
+                    }
                 }
                 
-                try {
-                    // Add the interaction to the drug
-                    drugService.addInteractionToDrug(id, interactingDrugId);
-                    
-                    // Create reciprocal interaction (B → A)
-                    drugService.addInteractionToDrug(interactingDrugId, id);
-                    
-                    successCount++;
-                } catch (Exception e) {
-                    errors.append("Error processing interaction: ").append(e.getMessage()).append(". ");
+                if (errors.length() > 0) {
+                    redirectAttributes.addFlashAttribute("warning", 
+                        "Drug updated, but some interactions could not be created: " + errors.toString());
+                } else if (successCount > 0) {
+                    redirectAttributes.addFlashAttribute("success", 
+                        "Drug updated successfully with " + successCount + " interaction(s) added/updated");
+                } else {
+                    redirectAttributes.addFlashAttribute("success", "Drug updated successfully");
                 }
-            }
-            
-            if (errors.length() > 0) {
-                redirectAttributes.addFlashAttribute("warning", 
-                    "Drug updated, but some interactions could not be created: " + errors.toString());
-            } else if (successCount > 0) {
-                redirectAttributes.addFlashAttribute("success", 
-                    "Drug updated successfully with " + successCount + " interaction(s) added/updated");
             } else {
                 redirectAttributes.addFlashAttribute("success", "Drug updated successfully");
             }
-        } else {
-            redirectAttributes.addFlashAttribute("success", "Drug updated successfully");
+        } catch (Exception e) {
+            // Log the error
+            logger.error("Error updating drug {}: {}", id, e.getMessage());
+            redirectAttributes.addFlashAttribute("error", "Error updating drug: " + e.getMessage());
         }
         
         return "redirect:/drugs/list";
@@ -245,17 +289,35 @@ public class DrugViewController {
      * List all drug interactions
      */
     @GetMapping("/interactions")
-    public String listInteractions(Model model) {
+    public String listInteractions(Model model, @RequestParam(required = false) String drugId) {
         List<Drug> allDrugs = drugService.getAllDrugs();
         model.addAttribute("drugs", allDrugs);
         
         // Create a map to group interactions by primary drug
         Map<String, List<String>> drugInteractionsMap = new HashMap<>();
         
-        for (Drug drug : allDrugs) {
-            if (drug.getInteractingDrugIds() != null && !drug.getInteractingDrugIds().isEmpty()) {
-                // For each drug with interactions, add its ID and the list of interacting drugs
-                drugInteractionsMap.put(drug.getId(), new ArrayList<>(drug.getInteractingDrugIds()));
+        // If a specific drug ID is provided, only show interactions for that drug
+        if (drugId != null && !drugId.isEmpty()) {
+            model.addAttribute("selectedDrugId", drugId);
+            
+            // Try to get the drug to display its name
+            drugService.getDrugById(drugId).ifPresent(drug -> {
+                model.addAttribute("selectedDrug", drug);
+            });
+            
+            // Add only the interactions for the selected drug
+            drugService.getDrugById(drugId).ifPresent(drug -> {
+                if (drug.getInteractingDrugIds() != null && !drug.getInteractingDrugIds().isEmpty()) {
+                    drugInteractionsMap.put(drug.getId(), new ArrayList<>(drug.getInteractingDrugIds()));
+                }
+            });
+        } else {
+            // Add all interactions if no drug ID was provided
+            for (Drug drug : allDrugs) {
+                if (drug.getInteractingDrugIds() != null && !drug.getInteractingDrugIds().isEmpty()) {
+                    // For each drug with interactions, add its ID and the list of interacting drugs
+                    drugInteractionsMap.put(drug.getId(), new ArrayList<>(drug.getInteractingDrugIds()));
+                }
             }
         }
         
@@ -382,6 +444,11 @@ public class DrugViewController {
         List<Drug> allDrugs = drugService.getAllDrugs();
         model.addAttribute("allDrugs", allDrugs);
         
+        // Create a map of drug IDs to drugs for easier lookup
+        Map<String, Drug> drugMap = new HashMap<>();
+        for (Drug drug : allDrugs) {
+            drugMap.put(drug.getId(), drug);
+        }
         
         drugService.getDrugById(drugId).ifPresentOrElse(
             drug -> {
@@ -392,10 +459,13 @@ public class DrugViewController {
                 if (drug.getInteractingDrugIds() != null) {
                     // Process each interaction
                     for (String interactingDrugId : drug.getInteractingDrugIds()) {
+                        Drug interactingDrug = drugMap.get(interactingDrugId);
                         
                         Map<String, Object> interactionData = new HashMap<>();
                         interactionData.put("sourceDrugId", drug.getId());
                         interactionData.put("targetDrugId", interactingDrugId);
+                        interactionData.put("targetDrugName", 
+                            interactingDrug != null ? interactingDrug.getName() : "Unknown Drug (" + interactingDrugId + ")");
                         enhancedInteractions.add(interactionData);
                     }
                 }
