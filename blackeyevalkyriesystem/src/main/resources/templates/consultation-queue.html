@@ -45,17 +45,65 @@
             font-weight: 500;
         }
         .queue-table th:nth-child(1) { width: 15%; } /* Patient Name */
-        .queue-table th:nth-child(2) { width: 20%; } /* Patient ID */
-        .queue-table th:nth-child(3) { width: 6%; }  /* Age */
-        .queue-table th:nth-child(4) { width: 9%; } /* Gender */
-        .queue-table th:nth-child(5) { width: 12%; } /* Last Visit */
+        .queue-table th:nth-child(2) { width: 23%; } /* Patient ID */
+        .queue-table th:nth-child(3) { width:  3%; }  /* Age */
+        .queue-table th:nth-child(4) { width:  6%; } /* Gender */
+        .queue-table th:nth-child(5) { width: 10%; } /* Last Visit */
         .queue-table th:nth-child(6) { width: 14%; } /* Scheduled Time */
-        .queue-table th:nth-child(7) { width: 10%; } /* Status */
-        .queue-table th:nth-child(8) { width: 14%; } /* Action (only in first table) */
+        .queue-table th:nth-child(7) { width: 12%; } /* Status */
+        .queue-table th:nth-child(8) { width: 18%; } /* Action (only in first table) */
         .queue-table td {
             padding: 12px 10px;
             text-align: left;
             border-bottom: 1px solid var(--border-color);
+        }
+        /* Responsive breakpoints */
+        @media screen and (max-width: 1600px) {
+            /* Hide Last Visit column */
+            .queue-table th:nth-child(5),
+            .queue-table td:nth-child(5) {
+                display: none;
+            }
+            
+            /* Redistribute widths */
+            .queue-table th:nth-child(1) { width: 15%; } /* Patient Name */
+            .queue-table th:nth-child(2) { width: 23%; } /* Patient ID */
+            .queue-table th:nth-child(3) { width:  4%; } /* Age */
+            .queue-table th:nth-child(4) { width:  7%; } /* Gender */
+            .queue-table th:nth-child(6) { width: 17%; } /* Scheduled Time */
+            .queue-table th:nth-child(7) { width: 15%; } /* Status */
+            .queue-table th:nth-child(8) { width: 19%; } /* Action */
+        }
+
+        @media screen and (max-width: 1500px) {
+            /* Hide Patient ID column */
+            .queue-table th:nth-child(2),
+            .queue-table td:nth-child(2) {
+                display: none;
+            }
+            
+            /* Further redistribute widths */
+            .queue-table th:nth-child(1) { width: 22%; } /* Patient Name */
+            .queue-table th:nth-child(3) { width:  5%; } /* Age */
+            .queue-table th:nth-child(4) { width:  9%; } /* Gender */
+            .queue-table th:nth-child(6) { width: 21%; } /* Scheduled Time */
+            .queue-table th:nth-child(7) { width: 18%; } /* Status */
+            .queue-table th:nth-child(8) { width: 25%; } /* Action */  
+        }
+
+        @media screen and (max-width: 1200px) {
+            /* Hide Gender column */
+            .queue-table th:nth-child(4),
+            .queue-table td:nth-child(4) {
+                display: none;
+            }
+            
+            /* Further redistribute widths */
+            .queue-table th:nth-child(1) { width: 22%; } /* Patient Name */
+            .queue-table th:nth-child(3) { width:  6%; } /* Age */
+            .queue-table th:nth-child(6) { width: 22%; } /* Scheduled Time */
+            .queue-table th:nth-child(7) { width: 21%; } /* Status */
+            .queue-table th:nth-child(8) { width: 29%; } /* Action */  
         }
         .queue-table tr:hover {
             background-color: rgba(138, 43, 226, 0.1);
