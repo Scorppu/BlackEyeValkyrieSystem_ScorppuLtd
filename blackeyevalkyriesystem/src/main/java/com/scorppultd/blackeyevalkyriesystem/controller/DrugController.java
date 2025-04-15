@@ -2,6 +2,7 @@ package com.scorppultd.blackeyevalkyriesystem.controller;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -46,5 +47,40 @@ public class DrugController {
     @GetMapping("/template/{category}")
     public ResponseEntity<List<Drug>> getDrugsByTemplate(@PathVariable String category) {
         return ResponseEntity.ok(drugService.getDrugsByTemplateCategory(category));
+    }
+    
+    @GetMapping("/{id}/interactions")
+    public ResponseEntity<List<String>> getDrugInteractions(@PathVariable String id) {
+        try {
+            List<String> interactionIds = drugService.getAllInteractionsForDrug(id);
+            return ResponseEntity.ok(interactionIds);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+    
+    @GetMapping("/{id}/available-for-interaction")
+    public ResponseEntity<List<Drug>> getDrugsAvailableForInteraction(@PathVariable String id) {
+        try {
+            // Get the main drug
+            Optional<Drug> mainDrugOpt = drugService.getDrugById(id);
+            if (!mainDrugOpt.isPresent()) {
+                return ResponseEntity.notFound().build();
+            }
+            
+            Drug mainDrug = mainDrugOpt.get();
+            List<String> existingInteractions = mainDrug.getInteractingDrugIds() != null 
+                ? mainDrug.getInteractingDrugIds() 
+                : List.of();
+            
+            // Get all drugs except the main drug and those that already have interactions
+            List<Drug> availableDrugs = drugService.getAllDrugs().stream()
+                .filter(drug -> !drug.getId().equals(id) && !existingInteractions.contains(drug.getId()))
+                .collect(Collectors.toList());
+            
+            return ResponseEntity.ok(availableDrugs);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 } 
