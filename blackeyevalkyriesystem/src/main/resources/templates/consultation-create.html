@@ -811,6 +811,33 @@
                 return;
             }
             
+            // Get drug IDs for interaction check
+            const drugIdsToAdd = selectedDrugs.map(drug => drug.getAttribute('data-id'));
+            const existingDrugIds = getExistingDrugIdsInCart();
+            
+            // Check for drug interactions
+            checkDrugInteractions([...drugIdsToAdd, ...existingDrugIds])
+                .then(interactions => {
+                    if (interactions.length > 0) {
+                        // Show warning if interactions found
+                        showDrugInteractionWarning(interactions, () => {
+                            // User confirmed despite interactions, proceed with adding drugs
+                            addSelectedDrugsToCartImpl(dosage, days, qty);
+                        });
+                    } else {
+                        // No interactions found, proceed with adding drugs
+                        addSelectedDrugsToCartImpl(dosage, days, qty);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking drug interactions:', error);
+                    // If there's an error, still proceed with adding drugs but log the error
+                    addSelectedDrugsToCartImpl(dosage, days, qty);
+                });
+        }
+        
+        // Implementation function to add drugs after interaction check
+        function addSelectedDrugsToCartImpl(dosage, days, qty) {
             // Process each selected drug
             selectedDrugs.forEach(drugElement => {
                 const drugId = drugElement.getAttribute('data-id');
@@ -833,45 +860,155 @@
             closeModal();
         }
         
-        function addDrugToCart(drugId, drugName, dosage, days, qty) {
-            // Get the current index for this prescription item
-            const itemIndex = prescriptionItemIndex++;
+        // Get all drug IDs currently in the cart
+        function getExistingDrugIdsInCart() {
+            const cartItems = document.querySelectorAll('#drugCart [data-drug-id]');
+            return Array.from(cartItems).map(item => item.getAttribute('data-drug-id'));
+        }
+        
+        // Check for interactions between selected drugs
+        async function checkDrugInteractions(drugIds) {
+            if (!drugIds || drugIds.length < 2) {
+                return []; // No interactions possible with less than 2 drugs
+            }
             
-            // Create cart item element
-            const cartItem = document.createElement('div');
-            cartItem.style.padding = '10px';
-            cartItem.style.marginBottom = '5px';
-            cartItem.style.borderBottom = '1px solid var(--border-color)';
-            cartItem.setAttribute('data-drug-id', drugId);
+            console.log('Checking drug interactions for:', drugIds);
             
-            cartItem.innerHTML = `
-                <div style="display: flex; justify-content: space-between;">
-                    <div>
-                        <strong>${drugName}</strong> - ${dosage}
-                    </div>
-                    <div>
-                        ${days} days - Qty: ${qty}
-                    </div>
-                    <div>
-                        <button type="button" onclick="removeFromCart(this, ${itemIndex})" 
-                                style="background: none; border: none; color: #ff5c5c; cursor: pointer;">
-                            Remove
-                        </button>
+            // Create a map to store all interactions
+            const interactions = [];
+            
+            // For each drug, check interactions with other drugs
+            for (let i = 0; i < drugIds.length; i++) {
+                const drugId = drugIds[i];
+                
+                try {
+                    // Fetch interactions for this drug
+                    const response = await fetch(`/api/drugs/${drugId}/interactions`);
+                    if (!response.ok) {
+                        console.warn(`Failed to fetch interactions for drug ${drugId}`);
+                        continue;
+                    }
+                    
+                    const interactionIds = await response.json();
+                    console.log(`Drug ${drugId} has interactions with:`, interactionIds);
+                    
+                    // Check if any of the other selected drugs interact with this one
+                    for (let j = 0; j < drugIds.length; j++) {
+                        if (i !== j && interactionIds.includes(drugIds[j])) {
+                            // Found an interaction between drugIds[i] and drugIds[j]
+                            interactions.push({
+                                drug1Id: drugId,
+                                drug2Id: drugIds[j]
+                            });
+                        }
+                    }
+                } catch (error) {
+                    console.error(`Error fetching interactions for drug ${drugId}:`, error);
+                }
+            }
+            
+            // Enrich the interactions with drug names
+            const enrichedInteractions = await enrichInteractionsWithDrugNames(interactions);
+            
+            return enrichedInteractions;
+        }
+        
+        // Add drug names to the interaction data
+        async function enrichInteractionsWithDrugNames(interactions) {
+            const drugNames = new Map();
+            
+            // Get drug elements from both the list and cart to extract names
+            const drugElements = [
+                ...document.querySelectorAll('#drugList .drug-item'),
+                ...document.querySelectorAll('#drugCart [data-drug-id]')
+            ];
+            
+            // Create a map of drug IDs to names
+            drugElements.forEach(element => {
+                const id = element.getAttribute('data-drug-id') || element.getAttribute('data-id');
+                const name = element.getAttribute('data-name') || 
+                             element.querySelector('strong')?.textContent || 
+                             'Unknown Drug';
+                if (id) {
+                    drugNames.set(id, name);
+                }
+            });
+            
+            // Enrich interactions with drug names
+            return interactions.map(interaction => ({
+                ...interaction,
+                drug1Name: drugNames.get(interaction.drug1Id) || 'Unknown Drug',
+                drug2Name: drugNames.get(interaction.drug2Id) || 'Unknown Drug'
+            }));
+        }
+        
+        // Show a warning modal for drug interactions
+        function showDrugInteractionWarning(interactions, onConfirm) {
+            // Create a modal for the warning
+            const modalHtml = `
+                <div id="interactionWarningModal" class="modal" style="display: block;">
+                    <div class="modal-content" style="max-width: 600px;">
+                        <div class="modal-header" style="background-color: rgba(255, 92, 92, 0.1); border-bottom: 2px solid #ff5c5c;">
+                            <h3 style="color: #ff5c5c;">⚠️ Drug Interaction Warning</h3>
+                            <span class="close" onclick="closeInteractionWarningModal()">&times;</span>
+                        </div>
+                        <div class="modal-body">
+                            <div style="padding: 10px; background-color: rgba(255, 92, 92, 0.05); border-radius: 4px; margin-bottom: 15px;">
+                                <p style="margin-top: 0; font-weight: 500;">
+                                    Potential drug interactions were detected between the selected medications.
+                                </p>
+                                <p style="margin-bottom: 0;">
+                                    Please review these interactions carefully before proceeding. Consider consulting with a pharmacist if you're unsure.
+                                </p>
+                            </div>
+                            
+                            <h4 style="margin-top: 0;">Detected Interactions:</h4>
+                            <ul style="margin-bottom: 15px; padding-left: 10px; list-style-type: none;">
+                                ${interactions.map(interaction => `
+                                    <li style="margin-bottom: 12px; padding: 8px 10px; border-left: 3px solid #ff5c5c; background-color: rgba(255, 92, 92, 0.05);">
+                                        <strong style="color: #ff5c5c;">${interaction.drug1Name}</strong> 
+                                        <span style="margin: 0 5px;">⟷</span> 
+                                        <strong style="color: #ff5c5c;">${interaction.drug2Name}</strong>
+                                        <div style="margin-top: 5px; font-size: 0.9em; color: var(--secondary-text);">
+                                            These drugs may interact. Consider alternative medications or adjusting dosages.
+                                        </div>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        </div>
+                        <div class="modal-footer" style="border-top: 1px solid rgba(255, 92, 92, 0.3);">
+                            <button type="button" class="btn-secondary" onclick="closeInteractionWarningModal()">
+                                Cancel
+                            </button>
+                            <button type="button" class="btn-primary" style="background-color: #ff5c5c;" id="confirmDespiteInteractions">
+                                Proceed Anyway
+                            </button>
+                        </div>
                     </div>
                 </div>
-                <!-- Use a simplified field naming for better binding -->
-                <input type="hidden" name="drugIds[]" value="${drugId}">
-                <input type="hidden" name="drugDosages[]" value="${dosage}">
-                <input type="hidden" name="drugDurations[]" value="${days} days">
-                <input type="hidden" name="drugQuantities[]" value="${qty}">
             `;
             
-            // Add to cart
-            document.getElementById('drugCart').appendChild(cartItem);
+            // Add the modal to the document
+            const modalContainer = document.createElement('div');
+            modalContainer.innerHTML = modalHtml;
+            document.body.appendChild(modalContainer);
             
-            // Debug info - log cart item count
-            console.log(`Added drug to cart: ${drugName}`);
-            console.log(`Current prescription items count: ${prescriptionItemIndex}`);
+            // Add event listener to the confirm button
+            document.getElementById('confirmDespiteInteractions').addEventListener('click', function() {
+                closeInteractionWarningModal();
+                if (onConfirm) onConfirm();
+            });
+            
+            // Close drug details modal if it's open
+            closeModal();
+        }
+        
+        // Close the interaction warning modal
+        function closeInteractionWarningModal() {
+            const modal = document.getElementById('interactionWarningModal');
+            if (modal) {
+                modal.parentElement.remove();
+            }
         }
         
         function selectTemplateFromDropdown(selectElement) {
@@ -1043,7 +1180,17 @@
                 cartItem.remove();
                 console.log(`Removed drug from cart at index: ${itemIndex}`);
                 
-                // Note: We don't need to update indexes as each item uses its own unique name
+                // Check if cart is empty
+                const cartItems = document.querySelectorAll('#drugCart [data-drug-id]');
+                if (cartItems.length === 0) {
+                    // If cart is empty, show a message
+                    const emptyMessage = document.createElement('div');
+                    emptyMessage.style.padding = '10px';
+                    emptyMessage.style.fontStyle = 'italic';
+                    emptyMessage.style.color = 'var(--secondary-text)';
+                    emptyMessage.textContent = 'No drugs added to cart yet';
+                    document.getElementById('drugCart').appendChild(emptyMessage);
+                }
             }
         }
         
@@ -1131,6 +1278,12 @@
                 // Add some padding to account for the border
                 item.style.paddingLeft = '7px';
             });
+            
+            // Initialize checkout button state
+            updateCheckoutState();
+            
+            // Initialize drug cart 
+            initializeDrugCart();
         });
         
         // Add event listener for the update vitals button
@@ -1646,6 +1799,75 @@
                 }
             });
         }
+
+        function addDrugToCart(drugId, drugName, dosage, days, qty) {
+            // Get the current index for this prescription item
+            const itemIndex = prescriptionItemIndex++;
+            
+            // Create cart item element
+            const cartItem = document.createElement('div');
+            cartItem.style.padding = '10px';
+            cartItem.style.marginBottom = '5px';
+            cartItem.style.borderBottom = '1px solid var(--border-color)';
+            cartItem.setAttribute('data-drug-id', drugId);
+            
+            cartItem.innerHTML = `
+                <div style="display: flex; justify-content: space-between;">
+                    <div>
+                        <strong>${drugName}</strong> - ${dosage}
+                    </div>
+                    <div>
+                        ${days} days - Qty: ${qty}
+                    </div>
+                    <div>
+                        <button type="button" onclick="removeFromCart(this, ${itemIndex})" 
+                                style="background: none; border: none; color: #ff5c5c; cursor: pointer;">
+                            Remove
+                        </button>
+                    </div>
+                </div>
+                <!-- Use a simplified field naming for better binding -->
+                <input type="hidden" name="drugIds[]" value="${drugId}">
+                <input type="hidden" name="drugDosages[]" value="${dosage}">
+                <input type="hidden" name="drugDurations[]" value="${days} days">
+                <input type="hidden" name="drugQuantities[]" value="${qty}">
+            `;
+            
+            // Add to cart
+            document.getElementById('drugCart').appendChild(cartItem);
+            
+            // Debug info - log cart item count
+            console.log(`Added drug to cart: ${drugName}`);
+            console.log(`Current prescription items count: ${prescriptionItemIndex}`);
+        }
+
+        // Initialize checkout button state
+        updateCheckoutState();
+
+    // Function to initialize the drug cart
+    function initializeDrugCart() {
+        const cartElement = document.getElementById('drugCart');
+        if (!cartElement) return;
+        
+        const cartItems = cartElement.querySelectorAll('[data-drug-id]');
+        
+        // Remove any existing empty message
+        const existingMessage = document.getElementById('emptyCartMessage');
+        if (existingMessage) {
+            existingMessage.remove();
+        }
+        
+        // Only show empty message if cart is empty
+        if (cartItems.length === 0) {
+            const emptyMessage = document.createElement('div');
+            emptyMessage.id = 'emptyCartMessage';
+            emptyMessage.style.padding = '10px';
+            emptyMessage.style.fontStyle = 'italic';
+            emptyMessage.style.color = 'var(--secondary-text)';
+            emptyMessage.textContent = 'No drugs added to cart yet';
+            cartElement.appendChild(emptyMessage);
+        }
+    }
     </script>
 </th:block>
 
