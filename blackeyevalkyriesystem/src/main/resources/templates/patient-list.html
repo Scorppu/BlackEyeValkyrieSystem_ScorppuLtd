@@ -12,9 +12,43 @@
         <style>
             .patient-stats {
                 display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
                 gap: 1rem;
                 margin-bottom: 2rem;
+            }
+            
+            /* Add media query to stack stat cards vertically */
+            @media screen and (max-width: 992px) {
+                .patient-stats {
+                    grid-template-columns: 1fr;
+                }
+                
+                .stat-card {
+                    margin-bottom: 0.75rem;
+                    padding: 1rem;
+                }
+                
+                /* Display title and count in one line */
+                .stat-info {
+                    display: flex;
+                    flex-direction: row;
+                    align-items: center;
+                    justify-content: flex-start;
+                }
+                
+                .stat-info h3 {
+                    display: inline-block;
+                    font-size: 1rem;
+                    margin-right: 0.5rem;
+                    margin-bottom: 0;
+                }
+                
+                /* Adjust count styling */
+                .stat-info p {
+                    display: inline-block;
+                    font-size: 1.25rem;
+                    margin: 0;
+                }
             }
             
             .stat-card {
@@ -25,6 +59,8 @@
                 align-items: center;
                 position: relative;
                 overflow: hidden;
+                width: 100%;
+                box-sizing: border-box;
             }
             
             .stat-icon {
@@ -69,6 +105,7 @@
             
             .patient-table {
                 width: 100%;
+                margin-bottom: 1rem;
                 border-collapse: collapse;
             }
             
@@ -77,50 +114,25 @@
                 padding: 12px 15px;
                 text-align: left;
                 border-bottom: 1px solid var(--border-color);
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
             }
             
             .patient-table th {
                 font-weight: 600;
                 color: var(--primary-text);
                 position: relative;
-                min-width: 100px;
             }
             
-            .patient-table th.checkbox-col {
-                min-width: 50px;
-                width: 50px;
-            }
-            
-            .patient-table th.name-col {
-                min-width: 180px;
-            }
-            
-            .patient-table th.id-col {
-                min-width: 120px;
-            }
-            
-            .patient-table th.age-col {
-                min-width: 80px;
-                width: 80px;
-            }
-            
-            .patient-table th.gender-col {
-                min-width: 100px;
-                width: 100px;
-            }
-            
-            .patient-table th.contact-col {
-                min-width: 150px;
-            }
-            
-            .patient-table th.status-col {
-                min-width: 120px;
-            }
-            
-            .patient-table th.actions-col {
-                min-width: 80px;
-                width: 80px;
-            }
+            /* Add column width percentages */
+            .patient-table th:nth-child(1) { width: 20%; } /* Patient name */
+            .patient-table th:nth-child(2) { width: 27%; } /* Patient ID */
+            .patient-table th:nth-child(3) { width: 5%; }  /* Age */
+            .patient-table th:nth-child(4) { width: 8%; }  /* Gender */
+            .patient-table th:nth-child(5) { width: 16%; } /* Contact */
+            .patient-table th:nth-child(6) { width: 11%; } /* Status */
+            .patient-table th:nth-child(7) { width: 13%; } /* Action */
             
             .patient-table th a {
                 color: var(--primary-text);
@@ -177,12 +189,6 @@
             
             .patient-actions svg {
                 cursor: pointer;
-            }
-            
-            .select-checkbox {
-                width: 18px;
-                height: 18px;
-                accent-color: var(--accent-color);
             }
             
             .header-container {
@@ -244,6 +250,94 @@
                 width: 100%;
                 overflow-x: auto;
                 overflow-y: visible;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            .patient-stats th {
+            padding: 12px 10px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 500;
+            }
+
+            .patient-stats th:nth-child(1) { width: 20%; } /* Patient Name */
+            .patient-stats th:nth-child(2) { width: 27%; } /* Patient ID */
+            .patient-stats th:nth-child(3) { width:  5%; } /* Age */
+            .patient-stats th:nth-child(4) { width:  8%; } /* Gender */
+            .patient-stats th:nth-child(5) { width: 16%; } /* Contact */
+            .patient-stats th:nth-child(6) { width: 11%; } /* Status */
+            .patient-stats th:nth-child(7) { width: 13%; } /* Action */
+            .patient-stats td {
+                padding: 12px 10px;
+                text-align: left;
+                border-bottom: 1px solid var(--border-color);
+            }
+
+            /* Responsive breakpoints */
+            @media screen and (max-width: 1380px) {
+                .stat-info h3 {
+                    font-size: 1.25rem;
+                    line-height: 1.2;
+                    white-space: normal;
+                }
+                
+                .stat-info h3.total-patients::before {
+                    content: "Total";
+                    display: block;
+                }
+                
+                .stat-info h3.total-patients::after {
+                    content: "Patients";
+                    display: block;
+                }
+                
+                .stat-info h3.admitted-patients::before {
+                    content: "Admitted";
+                    display: block;
+                }
+                
+                .stat-info h3.admitted-patients::after {
+                    content: "Patients";
+                    display: block;
+                }
+                
+                .stat-info h3.discharged-patients::before {
+                    content: "Discharged";
+                    display: block;
+                }
+                
+                .stat-info h3.discharged-patients::after {
+                    content: "Patients";
+                    display: block;
+                }
+                
+                /* Hide original text when showing the split version */
+                .stat-info h3.total-patients span,
+                .stat-info h3.admitted-patients span,
+                .stat-info h3.discharged-patients span {
+                    display: none;
+                }
+            }
+            
+            @media screen and (max-width: 1200px) {
+                .stat-info h3 {
+                    display: none;
+                }
+                .patient-table th.id-col,
+                .patient-table td:nth-child(2) {
+                    display: none;
+                }
+                .patient-stats th:nth-child(1) { width: 28%; } /* Patient Name */
+                .patient-stats th:nth-child(3) { width:  7%; } /* Age */
+                .patient-stats th:nth-child(4) { width: 11%; } /* Gender */
+                .patient-stats th:nth-child(5) { width: 22%; } /* Contact */
+                .patient-stats th:nth-child(6) { width: 15%; } /* Status */
+                .patient-stats th:nth-child(7) { width: 17%; } /* Action */
+            }
+            
+            /* Hide the three dots menu in all views */
+            .stat-actions {
+                display: none;
             }
         </style>
     </th:block>
@@ -277,7 +371,7 @@
                     </svg>
                 </div>
                 <div class="stat-info">
-                    <h3>Total Patients</h3>
+                    <h3 class="total-patients"><span>Total Patients</span></h3>
                     <p th:text="${totalPatients != null ? totalPatients : 0}">250</p>
                 </div>
                 <div class="stat-actions">
@@ -296,7 +390,7 @@
                     </svg>
                 </div>
                 <div class="stat-info">
-                    <h3>Admitted Patients</h3>
+                    <h3 class="admitted-patients"><span>Admitted Patients</span></h3>
                     <p th:text="${admittedPatients != null ? admittedPatients : 0}">50</p>
                 </div>
                 <div class="stat-actions">
@@ -322,7 +416,7 @@
                     </svg>
                 </div>
                 <div class="stat-info">
-                    <h3>Discharged Patients</h3>
+                    <h3 class="discharged-patients"><span>Discharged Patients</span></h3>
                     <p th:text="${dischargedPatients != null ? dischargedPatients : 0}">200</p>
                 </div>
                 <div class="stat-actions">
@@ -347,9 +441,6 @@
                 <table class="patient-table">
                     <thead>
                         <tr>
-                            <th class="checkbox-col">
-                                <input type="checkbox" class="select-checkbox">
-                            </th>
                             <th class="name-col">
                                 <a th:href="@{/patient/list(sortBy='name', direction=${currentSortBy == 'name' && currentDirection == 'asc' ? 'desc' : 'asc'})}">
                                     Name
@@ -392,9 +483,6 @@
                     <tbody>
                         <tr th:each="patient : ${patients}">
                             <td>
-                                <input type="checkbox" class="select-checkbox">
-                            </td>
-                            <td>
                                 <a th:href="@{'/patient/view/' + ${patient.id}}" class="patient-name-link" th:text="${patient.firstName + ' ' + patient.lastName}"></a>
                             </td>
                             <td th:text="${patient.id}"></td>
@@ -423,7 +511,7 @@
                         
                         <!-- Empty state message when no patients exist -->
                         <tr th:if="${#lists.isEmpty(patients)}">
-                            <td colspan="8" class="text-center py-4">
+                            <td colspan="7" class="text-center py-4">
                                 <p>No patients found. <a href="/patient/create">Create a new patient</a></p>
                             </td>
                         </tr>
@@ -438,18 +526,6 @@
             // Patient List specific JavaScript
             document.addEventListener('DOMContentLoaded', function() {
                 console.log('Patient List page loaded');
-                
-                // Handle select all checkbox
-                const selectAllCheckbox = document.querySelector('thead .select-checkbox');
-                const rowCheckboxes = document.querySelectorAll('tbody .select-checkbox');
-                
-                if (selectAllCheckbox) {
-                    selectAllCheckbox.addEventListener('change', function() {
-                        rowCheckboxes.forEach(checkbox => {
-                            checkbox.checked = selectAllCheckbox.checked;
-                        });
-                    });
-                }
             });
         </script>
     </th:block>
