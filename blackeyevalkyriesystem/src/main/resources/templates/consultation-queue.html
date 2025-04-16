@@ -10,10 +10,15 @@
             color: white;
             border: none;
             border-radius: 6px;
-            padding: 8px 16px;
+            padding: 6px 12px;
             font-weight: 500;
             cursor: pointer;
             transition: background-color 0.2s;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: inline-block;
+            font-size: 0.9em;
         }
         .consultation-btn:hover {
             background-color: #7b26cd;
@@ -36,6 +41,7 @@
             color: var(--secondary-text);
             border-collapse: separate;
             border-spacing: 0;
+            table-layout: fixed;
         }
         .queue-table th {
             padding: 12px 10px;
@@ -43,10 +49,68 @@
             border-bottom: 1px solid var(--border-color);
             font-weight: 500;
         }
+
+        .queue-table th:nth-child(1) { width: 15%; } /* Patient Name */
+        .queue-table th:nth-child(2) { width: 23%; } /* Patient ID */
+        .queue-table th:nth-child(3) { width:  3%; }  /* Age */
+        .queue-table th:nth-child(4) { width:  6%; } /* Gender */
+        .queue-table th:nth-child(5) { width: 10%; } /* Last Visit */
+        .queue-table th:nth-child(6) { width: 14%; } /* Scheduled Time */
+        .queue-table th:nth-child(7) { width: 12%; } /* Status */
+        .queue-table th:nth-child(8) { width: 18%; } /* Action (only in first table) */
+
         .queue-table td {
             padding: 12px 10px;
             text-align: left;
             border-bottom: 1px solid var(--border-color);
+        }
+        /* Responsive breakpoints */
+        @media screen and (max-width: 1600px) {
+            /* Hide Last Visit column */
+            .queue-table th:nth-child(5),
+            .queue-table td:nth-child(5) {
+                display: none;
+            }
+            
+            /* Redistribute widths */
+            .queue-table th:nth-child(1) { width: 15%; } /* Patient Name */
+            .queue-table th:nth-child(2) { width: 23%; } /* Patient ID */
+            .queue-table th:nth-child(3) { width:  4%; } /* Age */
+            .queue-table th:nth-child(4) { width:  7%; } /* Gender */
+            .queue-table th:nth-child(6) { width: 17%; } /* Scheduled Time */
+            .queue-table th:nth-child(7) { width: 15%; } /* Status */
+            .queue-table th:nth-child(8) { width: 19%; } /* Action */
+        }
+
+        @media screen and (max-width: 1500px) {
+            /* Hide Patient ID column */
+            .queue-table th:nth-child(2),
+            .queue-table td:nth-child(2) {
+                display: none;
+            }
+            
+            /* Further redistribute widths */
+            .queue-table th:nth-child(1) { width: 22%; } /* Patient Name */
+            .queue-table th:nth-child(3) { width:  5%; } /* Age */
+            .queue-table th:nth-child(4) { width:  9%; } /* Gender */
+            .queue-table th:nth-child(6) { width: 21%; } /* Scheduled Time */
+            .queue-table th:nth-child(7) { width: 18%; } /* Status */
+            .queue-table th:nth-child(8) { width: 25%; } /* Action */  
+        }
+
+        @media screen and (max-width: 1200px) {
+            /* Hide Gender column */
+            .queue-table th:nth-child(4),
+            .queue-table td:nth-child(4) {
+                display: none;
+            }
+            
+            /* Further redistribute widths */
+            .queue-table th:nth-child(1) { width: 22%; } /* Patient Name */
+            .queue-table th:nth-child(3) { width:  6%; } /* Age */
+            .queue-table th:nth-child(6) { width: 22%; } /* Scheduled Time */
+            .queue-table th:nth-child(7) { width: 21%; } /* Status */
+            .queue-table th:nth-child(8) { width: 29%; } /* Action */  
         }
         .queue-table tr:hover {
             background-color: rgba(138, 43, 226, 0.1);
@@ -57,30 +121,47 @@
             margin-top: 10px;
             font-size: 14px;
         }
-        .search-container {
-            display: flex;
-            background-color: var(--input-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 8px 16px;
-            margin-bottom: 20px;
-        }
-        .search-container svg {
-            margin-right: 10px;
-        }
-        .search-container input {
-            background: transparent;
-            border: none;
-            color: var(--primary-text);
-            width: 100%;
-        }
-        .search-container input:focus {
-            outline: none;
-        }
         .empty-state {
             text-align: center;
             padding: 20px;
             color: var(--secondary-text);
+        }
+        .status-pending {
+            background-color: rgba(230, 184, 0, 0.15);
+            color: #e6b800;
+            font-weight: 500;
+        }
+        .status-vitalsChecked {
+            background-color: rgba(46, 184, 46, 0.15);
+            color: #2eb82e;
+            font-weight: 500;
+        }
+        .status-default {
+            color: var(--secondary-text);
+            font-weight: 500;
+        }
+        .appointment-item {
+            padding: 3px 0;
+            display: flex;
+            align-items: center;
+            font-size: 0.95em;
+        }
+        .appointment-item:not(:last-child) {
+            border-bottom: 1px dashed rgba(138, 43, 226, 0.2);
+            margin-bottom: 4px;
+        }
+        .appointment-time {
+            margin-right: 8px;
+        }
+        .appointment-status {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+        .status-info {
+            display: flex;
+            flex-direction: column;
         }
     </style>
 </head>
@@ -91,78 +172,89 @@
             <div class="header-container">
                 <h1>Consultation Queue</h1>
             </div>
-            
-            <!-- Search -->
-            <div class="search-container">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M7.33333 12.6667C10.2789 12.6667 12.6667 10.2789 12.6667 7.33333C12.6667 4.38781 10.2789 2 7.33333 2C4.38781 2 2 4.38781 2 7.33333C2 10.2789 4.38781 12.6667 7.33333 12.6667Z" stroke="var(--icon-stroke)" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M14 14.0001L11.1 11.1001" stroke="var(--icon-stroke)" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                <input type="text" placeholder="Search patient by name or ID...">
-            </div>
 
-            <!-- Next in Queue Section -->
+            <!-- Current Appointments Section -->
             <div class="queue-section">
-                <h2 class="queue-title">Next in Queue</h2>
+                <h2 class="queue-title">Overdue Appointments</h2>
                 <table class="queue-table">
                     <thead>
                         <tr>
-                            <th>Name</th>
+                            <th>Patient Name</th>
                             <th>Patient ID</th>
                             <th>Age</th>
                             <th>Gender</th>
-                            <th>Last Recent Visit</th>
-                            <th></th>
+                            <th>Last Visit</th>
+                            <th>Scheduled Time</th>
+                            <th>Status</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr th:if="${nextPatient != null}">
-                            <td th:text="${nextPatient.firstName + ' ' + nextPatient.lastName}">Sophie Moore</td>
-                            <td th:text="${nextPatient.id}">123412434</td>
-                            <td th:text="${nextPatient.age}">18</td>
-                            <td th:text="${nextPatient.sex ? 'Female' : 'Male'}">Female</td>
-                            <td th:text="${#temporals.format(nextPatientLastVisit, 'dd MMM yyyy')}">IP0001</td>
+                        <tr th:each="appointment : ${overdueAppointments}" th:if="${appointment.patient != null}">
+                            <td th:text="${appointment.patient.firstName + ' ' + appointment.patient.lastName}">Sophie Moore</td>
+                            <td th:text="${appointment.patient.id}">123412434</td>
+                            <td th:text="${appointment.patient.age}">18</td>
+                            <td th:text="${appointment.patient.sex ? 'Female' : 'Male'}">Female</td>
+                            <td th:with="lastVisit=${@consultationViewController.getLastVisitDate(appointment.patient)}" 
+                                th:text="${lastVisit != null ? #temporals.format(lastVisit, 'dd MMM yyyy') : 'No visits'}">IP0001</td>
+                            <td th:text="${appointment.scheduledTime != null ? #temporals.format(appointment.scheduledTime, 'dd MMM yyyy HH:mm') : 'Not scheduled'}">10:00 AM</td>
                             <td>
-                                <a th:href="@{/consultation/create/{id}(id=${nextPatient.id})}" class="consultation-btn">Begin consultation</a>
+                                <span th:if="${appointment.status == 'pending'}" class="status-pending appointment-status">Pending</span>
+                                <span th:if="${appointment.status == 'vitalChecked'}" class="status-vitalsChecked appointment-status">Vitals Checked</span>
+                                <span th:if="${appointment.status != 'pending' && appointment.status != 'vitalChecked'}" class="status-default appointment-status" th:text="${appointment.status}">Status</span>
+                            </td>
+                            <td>
+                                <a th:href="@{/consultation/create/{id}(id=${appointment.patient.id}, appointmentId=${appointment.id})}" class="consultation-btn">Begin consultation</a>
                             </td>
                         </tr>
-                        <tr th:if="${nextPatient == null}">
-                            <td colspan="6" class="empty-state">No patients in queue</td>
+                        <tr th:if="${overdueAppointments.empty}">
+                            <td colspan="8" class="empty-state">No overdue appointments</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
 
-            <!-- Others in Queue Section -->
+            <!-- Future Appointments Section -->
             <div class="queue-section">
-                <h2 class="queue-title">Others in Queue</h2>
+                <h2 class="queue-title">Upcoming Appointments</h2>
                 <table class="queue-table">
                     <thead>
                         <tr>
-                            <th>Name</th>
+                            <th>Patient Name</th>
                             <th>Patient ID</th>
                             <th>Age</th>
                             <th>Gender</th>
-                            <th>Last Recent Visit</th>
+                            <th>Last Visit</th>
+                            <th>Scheduled Time</th>
+                            <th>Status</th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr th:each="patient, iterStat : ${queuedPatients}">
-                            <td th:text="${patient.firstName + ' ' + patient.lastName}">John Carter</td>
-                            <td th:text="${patient.id}">019238744</td>
-                            <td th:text="${patient.age}">18</td>
-                            <td th:text="${patient.sex ? 'Female' : 'Male'}">Male</td>
-                            <td th:text="${#temporals.format(queuedPatientsLastVisits[iterStat.index], 'dd MMM yyyy')}">OP0011</td>
+                        <tr th:each="appointment : ${upcomingAppointments}" th:if="${appointment.patient != null}">
+                            <td th:text="${appointment.patient.firstName + ' ' + appointment.patient.lastName}">Sophie Moore</td>
+                            <td th:text="${appointment.patient.id}">123412434</td>
+                            <td th:text="${appointment.patient.age}">18</td>
+                            <td th:text="${appointment.patient.sex ? 'Female' : 'Male'}">Female</td>
+                            <td th:with="lastVisit=${@consultationViewController.getLastVisitDate(appointment.patient)}" 
+                                th:text="${lastVisit != null ? #temporals.format(lastVisit, 'dd MMM yyyy') : 'No visits'}">IP0001</td>
+                            <td th:text="${appointment.scheduledTime != null ? #temporals.format(appointment.scheduledTime, 'dd MMM yyyy HH:mm') : 'Not scheduled'}">10:00 AM</td>
+                            <td>
+                                <span th:if="${appointment.status == 'pending'}" class="status-pending appointment-status">Pending</span>
+                                <span th:if="${appointment.status == 'vitalChecked'}" class="status-vitalsChecked appointment-status">Vitals Checked</span>
+                                <span th:if="${appointment.status != 'pending' && appointment.status != 'vitalChecked'}" class="status-default appointment-status" th:text="${appointment.status}">Status</span>
+                            </td>
+                            <td></td>
                         </tr>
-                        <tr th:if="${queuedPatients.empty}">
-                            <td colspan="5" class="empty-state">No more patients in queue</td>
+                        <tr th:if="${upcomingAppointments.empty}">
+                            <td colspan="7" class="empty-state">No upcoming appointments</td>
                         </tr>
                     </tbody>
                 </table>
                 
                 <!-- Pagination information -->
-                <div class="pagination-info" th:if="${!queuedPatients.empty}">
-                    <span th:text="${'1 - 10 of ' + queuedPatients.size()}">1 - 10 of 256</span>
+                <div class="pagination-info" th:if="${!upcomingAppointments.empty}">
+                    <span th:text="${'1 - ' + upcomingAppointments.size() + ' of ' + upcomingAppointments.size()}">1 - 10 of 256</span>
                 </div>
             </div>
         </div>

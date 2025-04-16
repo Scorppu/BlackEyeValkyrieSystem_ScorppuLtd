@@ -256,6 +256,11 @@
             <h2>Select Patient</h2>
             <p class="pagination-info" th:text="${currentPage + ' - ' + (currentPage + rowsPerPage - 1) + ' of ' + totalPatients}">1 - 10 of 256</p>
             
+            <!-- Error message -->
+            <div th:if="${errorMessage}" class="error-message" style="padding: 1rem; margin-bottom: 1rem; background-color: rgba(239, 68, 68, 0.1); color: #ef4444; border-radius: 0.25rem; border: 1px solid rgba(239, 68, 68, 0.2);">
+                <p th:text="${errorMessage}">Error loading patients</p>
+            </div>
+            
             <div class="table-card">
                 <div class="search-box">
                     <input type="text" class="search-input" placeholder="" id="patientSearch">
@@ -266,7 +271,6 @@
                         <thead>
                             <tr>
                                 <th width="40">
-                                    <input type="checkbox" class="select-checkbox" id="selectAll">
                                 </th>
                                 <th>
                                     <a th:href="@{/appointment/create(sortBy='name', direction=${currentSortBy == 'name' && currentDirection == 'asc' ? 'desc' : 'asc'})}">
@@ -307,7 +311,7 @@
                                 <td th:text="${patient.id}"></td>
                                 <td th:text="${patient.age}"></td>
                                 <td th:text="${patient.sex ? 'Male' : 'Female'}"></td>
-                                <td th:text="${patient.visits != null && !patient.visits.isEmpty() ? #dates.format(patient.visits[0].visitDate, 'dd/MM/yyyy') : 'No visits'}"></td>
+                                <td th:text="${patient.lastVisitDate}"></td>
                                 <td>
                                     <div class="action-buttons">
                                         <a th:href="@{'/patient/edit/' + ${patient.id}}" class="action-button">
@@ -376,12 +380,38 @@
                 
                 // check if exist
                 if (selectAllCheckbox) {
+                    // Remove the select all functionality since we only want one checkbox checked at a time
                     selectAllCheckbox.addEventListener('change', function() {
-                        patientCheckboxes.forEach(checkbox => {
-                            checkbox.checked = selectAllCheckbox.checked;
-                        });
+                        if (this.checked) {
+                            // Uncheck all patient checkboxes first
+                            patientCheckboxes.forEach(checkbox => {
+                                checkbox.checked = false;
+                            });
+                            
+                            // Check only the first patient checkbox if any exist
+                            if (patientCheckboxes.length > 0) {
+                                patientCheckboxes[0].checked = true;
+                            }
+                            
+                            // Uncheck the select all box (it's just used as a trigger now)
+                            this.checked = false;
+                        }
                     });
                 }
+                
+                // Add event listeners to patient checkboxes for radio-button-like behavior
+                patientCheckboxes.forEach(checkbox => {
+                    checkbox.addEventListener('change', function() {
+                        if (this.checked) {
+                            // If this checkbox is checked, uncheck all other patient checkboxes
+                            patientCheckboxes.forEach(otherCheckbox => {
+                                if (otherCheckbox !== this) {
+                                    otherCheckbox.checked = false;
+                                }
+                            });
+                        }
+                    });
+                });
                 
                 // Handle rows per page change
                 const rowsPerPageSelect = document.getElementById('rowsPerPage');

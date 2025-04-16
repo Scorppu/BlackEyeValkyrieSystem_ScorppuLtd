@@ -3,6 +3,7 @@ package com.scorppultd.blackeyevalkyriesystem.repository;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
@@ -31,11 +32,7 @@ public interface ConsultationRepository extends MongoRepository<Consultation, St
     List<Consultation> findByConsultationType(String consultationType);
     
     // Find consultations with a specific diagnosis
-    @Query("{'diagnoses.diagnosisName': ?0}")
-    List<Consultation> findByDiagnosisName(String diagnosisName);
-    
-    @Query("{'diagnoses.diagnosisCode': ?0}")
-    List<Consultation> findByDiagnosisCode(String diagnosisCode);
+    List<Consultation> findByDiagnosis(String diagnosis);
     
     // Find consultations for follow-up
     List<Consultation> findByFollowUpDateAndStatus(LocalDate followUpDate, String status);
@@ -49,4 +46,7 @@ public interface ConsultationRepository extends MongoRepository<Consultation, St
     // Find consultations for a time period grouped by doctor
     List<Consultation> findByConsultationDateTimeBetweenAndDoctorIdOrderByConsultationDateTime(
             LocalDateTime start, LocalDateTime end, String doctorId);
+            
+    // Find consultation by appointment ID
+    Optional<Consultation> findByAppointmentId(String appointmentId);
 } 

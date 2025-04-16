@@ -567,10 +567,11 @@
             }
             
             /* Keep the confirm button in position */
-            .header-actions {
-                margin-left: auto; /* Push to the right */
-                position: static; /* Remove absolute positioning */
-                transform: none; /* Remove transform */
+            .btn-container {
+                display: flex;
+                justify-content: flex-end; /* Align to the rightmost edge */
+                width: 100%;
+                margin-bottom: 2rem;
             }
             
             /* Fix header layout to match screenshot exactly */
@@ -658,7 +659,6 @@
     <header class="header" layout:fragment="custom-header">
         <div class="header-container">
             <h1>Create Appointment</h1>
-            <button type="submit" form="visitInfoForm" class="btn btn-primary">Confirm</button>
         </div>
     </header>
     
@@ -802,7 +802,13 @@
                 </div>
             </div>
         </div>
+
+        <div class="btn-container">
+            <button type="submit" form="visitInfoForm" class="btn btn-primary">Confirm</button>
+        </div>
     </div>
+    
+    
     
     <th:block layout:fragment="scripts">
         <script>

@@ -210,7 +210,7 @@
                     <path d="M7.33333 12.6667C10.2789 12.6667 12.6667 10.2789 12.6667 7.33333C12.6667 4.38781 10.2789 2 7.33333 2C4.38781 2 2 4.38781 2 7.33333C2 10.2789 4.38781 12.6667 7.33333 12.6667Z" stroke="var(--icon-stroke)" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
                     <path d="M14 14.0001L11.1 11.1001" stroke="var(--icon-stroke)" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
-                <input type="text" id="searchInput" placeholder="Search interactions..." onkeyup="filterInteractions()">
+                <input type="text" id="searchInput" placeholder="Search interactions...">
             </div>
             
             <div class="drug-list-container">
@@ -219,22 +219,14 @@
                     <thead>
                         <tr>
                             <th>Interacting Drug</th>
-                            <th>Severity</th>
-                            <th>Description</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr th:each="interaction : ${interactions}">
-                            <td th:with="interactingDrug=${allDrugs.find(d -> d.id == interaction.targetDrugId)}">
-                                <span th:text="${interactingDrug != null ? interactingDrug.name : 'Unknown Drug (' + interaction.targetDrugId + ')'}">Interacting Drug</span>
-                            </td>
                             <td>
-                                <span th:class="'badge badge-' + (${interaction.severity <= 2} ? 'mild' : (${interaction.severity <= 4} ? 'moderate' : 'severe'))">
-                                    <span th:text="${interaction.severity <= 2 ? 'Mild' : (interaction.severity <= 4 ? 'Moderate' : 'Severe')}">Severity</span>
-                                </span>
+                                <span th:text="${interaction.targetDrugName}">Interacting Drug</span>
                             </td>
-                            <td th:text="${interaction.description}">Description</td>
                             <td>
                                 <a th:href="@{/drugs/interactions/delete(drugId=${interaction.sourceDrugId},interactingDrugId=${interaction.targetDrugId})}" class="action-btn delete-btn" 
                                    onclick="return confirm('Are you sure you want to delete this interaction?')">Delete</a>
@@ -255,31 +247,36 @@
         </div>
     </div>
     
-    <script layout:fragment="script">
-        function filterInteractions() {
-            const input = document.getElementById('searchInput');
-            const filter = input.value.toUpperCase();
-            const table = document.getElementById('interactionTable');
-            const tr = table.getElementsByTagName('tr');
+    <script layout:fragment="scripts">
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add event listener to search input
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.addEventListener('keyup', filterInteractions);
+            }
             
-            // Loop through all table rows, and hide those that don't match the search query
-            for (let i = 1; i < tr.length; i++) {
-                const tdDrug = tr[i].getElementsByTagName('td')[0];
-                const tdDescription = tr[i].getElementsByTagName('td')[2];
+            function filterInteractions() {
+                const input = document.getElementById('searchInput');
+                const filter = input.value.toUpperCase();
+                const table = document.getElementById('interactionTable');
+                const tr = table.getElementsByTagName('tr');
                 
-                if (tdDrug && tdDescription) {
-                    const drugText = tdDrug.textContent || tdDrug.innerText;
-                    const descriptionText = tdDescription.textContent || tdDescription.innerText;
+                // Loop through all table rows, and hide those that don't match the search query
+                for (let i = 1; i < tr.length; i++) {
+                    const tdDrug = tr[i].getElementsByTagName('td')[0];
                     
-                    if (drugText.toUpperCase().indexOf(filter) > -1 || 
-                        descriptionText.toUpperCase().indexOf(filter) > -1) {
-                        tr[i].style.display = '';
-                    } else {
-                        tr[i].style.display = 'none';
+                    if (tdDrug) {
+                        const drugText = tdDrug.textContent || tdDrug.innerText;
+                        
+                        if (drugText.toUpperCase().indexOf(filter) > -1) {
+                            tr[i].style.display = '';
+                        } else {
+                            tr[i].style.display = 'none';
+                        }
                     }
                 }
             }
-        }
+        });
     </script>
 </body>
 </html> 

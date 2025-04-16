@@ -121,27 +121,19 @@ public class ConsultationController {
     }
 
     // Add diagnosis to consultation
-    @PostMapping("/{id}/diagnoses")
+    @PostMapping("/{id}/diagnosis")
     @PreAuthorize("hasRole('DOCTOR')")
-    public ResponseEntity<Void> addDiagnosisToConsultation(@PathVariable String id, 
-                                                          @RequestBody Consultation.Diagnosis diagnosis) {
-        consultationService.addDiagnosisToConsultation(id, diagnosis);
+    public ResponseEntity<Void> updateDiagnosis(@PathVariable String id, 
+                                              @RequestBody String diagnosis) {
+        consultationService.updateDiagnosis(id, diagnosis);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
-    // Get consultations by diagnosis name
-    @GetMapping("/diagnosis/name/{diagnosisName}")
+    // Get consultations by diagnosis
+    @GetMapping("/diagnosis/{diagnosis}")
     @PreAuthorize("hasAnyRole('DOCTOR', 'ADMIN')")
-    public ResponseEntity<List<Consultation>> getConsultationsByDiagnosisName(@PathVariable String diagnosisName) {
-        List<Consultation> consultations = consultationService.getConsultationsByDiagnosisName(diagnosisName);
-        return new ResponseEntity<>(consultations, HttpStatus.OK);
-    }
-
-    // Get consultations by diagnosis code
-    @GetMapping("/diagnosis/code/{diagnosisCode}")
-    @PreAuthorize("hasAnyRole('DOCTOR', 'ADMIN')")
-    public ResponseEntity<List<Consultation>> getConsultationsByDiagnosisCode(@PathVariable String diagnosisCode) {
-        List<Consultation> consultations = consultationService.getConsultationsByDiagnosisCode(diagnosisCode);
+    public ResponseEntity<List<Consultation>> getConsultationsByDiagnosis(@PathVariable String diagnosis) {
+        List<Consultation> consultations = consultationService.getConsultationsByDiagnosis(diagnosis);
         return new ResponseEntity<>(consultations, HttpStatus.OK);
     }
 
@@ -188,5 +180,42 @@ public class ConsultationController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
         List<Consultation> consultations = consultationService.getDoctorConsultationsForPeriod(doctorId, start, end);
         return new ResponseEntity<>(consultations, HttpStatus.OK);
+    }
+
+    // Get consultation by appointment ID
+    @GetMapping("/appointment/{appointmentId}")
+    @PreAuthorize("hasAnyRole('DOCTOR', 'NURSE', 'ADMIN')")
+    public ResponseEntity<Consultation> getConsultationByAppointmentId(@PathVariable String appointmentId) {
+        Optional<Consultation> consultation = consultationService.getConsultationByAppointmentId(appointmentId);
+        return consultation.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
+    // Create consultation from appointment
+    @PostMapping("/from-appointment/{appointmentId}")
+    @PreAuthorize("hasAnyRole('DOCTOR', 'ADMIN')")
+    public ResponseEntity<Consultation> createConsultationFromAppointment(@PathVariable String appointmentId) {
+        try {
+            Consultation consultation = consultationService.createConsultationFromAppointment(appointmentId);
+            return new ResponseEntity<>(consultation, HttpStatus.CREATED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    /**
+     * Update the vital signs of a consultation
+     */
+    @PutMapping("/{id}/vital-signs")
+    @PreAuthorize("hasAnyRole('DOCTOR', 'ADMIN')")
+    public ResponseEntity<Consultation> updateConsultationVitalSigns(
+            @PathVariable String id, 
+            @RequestBody Consultation.VitalSigns vitalSigns) {
+        try {
+            Consultation updatedConsultation = consultationService.updateConsultationVitalSigns(id, vitalSigns);
+            return new ResponseEntity<>(updatedConsultation, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 } 

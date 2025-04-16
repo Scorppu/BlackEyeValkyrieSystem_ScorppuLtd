@@ -10,15 +10,18 @@ import com.scorppultd.blackeyevalkyriesystem.model.Doctor;
 import com.scorppultd.blackeyevalkyriesystem.repository.DoctorRepository;
 import com.scorppultd.blackeyevalkyriesystem.service.DoctorService;
 import com.scorppultd.blackeyevalkyriesystem.model.User;
+import com.scorppultd.blackeyevalkyriesystem.repository.UserRepository;
 
 @Service
 public class DoctorServiceImpl implements DoctorService {
 
     private final DoctorRepository doctorRepository;
+    private final UserRepository userRepository;
 
     @Autowired
-    public DoctorServiceImpl(DoctorRepository doctorRepository) {
+    public DoctorServiceImpl(DoctorRepository doctorRepository, UserRepository userRepository) {
         this.doctorRepository = doctorRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -97,5 +100,12 @@ public class DoctorServiceImpl implements DoctorService {
     @Override
     public List<Doctor> getDoctorsByNameContaining(String name) {
         return doctorRepository.findByNameContaining(name);
+    }
+
+    @Override
+    public Optional<Doctor> getDoctorByUsername(String username) {
+        return userRepository.findByUsername(username)
+            .map(user -> doctorRepository.findByEmail(user.getEmail()))
+            .orElse(Optional.empty());
     }
 } 

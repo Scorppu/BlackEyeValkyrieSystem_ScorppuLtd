@@ -1,6 +1,8 @@
 package com.scorppultd.blackeyevalkyriesystem.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -373,22 +375,79 @@ public class WebController {
         
         model.addAttribute("request", request);
         
-        // Get sorted patients for patient selection
-        List<Patient> patients = patientService.getAllPatientsSorted(sortBy, direction);
-        
-        // Add patients to the model
-        model.addAttribute("patients", patients);
-        
-        // Pagination information (simplified for now)
-        model.addAttribute("currentPage", page);
-        model.addAttribute("totalPatients", patients.size());
-        model.addAttribute("rowsPerPage", rowsPerPage);
-        
-        // Sort parameters
-        model.addAttribute("currentSortBy", sortBy);
-        model.addAttribute("currentDirection", direction);
-        
-        return "appointment-create";
+        try {
+            // Get sorted patients for patient selection
+            List<Patient> allPatients = patientService.getAllPatientsSorted(sortBy, direction);
+            
+            // Calculate total patients count
+            int totalPatients = allPatients.size();
+            
+            // Calculate start and end index for pagination
+            int startIndex = (page - 1) * rowsPerPage;
+            int endIndex = Math.min(startIndex + rowsPerPage, totalPatients);
+            
+            // Get sub-list for current page
+            List<Patient> paginatedPatients = startIndex < totalPatients ? 
+                allPatients.subList(startIndex, endIndex) : 
+                new ArrayList<>();
+                
+            // Create simplified DTOs to avoid large object graphs
+            List<Map<String, Object>> simplifiedPatients = new ArrayList<>();
+            for (Patient patient : paginatedPatients) {
+                Map<String, Object> patientData = new HashMap<>();
+                patientData.put("id", patient.getId());
+                patientData.put("firstName", patient.getFirstName());
+                patientData.put("lastName", patient.getLastName());
+                patientData.put("age", patient.getAge());
+                patientData.put("sex", patient.getSex());
+                
+                // Add last visit date if available
+                if (patient.getVisits() != null && !patient.getVisits().isEmpty() && patient.getVisits().get(0) != null) {
+                    Visit lastVisit = patient.getVisits().get(0);
+                    if (lastVisit.getVisitDate() != null) {
+                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                        patientData.put("lastVisitDate", lastVisit.getVisitDate().format(formatter));
+                    } else {
+                        patientData.put("lastVisitDate", "No date");
+                    }
+                } else {
+                    patientData.put("lastVisitDate", "No visits");
+                }
+                
+                simplifiedPatients.add(patientData);
+            }
+            
+            // Add patients to the model
+            model.addAttribute("patients", simplifiedPatients);
+            
+            // Pagination information
+            model.addAttribute("currentPage", page);
+            model.addAttribute("totalPatients", totalPatients);
+            model.addAttribute("rowsPerPage", rowsPerPage);
+            
+            // Sort parameters
+            model.addAttribute("currentSortBy", sortBy);
+            model.addAttribute("currentDirection", direction);
+            
+            return "appointment-create";
+        } catch (Exception e) {
+            // Log the error
+            System.err.println("Error loading appointment create page: " + e.getMessage());
+            e.printStackTrace();
+            
+            // Add error message to the model
+            model.addAttribute("errorMessage", "Failed to load patients. Please try again.");
+            model.addAttribute("patients", new ArrayList<>());
+            
+            // Add default values for pagination and sorting
+            model.addAttribute("currentPage", page);
+            model.addAttribute("totalPatients", 0);
+            model.addAttribute("rowsPerPage", rowsPerPage);
+            model.addAttribute("currentSortBy", sortBy);
+            model.addAttribute("currentDirection", direction);
+            
+            return "appointment-create";
+        }
     }
     
     @PostMapping("/appointment/create")

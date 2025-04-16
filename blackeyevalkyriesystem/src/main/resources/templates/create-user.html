@@ -210,6 +210,15 @@
                 background-color: #1c9063;
             }
             
+            .btn-error {
+                background-color: #ff4d4d;
+                color: white;
+            }
+            
+            .btn-error:hover {
+                background-color: #e63939;
+            }
+            
             /* Radio button styling */
             .radio-group {
                 display: flex;
@@ -369,6 +378,19 @@
                     </div>
                 </div>
             </div>
+            
+            <!-- Error modal -->
+            <div id="errorModal" class="modal">
+                <div class="modal-content">
+                    <h3 id="errorTitle" class="modal-title error">Error</h3>
+                    <div class="modal-body">
+                        <p id="errorMessage">An error occurred.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button id="errorOk" class="btn btn-error">OK</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     
@@ -386,6 +408,12 @@
                 const successMessage = document.getElementById('successMessage');
                 const successOkButton = document.getElementById('successOk');
                 
+                // Error modal elements
+                const errorModal = document.getElementById('errorModal');
+                const errorTitle = document.getElementById('errorTitle');
+                const errorMessage = document.getElementById('errorMessage');
+                const errorOkButton = document.getElementById('errorOk');
+                
                 // Handle success modal
                 successOkButton.addEventListener('click', function() {
                     successModal.style.display = 'none';
@@ -393,11 +421,19 @@
                     window.location.href = '/user/list';
                 });
                 
-                // Close modal when clicking outside
+                // Handle error modal
+                errorOkButton.addEventListener('click', function() {
+                    errorModal.style.display = 'none';
+                });
+                
+                // Close modals when clicking outside
                 window.addEventListener('click', function(event) {
                     if (event.target === successModal) {
                         successModal.style.display = 'none';
                         window.location.href = '/user/list';
+                    }
+                    if (event.target === errorModal) {
+                        errorModal.style.display = 'none';
                     }
                 });
                 
@@ -405,6 +441,12 @@
                 function showSuccessModal(message) {
                     successMessage.textContent = message;
                     successModal.style.display = 'block';
+                }
+                
+                // Function to show error modal
+                function showErrorModal(message) {
+                    errorMessage.textContent = message;
+                    errorModal.style.display = 'block';
                 }
                 
                 // Ensure content card fills available space
@@ -421,8 +463,50 @@
                 window.addEventListener('resize', adjustContentCardHeight);
                 
                 if (form) {
+                    // Add license key validation
+                    const licenseKeyInput = document.getElementById('licenseKey');
+                    const licenseKeyPattern = /^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/;
+                    
+                    // Function to validate license key format
+                    function validateLicenseKey() {
+                        const licenseKey = licenseKeyInput.value;
+                        if (!licenseKeyPattern.test(licenseKey)) {
+                            return "License key must be in the format AAAA-BBBB-CCCC-DDDD";
+                        }
+                        return null;
+                    }
+                    
+                    // Add validation on blur
+                    licenseKeyInput.addEventListener('blur', function() {
+                        const errorMessage = validateLicenseKey();
+                        if (errorMessage) {
+                            // If there's no error element yet, create one
+                            let errorElement = document.getElementById('licenseKey-error');
+                            if (!errorElement) {
+                                errorElement = document.createElement('div');
+                                errorElement.id = 'licenseKey-error';
+                                errorElement.className = 'field-error';
+                                licenseKeyInput.parentNode.appendChild(errorElement);
+                            }
+                            errorElement.textContent = errorMessage;
+                        } else {
+                            // Remove error element if exists
+                            const errorElement = document.getElementById('licenseKey-error');
+                            if (errorElement) {
+                                errorElement.remove();
+                            }
+                        }
+                    });
+                    
                     form.addEventListener('submit', function(e) {
                         e.preventDefault();
+                        
+                        // Validate license key format before submission
+                        const licenseKeyError = validateLicenseKey();
+                        if (licenseKeyError) {
+                            showErrorModal(licenseKeyError);
+                            return;
+                        }
                         
                         // Hide any previous alerts
                         alertBox.style.display = 'none';
@@ -452,13 +536,35 @@
                             delete userData.password;
                         }
                         
-                        // Make API request
-                        fetch(endpoint, {
-                            method: method,
+                        // First validate the license key
+                        fetch('/api/licenses/validate', {
+                            method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
                             },
-                            body: JSON.stringify(userData)
+                            body: JSON.stringify({ licenseKey: userData.licenseKey })
+                        })
+                        .then(response => {
+                            if (!response.ok) {
+                                return response.json().then(data => {
+                                    throw new Error(data.error || 'Invalid license key');
+                                });
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            if (!data.valid) {
+                                throw new Error(data.message || 'Invalid license key');
+                            }
+                            
+                            // If license is valid, proceed with user creation/update
+                            return fetch(endpoint, {
+                                method: method,
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify(userData)
+                            });
                         })
                         .then(response => {
                             if (!response.ok) {
@@ -497,11 +603,7 @@
                         })
                         .catch((error) => {
                             console.error('Error:', error);
-                            alertContent.textContent = `Error ${isEditMode ? 'updating' : 'creating'} user: ${error.message}`;
-                            alertBox.style.display = 'block';
-                            
-                            // Scroll to the top to show the error
-                            contentCard.scrollTop = 0;
+                            showErrorModal(`Error ${isEditMode ? 'updating' : 'creating'} user: ${error.message}`);
                         });
                     });
                 }

@@ -439,6 +439,8 @@
                                 </div>
                                 <!-- Hidden input to store the selected drug allergies -->
                                 <input type="hidden" id="drugAllergies" name="drugAllergies">
+                                <!-- Hidden status field with default value -->
+                                <input type="hidden" id="status" name="status" value="Active">
                             </div>
                         </div>
 
@@ -511,7 +513,7 @@
     
     <th:block layout:fragment="scripts">
         <script th:inline="javascript">
-            // Initialize allDrugs from the controller data
+            // Get drugs data from Thymeleaf model
             const allDrugsData = /*[[${allDrugs}]]*/ [];
             
             document.addEventListener('DOMContentLoaded', function() {
@@ -604,7 +606,13 @@
                         const age = document.getElementById('age').value;
                         const maritalStatus = document.getElementById('maritalStatus').value;
                         const bloodType = document.getElementById('bloodType').value;
-                        const status = document.getElementById('status').value;
+                        const status = document.getElementById('status')?.value || "Active"; // Use default if not found
+                        
+                        // Get drug allergies - safely access the element
+                        const drugAllergiesEl = document.getElementById('drugAllergies');
+                        const drugAllergies = drugAllergiesEl ? 
+                            drugAllergiesEl.value.split(',').filter(id => id.trim() !== '') : 
+                            [];
                         
                         // Get contact information
                         const contactNumber = document.getElementById('contactNumber').value;
@@ -624,12 +632,11 @@
                             sex: sex,
                             relativeName: relativeName,
                             dateOfBirth: dateOfBirth,
-                            age: parseInt(age),
+                            age: parseInt(age) || 0,
                             maritalStatus: maritalStatus,
                             bloodType: bloodType,
                             status: status,
-                            drugAllergies: document.getElementById('drugAllergies').value.split(',').filter(id => id.trim() !== ''),
-
+                            drugAllergies: drugAllergies,
                             contactNumber: contactNumber,
                             email: email,
                             address: {
@@ -645,6 +652,12 @@
                         
                         console.log('Sending patient data:', JSON.stringify(patientData));
                         
+                        // Add additional validation
+                        if (!firstName || !lastName || !dateOfBirth) {
+                            alert('Required fields missing: First Name, Last Name, and Date of Birth are required');
+                            return;
+                        }
+                        
                         // Send data to server
                         fetch('/api/patients', {
                             method: 'POST',
@@ -658,7 +671,8 @@
                                 // Get more detailed error information
                                 return response.text().then(text => {
                                     console.error('Server error response:', text);
-                                    throw new Error(`Server responded with status: ${response.status} ${response.statusText}`);
+                                    console.error('Response status:', response.status, response.statusText);
+                                    throw new Error(`Server responded with status: ${response.status} ${response.statusText}. Details: ${text}`);
                                 });
                             }
                             return response.json();
@@ -719,18 +733,23 @@
                 const addAllergyBtn = document.getElementById('addAllergyBtn');
                 const allergiesList = document.getElementById('allergiesList');
                 const drugAllergiesInput = document.getElementById('drugAllergies');
+                
+                // Initialize the hidden input if not set
+                if (drugAllergiesInput) {
+                    drugAllergiesInput.value = drugAllergiesInput.value || '';
+                } else {
+                    console.error('drugAllergies input element not found');
+                }
+                
                 const selectedAllergies = new Set();
                 const drugMap = {};
                 
                 // Get drugs data from the pre-initialized variable
-                const allDrugs = allDrugsData || [];
-                
-                // Debugging - log the drugs to console
-                console.log('Available drugs:', allDrugs);
+                console.log('Available drugs:', allDrugsData);
                 
                 // Create a map of drug IDs to drug names
-                if (Array.isArray(allDrugs)) {
-                    allDrugs.forEach(drug => {
+                if (Array.isArray(allDrugsData)) {
+                    allDrugsData.forEach(drug => {
                         // Handle different property structures
                         const drugId = drug.id || '';
                         const drugName = drug.name || drug.drugName || drug.genericName || '';
@@ -739,13 +758,13 @@
                         }
                     });
                 } else {
-                    console.error('allDrugs is not properly initialized:', allDrugs);
+                    console.error('allDrugs is not properly initialized:', allDrugsData);
                 }
                 
                 console.log('Drug name mapping:', drugMap);
                 
                 // Show warning if no drugs are loaded
-                if (!Array.isArray(allDrugs) || allDrugs.length === 0) {
+                if (!Array.isArray(allDrugsData) || allDrugsData.length === 0) {
                     console.error('No drugs available in the system');
                     // Add a visual warning to the page
                     const warningDiv = document.createElement('div');
@@ -786,11 +805,11 @@
                     
                     // Debugging
                     console.log('Filtering drugs with search text:', searchText);
-                    console.log('Available drugs for filtering:', allDrugs);
+                    console.log('Available drugs for filtering:', allDrugsData);
                     
                     // Make sure allDrugs is an array with the expected properties
-                    if (!Array.isArray(allDrugs) || allDrugs.length === 0) {
-                        console.error('allDrugs is not properly initialized:', allDrugs);
+                    if (!Array.isArray(allDrugsData) || allDrugsData.length === 0) {
+                        console.error('allDrugs is not properly initialized:', allDrugsData);
                         
                         // Show no results message
                         const noResults = document.createElement('div');
@@ -803,7 +822,7 @@
                     
                     // Filter drugs based on search text
                     const searchLower = searchText.toLowerCase();
-                    const filteredDrugs = allDrugs.filter(drug => {
+                    const filteredDrugs = allDrugsData.filter(drug => {
                         // Determine the property to use for drug name
                         const drugName = drug.name || drug.drugName || drug.genericName || '';
                         return drugName.toLowerCase().includes(searchLower);
@@ -867,6 +886,12 @@
                     
                     if (!drugId) {
                         alert('Please select a valid drug from the list');
+                        return;
+                    }
+                    
+                    // Check if drugAllergiesInput exists
+                    if (!drugAllergiesInput) {
+                        console.error('drugAllergies input element not found');
                         return;
                     }
                     

@@ -43,22 +43,37 @@ public class PatientController {
     @PostMapping
     public ResponseEntity<Patient> createPatient(@RequestBody Patient patient) {
         try {
+            // Debugging: Log the patient object we received
+            System.out.println("Received patient data: " + patient);
+            
             // Validate required fields
             if (patient.getFirstName() == null || patient.getLastName() == null) {
+                System.err.println("Missing required fields: firstName or lastName");
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
             
             // Handle dateOfBirth properly if it's null
             if (patient.getDateOfBirth() == null) {
+                System.err.println("Missing required field: dateOfBirth");
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
             
             // Save patient
             Patient savedPatient = patientService.savePatient(patient);
+            System.out.println("Successfully saved patient: " + savedPatient.getId());
             return new ResponseEntity<>(savedPatient, HttpStatus.CREATED);
         } catch (Exception e) {
-            // Log the error
+            // Check for MongoDB validation error
+            if (e.getMessage() != null && e.getMessage().contains("Document failed validation")) {
+                System.err.println("MongoDB validation error: " + e.getMessage());
+                System.err.println("This may be caused by a mismatch between the Patient model fields and the MongoDB schema validation in mongo-init.js");
+                System.err.println("Check that the field names match between your Patient class and the MongoDB schema validator.");
+                return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
+            }
+            
+            // Log the error with more detail
             System.err.println("Error creating patient: " + e.getMessage());
+            System.err.println("Patient data: " + patient);
             e.printStackTrace();
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
