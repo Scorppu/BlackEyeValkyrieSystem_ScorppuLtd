@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/main}">
+<head>
+    <title>Drug Interaction Map</title>
+    <style>
+        /* Theme variables */
+        :root {
+            /* Light mode (default) */
+            --map-bg: white;
+            --link-color: #cccccc;
+            --text-color: #000000;
+            --legend-bg: rgba(255, 255, 255, 0.9);
+            --legend-text: #000000;
+            --node-label-bg: rgba(0, 0, 0, 0.7);
+            --node-label-text: white;
+        }
+        
+        /* Dark mode variables */
+        [data-bs-theme="dark"], [data-theme="dark"] {
+            --map-bg: #121212;
+            --link-color: #444444;
+            --text-color: #ffffff;
+            --legend-bg: rgba(30, 30, 30, 0.9);
+            --legend-text: #ffffff;
+            --node-label-bg: rgba(0, 0, 0, 0.8);
+            --node-label-text: white;
+        }
+        
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .content-header h1 {
+            margin: 0;
+        }
+        
+        .content-header .btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 15px;
+            text-decoration: none;
+            border-radius: 4px;
+            color: white;
+        }
+        
+        .btn-primary {
+            background-color: #8A2BE2;
+        }
+        
+        .btn-primary:hover {
+            background-color: #7b26cd;
+        }
+        
+        .btn-secondary {
+            background-color: #4CAF50;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #45a049;
+        }
+        
+        .map-container {
+            width: 100%;
+            height: 600px;
+            background-color: var(--secondary-bg);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .drug-select-container {
+            margin-bottom: 20px;
+            background-color: var(--secondary-bg);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .form-group {
+            margin-bottom: 0;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--primary-text);
+        }
+        
+        .form-select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background-color: var(--input-bg);
+            color: var(--primary-text);
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+        
+        .form-select:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+        
+        /* Styles for the bubble nodes */
+        .node {
+            cursor: pointer;
+        }
+        
+        .node circle {
+            fill: #fff;
+            stroke-width: 2px;
+        }
+        
+        .node text {
+            font-size: 12px;
+            text-anchor: middle;
+            pointer-events: none; /* Prevents text from interfering with drag events */
+            fill: var(--node-label-text);
+            font-weight: bold;
+            /* Text shadow for better readability against any background */
+            text-shadow: 0px 0px 3px #000, 0px 0px 2px #000;
+        }
+        
+        /* Container for text labels */
+        .node-label-container {
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+        
+        .link {
+            fill: none;
+            stroke: var(--link-color);
+            stroke-width: 3px;
+        }
+        
+        /* Different color categories for the bubbles */
+        .category-main { 
+            fill: #9932CC;         /* Purple for the main drug - more distinctive */
+            background-color: #9932CC;
+            stroke: #6A0DAD;       /* Darker purple outline */
+            stroke-width: 2px;     /* Add an outline to make it stand out */
+        }
+        .category-high { fill: #d9534f; }         /* Red for high risk interactions */
+        .category-medium { fill: #f0ad4e; }       /* Orange for medium risk interactions */
+        .category-low { fill: #5bc0de; }          /* Light blue for low risk interactions */
+        .category-unknown { fill: #777777; }      /* Grey for unknown risk interactions */
+        
+        /* Legend styles */
+        .legend {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: var(--legend-bg);
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        
+        .legend-color {
+            width: 15px;
+            height: 15px;
+            margin-right: 8px;
+            border-radius: 50%;
+        }
+        
+        .legend-text {
+            font-size: 12px;
+            fill: var(--legend-text);
+            color: var(--legend-text);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: var(--secondary-text);
+        }
+        
+        /* Theme-aware styles */
+        .node-label-bg {
+            fill: var(--node-label-bg);
+        }
+        
+        #bubbleMap {
+            background-color: var(--map-bg);
+        }
+        
+        /* Force SVG background in dark mode */
+        [data-bs-theme="dark"] #bubbleMap,
+        [data-theme="dark"] #bubbleMap,
+        .dark-mode #bubbleMap {
+            background-color: #121212 !important;
+            color-scheme: dark;
+        }
+        
+        [data-bs-theme="dark"] .link,
+        [data-theme="dark"] .link,
+        .dark-mode .link {
+            stroke: #444444 !important;
+        }
+        
+        /* Ensure parent containers also use dark theme */
+        [data-bs-theme="dark"] .map-container,
+        [data-theme="dark"] .map-container,
+        .dark-mode .map-container {
+            background-color: #121212 !important;
+            border-color: #333333 !important;
+        }
+    </style>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="content-wrapper">
+            <div class="content-header">
+                <h1>Drug Interaction Map</h1>
+                <div style="display: flex; gap: 10px;">
+                    <a href="/drugs/interactions" class="btn btn-primary">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M8 12L8 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M4 8L12 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Manage Interactions
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Drug Selection -->
+            <div class="drug-select-container">
+                <div class="form-group">
+                    <label for="drugSelect" class="form-label">Select a drug to view its interactions:</label>
+                    <select id="drugSelect" class="form-select">
+                        <option value="">Overview</option>
+                        <option th:each="drug : ${drugs}" 
+                                th:value="${drug.id}" 
+                                th:text="${drug.name}">Drug name</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Map Container -->
+            <div class="map-container" id="interactionMap">
+                <div id="emptyState" class="empty-state">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M9 3.6V14.4C9 14.7314 9.26863 15 9.6 15H20.4C20.7314 15 21 14.7314 21 14.4V3.6C21 3.26863 20.7314 3 20.4 3H9.6C9.26863 3 9 3.26863 9 3.6Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M6 7.5V18.3C6 18.6314 6.26863 18.9 6.6 18.9H17.4C17.7314 18.9 18 18.6314 18 18.3V18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M3 11.4V21.4C3 21.7314 3.26863 22 3.6 22H13.6C13.9314 22 14.2 21.7314 14.2 21.4V21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <h3>Select a drug to view its interaction map</h3>
+                    <p>The visualization will show the selected drug and its interactions in a bubble map.</p>
+                </div>
+                
+                <!-- SVG container for the D3 visualization -->
+                <svg id="bubbleMap" style="width: 100%; height: 100%; display: none; background-color: var(--map-bg);" width="800" height="600"></svg>
+                
+                <!-- Legend 
+                <div id="mapLegend" class="legend" style="display: none;">
+                    <div class="legend-item">
+                        <div class="legend-color category-main"></div>
+                        <div class="legend-text">Main Drug</div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color category-high"></div>
+                        <div class="legend-text">Risk Interaction</div>
+                    </div>
+                </div>-->
+            </div>
+        </div>
+    </div>
+    
+    <!-- D3.js for visualization - using multiple CDN sources for redundancy -->
+    <th:block layout:fragment="scripts">
+        <script src="https://d3js.org/d3.v7.min.js"></script>
+        <script>
+            // Fallback if the first CDN fails
+            if (typeof d3 === 'undefined') {
+                console.log("Primary D3 CDN failed, trying fallback");
+                let fallbackScript = document.createElement('script');
+                fallbackScript.src = "https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js";
+                document.head.appendChild(fallbackScript);
+            }
+        
+            // Store all drugs data for easier reference
+            let allDrugs = [];
+            
+            // Function to ensure D3.js is loaded
+            function ensureD3Loaded(callback) {
+                // Check if D3 is already loaded
+                if (typeof d3 !== 'undefined') {
+                    callback();
+                    return;
+                }
+                
+                // If not, set up an interval to check again
+                console.log("Waiting for D3.js to load...");
+                let checkCount = 0;
+                const checkInterval = setInterval(function() {
+                    checkCount++;
+                    if (typeof d3 !== 'undefined') {
+                        clearInterval(checkInterval);
+                        callback();
+                    } else if (checkCount > 20) { // Give up after about 10 seconds
+                        clearInterval(checkInterval);
+                        document.getElementById('emptyState').innerHTML = '<h3>Error Loading Visualization</h3><p>Required library could not be loaded. Please check your network connection and reload the page.</p>';
+                        console.error("Failed to load D3.js after multiple attempts");
+                    }
+                }, 500);
+            }
+
+            function updateInteractionMap() {
+                const drugId = document.getElementById('drugSelect').value;
+                
+                if (!drugId) {
+                    // This is the "Overview" option - load the full relationship graph
+                    loadFullRelationshipGraph();
+                    return;
+                }
+                
+                // Show loading state
+                const emptyState = document.getElementById('emptyState');
+                if (emptyState) {
+                    emptyState.innerHTML = '<div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div><p>Loading interaction data...</p>';
+                    emptyState.style.display = 'block';
+                }
+                
+                const bubbleMap = document.getElementById('bubbleMap');
+                if (bubbleMap) bubbleMap.style.display = 'none';
+                
+                // Ensure D3 is loaded before proceeding
+                ensureD3Loaded(function() {
+                    // Fetch drug interactions
+                    fetch(`/api/drugs/${drugId}/interactions`)
+                        .then(response => response.json())
+                        .then(interactionIds => {
+                            // If no interactions
+                            if (interactionIds.length === 0) {
+                                const emptyState = document.getElementById('emptyState');
+                                const bubbleMap = document.getElementById('bubbleMap');
+                                const mapLegend = document.getElementById('mapLegend');
+                                
+                                if (emptyState) {
+                                    emptyState.innerHTML = '<h3>No Interactions Found</h3><p>This drug has no recorded interactions.</p>';
+                                    emptyState.style.display = 'block';
+                                }
+                                if (bubbleMap) bubbleMap.style.display = 'none';
+                                if (mapLegend && mapLegend.style) mapLegend.style.display = 'none';
+                                return;
+                            }
+                            
+                            // Create interaction data structure for visualization
+                            createBubbleMap(drugId, interactionIds);
+                        })
+                        .catch(error => {
+                            console.error("Error fetching drug interactions:", error);
+                            const emptyState = document.getElementById('emptyState');
+                            const bubbleMap = document.getElementById('bubbleMap');
+                            const mapLegend = document.getElementById('mapLegend');
+                            
+                            if (emptyState) {
+                                emptyState.innerHTML = '<h3>Error Loading Data</h3><p>An error occurred while loading interaction data.</p>';
+                                emptyState.style.display = 'block';
+                            }
+                            if (bubbleMap) bubbleMap.style.display = 'none';
+                            if (mapLegend && mapLegend.style) mapLegend.style.display = 'none';
+                        });
+                });
+            }
+            
+            document.addEventListener('DOMContentLoaded', function() {
+                // Make sure D3 is loaded before proceeding
+                ensureD3Loaded(function() {
+                    console.log("D3.js is loaded and ready");
+                    
+                    // Store all drugs from Thymeleaf model
+                    const drugsSelect = document.getElementById('drugSelect');
+                    if (drugsSelect) {
+                        // Add change event listener
+                        drugsSelect.addEventListener('change', function() {
+                            if (typeof updateInteractionMap === 'function') {
+                                updateInteractionMap();
+                            } else {
+                                console.error("updateInteractionMap function is not defined");
+                            }
+                        });
+                        
+                        for (let i = 0; i < drugsSelect.options.length; i++) {
+                            if (drugsSelect.options[i].value) {
+                                allDrugs.push({
+                                    id: drugsSelect.options[i].value,
+                                    name: drugsSelect.options[i].text
+                                });
+                            }
+                        }
+                        console.log("Loaded " + allDrugs.length + " drugs");
+                        
+                        // Instead of showing empty state, load the full relationship graph
+                        loadFullRelationshipGraph();
+                    } else {
+                        console.error("Drug select element not found");
+                    }
+                    
+                    // Set up theme detection
+                    setupThemeDetection();
+                });
+            });
+        
+            function createBubbleMap(drugId, interactionIds) {
+                // Ensure D3 is loaded
+                if (typeof d3 === 'undefined') {
+                    console.error("D3 is not defined. Cannot create visualization.");
+                    const emptyState = document.getElementById('emptyState');
+                    const bubbleMap = document.getElementById('bubbleMap');
+                    const mapLegend = document.getElementById('mapLegend');
+                    
+                    if (emptyState) {
+                        emptyState.innerHTML = '<h3>Visualization Error</h3><p>Required library is not available. Please try refreshing the page.</p>';
+                        emptyState.style.display = 'block';
+                    }
+                    if (bubbleMap) bubbleMap.style.display = 'none';
+                    if (mapLegend && mapLegend.style) mapLegend.style.display = 'none';
+                    return;
+                }
+                
+                try {
+                    // Clear previous visualization
+                    d3.select("#bubbleMap").html("");
+                    
+                    // Find main drug details
+                    const mainDrug = allDrugs.find(drug => drug.id === drugId);
+                    if (!mainDrug) {
+                        console.error("Main drug not found in dataset");
+                        const emptyState = document.getElementById('emptyState');
+                        const bubbleMap = document.getElementById('bubbleMap');
+                        const mapLegend = document.getElementById('mapLegend');
+                        
+                        if (emptyState) {
+                            emptyState.innerHTML = '<h3>Data Error</h3><p>Selected drug information could not be found.</p>';
+                            emptyState.style.display = 'block';
+                        }
+                        if (bubbleMap) bubbleMap.style.display = 'none';
+                        if (mapLegend && mapLegend.style) mapLegend.style.display = 'none';
+                        return;
+                    }
+                    
+                    // Create data structure for bubble map
+                    const nodes = [];
+                    const links = [];
+                    
+                    // Add main drug node
+                    nodes.push({
+                        id: mainDrug.id,
+                        name: mainDrug.name,
+                        group: "main",
+                        value: 70  // Increased size of the main bubble
+                    });
+                    
+                    // Add interaction drug nodes and links
+                    interactionIds.forEach((interactionId, index) => {
+                        const interactingDrug = allDrugs.find(drug => drug.id === interactionId);
+                        if (!interactingDrug) return;
+                        
+                        nodes.push({
+                            id: interactingDrug.id,
+                            name: interactingDrug.name,
+                            value: 45  // Increased size of interaction bubbles
+                        });
+                        
+                        links.push({
+                            source: mainDrug.id,
+                            target: interactingDrug.id,
+                            value: 1
+                        });
+                    });
+                    
+                    // First show the SVG and hide the empty state
+                    const emptyState = document.getElementById('emptyState');
+                    const bubbleMap = document.getElementById('bubbleMap');
+                    const mapLegend = document.getElementById('mapLegend');
+                    
+                    // Safely update DOM elements if they exist
+                    if (emptyState) emptyState.style.display = 'none';
+                    if (bubbleMap) bubbleMap.style.display = 'block';
+                    if (mapLegend && mapLegend.style) mapLegend.style.display = 'block';
+                    
+                    // Now create the bubble map visualization
+                    createForceGraph(nodes, links);
+                } catch (error) {
+                    console.error("Error creating bubble map:", error);
+                    const emptyState = document.getElementById('emptyState');
+                    const bubbleMap = document.getElementById('bubbleMap');
+                    const mapLegend = document.getElementById('mapLegend');
+                    
+                    // Safely update DOM elements if they exist
+                    if (emptyState) {
+                        emptyState.innerHTML = '<h3>Visualization Error</h3><p>An error occurred while creating the visualization: ' + error.message + '</p>';
+                        emptyState.style.display = 'block';
+                    }
+                    if (bubbleMap) bubbleMap.style.display = 'none';
+                    if (mapLegend && mapLegend.style) mapLegend.style.display = 'none';
+                }
+            }
+            
+            function createForceGraph(nodes, links) {
+                try {
+                    if (typeof d3 === 'undefined') {
+                        throw new Error("D3 library is not available");
+                    }
+                    
+                    // Check if we're in dark mode
+                    const isDarkMode = 
+                        document.documentElement.getAttribute('data-bs-theme') === 'dark' ||
+                        document.documentElement.getAttribute('data-theme') === 'dark' ||
+                        document.body.classList.contains('dark-mode');
+                    
+                    // Get SVG element
+                    const svgElement = document.getElementById('bubbleMap');
+                    if (svgElement) {
+                        // Direct DOM manipulation with inline style (highest priority)
+                        svgElement.style.backgroundColor = isDarkMode ? '#121212' : 'white';
+                        svgElement.setAttribute('style', svgElement.getAttribute('style') + 
+                            `; background-color: ${isDarkMode ? '#121212' : 'white'} !important;`);
+                    } else {
+                        console.error("SVG element not found");
+                        return;
+                    }
+                    
+                    // Use D3 to select the SVG
+                    const svg = d3.select("#bubbleMap");
+                    if (!svg.node()) {
+                        throw new Error("SVG element not found");
+                    }
+                    
+                    // Get dimensions from the SVG element or fallback to parent container 
+                    let width, height;
+                    
+                    // Try to get dimensions from the container
+                    const container = document.querySelector(".map-container");
+                    if (container) {
+                        width = container.clientWidth || 800;
+                        height = container.clientHeight || 600;
+                        
+                        // Also set the container background in dark mode
+                        if (isDarkMode) {
+                            container.style.backgroundColor = '#121212';
+                            container.style.borderColor = '#333';
+                        }
+                    } else {
+                        // Fallback to default dimensions
+                        width = window.innerWidth - 40 || 800;
+                        height = window.innerHeight - 200 || 600;
+                    }
+                    
+                    // Set dimensions explicitly on the SVG
+                    svg.attr("width", width)
+                       .attr("height", height)
+                       .attr("viewBox", `0 0 ${width} ${height}`)
+                       .attr("preserveAspectRatio", "xMidYMid meet");
+                    
+                    // Clear existing content
+                    svg.selectAll("*").remove();
+                    
+                    // Add a background rectangle that covers the entire SVG area
+                    svg.append("rect")
+                       .attr("class", "svg-background")
+                       .attr("x", 0)
+                       .attr("y", 0)
+                       .attr("width", width)
+                       .attr("height", height)
+                       .attr("fill", isDarkMode ? '#121212' : 'white');
+                    
+                    // Multiple ways to set the background
+                    svg.style("background-color", isDarkMode ? '#121212' : 'white');
+                    
+                    // Create a force simulation for the graph
+                    const simulation = d3.forceSimulation(nodes)
+                        .force("link", d3.forceLink(links).id(d => d.id).distance(d => 180))
+                        .force("charge", d3.forceManyBody().strength(d => -350 - (d.value * 3)))
+                        .force("center", d3.forceCenter(width / 2, height / 2).strength(0.08))
+                        .force("collision", d3.forceCollide().radius(d => Math.sqrt(d.value) * 2.5 + 10))
+                        .force("x", d3.forceX(width / 2).strength(0.05))
+                        .force("y", d3.forceY(height / 2).strength(0.05));
+                    
+                    // Create links
+                    const link = svg.append("g")
+                        .attr("class", "links")
+                        .selectAll("line")
+                        .data(links)
+                        .enter().append("line")
+                        .attr("class", "link")
+                        .attr("stroke-width", d => 3);
+                    
+                    // Create node groups
+                    const node = svg.append("g")
+                        .attr("class", "nodes")
+                        .selectAll(".node")
+                        .data(nodes)
+                        .enter().append("g")
+                        .attr("class", "node")
+                        .call(d3.drag()
+                            .on("start", dragstarted)
+                            .on("drag", dragged)
+                            .on("end", dragended));
+                    
+                    // Add circles to nodes
+                    node.append("circle")
+                        .attr("r", d => Math.sqrt(d.value) * 2)
+                        .attr("class", d => "category-" + d.group);
+                    
+                    // Add text labels
+                    node.append("text")
+                        .text(d => d.name)
+                        .attr("dy", d => Math.sqrt(d.value) * 2 + 18) // Increased spacing below circle
+                        .attr("font-size", d => {
+                            // Increased text size
+                            return Math.min(2.5 * Math.sqrt(d.value), 16) + "px";
+                        })
+                        .each(function(d) {
+                            // Add background rectangle for better text readability
+                            const textElement = d3.select(this);
+                            const textBBox = this.getBBox();
+                            
+                            const padding = 3;
+                            d3.select(this.parentNode)
+                                .insert("rect", "text")
+                                .attr("x", textBBox.x - padding)
+                                .attr("y", textBBox.y - padding)
+                                .attr("width", textBBox.width + (padding * 2))
+                                .attr("height", textBBox.height + (padding * 2))
+                                .attr("rx", 3)
+                                .attr("ry", 3)
+                                .attr("fill", "rgba(0, 0, 0, 0.7)")
+                                .attr("class", "node-label-bg");
+                        });
+                    
+                    // Add title for hover effect
+                    node.append("title")
+                        .text(d => d.name);
+                    
+                    // Update node and link positions on each tick of the simulation
+                    simulation.on("tick", () => {
+                        link
+                            .attr("x1", d => d.source.x)
+                            .attr("y1", d => d.source.y)
+                            .attr("x2", d => d.target.x)
+                            .attr("y2", d => d.target.y);
+                        
+                        node
+                            .attr("transform", d => `translate(${d.x},${d.y})`);
+                    });
+                    
+                    // Drag functions
+                    function dragstarted(event, d) {
+                        if (!event.active) simulation.alphaTarget(0.3).restart();
+                        d.fx = d.x;
+                        d.fy = d.y;
+                    }
+                    
+                    function dragged(event, d) {
+                        d.fx = event.x;
+                        d.fy = event.y;
+                    }
+                    
+                    function dragended(event, d) {
+                        if (!event.active) simulation.alphaTarget(0);
+                        d.fx = null;
+                        d.fy = null;
+                    }
+                } catch (error) {
+                    console.error("Error creating force graph:", error);
+                    document.getElementById('emptyState').innerHTML = '<h3>Visualization Error</h3><p>An error occurred while rendering the graph: ' + error.message + '</p>';
+                    document.getElementById('emptyState').style.display = 'block';
+                    document.getElementById('bubbleMap').style.display = 'none';
+                    document.getElementById('mapLegend').style.display = 'none';
+                    throw error; // Re-throw to be caught by the parent function
+                }
+            }
+            
+            // Function to load and display the full relationship graph
+            function loadFullRelationshipGraph() {
+                console.log("Loading full relationship graph");
+                const emptyState = document.getElementById('emptyState');
+                if (emptyState) {
+                    emptyState.innerHTML = '<div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div><p>Generating drug interaction network...</p>';
+                    emptyState.style.display = 'block';
+                }
+                
+                // If we have no drugs, can't proceed
+                if (allDrugs.length === 0) {
+                    if (emptyState) {
+                        emptyState.innerHTML = '<h3>No Data Available</h3><p>No drug data is available to visualize.</p>';
+                    }
+                    return;
+                }
+                
+                // Create a queue to fetch all drug interactions
+                let interactionData = {};
+                let processedCount = 0;
+                
+                // First create placeholders for each drug
+                allDrugs.forEach(drug => {
+                    interactionData[drug.id] = {
+                        id: drug.id,
+                        name: drug.name,
+                        interactions: []
+                    };
+                });
+                
+                // Process each drug and get its interactions
+                function processNextDrug(index) {
+                    if (index >= allDrugs.length) {
+                        // All drugs processed, generate the graph
+                        generateNetworkGraph(interactionData);
+                        return;
+                    }
+                    
+                    const drug = allDrugs[index];
+                    
+                    // Fetch interactions for this drug
+                    fetch(`/api/drugs/${drug.id}/interactions`)
+                        .then(response => response.json())
+                        .then(interactionIds => {
+                            // Store the interactions
+                            interactionData[drug.id].interactions = interactionIds;
+                            processedCount++;
+                            
+                            // Update progress
+                            if (emptyState) {
+                                const progress = Math.floor((processedCount / allDrugs.length) * 100);
+                                emptyState.innerHTML = `<div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div><p>Generating drug interaction network... ${progress}%</p>`;
+                            }
+                            
+                            // Process next drug
+                            processNextDrug(index + 1);
+                        })
+                        .catch(error => {
+                            console.error(`Error fetching interactions for drug ${drug.name}:`, error);
+                            // Continue with next drug despite error
+                            processNextDrug(index + 1);
+                        });
+                }
+                
+                // Start processing drugs
+                processNextDrug(0);
+            }
+            
+            // Function to generate the network graph from the full interaction data
+            function generateNetworkGraph(interactionData) {
+                try {
+                    console.log("Generating network graph with", Object.keys(interactionData).length, "drugs");
+                    
+                    // Create graph data structure
+                    const nodes = [];
+                    const links = [];
+                    const nodeMap = new Map(); // For quick node lookup
+                    
+                    // Add each drug as a node
+                    Object.values(interactionData).forEach(drug => {
+                        // Count number of interactions for sizing the node
+                        const interactionCount = drug.interactions.length;
+                        
+                        // Add node with properties
+                        nodes.push({
+                            id: drug.id,
+                            name: drug.name,
+                            value: 20 + (interactionCount * 5), // Base size + scaling based on interactions
+                            interactionCount: interactionCount,
+                            group: getNodeGroup(interactionCount) // Categorize node based on interaction count
+                        });
+                        
+                        // Add to nodeMap for quick lookup
+                        nodeMap.set(drug.id, nodes.length - 1);
+                    });
+                    
+                    // Add interaction links (avoid duplicates)
+                    const linkSet = new Set(); // Track added links to avoid duplicates
+                    
+                    Object.values(interactionData).forEach(drug => {
+                        drug.interactions.forEach(targetId => {
+                            // Create a unique identifier for this link (using sorted IDs to catch both directions)
+                            const linkKey = [drug.id, targetId].sort().join('-');
+                            
+                            // Only add if not already added and both drugs exist in our dataset
+                            if (!linkSet.has(linkKey) && nodeMap.has(targetId)) {
+                                links.push({
+                                    source: drug.id,
+                                    target: targetId,
+                                    value: 1
+                                });
+                                
+                                linkSet.add(linkKey);
+                            }
+                        });
+                    });
+                    
+                    // Create visualization
+                    const emptyState = document.getElementById('emptyState');
+                    const bubbleMap = document.getElementById('bubbleMap');
+                    const mapLegend = document.getElementById('mapLegend');
+                    
+                    // Safely update DOM elements if they exist
+                    if (emptyState) emptyState.style.display = 'none';
+                    if (bubbleMap) bubbleMap.style.display = 'block';
+                    if (mapLegend && mapLegend.style) mapLegend.style.display = 'block';
+                    
+                    // Create network visualization
+                    createNetworkGraph(nodes, links);
+                    
+                } catch (error) {
+                    console.error("Error generating network graph:", error);
+                    const emptyState = document.getElementById('emptyState');
+                    if (emptyState) {
+                        emptyState.innerHTML = '<h3>Visualization Error</h3><p>An error occurred while creating the network visualization: ' + error.message + '</p>';
+                        emptyState.style.display = 'block';
+                    }
+                }
+            }
+            
+            // Helper function to categorize nodes based on interaction count
+            function getNodeGroup(interactionCount) {
+                if (interactionCount === 0) return "none";
+                if (interactionCount <= 2) return "low";
+                if (interactionCount <= 5) return "medium";
+                return "high";
+            }
+            
+            // Create a special network visualization for the full graph
+            function createNetworkGraph(nodes, links) {
+                try {
+                    if (typeof d3 === 'undefined') {
+                        throw new Error("D3 library is not available");
+                    }
+                    
+                    // Check if we're in dark mode
+                    const isDarkMode = 
+                        document.documentElement.getAttribute('data-bs-theme') === 'dark' ||
+                        document.documentElement.getAttribute('data-theme') === 'dark' ||
+                        document.body.classList.contains('dark-mode');
+                    
+                    // Get SVG element
+                    const svgElement = document.getElementById('bubbleMap');
+                    if (svgElement) {
+                        // Direct DOM manipulation with inline style (highest priority)
+                        svgElement.style.backgroundColor = isDarkMode ? '#121212' : 'white';
+                        svgElement.setAttribute('style', svgElement.getAttribute('style') + 
+                            `; background-color: ${isDarkMode ? '#121212' : 'white'} !important;`);
+                    } else {
+                        console.error("SVG element not found");
+                        return;
+                    }
+                    
+                    // Use D3 to select the SVG
+                    const svg = d3.select("#bubbleMap");
+                    if (!svg.node()) {
+                        throw new Error("SVG element not found");
+                    }
+                    
+                    // Variables for dimensions
+                    let width, height;
+                    
+                    // Try to get dimensions from the container
+                    const container = document.querySelector(".map-container");
+                    if (container) {
+                        width = container.clientWidth || 800;
+                        height = container.clientHeight || 600;
+                        
+                        // Also set the container background in dark mode
+                        if (isDarkMode) {
+                            container.style.backgroundColor = '#121212';
+                            container.style.borderColor = '#333';
+                        }
+                    } else {
+                        // Fallback to default dimensions
+                        width = window.innerWidth - 40 || 800;
+                        height = window.innerHeight - 200 || 600;
+                    }
+                    
+                    console.log("Using dimensions:", width, height);
+                    
+                    // Set dimensions explicitly on the SVG
+                    svg.attr("width", width)
+                       .attr("height", height)
+                       .attr("viewBox", `0 0 ${width} ${height}`)
+                       .attr("preserveAspectRatio", "xMidYMid meet");
+                    
+                    // Clear existing content
+                    svg.selectAll("*").remove();
+                    
+                    // Add a background rectangle that covers the entire SVG area
+                    svg.append("rect")
+                       .attr("class", "svg-background")
+                       .attr("x", 0)
+                       .attr("y", 0)
+                       .attr("width", width)
+                       .attr("height", height)
+                       .attr("fill", isDarkMode ? '#121212' : 'white');
+                     
+                    // Multiple ways to set the background
+                    svg.style("background-color", isDarkMode ? '#121212' : 'white');
+                    
+                    // Create a force simulation for the graph with more parameters for network visualization
+                    const simulation = d3.forceSimulation(nodes)
+                        .force("link", d3.forceLink(links).id(d => d.id).distance(d => 180))
+                        .force("charge", d3.forceManyBody().strength(d => -350 - (d.value * 3)))
+                        .force("center", d3.forceCenter(width / 2, height / 2).strength(0.08))
+                        .force("collision", d3.forceCollide().radius(d => Math.sqrt(d.value) * 2.5 + 10))
+                        .force("x", d3.forceX(width / 2).strength(0.05))
+                        .force("y", d3.forceY(height / 2).strength(0.05));
+                    
+                    // Add zoom behavior
+                    const zoom = d3.zoom()
+                        .scaleExtent([0.1, 4])
+                        .on("zoom", function(event) {
+                            g.attr("transform", event.transform);
+                        });
+                    
+                    svg.call(zoom);
+                    
+                    // Create a container for all our elements
+                    const g = svg.append("g");
+                    
+                    // Create links
+                    const link = g.append("g")
+                        .attr("class", "links")
+                        .selectAll("line")
+                        .data(links)
+                        .enter().append("line")
+                        .attr("class", "link")
+                        .attr("stroke-width", 1.5)
+                        .attr("stroke-opacity", 0.6);
+                    
+                    // Create node groups
+                    const node = g.append("g")
+                        .attr("class", "nodes")
+                        .selectAll(".node")
+                        .data(nodes)
+                        .enter().append("g")
+                        .attr("class", "node")
+                        .call(d3.drag()
+                            .on("start", dragstarted)
+                            .on("drag", dragged)
+                            .on("end", dragended));
+                    
+                    // Add circles to nodes
+                    node.append("circle")
+                        .attr("r", d => Math.sqrt(d.value) * 1.5)
+                        .attr("class", d => d.group === "high" ? "category-high" : 
+                                           d.group === "medium" ? "category-medium" : 
+                                           d.group === "low" ? "category-low" : "category-unknown");
+                    
+                    // Add text labels
+                    node.append("text")
+                        .text(d => d.name)
+                        .attr("dy", d => Math.sqrt(d.value) * 1.5 + 15) // Position below the circle
+                        .attr("font-size", d => {
+                            return Math.min(2.2 * Math.sqrt(d.value / 2), 14) + "px";
+                        })
+                        .each(function(d) {
+                            // Add background rectangle for better text readability
+                            const textElement = d3.select(this);
+                            const textBBox = this.getBBox();
+                            
+                            const padding = 3;
+                            d3.select(this.parentNode)
+                                .insert("rect", "text")
+                                .attr("x", textBBox.x - padding)
+                                .attr("y", textBBox.y - padding)
+                                .attr("width", textBBox.width + (padding * 2))
+                                .attr("height", textBBox.height + (padding * 2))
+                                .attr("rx", 3)
+                                .attr("ry", 3)
+                                .attr("fill", "rgba(0, 0, 0, 0.7)")
+                                .attr("class", "node-label-bg");
+                        });
+                    
+                    // Add title for hover effect
+                    node.append("title")
+                        .text(d => `${d.name}\nInteractions: ${d.interactionCount}`);
+                    
+                    // Add a special outline to highlight nodes with many interactions
+                    node.filter(d => d.interactionCount > 5)
+                        .select("circle")
+                        .attr("stroke", "#FF8C00")
+                        .attr("stroke-width", 2);
+                    
+                    /* // Add legend for the network graph
+                    const legend = svg.append("g")
+                        .attr("class", "legend")
+                        .attr("transform", `translate(${width - 180}, 20)`);
+                    
+                    legend.append("rect")
+                        .attr("width", 160)
+                        .attr("height", 130)
+                        .attr("fill", "var(--legend-bg)")
+                        .attr("rx", 5)
+                        .attr("ry", 5);
+                    
+                    // Instructions
+                    legend.append("text")
+                        .attr("x", 80)
+                        .attr("y", 120)
+                        .attr("text-anchor", "middle")
+                        .attr("font-size", "10px")
+                        .attr("font-style", "italic")
+                        .attr("fill", "var(--legend-text)")
+                        .text("Scroll to zoom, drag to move"); */
+                    
+                    // Update node and link positions on each tick of the simulation
+                    simulation.on("tick", () => {
+                        link
+                            .attr("x1", d => d.source.x)
+                            .attr("y1", d => d.source.y)
+                            .attr("x2", d => d.target.x)
+                            .attr("y2", d => d.target.y);
+                        
+                        node
+                            .attr("transform", d => `translate(${d.x},${d.y})`);
+                    });
+                    
+                    // Apply initial positioning algorithm to prevent chaos
+                    // For large graphs, run some simulation steps before rendering
+                    for (let i = 0; i < 20; ++i) simulation.tick();
+                    
+                    // Drag functions
+                    function dragstarted(event, d) {
+                        if (!event.active) simulation.alphaTarget(0.3).restart();
+                        d.fx = d.x;
+                        d.fy = d.y;
+                    }
+                    
+                    function dragged(event, d) {
+                        d.fx = event.x;
+                        d.fy = event.y;
+                    }
+                    
+                    function dragended(event, d) {
+                        if (!event.active) simulation.alphaTarget(0);
+                        d.fx = null;
+                        d.fy = null;
+                    }
+                } catch (error) {
+                    console.error("Error creating network graph:", error);
+                    const emptyState = document.getElementById('emptyState');
+                    if (emptyState) {
+                        emptyState.innerHTML = '<h3>Visualization Error</h3><p>An error occurred while creating the network visualization: ' + error.message + '</p>';
+                        emptyState.style.display = 'block';
+                    }
+                }
+            }
+            
+            // Function to detect theme changes and update visualization accordingly
+            function setupThemeDetection() {
+                // Initial theme check
+                applyCurrentTheme();
+                
+                // Watch for theme changes
+                const observer = new MutationObserver(function(mutations) {
+                    mutations.forEach(function(mutation) {
+                        if (mutation.attributeName === 'data-bs-theme' || 
+                            mutation.attributeName === 'data-theme') {
+                            applyCurrentTheme();
+                        }
+                    });
+                });
+                
+                // Start observing the document and html element for theme changes
+                observer.observe(document.documentElement, { attributes: true });
+                observer.observe(document, { attributes: true });
+                
+                // Also listen for custom theme change events
+                document.addEventListener('themeChanged', function() {
+                    applyCurrentTheme();
+                });
+            }
+            
+            // Apply the current theme to the visualization
+            function applyCurrentTheme() {
+                const isDarkMode = 
+                    document.documentElement.getAttribute('data-bs-theme') === 'dark' ||
+                    document.documentElement.getAttribute('data-theme') === 'dark' ||
+                    document.body.classList.contains('dark-mode');
+                
+                console.log("Theme changed to:", isDarkMode ? "dark" : "light");
+                
+                // Explicitly set SVG background color
+                const bubbleMap = document.getElementById('bubbleMap');
+                if (bubbleMap) {
+                    // Directly set the background color
+                    bubbleMap.style.backgroundColor = isDarkMode ? '#121212' : 'white';
+                    
+                    // If D3 is available, also set as an attribute
+                    if (typeof d3 !== 'undefined') {
+                        d3.select("#bubbleMap").style("background-color", isDarkMode ? '#121212' : 'white');
+                    }
+                }
+                
+                // Also update map container
+                const mapContainer = document.querySelector(".map-container");
+                if (mapContainer) {
+                    mapContainer.style.backgroundColor = isDarkMode ? '#121212' : 'var(--secondary-bg)';
+                    mapContainer.style.borderColor = isDarkMode ? '#333333' : 'var(--border-color)';
+                }
+                
+                // If we have an active visualization, refresh it
+                if (bubbleMap && bubbleMap.style.display !== 'none') {
+                    // If we're in overview mode, regenerate the network graph
+                    if (!document.getElementById('drugSelect').value) {
+                        // Only reload if we're on overview mode
+                        loadFullRelationshipGraph();
+                    } else {
+                        // If a specific drug is selected, refresh that view
+                        updateInteractionMap();
+                    }
+                }
+            }
+        </script>
+    </th:block>
+</body>
+</html> 
