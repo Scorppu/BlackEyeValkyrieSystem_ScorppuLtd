@@ -60,6 +60,10 @@ public class UserService {
         return userRepository.findAll();
     }
     
+    public List<User> findByRole(User.UserRole role) {
+        return userRepository.findByRole(role);
+    }
+    
     public boolean isReservedUsername(String username) {
         return "admin".equalsIgnoreCase(username);
     }

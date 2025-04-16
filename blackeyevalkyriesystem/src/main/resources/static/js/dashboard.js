@@ -8,6 +8,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+    // Initialize duty status bars
+    initializeDutyBars();
+    
     // Calendar variables
     let currentDate = new Date();
     let currentMonth = currentDate.getMonth();
@@ -312,4 +315,86 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     }
+
+    // Initialize duty status charts if they exist
+    const dutyStatusContainer = document.querySelector('.duty-status-container');
+    if (dutyStatusContainer) {
+        // Initialize the box plot
+        initializeDutyBars();
+    }
 });
+
+// Initialize duty bar charts with minimum heights and update based on existing values
+function initializeDutyBars() {
+    // Get counts from the DOM (provided by Thymeleaf)
+    const doctorsOnDuty = parseInt(document.querySelector('#doctors-on-duty-value')?.textContent || 0);
+    const doctorsOffDuty = parseInt(document.querySelector('#doctors-off-duty-value')?.textContent || 0);
+    const nursesOnDuty = parseInt(document.querySelector('#nurses-on-duty-value')?.textContent || 0);
+    const nursesOffDuty = parseInt(document.querySelector('#nurses-off-duty-value')?.textContent || 0);
+    
+    // Calculate totals
+    const totalDoctors = doctorsOnDuty + doctorsOffDuty || 1; // Prevent division by zero
+    const totalNurses = nursesOnDuty + nursesOffDuty || 1; // Prevent division by zero
+    
+    // Update box section widths based on proportions
+    updateBoxWidth('doctors-on-duty-box', 'doctors-off-duty-box', doctorsOnDuty, doctorsOffDuty, totalDoctors);
+    updateBoxWidth('nurses-on-duty-box', 'nurses-off-duty-box', nursesOnDuty, nursesOffDuty, totalNurses);
+}
+
+// Helper function to update box section widths
+function updateBoxWidth(onDutyId, offDutyId, onDutyCount, offDutyCount, total) {
+    const onDutyElement = document.getElementById(onDutyId);
+    const offDutyElement = document.getElementById(offDutyId);
+    
+    if (onDutyElement && offDutyElement) {
+        // Check if either count is zero
+        if (onDutyCount === 0 && offDutyCount === 0) {
+            // If both are zero, show placeholder boxes
+            onDutyElement.style.width = '50%';
+            offDutyElement.style.width = '50%';
+            onDutyElement.style.display = 'flex';
+            offDutyElement.style.display = 'flex';
+            // Clear values
+            onDutyElement.querySelector('.box-value').textContent = '';
+            offDutyElement.querySelector('.box-value').textContent = '';
+        } else if (onDutyCount === 0) {
+            // All off duty - hide on duty box
+            onDutyElement.style.width = '0%';
+            offDutyElement.style.width = '100%';
+            onDutyElement.style.display = 'none';
+            offDutyElement.style.display = 'flex';
+            // Make off duty box have both rounded corners
+            offDutyElement.style.borderRadius = '5px';
+            // Clear on duty value but show off duty value
+            onDutyElement.querySelector('.box-value').textContent = '';
+            offDutyElement.querySelector('.box-value').textContent = offDutyCount;
+        } else if (offDutyCount === 0) {
+            // All on duty - hide off duty box
+            onDutyElement.style.width = '100%';
+            offDutyElement.style.width = '0%';
+            onDutyElement.style.display = 'flex';
+            offDutyElement.style.display = 'none';
+            // Make on duty box have both rounded corners
+            onDutyElement.style.borderRadius = '5px';
+            // Clear off duty value but show on duty value
+            onDutyElement.querySelector('.box-value').textContent = onDutyCount;
+            offDutyElement.querySelector('.box-value').textContent = '';
+        } else {
+            // Normal case - both values > 0
+            const onDutyPercentage = (onDutyCount / total) * 100;
+            const offDutyPercentage = 100 - onDutyPercentage;
+            
+            // Set widths
+            onDutyElement.style.width = `${onDutyPercentage}%`;
+            offDutyElement.style.width = `${offDutyPercentage}%`;
+            onDutyElement.style.display = 'flex';
+            offDutyElement.style.display = 'flex';
+            // Reset border radius to defaults
+            onDutyElement.style.borderRadius = '5px 0 0 5px';
+            offDutyElement.style.borderRadius = '0 5px 5px 0';
+            // Show both values
+            onDutyElement.querySelector('.box-value').textContent = onDutyCount;
+            offDutyElement.querySelector('.box-value').textContent = offDutyCount;
+        }
+    }
+}

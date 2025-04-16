@@ -126,6 +126,24 @@ class UserApiController {
     @Autowired
     private PasswordEncoder passwordEncoder;
     
+    @GetMapping("/counts")
+    public ResponseEntity<?> getUserCounts() {
+        try {
+            Map<String, Object> counts = new HashMap<>();
+            counts.put("totalUsers", userService.countTotalUsers());
+            counts.put("doctorCount", userService.countUsersByRole(User.UserRole.DOCTOR));
+            counts.put("nurseCount", userService.countUsersByRole(User.UserRole.NURSE));
+            
+            logger.info("Retrieved user counts: {}", counts);
+            return ResponseEntity.ok(counts);
+        } catch (Exception e) {
+            logger.error("Error getting user counts: {}", e.getMessage(), e);
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    
     @PostMapping
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<?> createUser(@RequestBody User user) {

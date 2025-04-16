@@ -143,13 +143,54 @@
                 </div>
             </div>
             
-            <!-- NB Section -->
+            <!-- Duty Status Section -->
             <div class="content-card">
-                <h2>NB</h2>
-                <!-- This would contain notification content -->
-                <!-- Placeholder for notification content -->
+                <h2>Duty Status</h2>
                 <div style="height: min(22vh, 150px); display: flex; justify-content: center; align-items: center;">
-                    <span style="color: var(--secondary-text);">No notifications</span>
+                    <div class="duty-status-container">
+                        <div class="chart-container">
+                            <h3>Doctors</h3>
+                            <div class="box-plot">
+                                <div class="box-container">
+                                    <div class="box-section on-duty" id="doctors-on-duty-box">
+                                        <span class="box-value" id="doctors-on-duty-value" th:text="${doctorsOnDuty != null ? doctorsOnDuty : 0}"></span>
+                                    </div>
+                                    <div class="box-section off-duty" id="doctors-off-duty-box">
+                                        <span class="box-value" id="doctors-off-duty-value" th:text="${doctorsOffDuty != null ? doctorsOffDuty : 0}"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="chart-container">
+                            <h3>Nurses</h3>
+                            <div class="box-plot">
+                                <div class="box-container">
+                                    <div class="box-section on-duty" id="nurses-on-duty-box">
+                                        <span class="box-value" id="nurses-on-duty-value" th:text="${nursesOnDuty != null ? nursesOnDuty : 0}"></span>
+                                    </div>
+                                    <div class="box-section off-duty" id="nurses-off-duty-box">
+                                        <span class="box-value" id="nurses-off-duty-value" th:text="${nursesOffDuty != null ? nursesOffDuty : 0}"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="chart-caption">
+                        <div class="chart-legend">
+                            <div class="legend-color" style="background-color: var(--accent-color);"></div>
+                            On Duty
+                        </div>
+                        <div class="chart-legend">
+                            <div class="legend-color" style="background-color: #30A9DE;"></div>
+                            Off Duty
+                        </div>
+                    </div>
+                </div>
+                <div style="text-align: center; margin-top: 0.5rem;">
+                    <a href="/duty-status" class="btn btn-outline">more...</a>
                 </div>
             </div>
         </div>
