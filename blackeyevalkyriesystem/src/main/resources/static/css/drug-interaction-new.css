@@ -1,0 +1,220 @@
+.content-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.content-header h1 {
+    margin: 0;
+}
+
+.import-btn {
+    background-color: #8A2BE2;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 10px 15px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.import-btn:hover {
+    background-color: #7b26cd;
+}
+
+.form-container {
+    background-color: var(--secondary-bg);
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    margin-bottom: 20px;
+}
+.form-group {
+    margin-bottom: 20px;
+}
+.form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: var(--primary-text);
+}
+.form-select, .form-textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background-color: var(--input-bg);
+    color: var(--primary-text);
+    font-size: 14px;
+    transition: border-color 0.2s;
+}
+.form-select:focus, .form-textarea:focus {
+    outline: none;
+    border-color: var(--accent-color);
+}
+.form-textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+.btn-container {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+.btn {
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: 500;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: none;
+}
+.btn-primary {
+    background-color: var(--accent-color);
+    color: white;
+    transition: background-color 0.2s;
+}
+.btn-primary:hover {
+    background-color: #7b26cd;
+}
+.btn-secondary {
+    background-color: var(--input-bg);
+    color: var(--primary-text);
+    border: 1px solid var(--border-color);
+    transition: background-color 0.2s;
+}
+.btn-secondary:hover {
+    background-color: var(--hover-bg);
+}
+/* Drug list and cart styles */
+.drugs-list {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    margin-top: 10px;
+}
+.drug-item {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border-color);
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    transition: background-color 0.2s;
+}
+.drug-item:hover {
+    background-color: rgba(138, 43, 226, 0.1);
+}
+.drug-item.selected {
+    background-color: rgba(138, 43, 226, 0.2);
+    border-left: 3px solid var(--accent-color);
+}
+.add-selected-btn {
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 16px;
+    margin-top: 15px;
+    float: right;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+.add-selected-btn:hover {
+    background-color: #7b26cd;
+}
+.add-selected-btn:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+.drug-cart {
+    min-height: 150px;
+    background-color: var(--input-bg);
+    border-radius: 4px;
+    padding: 15px;
+    margin-top: 15px;
+    border: 1px solid var(--border-color);
+}
+.save-btn {
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 16px;
+    float: right;
+    margin-top: 15px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+.save-btn:hover {
+    background-color: #7b26cd;
+}
+.modal {
+    display: none; 
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+}
+.modal-content {
+    background-color: var(--primary-bg);
+    margin: 10% auto;
+    padding: 20px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    width: 400px;
+    max-width: 90%;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+}
+.modal-header h3 {
+    margin: 0;
+    color: var(--primary-text);
+}
+.close {
+    color: var(--secondary-text);
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+}
+.modal-body {
+    margin-bottom: 20px;
+}
+.modal-body .form-group {
+    margin-bottom: 15px;
+}
+.modal-body label {
+    display: block;
+    margin-bottom: 5px;
+    color: var(--primary-text);
+}
+.modal-body input, .modal-body select {
+    width: 100%;
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    background-color: var(--input-bg);
+    color: var(--primary-text);
+}
+.modal-footer {
+    text-align: right;
+    border-top: 1px solid var(--border-color);
+    padding-top: 15px;
+} 
