@@ -765,15 +765,11 @@
                     const month = String(date.getMonth() + 1).padStart(2, '0');
                     const day = String(date.getDate()).padStart(2, '0');
                     
-                    // Get time of day (AM/PM) in local language
-                    const timeOfDay = date.getHours() < 12 ? 'am' : 'pm';
-                    
-                    // Format hours and minutes in 12-hour format
-                    let hours = date.getHours() % 12;
-                    hours = hours === 0 ? 12 : hours; // Convert 0 to 12 for 12 AM
+                    // Format hours and minutes in 24-hour format
+                    const hours = String(date.getHours()).padStart(2, '0');
                     const minutes = String(date.getMinutes()).padStart(2, '0');
                     
-                    return `${year}-${month}-${day} ${timeOfDay} ${hours}:${minutes}`;
+                    return `${year}-${month}-${day} ${hours}:${minutes}`;
                 }
                 
                 // Fetch pending appointments for date range
@@ -801,7 +797,7 @@
                                     appointmentType: 'General Consultation',
                                     scheduledTime: '2023-05-10T10:00:00',
                                     duration: 60,
-                                    priority: 'Medium',
+                                    priority: 'medium',
                                     status: 'Pending'
                                 },
                                 {
@@ -811,7 +807,7 @@
                                     appointmentType: 'Follow-up',
                                     scheduledTime: '2023-05-10T12:30:00',
                                     duration: 30,
-                                    priority: 'Low',
+                                    priority: 'low',
                                     status: 'Pending'
                                 },
                                 {
@@ -821,7 +817,7 @@
                                     appointmentType: 'Emergency',
                                     scheduledTime: '2023-05-10T13:00:00',
                                     duration: 45,
-                                    priority: 'High',
+                                    priority: 'high',
                                     status: 'Pending'
                                 }
                             ];
@@ -840,7 +836,7 @@
                                 appointmentType: 'General Consultation',
                                 scheduledTime: '2023-05-10T10:00:00',
                                 duration: 60,
-                                priority: 'Medium',
+                                priority: 'medium',
                                 status: 'Pending'
                             },
                             {
@@ -850,7 +846,7 @@
                                 appointmentType: 'Follow-up',
                                 scheduledTime: '2023-05-10T12:30:00',
                                 duration: 30,
-                                priority: 'Low',
+                                priority: 'low',
                                 status: 'Pending'
                             },
                             {
@@ -860,7 +856,7 @@
                                 appointmentType: 'Emergency',
                                 scheduledTime: '2023-05-10T13:00:00',
                                 duration: 45,
-                                priority: 'High',
+                                priority: 'high',
                                 status: 'Pending'
                             }
                         ];
@@ -900,10 +896,12 @@
                     appointments.forEach(appointment => {
                         // Create priority badge class
                         let priorityClass = 'status-badge';
-                        if (appointment.priority === 'High') {
+                        if (appointment.priority === 'urgent') {
                             priorityClass += ' red';
-                        } else if (appointment.priority === 'Medium') {
-                            priorityClass += '';
+                        } else if (appointment.priority === 'high') {
+                            priorityClass += ' yellow';
+                        } else if (appointment.priority === 'medium') {
+                            priorityClass += ' blue';
                         } else {
                             priorityClass += ' teal';
                         }
@@ -927,11 +925,6 @@
                                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                                 <path d="M3 6H5H21" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                                 <path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                            </svg>
-                                        </a>
-                                        <a href="javascript:void(0);" class="complete-appointment" data-id="${appointment.id}" title="Mark as Complete">
-                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                <path d="M20 6L9 17L4 12" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                             </svg>
                                         </a>
                                     </div>
@@ -1047,49 +1040,6 @@
                     }
                 }
 
-                // Function to handle marking appointment as complete
-                function completeAppointment(appointmentId) {
-                    // Get current date and time for completion timestamp
-                    const now = new Date();
-                    const completionTime = now.toISOString();
-                    
-                    fetch(`/api/appointments/${appointmentId}`, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            status: 'Completed',
-                            completionTime: completionTime
-                        })
-                    })
-                    .then(response => {
-                        if (response.ok) {
-                            return response.json();
-                        }
-                        throw new Error('Failed to complete appointment');
-                    })
-                    .then(data => {
-                        // Successfully completed
-                        alert('Appointment marked as completed');
-                        // Refresh the pending appointments list
-                        const startDateInput = document.getElementById('startDate');
-                        const endDateInput = document.getElementById('endDate');
-                        if (startDateInput && endDateInput) {
-                            renderPendingAppointmentsTable(startDateInput.value, endDateInput.value);
-                        }
-                        // Also refresh the timeline
-                        const timelineDateInput = document.getElementById('timelineDate');
-                        if (timelineDateInput) {
-                            updateTimeline(timelineDateInput.value);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error completing appointment:', error);
-                        alert('Error marking appointment as complete. Please try again.');
-                    });
-                }
-
                 // Add event listeners for appointment action buttons
                 function addAppointmentActionEventListeners() {
                     // Event delegation for edit buttons
@@ -1103,12 +1053,6 @@
                         if (e.target && e.target.closest('.cancel-appointment')) {
                             const appointmentId = e.target.closest('.cancel-appointment').dataset.id;
                             cancelAppointment(appointmentId);
-                            e.preventDefault();
-                        }
-                        
-                        if (e.target && e.target.closest('.complete-appointment')) {
-                            const appointmentId = e.target.closest('.complete-appointment').dataset.id;
-                            completeAppointment(appointmentId);
                             e.preventDefault();
                         }
                     });
@@ -1282,6 +1226,16 @@
                 color: #ef4444;
             }
             
+            .status-badge.yellow {
+                background-color: rgba(234, 179, 8, 0.1);
+                color: #eab308;
+            }
+
+            .status-badge.blue {
+                background-color: rgba(42, 115, 239, 0.1);
+                color: #2a73ef;
+            }
+            
             .status-badge.teal {
                 background-color: rgba(20, 184, 166, 0.1);
                 color: #14b8a6;
@@ -1377,6 +1331,45 @@
                 text-align: center;
                 padding: 1rem;
                 color: var(--secondary-text);
+            }
+
+            .pending-appointments-table th:nth-child(1) { width: 16%; } /* Patient Name */
+            .pending-appointments-table th:nth-child(2) { width: 16%; } /* Doctor */
+            .pending-appointments-table th:nth-child(3) { width: 23%; } /* Appointment Type */
+            .pending-appointments-table th:nth-child(4) { width: 18%; } /* Date & Time */
+            .pending-appointments-table th:nth-child(5) { width:  9%; } /* Duration */
+            .pending-appointments-table th:nth-child(6) { width:  9%; } /* Priority */
+            .pending-appointments-table th:nth-child(7) { width:  9%; } /* Actions */
+
+            @media screen and (max-width: 1490px) {
+            /* Hide Appointment Type column */
+            .pending-appointments-table th:nth-child(3),
+            .pending-appointments-table td:nth-child(3) {
+                display: none;
+            }
+            
+            /* Redistribute widths */
+            .pending-appointments-table th:nth-child(1) { width: 20%; } /* Patient Name */
+            .pending-appointments-table th:nth-child(2) { width: 20%; } /* Doctor */
+            .pending-appointments-table th:nth-child(4) { width: 26%; } /* Date & Time */
+            .pending-appointments-table th:nth-child(5) { width: 12%; } /* Duration */
+            .pending-appointments-table th:nth-child(6) { width: 11%; } /* Priority */
+            .pending-appointments-table th:nth-child(7) { width: 11%; } /* Action */
+            }
+
+            @media screen and (max-width: 1230px) {
+            /* Hide Duration column */
+            .pending-appointments-table th:nth-child(5),
+            .pending-appointments-table td:nth-child(5) {
+                display: none;
+            }
+            
+            /* Redistribute widths */
+            .pending-appointments-table th:nth-child(1) { width: 23%; } /* Patient Name */
+            .pending-appointments-table th:nth-child(2) { width: 23%; } /* Doctor */
+            .pending-appointments-table th:nth-child(4) { width: 28%; } /* Date & Time */
+            .pending-appointments-table th:nth-child(6) { width: 13%; } /* Priority */
+            .pending-appointments-table th:nth-child(7) { width: 13%; } /* Action */
             }
         </style>
     </th:block>
