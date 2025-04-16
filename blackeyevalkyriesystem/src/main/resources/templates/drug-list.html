@@ -5,121 +5,7 @@
 
 <head>
     <title>Drug List</title>
-    <style>
-        .drug-list-container {
-            background-color: var(--secondary-bg);
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-            color: var(--secondary-text);
-            border: 1px solid var(--border-color);
-        }
-        .drug-table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-            margin-top: 20px;
-        }
-        .drug-table th {
-            padding: 12px 10px;
-            text-align: left;
-            border-bottom: 1px solid var(--border-color);
-            font-weight: 500;
-            color: var(--primary-text);
-        }
-        .drug-table td {
-            padding: 12px 10px;
-            text-align: left;
-            border-bottom: 1px solid var(--border-color);
-        }
-        .drug-table tr:hover {
-            background-color: rgba(138, 43, 226, 0.1);
-        }
-        .search-container {
-            display: flex;
-            background-color: var(--input-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 8px 16px;
-            margin-bottom: 20px;
-        }
-        .search-container svg {
-            margin-right: 10px;
-        }
-        .search-container input {
-            background: transparent;
-            border: none;
-            color: var(--primary-text);
-            width: 100%;
-        }
-        .search-container input:focus {
-            outline: none;
-        }
-        .empty-state {
-            text-align: center;
-            padding: 40px;
-            color: var(--secondary-text);
-        }
-        .action-btn {
-            display: inline-block;
-            padding: 6px 12px;
-            margin-right: 5px;
-            border-radius: 4px;
-            text-decoration: none;
-            font-weight: 500;
-            transition: background-color 0.2s;
-        }
-        .edit-btn {
-            background-color: var(--accent-color);
-            color: white;
-        }
-        .edit-btn:hover {
-            background-color: #7b26cd;
-            color: white;
-        }
-        .delete-btn {
-            background-color: #e74c3c;
-            color: white;
-        }
-        .delete-btn:hover {
-            background-color: #c0392b;
-            color: white;
-        }
-        .add-btn {
-            display: inline-block;
-            background-color: var(--accent-color);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 4px;
-            text-decoration: none;
-            font-weight: 500;
-            transition: background-color 0.2s;
-        }
-        .add-btn:hover {
-            background-color: #7b26cd;
-            color: white;
-        }
-        .alert {
-            padding: 12px 16px;
-            margin-bottom: 20px;
-            border-radius: 4px;
-        }
-        .alert-success {
-            background-color: rgba(46, 204, 113, 0.2);
-            border: 1px solid rgba(46, 204, 113, 0.5);
-            color: #27ae60;
-        }
-        .alert-danger {
-            background-color: rgba(231, 76, 60, 0.2);
-            border: 1px solid rgba(231, 76, 60, 0.5);
-            color: #e74c3c;
-        }
-        .alert-warning {
-            background-color: rgba(255, 215, 0, 0.2);
-            border: 1px solid rgba(255, 215, 0, 0.5);
-            color: #f39c12;
-        }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/drug-list.css}">
 </head>
 
 <body>
@@ -152,7 +38,7 @@
                     <path d="M7.33333 12.6667C10.2789 12.6667 12.6667 10.2789 12.6667 7.33333C12.6667 4.38781 10.2789 2 7.33333 2C4.38781 2 2 4.38781 2 7.33333C2 10.2789 4.38781 12.6667 7.33333 12.6667Z" stroke="var(--icon-stroke)" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
                     <path d="M14 14.0001L11.1 11.1001" stroke="var(--icon-stroke)" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
-                <input type="text" id="searchInput" placeholder="Search drugs by name..." onkeyup="filterDrugs()">
+                <input type="text" id="searchInput" placeholder="Search drugs by name...">
             </div>
             
             <div class="drug-list-container">
@@ -194,72 +80,7 @@
     </div>
     
     <th:block layout:fragment="scripts">
-        <script>
-            function filterDrugs() {
-                const input = document.getElementById('searchInput');
-                const filter = input.value.toUpperCase();
-                const table = document.getElementById('drugTable');
-                const tr = table.getElementsByTagName('tr');
-                
-                // Loop through all table rows, and hide those that don't match the search query
-                for (let i = 1; i < tr.length; i++) {
-                    // Skip the empty state row if it exists
-                    if (tr[i].classList.contains('empty-state')) continue;
-                    
-                    const td = tr[i].getElementsByTagName('td');
-                    let found = false;
-                    
-                    // Check all columns except the last one (Actions)
-                    for (let j = 0; j < td.length - 1; j++) {
-                        if (td[j]) {
-                            const text = td[j].textContent || td[j].innerText;
-                            if (text.toUpperCase().indexOf(filter) > -1) {
-                                found = true;
-                                break;
-                            }
-                        }
-                    }
-                    
-                    // Show or hide the row based on search match
-                    tr[i].style.display = found ? '' : 'none';
-                }
-                
-                // Check if any rows are visible
-                let visibleRowCount = 0;
-                for (let i = 1; i < tr.length; i++) {
-                    if (tr[i].style.display !== 'none' && !tr[i].classList.contains('empty-state')) {
-                        visibleRowCount++;
-                    }
-                }
-                
-                // Display empty state message if no matches
-                let emptyStateRow = document.querySelector('.empty-search-results');
-                if (visibleRowCount === 0 && filter !== '') {
-                    if (!emptyStateRow) {
-                        emptyStateRow = document.createElement('tr');
-                        emptyStateRow.className = 'empty-search-results';
-                        const td = document.createElement('td');
-                        td.colSpan = 5;
-                        td.className = 'empty-state';
-                        td.innerHTML = '<p>No drugs matching your search criteria.</p>';
-                        emptyStateRow.appendChild(td);
-                        table.getElementsByTagName('tbody')[0].appendChild(emptyStateRow);
-                    }
-                    emptyStateRow.style.display = '';
-                } else if (emptyStateRow) {
-                    emptyStateRow.style.display = 'none';
-                }
-            }
-            
-            // Initialize search on page load
-            document.addEventListener('DOMContentLoaded', function() {
-                // Add event listener to search input
-                const searchInput = document.getElementById('searchInput');
-                if (searchInput) {
-                    searchInput.addEventListener('keyup', filterDrugs);
-                }
-            });
-        </script>
+        <script th:src="@{/js/drug-list.js}"></script>
     </th:block>
 </body>
 </html> 

@@ -7,175 +7,10 @@
     <title>Login - Black Eye Valkyrie System</title>
     
     <!-- Critical CSS for preventing theme flash -->
-    <style>
-        /* Hide content until CSS is loaded to prevent flash */
-        html {
-            visibility: hidden;
-        }
-        
-        /* Default dark theme variables */
-        :root {
-            color-scheme: dark;
-            --primary-bg: #0a0a23;
-            --secondary-bg: #111133;
-            --primary-text: #ffffff;
-            --secondary-text: #b3b3ff;
-            --accent-color: #8a2be2;
-            --input-bg: #111133;
-            --border-color: #222266;
-            --icon-stroke: #ffffff;
-        }
-        
-        /* Light theme variables */
-        :root.light-mode {
-            color-scheme: light;
-            --primary-bg: #f5f5fa;
-            --secondary-bg: #ffffff;
-            --primary-text: #333366;
-            --secondary-text: #4d4d80;
-            --accent-color: #8a2be2;
-            --input-bg: #f0f0fa;
-            --border-color: #ddddee;
-            --icon-stroke: #333366;
-        }
-        
-        /* Apply base styles immediately */
-        body {
-            background-color: var(--primary-bg);
-            color: var(--primary-text);
-            margin: 0;
-            padding: 0;
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        }
-        
-        /* Show content once CSS is applied */
-        .theme-initialized {
-            visibility: visible;
-        }
-
-        /* Login specific styles */
-        .login-container {
-            width: 100%;
-            max-width: 400px;
-            margin: 80px auto;
-        }
-        
-        .login-logo {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        
-        .login-logo h1 {
-            margin-top: 15px;
-            font-size: 1.8rem;
-            font-weight: 600;
-            line-height: 1.3;
-        }
-        
-        .login-form {
-            background-color: var(--secondary-bg);
-            border-radius: 8px;
-            padding: 30px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        
-        .login-footer {
-            text-align: center;
-            margin-top: 20px;
-            color: var(--secondary-text);
-        }
-        
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: var(--secondary-text);
-            font-weight: 500;
-        }
-        
-        .form-control {
-            width: 100%;
-            max-width: 100%;
-            padding: 0.75rem 1rem;
-            background-color: var(--input-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 0.25rem;
-            color: var(--primary-text);
-            font-size: 1rem;
-            box-sizing: border-box;
-        }
-        
-        .form-control:focus {
-            outline: none;
-            border-color: var(--accent-color);
-            box-shadow: 0 0 0 2px rgba(138, 43, 226, 0.2);
-        }
-        
-        .btn {
-            display: inline-block;
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.5rem;
-            font-weight: 600;
-            text-decoration: none;
-            cursor: pointer;
-            transition: background-color 0.2s, transform 0.1s;
-            border: none;
-            font-size: 1rem;
-        }
-        
-        .btn-primary {
-            background-color: var(--accent-color);
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            background-color: #7b26cd;
-            transform: translateY(-1px);
-        }
-        
-        .btn-primary:active {
-            transform: translateY(0);
-        }
-        
-        .alert {
-            padding: 12px;
-            margin-bottom: 20px;
-            border-radius: 4px;
-        }
-        
-        .alert-danger {
-            background-color: rgba(255, 0, 0, 0.1);
-            border: 1px solid rgba(255, 0, 0, 0.3);
-            color: #e74c3c;
-        }
-        
-        .alert-success {
-            background-color: rgba(0, 255, 0, 0.1);
-            border: 1px solid rgba(0, 255, 0, 0.3);
-            color: #2ecc71;
-        }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/critical.css}">
     
     <!-- Immediate theme detection script - must run before any rendering -->
-    <script>
-        (function() {
-            // Get saved theme preference
-            var savedTheme = localStorage.getItem('theme');
-            // Set the theme class before any rendering
-            if (savedTheme === 'dark') {
-                document.documentElement.classList.remove('light-mode');
-            } else {
-                document.documentElement.classList.add('light-mode');
-            }
-            // Flag that theme is initialized to make content visible
-            document.addEventListener('DOMContentLoaded', function() {
-                document.documentElement.classList.add('theme-initialized');
-            });
-        })();
-    </script>
+    <script th:src="@{/js/theme-detection.js}"></script>
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -184,6 +19,7 @@
     
     <!-- Custom CSS -->
     <link rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="stylesheet" th:href="@{/css/login.css}">
 </head>
 <body>
     <div class="login-container">

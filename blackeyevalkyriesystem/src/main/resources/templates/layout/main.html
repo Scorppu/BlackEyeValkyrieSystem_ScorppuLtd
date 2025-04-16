@@ -9,70 +9,10 @@
     <title>BlackEyeValkyrieSystem - <th:block th:include=":: title">Title</th:block></title>
     
     <!-- Critical CSS for preventing theme flash -->
-    <style>
-        /* Hide content until CSS is loaded to prevent flash */
-        html {
-            visibility: hidden;
-        }
-        
-        /* Default dark theme variables */
-        :root {
-            color-scheme: dark;
-            --primary-bg: #0a0a23;
-            --secondary-bg: #111133;
-            --primary-text: #ffffff;
-            --secondary-text: #b3b3ff;
-            --accent-color: #8a2be2;
-            --input-bg: #111133;
-            --border-color: #222266;
-            --icon-stroke: #ffffff;
-        }
-        
-        /* Light theme variables */
-        :root.light-mode {
-            color-scheme: light;
-            --primary-bg: #f5f5fa;
-            --secondary-bg: #ffffff;
-            --primary-text: #333366;
-            --secondary-text: #4d4d80;
-            --accent-color: #8a2be2;
-            --input-bg: #f0f0fa;
-            --border-color: #ddddee;
-            --icon-stroke: #333366;
-        }
-        
-        /* Apply base styles immediately */
-        body {
-            background-color: var(--primary-bg);
-            color: var(--primary-text);
-            margin: 0;
-            padding: 0;
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        }
-        
-        /* Show content once CSS is applied */
-        .theme-initialized {
-            visibility: visible;
-        }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/critical.css}">
     
     <!-- Immediate theme detection script - must run before any rendering -->
-    <script>
-        (function() {
-            // Get saved theme preference
-            var savedTheme = localStorage.getItem('theme');
-            // Set the theme class before any rendering
-            if (savedTheme === 'dark') {
-                document.documentElement.classList.remove('light-mode');
-            } else {
-                document.documentElement.classList.add('light-mode');
-            }
-            // Flag that theme is initialized to make content visible
-            document.addEventListener('DOMContentLoaded', function() {
-                document.documentElement.classList.add('theme-initialized');
-            });
-        })();
-    </script>
+    <script th:src="@{/js/theme-detection.js}"></script>
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -323,74 +263,7 @@
     </div>
     
     <!-- Scripts -->
-    <script>
-        // Global error handler to prevent uncaught exceptions from causing page crashes
-        window.addEventListener('error', function(event) {
-            console.error('JavaScript Error:', event.error);
-            event.preventDefault();
-            return true;
-        });
-        
-        // Dropdown navigation handling
-        document.addEventListener('DOMContentLoaded', function() {
-
-            const themeToggleBtn = document.getElementById('theme-toggle-btn');
-            const moonIcon = document.getElementById('moon-icon');
-            const sunIcon = document.getElementById('sun-icon');
-            const themeLabel = themeToggleBtn.querySelector('.theme-label');
-            
-            // Check if user has a saved preference
-            const savedTheme = localStorage.getItem('theme');
-            
-            // Apply saved theme or default to light mode
-            if (savedTheme === 'dark') {
-                // Dark mode only if explicitly saved as 'dark'
-                document.documentElement.classList.remove('light-mode');
-                moonIcon.style.display = 'block';
-                sunIcon.style.display = 'none';
-                themeLabel.textContent = 'Switch to Light Mode';
-            } else {
-                // Default to light mode
-                document.documentElement.classList.add('light-mode');
-                moonIcon.style.display = 'none';
-                sunIcon.style.display = 'block';
-                themeLabel.textContent = 'Switch to Dark Mode';
-                
-                // Save preference if not already saved
-                if (!savedTheme) {
-                    localStorage.setItem('theme', 'light');
-                }
-            }
-            
-            // Theme toggle button click handler
-            themeToggleBtn.addEventListener('click', function() {
-                // Toggle light mode class on root element
-                document.documentElement.classList.toggle('light-mode');
-                
-                // Check if light mode is now active
-                const isLightMode = document.documentElement.classList.contains('light-mode');
-                
-                // Update icons and label
-                if (isLightMode) {
-                    moonIcon.style.display = 'none';
-                    sunIcon.style.display = 'block';
-                    themeLabel.textContent = 'Switch to Dark Mode';
-                    localStorage.setItem('theme', 'light');
-                } else {
-                    moonIcon.style.display = 'block';
-                    sunIcon.style.display = 'none';
-                    themeLabel.textContent = 'Switch to Light Mode';
-                    localStorage.setItem('theme', 'dark');
-                }
-            });
-            
-            /**
-             * We're removing the duplicate dropdown handling code that was here
-             * This will be managed by main.js to avoid conflicts
-             */
-
-        });
-    </script>
+    <script th:src="@{/js/layout-navigation.js}"></script>
     <script th:src="@{/js/main.js}"></script>
     <script th:src="@{/js/theme-toggle.js}"></script>
     <script th:src="@{/js/duty-status.js}"></script>
