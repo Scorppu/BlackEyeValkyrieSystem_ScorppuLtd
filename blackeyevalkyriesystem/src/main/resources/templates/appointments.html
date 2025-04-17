@@ -9,9 +9,7 @@
     
     <th:block layout:fragment="head">
         <!-- Appointments-specific CSS -->
-        <style>
-            /* Appointments specific styles */
-        </style>
+        <link rel="stylesheet" th:href="@{/css/appointments.css}">
     </th:block>
 </head>
 <body>
@@ -43,12 +41,7 @@
     </div>
     
     <th:block layout:fragment="scripts">
-        <script>
-            // Appointments-specific JavaScript
-            document.addEventListener('DOMContentLoaded', function() {
-                console.log('Appointments page loaded');
-            });
-        </script>
+        <script th:src="@{/js/appointments.js}"></script>
     </th:block>
 </body>
 </html> 
