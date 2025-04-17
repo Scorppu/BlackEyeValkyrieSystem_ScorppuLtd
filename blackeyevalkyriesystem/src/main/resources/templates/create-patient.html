@@ -304,6 +304,112 @@
                 font-style: italic;
                 text-align: center;
             }
+            
+            /* Validation popup styles */
+            .validation-popup {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                z-index: 1010;
+                background-color: rgba(0, 0, 0, 0.5);
+                justify-content: center;
+                align-items: center;
+            }
+            
+            .validation-content {
+                position: relative;
+                background-color: var(--primary-bg);
+                padding: 1.5rem;
+                border-radius: 8px;
+                box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+                width: 400px;
+                max-width: 90%;
+                animation: popIn 0.3s ease-out;
+                border-top: 4px solid #ff9800;
+            }
+            
+            @keyframes popIn {
+                0% { transform: scale(0.8); opacity: 0; }
+                100% { transform: scale(1); opacity: 1; }
+            }
+            
+            .validation-title {
+                margin-top: 0;
+                color: #ff9800;
+                font-size: 1.25rem;
+                margin-bottom: 1rem;
+            }
+            
+            .validation-body {
+                margin-bottom: 1rem;
+            }
+            
+            .validation-body p {
+                margin-top: 0;
+                color: var(--text-color);
+            }
+            
+            .validation-body ul {
+                margin: 0.5rem 0 0 0;
+                padding-left: 1.5rem;
+                color: #ff4d4d;
+            }
+            
+            .validation-body li {
+                margin-bottom: 0.25rem;
+            }
+            
+            .close-btn {
+                position: absolute;
+                top: 0.5rem;
+                right: 0.75rem;
+                font-size: 1.5rem;
+                background: none;
+                border: none;
+                color: var(--secondary-text);
+                cursor: pointer;
+                padding: 0;
+                line-height: 1;
+            }
+            
+            .close-btn:hover {
+                color: #ff9800;
+            }
+
+            /* Style for required field indicator */
+            .required::after {
+                content: " *";
+                color: #ff4d4d;
+                font-weight: bold;
+            }
+            
+            .form-control.is-invalid {
+                border-color: #ff4d4d;
+                background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%23ff4d4d' viewBox='0 0 12 12'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23ff4d4d' stroke='none'/%3e%3c/svg%3e");
+                background-repeat: no-repeat;
+                background-position: right calc(0.375em + 0.1875rem) center;
+                background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+            }
+            
+            .form-control.is-invalid:focus {
+                box-shadow: 0 0 0 3px rgba(255, 77, 77, 0.15);
+            }
+            
+            .invalid-feedback {
+                display: none;
+                width: 100%;
+                margin-top: 0.25rem;
+                font-size: 0.875rem;
+                color: #ff4d4d;
+            }
+            
+            .was-validated .form-control:invalid ~ .invalid-feedback,
+            .form-control.is-invalid ~ .invalid-feedback {
+                display: block;
+            }
         </style>
     </th:block>
 </head>
@@ -344,28 +450,30 @@
             <div class="form-container" id="form-content-container">
                 <!-- Personal Information Form -->
                 <div id="personal-info-form" class="form-section active">
-                    <h2>Personal information</h2>
-                    <p>Please insert patient's personal information</p>
+                    <h2>Personal Information</h2>
+                    <p>Please fill out the patient's personal information below.</p>
                     
-                    <form id="patient-form">
+                    <form id="patient-form" novalidate>
                         <div class="form-group">
-                            <label for="firstName">First name</label>
-                            <input type="text" id="firstName" name="firstName" class="form-control" value="">
+                            <label for="firstName" class="required">First Name</label>
+                            <input type="text" id="firstName" name="firstName" class="form-control" required>
+                            <div class="invalid-feedback">First Name is required</div>
                         </div>
                         
                         <div class="form-group">
-                            <label for="lastName">Last name</label>
-                            <input type="text" id="lastName" name="lastName" class="form-control" value="">
+                            <label for="lastName" class="required">Last Name</label>
+                            <input type="text" id="lastName" name="lastName" class="form-control" required>
+                            <div class="invalid-feedback">Last Name is required</div>
                         </div>
                         
                         <div class="form-group">
-                            <label for="sex">Sex</label>
-                            <select id="sex" name="sex" class="form-control" value="">
-                                <option value=""></option>
+                            <label for="sex" class="required">Sex</label>
+                            <select id="sex" name="sex" class="form-control" required>
+                                <option value="">Select gender</option>
                                 <option value="Male">Male</option>
                                 <option value="Female">Female</option>
-                                <option value="Other">Other</option>
                             </select>
+                            <div class="invalid-feedback">Please select a gender</div>
                         </div>
                         
                         <div class="form-group">
@@ -374,8 +482,9 @@
                         </div>
                         
                         <div class="form-group">
-                            <label for="dateOfBirth">Date Of Birth</label>
-                            <input type="date" id="dateOfBirth" name="dateOfBirth" class="form-control" value="">
+                            <label for="dateOfBirth" class="required">Date Of Birth</label>
+                            <input type="date" id="dateOfBirth" name="dateOfBirth" class="form-control" required>
+                            <div class="invalid-feedback">Date of Birth is required</div>
                         </div>
                         
                         <div class="form-group">
@@ -386,7 +495,7 @@
                         <div class="form-group">
                             <label for="maritalStatus">Marital Status</label>
                             <select id="maritalStatus" name="maritalStatus" class="form-control">
-                                <option value=""></option>
+                                <option value="">Select marital status</option>
                                 <option value="Single">Single</option>
                                 <option value="Married">Married</option>
                                 <option value="Divorced">Divorced</option>
@@ -397,7 +506,7 @@
                         <div class="form-group">
                             <label for="bloodType">Blood Type</label>
                             <select id="bloodType" name="bloodType" class="form-control">
-                                <option value=""></option>
+                                <option value="">Select blood type</option>
                                 <option value="A+">A+</option>
                                 <option value="A-">A-</option>
                                 <option value="B+">B+</option>
@@ -453,9 +562,9 @@
                 <!-- Contact Information Form -->
                 <div id="contact-info-form" class="form-section">
                     <h2>Contact Information</h2>
-                    <p>Please insert patient's contact information</p>
+                    <p>Please provide contact details for the patient.</p>
                     
-                    <form id="contact-form">
+                    <form id="contact-form" novalidate>
                         <div class="form-group">
                             <label for="contactNumber">Phone / Mobile</label>
                             <input type="tel" id="contactNumber" name="contactNumber" class="form-control" value="">
@@ -509,6 +618,18 @@
                 </div>
             </div>
         </div>
+        
+        <!-- Validation popup -->
+        <div id="validationPopup" class="validation-popup">
+            <div class="validation-content">
+                <button class="close-btn">&times;</button>
+                <h3 class="validation-title">Form Incomplete</h3>
+                <div class="validation-body">
+                    <p id="validationMessage">Please fill in all required fields correctly before submitting.</p>
+                    <ul id="validationList"></ul>
+                </div>
+            </div>
+        </div>
     </div>
     
     <th:block layout:fragment="scripts">
@@ -523,6 +644,112 @@
                 const tabItems = document.querySelectorAll('.tab-item');
                 const personalInfoForm = document.getElementById('personal-info-form');
                 const contactInfoForm = document.getElementById('contact-info-form');
+                
+                // Validation popup elements
+                const validationPopup = document.getElementById('validationPopup');
+                const validationMessage = document.getElementById('validationMessage');
+                const validationList = document.getElementById('validationList');
+                const closeValidationBtn = document.querySelector('.close-btn');
+                
+                // Handle validation popup close button
+                closeValidationBtn.addEventListener('click', function() {
+                    validationPopup.style.display = 'none';
+                });
+                
+                // Close popup when clicking outside
+                window.addEventListener('click', function(event) {
+                    if (event.target === validationPopup) {
+                        validationPopup.style.display = 'none';
+                    }
+                });
+                
+                // Function to show validation popup with specific errors
+                function showValidationPopup(errors) {
+                    // Clear previous errors
+                    validationList.innerHTML = '';
+                    
+                    // Add each error to the list
+                    errors.forEach(error => {
+                        const li = document.createElement('li');
+                        li.textContent = error;
+                        validationList.appendChild(li);
+                    });
+                    
+                    // Show the popup
+                    validationPopup.style.display = 'flex';
+                }
+                
+                // Get all required form inputs
+                const requiredInputs = document.querySelectorAll('input[required], select[required]');
+                
+                // Add validation to all inputs on blur
+                requiredInputs.forEach(input => {
+                    input.addEventListener('blur', function() {
+                        validateInput(this);
+                    });
+                    
+                    // Remove validation error on input
+                    input.addEventListener('input', function() {
+                        this.classList.remove('is-invalid');
+                    });
+                });
+                
+                // Validate a single input element
+                function validateInput(input) {
+                    if (input.type === 'email') {
+                        if (input.value && !/^\S+@\S+\.\S+$/.test(input.value)) {
+                            input.classList.add('is-invalid');
+                            return false;
+                        }
+                    }
+                    
+                    // For required fields, check if they're empty
+                    if (input.hasAttribute('required') && !input.value.trim()) {
+                        input.classList.add('is-invalid');
+                        return false;
+                    }
+                    
+                    // If input passes validation, remove any error state
+                    input.classList.remove('is-invalid');
+                    return true;
+                }
+                
+                // Function to validate form fields
+                function validateForm(formElement) {
+                    const errors = [];
+                    let isValid = true;
+                    
+                    // Get all required inputs in the form
+                    const inputs = formElement.querySelectorAll('input[required], select[required]');
+                    
+                    inputs.forEach(input => {
+                        if (!validateInput(input)) {
+                            isValid = false;
+                            
+                            // Get the field label text
+                            const labelEl = document.querySelector(`label[for="${input.id}"]`);
+                            const labelText = labelEl ? labelEl.textContent.replace(' *', '') : input.name;
+                            
+                            // Get the error message
+                            const feedbackEl = input.nextElementSibling;
+                            let errorText = '';
+                            
+                            if (feedbackEl && feedbackEl.classList.contains('invalid-feedback')) {
+                                errorText = feedbackEl.textContent;
+                            } else {
+                                errorText = `${labelText} is required`;
+                            }
+                            
+                            errors.push(errorText);
+                        }
+                    });
+                    
+                    if (!isValid) {
+                        showValidationPopup(errors);
+                    }
+                    
+                    return isValid;
+                }
                 
                 // Switch between form sections based on tab
                 function switchFormSection(tabId) {
@@ -569,12 +796,7 @@
                 if (nextButton) {
                     nextButton.addEventListener('click', function() {
                         // Validate personal information fields
-                        const firstName = document.getElementById('firstName').value;
-                        const lastName = document.getElementById('lastName').value;
-                        const dateOfBirth = document.getElementById('dateOfBirth').value;
-                        
-                        if (!firstName || !lastName || !dateOfBirth) {
-                            alert('Please fill in all required fields.');
+                        if (!validateForm(personalInfoForm)) {
                             return;
                         }
                         
@@ -596,6 +818,19 @@
                 if (contactForm) {
                     contactForm.addEventListener('submit', function(e) {
                         e.preventDefault();
+                        
+                        // Validate the contact form
+                        if (!validateForm(contactForm)) {
+                            return;
+                        }
+                        
+                        // Also validate personal form fields are still filled out
+                        const personalForm = document.getElementById('personal-info-form');
+                        if (!validateForm(personalForm)) {
+                            // Switch back to personal tab if validation fails
+                            switchFormSection('personal-info-tab');
+                            return;
+                        }
                         
                         // Get personal information
                         const firstName = document.getElementById('firstName').value;
@@ -654,7 +889,12 @@
                         
                         // Add additional validation
                         if (!firstName || !lastName || !dateOfBirth) {
-                            alert('Required fields missing: First Name, Last Name, and Date of Birth are required');
+                            const errors = [];
+                            if (!firstName) errors.push('First Name is required');
+                            if (!lastName) errors.push('Last Name is required');
+                            if (!dateOfBirth) errors.push('Date of Birth is required');
+                            
+                            showValidationPopup(errors);
                             return;
                         }
                         
@@ -679,14 +919,13 @@
                         })
                         .then(data => {
                             console.log('Success:', data);
-                            alert('Patient profile created successfully!');
-                            
-                            // Redirect to patient list
+                            // Show success popup or redirect
                             window.location.href = '/patient/list';
                         })
                         .catch((error) => {
                             console.error('Error:', error);
-                            alert('Error creating patient profile: ' + error.message);
+                            // Show error in validation popup
+                            showValidationPopup(['Error creating patient profile: ' + error.message]);
                         });
                     });
                 }

@@ -42,6 +42,13 @@
                 color: var(--text-color);
             }
             
+            /* Style for required field indicator */
+            .required::after {
+                content: " *";
+                color: #ff4d4d;
+                font-weight: bold;
+            }
+            
             .form-control {
                 width: 100%;
                 padding: 0.75rem 1rem;
@@ -58,6 +65,32 @@
                 border-color: var(--accent-color);
                 outline: none;
                 box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.15);
+            }
+            
+            /* Error state for form fields */
+            .form-control.is-invalid {
+                border-color: #ff4d4d;
+                background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%23ff4d4d' viewBox='0 0 12 12'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23ff4d4d' stroke='none'/%3e%3c/svg%3e");
+                background-repeat: no-repeat;
+                background-position: right calc(0.375em + 0.1875rem) center;
+                background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+            }
+            
+            .form-control.is-invalid:focus {
+                box-shadow: 0 0 0 3px rgba(255, 77, 77, 0.15);
+            }
+            
+            .invalid-feedback {
+                display: none;
+                width: 100%;
+                margin-top: 0.25rem;
+                font-size: 0.875rem;
+                color: #ff4d4d;
+            }
+            
+            .was-validated .form-control:invalid ~ .invalid-feedback,
+            .form-control.is-invalid ~ .invalid-feedback {
+                display: block;
             }
             
             .form-actions {
@@ -219,6 +252,80 @@
                 background-color: #e63939;
             }
             
+            /* Validation popup styles */
+            .validation-popup {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                z-index: 1010;
+                background-color: rgba(0, 0, 0, 0.5);
+                justify-content: center;
+                align-items: center;
+            }
+            
+            .validation-content {
+                position: relative;
+                background-color: var(--primary-bg);
+                padding: 1.5rem;
+                border-radius: 8px;
+                box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+                width: 400px;
+                max-width: 90%;
+                animation: popIn 0.3s ease-out;
+                border-top: 4px solid #ff9800;
+            }
+            
+            @keyframes popIn {
+                0% { transform: scale(0.8); opacity: 0; }
+                100% { transform: scale(1); opacity: 1; }
+            }
+            
+            .validation-title {
+                margin-top: 0;
+                color: #ff9800;
+                font-size: 1.25rem;
+                margin-bottom: 1rem;
+            }
+            
+            .validation-body {
+                margin-bottom: 1rem;
+            }
+            
+            .validation-body p {
+                margin-top: 0;
+                color: var(--text-color);
+            }
+            
+            .validation-body ul {
+                margin: 0.5rem 0 0 0;
+                padding-left: 1.5rem;
+                color: #ff4d4d;
+            }
+            
+            .validation-body li {
+                margin-bottom: 0.25rem;
+            }
+            
+            .close-btn {
+                position: absolute;
+                top: 0.5rem;
+                right: 0.75rem;
+                font-size: 1.5rem;
+                background: none;
+                border: none;
+                color: var(--secondary-text);
+                cursor: pointer;
+                padding: 0;
+                line-height: 1;
+            }
+            
+            .close-btn:hover {
+                color: #ff9800;
+            }
+            
             /* Radio button styling */
             .radio-group {
                 display: flex;
@@ -292,35 +399,40 @@
                     </div>
                     
                     <div class="form-wrapper">
-                        <form id="user-form" th:object="${user}">
+                        <form id="user-form" th:object="${user}" novalidate>
                             <!-- Add hidden input for user ID when in edit mode -->
                             <input type="hidden" id="userId" name="id" th:if="${isEdit != null && isEdit}" th:value="*{id}">
                             
                             <div class="form-group">
-                                <label for="username">Username</label>
+                                <label for="username" class="required">Username</label>
                                 <input type="text" id="username" name="username" class="form-control" th:field="*{username}" required>
                                 <small class="text-muted">Note: 'admin' is a reserved username</small>
+                                <div class="invalid-feedback">Username is required</div>
                             </div>
                             
                             <div class="form-group">
-                                <label for="password">Password</label>
+                                <label for="password" th:class="${isEdit == null || !isEdit ? 'required' : ''}">Password</label>
                                 <input type="password" id="password" name="password" class="form-control" th:field="*{password}" th:required="${isEdit == null || !isEdit}">
                                 <small class="text-muted" th:if="${isEdit != null && isEdit}">Leave empty to keep current password</small>
+                                <div class="invalid-feedback">Password is required</div>
                             </div>
                             
                             <div class="form-group">
-                                <label for="firstName">First Name</label>
+                                <label for="firstName" class="required">First Name</label>
                                 <input type="text" id="firstName" name="firstName" class="form-control" th:field="*{firstName}" required>
+                                <div class="invalid-feedback">First Name is required</div>
                             </div>
                             
                             <div class="form-group">
-                                <label for="lastName">Last Name</label>
+                                <label for="lastName" class="required">Last Name</label>
                                 <input type="text" id="lastName" name="lastName" class="form-control" th:field="*{lastName}" required>
+                                <div class="invalid-feedback">Last Name is required</div>
                             </div>
                             
                             <div class="form-group">
-                                <label for="email">Email</label>
+                                <label for="email" class="required">Email</label>
                                 <input type="email" id="email" name="email" class="form-control" th:field="*{email}" required>
+                                <div class="invalid-feedback">Please provide a valid email address</address></div>
                             </div>
                             
                             <div class="form-group">
@@ -329,18 +441,20 @@
                             </div>
                             
                             <div class="form-group">
-                                <label for="licenseKey">License key</label>
+                                <label for="licenseKey" class="required">License key</label>
                                 <input type="text" id="licenseKey" name="licenseKey" class="form-control" th:field="*{licenseKey}" required>
+                                <div class="invalid-feedback">License key must be in the format AAAA-BBBB-CCCC-DDDD</div>
                             </div>
                             
                             <div class="form-group">
-                                <label for="role">Role</label>
+                                <label for="role" class="required">Role</label>
                                 <select id="role" name="role" class="form-control" th:field="*{role}" required>
                                     <option value=""></option>
                                     <option value="ADMIN">Administrator</option>
                                     <option value="DOCTOR">Doctor</option>
                                     <option value="NURSE">Nurse</option>
                                 </select>
+                                <div class="invalid-feedback">Please select a role</div>
                             </div>
                             
                             <div class="form-group">
@@ -391,6 +505,18 @@
                     </div>
                 </div>
             </div>
+            
+            <!-- Validation popup -->
+            <div id="validationPopup" class="validation-popup">
+                <div class="validation-content">
+                    <button class="close-btn">&times;</button>
+                    <h3 class="validation-title">Form Incomplete</h3>
+                    <div class="validation-body">
+                        <p id="validationMessage">Please fill in all required fields correctly before submitting.</p>
+                        <ul id="validationList"></ul>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     
@@ -401,6 +527,9 @@
                 const alertBox = document.getElementById('alerts');
                 const alertContent = document.querySelector('.alert-danger');
                 const isEditMode = document.getElementById('userId') !== null;
+                
+                // Get all required form inputs
+                const requiredInputs = form.querySelectorAll('[required]');
                 
                 // Success modal elements
                 const successModal = document.getElementById('successModal');
@@ -414,6 +543,44 @@
                 const errorMessage = document.getElementById('errorMessage');
                 const errorOkButton = document.getElementById('errorOk');
                 
+                // Validation popup elements
+                const validationPopup = document.getElementById('validationPopup');
+                const validationMessage = document.getElementById('validationMessage');
+                const validationList = document.getElementById('validationList');
+                const closeValidationBtn = document.querySelector('.close-btn');
+                
+                // Validate a single input element
+                function validateInput(input) {
+                    if (input.type === 'email') {
+                        if (input.value && !/^\S+@\S+\.\S+$/.test(input.value)) {
+                            input.classList.add('is-invalid');
+                            return false;
+                        }
+                    }
+                    
+                    // For required fields, check if they're empty
+                    if (input.hasAttribute('required') && !input.value.trim()) {
+                        input.classList.add('is-invalid');
+                        return false;
+                    }
+                    
+                    // If input passes validation, remove any error state
+                    input.classList.remove('is-invalid');
+                    return true;
+                }
+                
+                // Add validation to all inputs on blur
+                requiredInputs.forEach(input => {
+                    input.addEventListener('blur', function() {
+                        validateInput(this);
+                    });
+                    
+                    // Remove validation error on input
+                    input.addEventListener('input', function() {
+                        this.classList.remove('is-invalid');
+                    });
+                });
+                
                 // Handle success modal
                 successOkButton.addEventListener('click', function() {
                     successModal.style.display = 'none';
@@ -426,6 +593,11 @@
                     errorModal.style.display = 'none';
                 });
                 
+                // Handle validation popup close button
+                closeValidationBtn.addEventListener('click', function() {
+                    validationPopup.style.display = 'none';
+                });
+                
                 // Close modals when clicking outside
                 window.addEventListener('click', function(event) {
                     if (event.target === successModal) {
@@ -435,7 +607,64 @@
                     if (event.target === errorModal) {
                         errorModal.style.display = 'none';
                     }
+                    if (event.target === validationPopup) {
+                        validationPopup.style.display = 'none';
+                    }
                 });
+                
+                // Function to show validation popup with specific errors
+                function showValidationPopup() {
+                    // Clear previous errors
+                    validationList.innerHTML = '';
+                    
+                    // Collect all validation errors
+                    const errors = [];
+                    
+                    // Check each required field
+                    requiredInputs.forEach(input => {
+                        if (input.classList.contains('is-invalid')) {
+                            // Get the field label text
+                            const labelEl = document.querySelector(`label[for="${input.id}"]`);
+                            const labelText = labelEl ? labelEl.textContent.replace(' *', '') : input.name;
+                            
+                            // Get the error message
+                            const feedbackEl = input.nextElementSibling;
+                            let errorText = '';
+                            
+                            if (feedbackEl && feedbackEl.classList.contains('invalid-feedback')) {
+                                errorText = feedbackEl.textContent;
+                            } else {
+                                errorText = `${labelText} is required`;
+                            }
+                            
+                            // Don't add license key format error here, we'll add it separately below
+                            if (input.id === 'licenseKey' && errorText.includes('format')) {
+                                return;
+                            }
+                            
+                            errors.push(errorText);
+                        }
+                    });
+                    
+                    // Add license key validation error if present and not already in the list
+                    const licenseKeyInput = document.getElementById('licenseKey');
+                    if (licenseKeyInput.classList.contains('is-invalid')) {
+                        const licenseKeyError = validateLicenseKey();
+                        if (licenseKeyError && !errors.includes(licenseKeyError)) {
+                            errors.push(licenseKeyError);
+                        }
+                    }
+                    
+                    // Add each error to the list
+                    errors.forEach(error => {
+                        const li = document.createElement('li');
+                        li.textContent = error;
+                        validationList.appendChild(li);
+                    });
+                    
+                    // Show the popup
+                    validationPopup.style.display = 'flex';
+                }
                 
                 // Function to show success modal
                 function showSuccessModal(message) {
@@ -447,6 +676,28 @@
                 function showErrorModal(message) {
                     errorMessage.textContent = message;
                     errorModal.style.display = 'block';
+                }
+                
+                // Function to validate all form fields
+                function validateForm() {
+                    let isValid = true;
+                    
+                    // Check all required inputs
+                    requiredInputs.forEach(input => {
+                        if (!validateInput(input)) {
+                            isValid = false;
+                        }
+                    });
+                    
+                    // Check license key format
+                    const licenseKeyInput = document.getElementById('licenseKey');
+                    const licenseKeyError = validateLicenseKey();
+                    if (licenseKeyError) {
+                        licenseKeyInput.classList.add('is-invalid');
+                        isValid = false;
+                    }
+                    
+                    return isValid;
                 }
                 
                 // Ensure content card fills available space
@@ -480,31 +731,19 @@
                     licenseKeyInput.addEventListener('blur', function() {
                         const errorMessage = validateLicenseKey();
                         if (errorMessage) {
-                            // If there's no error element yet, create one
-                            let errorElement = document.getElementById('licenseKey-error');
-                            if (!errorElement) {
-                                errorElement = document.createElement('div');
-                                errorElement.id = 'licenseKey-error';
-                                errorElement.className = 'field-error';
-                                licenseKeyInput.parentNode.appendChild(errorElement);
-                            }
-                            errorElement.textContent = errorMessage;
+                            this.classList.add('is-invalid');
                         } else {
-                            // Remove error element if exists
-                            const errorElement = document.getElementById('licenseKey-error');
-                            if (errorElement) {
-                                errorElement.remove();
-                            }
+                            this.classList.remove('is-invalid');
                         }
                     });
                     
                     form.addEventListener('submit', function(e) {
                         e.preventDefault();
                         
-                        // Validate license key format before submission
-                        const licenseKeyError = validateLicenseKey();
-                        if (licenseKeyError) {
-                            showErrorModal(licenseKeyError);
+                        // First validate all form fields
+                        if (!validateForm()) {
+                            // Show validation popup with all errors
+                            showValidationPopup();
                             return;
                         }
                         
