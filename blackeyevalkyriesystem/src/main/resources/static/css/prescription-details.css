@@ -1,0 +1,266 @@
+.content-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.content-header h1 {
+    margin: 0;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.back-btn,
+.complete-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 15px;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: background-color 0.2s;
+    height: 38px;
+    min-width: 160px;
+    box-sizing: border-box;
+}
+
+/* Reset form styling */
+.action-form {
+    margin: 0;
+    padding: 0;
+    display: inline;
+}
+
+.back-btn {
+    background-color: var(--input-bg);
+    color: var(--primary-text);
+    border: 1px solid var(--border-color);
+}
+
+.back-btn:hover {
+    background-color: var(--hover-bg);
+}
+
+.complete-btn {
+    background-color: #2ecc71;
+    color: white;
+    border: 1px solid #2ecc71;
+    cursor: pointer;
+    width: 100%;
+}
+
+.complete-btn:hover {
+    background-color: #27ae60;
+    border-color: #27ae60;
+}
+
+.card {
+    background-color: var(--secondary-bg);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.card-title {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-weight: 600;
+    font-size: 18px;
+    color: var(--primary-text);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+}
+
+.info-row {
+    display: flex;
+    margin-bottom: 15px;
+}
+
+.info-label {
+    flex: 0 0 150px;
+    font-weight: 500;
+    color: var(--secondary-text);
+}
+
+.info-value {
+    flex: 1;
+    color: var(--primary-text);
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+    font-size: 0.85rem;
+}
+
+.status-active {
+    background-color: rgba(52, 152, 219, 0.2);
+    color: #3498db;
+}
+
+.status-pending {
+    background-color: rgba(241, 196, 15, 0.2);
+    color: #f1c40f;
+}
+
+.status-completed {
+    background-color: rgba(46, 204, 113, 0.2);
+    color: #2ecc71;
+}
+
+.status-cancelled {
+    background-color: rgba(231, 76, 60, 0.2);
+    color: #e74c3c;
+}
+
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: visible;
+}
+
+.drugs-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    table-layout: fixed;
+}
+
+.drugs-table th, .drugs-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.drugs-table th {
+    font-weight: 500;
+    color: var(--secondary-text);
+    background-color: var(--hover-bg);
+}
+
+.drugs-table tr:last-child td {
+    border-bottom: none;
+}
+
+.drugs-table tr:hover {
+    background-color: rgba(138, 43, 226, 0.05);
+}
+
+/* Fixed column widths */
+.drugs-table th.medication-col { width: 20%; }
+.drugs-table th.dosage-col { width: 10%; }
+.drugs-table th.frequency-col { width: 15%; }
+.drugs-table th.duration-col { width: 10%; }
+.drugs-table th.quantity-col { width: 10%; }
+.drugs-table th.instructions-col { width: 20%; }
+.drugs-table th.refills-col { width: 15%; }
+
+/* Responsive breakpoints for medications table */
+@media screen and (max-width: 1400px) {
+    /* Hide Instructions column */
+    .drugs-table th.instructions-col,
+    .drugs-table td:nth-child(6) {
+        display: none;
+    }
+    
+    /* Redistribute widths */
+    .drugs-table th.medication-col { width: 25%; }
+    .drugs-table th.dosage-col { width: 12%; }
+    .drugs-table th.frequency-col { width: 18%; }
+    .drugs-table th.duration-col { width: 12%; }
+    .drugs-table th.quantity-col { width: 12%; }
+    .drugs-table th.refills-col { width: 21%; }
+}
+
+@media screen and (max-width: 1100px) {
+    /* Hide Duration column */
+    .drugs-table th.duration-col,
+    .drugs-table td:nth-child(4) {
+        display: none;
+    }
+    
+    /* Further redistribute widths */
+    .drugs-table th.medication-col { width: 30%; }
+    .drugs-table th.dosage-col { width: 15%; }
+    .drugs-table th.frequency-col { width: 20%; }
+    .drugs-table th.quantity-col { width: 15%; }
+    .drugs-table th.refills-col { width: 20%; }
+}
+
+@media screen and (max-width: 768px) {
+    /* Hide Frequency column */
+    .drugs-table th.frequency-col,
+    .drugs-table td:nth-child(3) {
+        display: none;
+    }
+    
+    /* Further redistribute widths */
+    .drugs-table th.medication-col { width: 40%; }
+    .drugs-table th.dosage-col { width: 20%; }
+    .drugs-table th.quantity-col { width: 20%; }
+    .drugs-table th.refills-col { width: 20%; }
+    
+    /* Also make info-row stack for small screens */
+    .info-row {
+        flex-direction: column;
+    }
+    
+    .info-label {
+        flex: 0 0 100%;
+        margin-bottom: 5px;
+    }
+    
+    .info-value {
+        flex: 0 0 100%;
+    }
+    
+    /* Adjust buttons for smaller screens */
+    .action-buttons {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .back-btn,
+    .complete-btn {
+        width: 100%;
+        min-width: unset;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    /* Hide Quantity column */
+    .drugs-table th.quantity-col,
+    .drugs-table td:nth-child(5) {
+        display: none;
+    }
+    
+    /* Further redistribute widths */
+    .drugs-table th.medication-col { width: 50%; }
+    .drugs-table th.dosage-col { width: 25%; }
+    .drugs-table th.refills-col { width: 25%; }
+    
+    /* Reduce padding in table cells */
+    .drugs-table th, .drugs-table td {
+        padding: 8px 10px;
+        font-size: 0.9rem;
+    }
+    
+    /* Adjust header elements */
+    .content-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .content-header h1 {
+        margin-bottom: 10px;
+    }
+}

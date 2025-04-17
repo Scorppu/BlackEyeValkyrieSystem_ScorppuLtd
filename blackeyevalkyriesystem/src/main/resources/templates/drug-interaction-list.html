@@ -2,61 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/main}">
 <head>
     <title>Drug Interactions</title>
-    <style>
-        .content-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        
-        .content-header h1 {
-            margin: 0;
-        }
-        
-        .content-header .btn-primary {
-            background-color: #8A2BE2;
-            border: none;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 15px;
-        }
-        
-        .drug-header {
-            background-color: rgba(138, 43, 226, 0.1);
-            padding: 15px;
-            font-weight: 600;
-            border-radius: 8px 8px 0 0;
-            margin-top: 25px;
-            color: var(--primary-text);
-            border: 1px solid var(--border-color);
-            border-bottom: none;
-        }
-        .drug-interactions {
-            border: 1px solid var(--border-color);
-            border-radius: 0 0 8px 8px;
-            margin-bottom: 25px;
-        }
-        .drug-interaction-item {
-            padding: 15px;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .drug-interaction-item:last-child {
-            border-bottom: none;
-        }
-        .drug-interaction-item:hover {
-            background-color: var(--hover-bg);
-        }
-        .empty-state {
-            text-align: center;
-            padding: 40px;
-            color: var(--secondary-text);
-        }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/drug-interaction-list.css}">
 </head>
 <body>
     <div layout:fragment="content">
@@ -83,9 +29,8 @@
             <div th:if="${error}" class="alert alert-danger" style="margin-bottom: 20px;" th:text="${error}"></div>
             
             <!-- Search Bar -->
-            <div th:if="${!drugInteractionsMap.isEmpty()}" class="search-container" style="margin-bottom: 20px;">
+            <div th:if="${!drugInteractionsMap.isEmpty()}" class="search-container">
                 <input type="text" id="interactionSearchInput" class="form-control" placeholder="Search drugs..." 
-                       style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px;" 
                        oninput="filterInteractions()">
             </div>
             
@@ -135,30 +80,10 @@
                         </div>
                     </div>
                 </div>
-                
-                <!-- JavaScript for interaction search functionality -->
-                <script layout:fragment="scripts">
-                    function filterInteractions() {
-                        const searchInput = document.getElementById('interactionSearchInput');
-                        const searchTerm = searchInput.value.toLowerCase();
-                        const drugHeaders = document.querySelectorAll('.drug-header');
-                        
-                        drugHeaders.forEach(header => {
-                            const drugName = header.textContent.trim().toLowerCase();
-                            const interactionContainer = header.nextElementSibling;
-                            
-                            if (drugName.includes(searchTerm)) {
-                                header.style.display = '';
-                                interactionContainer.style.display = '';
-                            } else {
-                                header.style.display = 'none';
-                                interactionContainer.style.display = 'none';
-                            }
-                        });
-                    }
-                </script>
             </div>
         </div>
     </div>
+    
+    <script layout:fragment="scripts" th:src="@{/js/drug-interaction-list.js}"></script>
 </body>
 </html> 
