@@ -9,302 +9,7 @@
     
     <th:block layout:fragment="head">
         <!-- Create Patient specific CSS -->
-        <style>
-            .main-container {
-                display: flex;
-                gap: 2rem;
-                max-width: 1200px;
-                margin: 0 auto;
-            }
-            
-            .credentials-sidebar {
-                background-color: var(--secondary-bg);
-                border-radius: 0.5rem;
-                padding: 1.5rem;
-                width: 250px;
-                flex-shrink: 0;
-            }
-            
-            .credentials-sidebar h2 {
-                margin-top: 0;
-                margin-bottom: 1.5rem;
-                font-size: 1.25rem;
-                font-weight: 600;
-                color: var(--primary-text);
-            }
-            
-            .tab-nav {
-                display: flex;
-                flex-direction: column;
-                gap: 1rem;
-            }
-            
-            .tab-item {
-                display: flex;
-                align-items: center;
-                gap: 0.75rem;
-                padding: 0.75rem;
-                border-radius: 0.5rem;
-                cursor: pointer;
-                color: var(--secondary-text);
-                transition: background-color 0.2s;
-            }
-            
-            .tab-item:hover {
-                background-color: rgba(138, 43, 226, 0.1);
-            }
-            
-            .tab-item.active {
-                background-color: rgba(138, 43, 226, 0.2);
-                color: var(--accent-color);
-            }
-            
-            .tab-content {
-                display: none;
-                margin-top: 1.5rem;
-                color: var(--secondary-text);
-            }
-            
-            .tab-content.active {
-                display: block;
-            }
-            
-            .form-container {
-                background-color: var(--secondary-bg);
-                border-radius: 0.5rem;
-                padding: 2rem;
-                flex-grow: 1;
-            }
-            
-            .form-section {
-                display: none;
-            }
-            
-            .form-section.active {
-                display: block;
-            }
-            
-            .form-section h2 {
-                margin-top: 0;
-                margin-bottom: 0.5rem;
-                font-size: 1.5rem;
-                font-weight: 600;
-                color: var(--primary-text);
-            }
-            
-            .form-section p {
-                margin-top: 0;
-                margin-bottom: 2rem;
-                color: var(--secondary-text);
-            }
-            
-            .form-group {
-                margin-bottom: 1.5rem;
-            }
-            
-            .form-group label {
-                display: block;
-                margin-bottom: 0.5rem;
-                font-weight: 500;
-                color: var(--secondary-text);
-            }
-            
-            .form-control {
-                width: 100%;
-                padding: 0.75rem 1rem;
-                background-color: var(--primary-bg);
-                border: 1px solid var(--border-color);
-                border-radius: 0.5rem;
-                color: var(--primary-text);
-                font-size: 1rem;
-            }
-            
-            .form-control:focus {
-                outline: none;
-                border-color: var(--accent-color);
-                box-shadow: 0 0 0 2px rgba(138, 43, 226, 0.2);
-            }
-            
-            input.form-control {
-                box-sizing: border-box;
-                appearance: none;
-                padding-right: 2.5rem;
-            }
-
-            select.form-control {
-                appearance: none;
-                background-image: url("data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4 6L8 10L12 6' stroke='white' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-                background-repeat: no-repeat;
-                background-position: right 1rem center;
-                padding-right: 2.5rem;
-            }
-            
-            .form-actions {
-                display: flex;
-                justify-content: flex-end;
-                gap: 1rem;
-                margin-top: 2rem;
-            }
-            
-            .btn {
-                padding: 0.75rem 1.5rem;
-                border: none;
-                border-radius: 0.5rem;
-                font-weight: 600;
-                cursor: pointer;
-                transition: background-color 0.2s;
-            }
-            
-            .btn-primary {
-                background-color: var(--accent-color);
-                color: white;
-            }
-            
-            .btn-primary:hover {
-                background-color: #7b26cd;
-            }
-            
-            .btn-secondary {
-                background-color: rgba(255, 255, 255, 0.1);
-                color: var(--primary-text);
-            }
-            
-            .btn-secondary:hover {
-                background-color: rgba(255, 255, 255, 0.15);
-            }
-            
-            .btn-success {
-                background-color: #23b27e;
-                color: white;
-            }
-            
-            .btn-success:hover {
-                background-color: #1e9d6e;
-            }
-            
-            .header-container {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 2rem;
-                max-width: 1200px;
-                margin-left: auto;
-                margin-right: auto;
-            }
-            
-            .drug-allergies-container {
-                margin-top: 0.5rem;
-            }
-            
-            .drug-selection-container {
-                display: flex;
-                gap: 0.5rem;
-                align-items: flex-start;
-            }
-            
-            .allergies-table {
-                width: 100%;
-                border-collapse: collapse;
-                margin-top: 0.5rem;
-            }
-            
-            .allergies-table th {
-                text-align: left;
-                padding: 0.5rem;
-                font-weight: 500;
-                border-bottom: 1px solid var(--border-color);
-                color: var(--secondary-text);
-            }
-            
-            .allergies-table td {
-                padding: 0.5rem;
-                border-bottom: 1px solid var(--border-color);
-                color: var(--primary-text);
-            }
-            
-            .allergies-table .empty-allergies-row td {
-                text-align: center;
-                font-style: italic;
-                color: var(--secondary-text);
-            }
-            
-            .remove-allergy-btn {
-                display: inline-flex;
-                align-items: center;
-                gap: 0.25rem;
-                padding: 0.25rem 0.5rem;
-                border: 1px solid var(--border-color);
-                background-color: rgba(255, 0, 0, 0.05);
-                color: #ff5252;
-                border-radius: 0.25rem;
-                cursor: pointer;
-                transition: background-color 0.2s;
-            }
-            
-            .remove-allergy-btn:hover {
-                background-color: rgba(255, 0, 0, 0.1);
-            }
-            
-            .remove-allergy-btn svg {
-                width: 14px;
-                height: 14px;
-            }
-            
-            .mt-3 {
-                margin-top: 1rem;
-            }
-            
-            .mb-4 {
-                margin-bottom: 1.5rem;
-            }
-            
-            .search-container {
-                position: relative;
-                flex: 1;
-            }
-            
-            .drugs-dropdown {
-                position: absolute;
-                top: 100%;
-                left: 0;
-                right: 0;
-                max-height: 300px;
-                overflow-y: auto;
-                background-color: var(--primary-bg);
-                border: 1px solid var(--border-color);
-                border-radius: 0.5rem;
-                z-index: 1000;
-                display: none;
-                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            }
-            
-            .drug-item {
-                padding: 0.75rem 1rem;
-                cursor: pointer;
-                transition: background-color 0.2s;
-                border-bottom: 1px solid var(--border-color);
-            }
-            
-            .drug-item:last-child {
-                border-bottom: none;
-            }
-            
-            .drug-item:hover {
-                background-color: rgba(138, 43, 226, 0.1);
-            }
-            
-            .drug-name {
-                font-weight: 500;
-                color: var(--primary-text);
-            }
-            
-            .no-results {
-                padding: 0.75rem 1rem;
-                color: var(--secondary-text);
-                font-style: italic;
-                text-align: center;
-            }
-        </style>
+        <link rel="stylesheet" th:href="@{/css/create-patient.css}">
     </th:block>
 </head>
 <body>
@@ -349,19 +54,19 @@
                     
                     <form id="patient-form">
                         <div class="form-group">
-                            <label for="firstName">First name</label>
-                            <input type="text" id="firstName" name="firstName" class="form-control" value="">
+                            <label for="firstName">First name <span class="required">*</span></label>
+                            <input type="text" id="firstName" name="firstName" class="form-control" value="" placeholder="Florence">
                         </div>
                         
                         <div class="form-group">
-                            <label for="lastName">Last name</label>
-                            <input type="text" id="lastName" name="lastName" class="form-control" value="">
+                            <label for="lastName">Last name <span class="required">*</span></label>
+                            <input type="text" id="lastName" name="lastName" class="form-control" value="" placeholder="Nightingale">
                         </div>
                         
                         <div class="form-group">
-                            <label for="sex">Sex</label>
+                            <label for="sex">Sex <span class="required">*</span></label>
                             <select id="sex" name="sex" class="form-control" value="">
-                                <option value=""></option>
+                                <option value="">Gender of Patient...</option>
                                 <option value="Male">Male</option>
                                 <option value="Female">Female</option>
                                 <option value="Other">Other</option>
@@ -370,23 +75,23 @@
                         
                         <div class="form-group">
                             <label for="relativeName">Relative Name</label>
-                            <input type="text" id="relativeName" name="relativeName" class="form-control" value="">
+                            <input type="text" id="relativeName" name="relativeName" class="form-control" value="" placeholder="Pikachu">
                         </div>
                         
                         <div class="form-group">
-                            <label for="dateOfBirth">Date Of Birth</label>
+                            <label for="dateOfBirth">Date Of Birth <span class="required">*</span></label>
                             <input type="date" id="dateOfBirth" name="dateOfBirth" class="form-control" value="">
                         </div>
                         
                         <div class="form-group">
                             <label for="age">Age</label>
-                            <input type="number" id="age" name="age" class="form-control" value="" readonly>
+                            <input type="number" id="age" name="age" class="form-control" value="" readonly placeholder="Auto-calculated from date of birth">
                         </div>
                         
                         <div class="form-group">
                             <label for="maritalStatus">Marital Status</label>
                             <select id="maritalStatus" name="maritalStatus" class="form-control">
-                                <option value=""></option>
+                                <option value="">Select Marital Status of Patient...</option>
                                 <option value="Single">Single</option>
                                 <option value="Married">Married</option>
                                 <option value="Divorced">Divorced</option>
@@ -397,7 +102,7 @@
                         <div class="form-group">
                             <label for="bloodType">Blood Type</label>
                             <select id="bloodType" name="bloodType" class="form-control">
-                                <option value=""></option>
+                                <option value="">Select Blood Type of Patient...</option>
                                 <option value="A+">A+</option>
                                 <option value="A-">A-</option>
                                 <option value="B+">B+</option>
@@ -458,32 +163,257 @@
                     <form id="contact-form">
                         <div class="form-group">
                             <label for="contactNumber">Phone / Mobile</label>
-                            <input type="tel" id="contactNumber" name="contactNumber" class="form-control" value="">
+                            <input type="tel" id="contactNumber" name="contactNumber" class="form-control" value="" placeholder="12345678">
                         </div>
                         
                         <div class="form-group">
                             <label for="email">Email Address</label>
-                            <input type="email" id="email" name="email" class="form-control" value="">
+                            <input type="email" id="email" name="email" class="form-control" value="" placeholder="example@email.com">
                         </div>
                         
                         <div class="form-group">
                             <label for="address1">Address 1</label>
-                            <input type="text" id="address1" name="address1" class="form-control" value="">
+                            <input type="text" id="address1" name="address1" class="form-control" value="" placeholder="Flat 1001, Block 2">
                         </div>
                         
                         <div class="form-group">
                             <label for="address2">Address 2</label>
-                            <input type="text" id="address2" name="address2" class="form-control" value="">
+                            <input type="text" id="address2" name="address2" class="form-control" value="" placeholder="University Avenue, Shatin">
                         </div>
                         
                         <div class="form-group">
                             <label for="address3">Address 3</label>
-                            <input type="text" id="address3" name="address3" class="form-control" value="">
+                            <input type="text" id="address3" name="address3" class="form-control" value="" placeholder="New Territories">
                         </div>
                         
                         <div class="form-group">
                             <label for="country">Country</label>
-                            <input type="text" id="country" name="country" class="form-control" value="">
+                            <select id="country" name="country" class="form-control">
+                                <option value="">Select a country</option>
+                                <option value="Hong Kong">Hong Kong SAR, China</option>
+                                <option value="Afghanistan">Afghanistan</option>
+                                <option value="Albania">Albania</option>
+                                <option value="Algeria">Algeria</option>
+                                <option value="American Samoa">American Samoa</option>
+                                <option value="Andorra">Andorra</option>
+                                <option value="Angola">Angola</option>
+                                <option value="Anguilla">Anguilla</option>
+                                <option value="Antigua and Barbuda">Antigua and Barbuda</option>
+                                <option value="Argentina">Argentina</option>
+                                <option value="Armenia">Armenia</option>
+                                <option value="Aruba">Aruba</option>
+                                <option value="Australia">Australia</option>
+                                <option value="Austria">Austria</option>
+                                <option value="Azerbaijan">Azerbaijan</option>
+                                <option value="Bahamas">Bahamas</option>
+                                <option value="Bahrain">Bahrain</option>
+                                <option value="Bangladesh">Bangladesh</option>
+                                <option value="Barbados">Barbados</option>
+                                <option value="Belarus">Belarus</option>
+                                <option value="Belgium">Belgium</option>
+                                <option value="Belize">Belize</option>
+                                <option value="Benin">Benin</option>
+                                <option value="Bermuda">Bermuda</option>
+                                <option value="Bhutan">Bhutan</option>
+                                <option value="Bolivia">Bolivia</option>
+                                <option value="Bosnia and Herzegovina">Bosnia and Herzegovina</option>
+                                <option value="Botswana">Botswana</option>
+                                <option value="Brazil">Brazil</option>
+                                <option value="British Virgin Islands">British Virgin Islands</option>
+                                <option value="Brunei">Brunei</option>
+                                <option value="Bulgaria">Bulgaria</option>
+                                <option value="Burkina Faso">Burkina Faso</option>
+                                <option value="Burundi">Burundi</option>
+                                <option value="Cabo Verde">Cabo Verde</option>
+                                <option value="Cambodia">Cambodia</option>
+                                <option value="Cameroon">Cameroon</option>
+                                <option value="Canada">Canada</option>
+                                <option value="Central African Republic">Central African Republic</option>
+                                <option value="Chad">Chad</option>
+                                <option value="Cayman Islands">Cayman Islands</option>
+                                <option value="Chile">Chile</option>
+                                <option value="China">China</option>
+                                <option value="Colombia">Colombia</option>
+                                <option value="Comoros">Comoros</option>
+                                <option value="Congo, Democratic Republic of the">Congo, Democratic Republic of the</option>
+                                <option value="Congo, Republic of the">Congo, Republic of the</option>
+                                <option value="Cook Islands">Cook Islands</option>
+                                <option value="Costa Rica">Costa Rica</option>
+                                <option value="Cote d'Ivoire">Cote d'Ivoire</option>
+                                <option value="Croatia">Croatia</option>
+                                <option value="Cuba">Cuba</option>
+                                <option value="Curacao">Curacao</option>
+                                <option value="Cyprus">Cyprus</option>
+                                <option value="Czech Republic">Czech Republic</option>
+                                <option value="Denmark">Denmark</option>
+                                <option value="Djibouti">Djibouti</option>
+                                <option value="Dominica">Dominica</option>
+                                <option value="Dominican Republic">Dominican Republic</option>
+                                <option value="Ecuador">Ecuador</option>
+                                <option value="Egypt">Egypt</option>
+                                <option value="El Salvador">El Salvador</option>
+                                <option value="Equatorial Guinea">Equatorial Guinea</option>
+                                <option value="Eritrea">Eritrea</option>
+                                <option value="Estonia">Estonia</option>
+                                <option value="Eswatini">Eswatini</option>
+                                <option value="Ethiopia">Ethiopia</option>
+                                <option value="Falkland Islands">Falkland Islands</option>
+                                <option value="Faroe Islands">Faroe Islands</option>
+                                <option value="Fiji">Fiji</option>
+                                <option value="Finland">Finland</option>
+                                <option value="France">France</option>
+                                <option value="French Polynesia">French Polynesia</option>
+                                <option value="Gabon">Gabon</option>
+                                <option value="Gambia">Gambia</option>
+                                <option value="Georgia">Georgia</option>
+                                <option value="Germany">Germany</option>
+                                <option value="Ghana">Ghana</option>
+                                <option value="Gibraltar">Gibraltar</option>
+                                <option value="Greece">Greece</option>
+                                <option value="Greenland">Greenland</option>
+                                <option value="Grenada">Grenada</option>
+                                <option value="Guam">Guam</option>
+                                <option value="Guatemala">Guatemala</option>
+                                <option value="Guinea">Guinea</option>
+                                <option value="Guinea-Bissau">Guinea-Bissau</option>
+                                <option value="Guyana">Guyana</option>
+                                <option value="Haiti">Haiti</option>
+                                <option value="Honduras">Honduras</option>
+                                <option value="Hungary">Hungary</option>
+                                <option value="Iceland">Iceland</option>
+                                <option value="India">India</option>
+                                <option value="Indonesia">Indonesia</option>
+                                <option value="Iran">Iran</option>
+                                <option value="Iraq">Iraq</option>
+                                <option value="Ireland">Ireland</option>
+                                <option value="Isle of Man">Isle of Man</option>
+                                <option value="Israel">Israel</option>
+                                <option value="Italy">Italy</option>
+                                <option value="Jamaica">Jamaica</option>
+                                <option value="Japan">Japan</option>
+                                <option value="Jordan">Jordan</option>
+                                <option value="Kazakhstan">Kazakhstan</option>
+                                <option value="Kenya">Kenya</option>
+                                <option value="Kiribati">Kiribati</option>
+                                <option value="Korea, North">Korea, North</option>
+                                <option value="Korea, South">Korea, South</option>
+                                <option value="Kosovo">Kosovo</option>
+                                <option value="Kuwait">Kuwait</option>
+                                <option value="Kyrgyzstan">Kyrgyzstan</option>
+                                <option value="Laos">Laos</option>
+                                <option value="Latvia">Latvia</option>
+                                <option value="Lebanon">Lebanon</option>
+                                <option value="Lesotho">Lesotho</option>
+                                <option value="Liberia">Liberia</option>
+                                <option value="Libya">Libya</option>
+                                <option value="Liechtenstein">Liechtenstein</option>
+                                <option value="Lithuania">Lithuania</option>
+                                <option value="Luxembourg">Luxembourg</option>
+                                <option value="Macau">Macau SAR, China</option>
+                                <option value="Madagascar">Madagascar</option>
+                                <option value="Malawi">Malawi</option>
+                                <option value="Malaysia">Malaysia</option>
+                                <option value="Maldives">Maldives</option>
+                                <option value="Mali">Mali</option>
+                                <option value="Malta">Malta</option>
+                                <option value="Marshall Islands">Marshall Islands</option>
+                                <option value="Mauritania">Mauritania</option>
+                                <option value="Mauritius">Mauritius</option>
+                                <option value="Mexico">Mexico</option>
+                                <option value="Micronesia">Micronesia</option>
+                                <option value="Moldova">Moldova</option>
+                                <option value="Monaco">Monaco</option>
+                                <option value="Mongolia">Mongolia</option>
+                                <option value="Montenegro">Montenegro</option>
+                                <option value="Morocco">Morocco</option>
+                                <option value="Mozambique">Mozambique</option>
+                                <option value="Myanmar">Myanmar</option>
+                                <option value="Namibia">Namibia</option>
+                                <option value="Nauru">Nauru</option>
+                                <option value="Nepal">Nepal</option>
+                                <option value="Netherlands">Netherlands</option>
+                                <option value="New Caledonia">New Caledonia</option>
+                                <option value="New Zealand">New Zealand</option>
+                                <option value="Nicaragua">Nicaragua</option>
+                                <option value="Niger">Niger</option>
+                                <option value="Nigeria">Nigeria</option>
+                                <option value="North Macedonia">North Macedonia</option>
+                                <option value="Northern Mariana Islands">Northern Mariana Islands</option>
+                                <option value="Norway">Norway</option>
+                                <option value="Oman">Oman</option>
+                                <option value="Pakistan">Pakistan</option>
+                                <option value="Palau">Palau</option>
+                                <option value="Palestine">Palestine</option>
+                                <option value="Panama">Panama</option>
+                                <option value="Papua New Guinea">Papua New Guinea</option>
+                                <option value="Paraguay">Paraguay</option>
+                                <option value="Peru">Peru</option>
+                                <option value="Philippines">Philippines</option>
+                                <option value="Poland">Poland</option>
+                                <option value="Portugal">Portugal</option>
+                                <option value="Puerto Rico">Puerto Rico</option>
+                                <option value="Qatar">Qatar</option>
+                                <option value="Romania">Romania</option>
+                                <option value="Russia">Russia</option>
+                                <option value="Rwanda">Rwanda</option>
+                                <option value="Saint Barthelemy">Saint Barthelemy</option>
+                                <option value="Saint Helena">Saint Helena</option>
+                                <option value="Saint Kitts and Nevis">Saint Kitts and Nevis</option>
+                                <option value="Saint Lucia">Saint Lucia</option>
+                                <option value="Saint Martin">Saint Martin</option>
+                                <option value="Sint Maarten">Sint Maarten</option>
+                                <option value="Saint Vincent and the Grenadines">Saint Vincent and the Grenadines</option>
+                                <option value="Samoa">Samoa</option>
+                                <option value="San Marino">San Marino</option>
+                                <option value="Sao Tome and Principe">Sao Tome and Principe</option>
+                                <option value="Saudi Arabia">Saudi Arabia</option>
+                                <option value="Senegal">Senegal</option>
+                                <option value="Serbia">Serbia</option>
+                                <option value="Seychelles">Seychelles</option>
+                                <option value="Sierra Leone">Sierra Leone</option>
+                                <option value="Singapore">Singapore</option>
+                                <option value="Slovakia">Slovakia</option>
+                                <option value="Slovenia">Slovenia</option>
+                                <option value="Solomon Islands">Solomon Islands</option>
+                                <option value="Somalia">Somalia</option>
+                                <option value="South Africa">South Africa</option>
+                                <option value="South Sudan">South Sudan</option>
+                                <option value="Spain">Spain</option>
+                                <option value="Sri Lanka">Sri Lanka</option>
+                                <option value="Sudan">Sudan</option>
+                                <option value="Suriname">Suriname</option>
+                                <option value="Sweden">Sweden</option>
+                                <option value="Switzerland">Switzerland</option>
+                                <option value="Syria">Syria</option>
+                                <option value="Taiwan">Taiwan</option>
+                                <option value="Tajikistan">Tajikistan</option>
+                                <option value="Tanzania">Tanzania</option>
+                                <option value="Thailand">Thailand</option>
+                                <option value="Timor-Leste">Timor-Leste</option>
+                                <option value="Togo">Togo</option>
+                                <option value="Tonga">Tonga</option>
+                                <option value="Trinidad and Tobago">Trinidad and Tobago</option>
+                                <option value="Tunisia">Tunisia</option>
+                                <option value="Turkey">Turkey</option>
+                                <option value="Turkmenistan">Turkmenistan</option>
+                                <option value="Turks and Caicos Islands">Turks and Caicos Islands</option>
+                                <option value="Tuvalu">Tuvalu</option>
+                                <option value="U.S. Virgin Islands">U.S. Virgin Islands</option>
+                                <option value="Uganda">Uganda</option>
+                                <option value="Ukraine">Ukraine</option>
+                                <option value="United Arab Emirates">United Arab Emirates</option>
+                                <option value="United Kingdom">United Kingdom</option>
+                                <option value="United States">United States</option>
+                                <option value="Uruguay">Uruguay</option>
+                                <option value="Uzbekistan">Uzbekistan</option>
+                                <option value="Vanuatu">Vanuatu</option>
+                                <option value="Vatican City">Vatican City</option>
+                                <option value="Venezuela">Venezuela</option>
+                                <option value="Vietnam">Vietnam</option>
+                                <option value="Yemen">Yemen</option>
+                                <option value="Zambia">Zambia</option>
+                                <option value="Zimbabwe">Zimbabwe</option>
+                            </select>
                         </div>
                         
                         <div class="form-group">
@@ -512,474 +442,7 @@
     </div>
     
     <th:block layout:fragment="scripts">
-        <script th:inline="javascript">
-            // Get drugs data from Thymeleaf model
-            const allDrugsData = /*[[${allDrugs}]]*/ [];
-            
-            document.addEventListener('DOMContentLoaded', function() {
-                // Tab navigation for personal to contact info
-                const nextButton = document.getElementById('next-btn');
-                const backButton = document.getElementById('back-btn');
-                const tabItems = document.querySelectorAll('.tab-item');
-                const personalInfoForm = document.getElementById('personal-info-form');
-                const contactInfoForm = document.getElementById('contact-info-form');
-                
-                // Switch between form sections based on tab
-                function switchFormSection(tabId) {
-                    // Hide all form sections
-                    document.querySelectorAll('.form-section').forEach(section => {
-                        section.classList.remove('active');
-                    });
-                    
-                    // Show the correct form section
-                    if (tabId === 'personal-info-tab') {
-                        personalInfoForm.classList.add('active');
-                        document.querySelectorAll('.tab-item').forEach(tab => {
-                            if (tab.dataset.target === 'personal-info-tab') {
-                                tab.classList.add('active');
-                            } else {
-                                tab.classList.remove('active');
-                            }
-                        });
-                        document.getElementById('personal-info-tab').classList.add('active');
-                        document.getElementById('contact-info-tab').classList.remove('active');
-                    } else if (tabId === 'contact-info-tab') {
-                        contactInfoForm.classList.add('active');
-                        document.querySelectorAll('.tab-item').forEach(tab => {
-                            if (tab.dataset.target === 'contact-info-tab') {
-                                tab.classList.add('active');
-                            } else {
-                                tab.classList.remove('active');
-                            }
-                        });
-                        document.getElementById('contact-info-tab').classList.add('active');
-                        document.getElementById('personal-info-tab').classList.remove('active');
-                    }
-                }
-                
-                // Tab click event handling
-                tabItems.forEach(function(tab) {
-                    tab.addEventListener('click', function() {
-                        const targetId = this.dataset.target;
-                        switchFormSection(targetId);
-                    });
-                });
-                
-                // Next button handling
-                if (nextButton) {
-                    nextButton.addEventListener('click', function() {
-                        // Validate personal information fields
-                        const firstName = document.getElementById('firstName').value;
-                        const lastName = document.getElementById('lastName').value;
-                        const dateOfBirth = document.getElementById('dateOfBirth').value;
-                        
-                        if (!firstName || !lastName || !dateOfBirth) {
-                            alert('Please fill in all required fields.');
-                            return;
-                        }
-                        
-                        // Switch to contact information tab
-                        switchFormSection('contact-info-tab');
-                    });
-                }
-                
-                // Back button handling
-                if (backButton) {
-                    backButton.addEventListener('click', function() {
-                        // Switch back to personal information tab
-                        switchFormSection('personal-info-tab');
-                    });
-                }
-                
-                // Form submission handling
-                const contactForm = document.getElementById('contact-form');
-                if (contactForm) {
-                    contactForm.addEventListener('submit', function(e) {
-                        e.preventDefault();
-                        
-                        // Get personal information
-                        const firstName = document.getElementById('firstName').value;
-                        const lastName = document.getElementById('lastName').value;
-                        const sex = document.getElementById('sex').value === 'Male' ? true : false;
-                        const relativeName = document.getElementById('relativeName').value;
-                        const dateOfBirth = document.getElementById('dateOfBirth').value;
-                        const age = document.getElementById('age').value;
-                        const maritalStatus = document.getElementById('maritalStatus').value;
-                        const bloodType = document.getElementById('bloodType').value;
-                        const status = document.getElementById('status')?.value || "Active"; // Use default if not found
-                        
-                        // Get drug allergies - safely access the element
-                        const drugAllergiesEl = document.getElementById('drugAllergies');
-                        const drugAllergies = drugAllergiesEl ? 
-                            drugAllergiesEl.value.split(',').filter(id => id.trim() !== '') : 
-                            [];
-                        
-                        // Get contact information
-                        const contactNumber = document.getElementById('contactNumber').value;
-                        const email = document.getElementById('email').value;
-                        const address1 = document.getElementById('address1').value;
-                        const address2 = document.getElementById('address2').value;
-                        const address3 = document.getElementById('address3').value;
-                        const country = document.getElementById('country').value;
-                        const state = document.getElementById('state').value;
-                        const town = document.getElementById('town').value;
-                        const pinCode = document.getElementById('pinCode').value;
-                        
-                        // Create combined data object
-                        const patientData = {
-                            firstName: firstName,
-                            lastName: lastName,
-                            sex: sex,
-                            relativeName: relativeName,
-                            dateOfBirth: dateOfBirth,
-                            age: parseInt(age) || 0,
-                            maritalStatus: maritalStatus,
-                            bloodType: bloodType,
-                            status: status,
-                            drugAllergies: drugAllergies,
-                            contactNumber: contactNumber,
-                            email: email,
-                            address: {
-                                addressLine1: address1,
-                                addressLine2: address2,
-                                addressLine3: address3,
-                                country: country,
-                                state: state,
-                                town: town,
-                                pinCode: pinCode
-                            }
-                        };
-                        
-                        console.log('Sending patient data:', JSON.stringify(patientData));
-                        
-                        // Add additional validation
-                        if (!firstName || !lastName || !dateOfBirth) {
-                            alert('Required fields missing: First Name, Last Name, and Date of Birth are required');
-                            return;
-                        }
-                        
-                        // Send data to server
-                        fetch('/api/patients', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify(patientData)
-                        })
-                        .then(response => {
-                            if (!response.ok) {
-                                // Get more detailed error information
-                                return response.text().then(text => {
-                                    console.error('Server error response:', text);
-                                    console.error('Response status:', response.status, response.statusText);
-                                    throw new Error(`Server responded with status: ${response.status} ${response.statusText}. Details: ${text}`);
-                                });
-                            }
-                            return response.json();
-                        })
-                        .then(data => {
-                            console.log('Success:', data);
-                            alert('Patient profile created successfully!');
-                            
-                            // Redirect to patient list
-                            window.location.href = '/patient/list';
-                        })
-                        .catch((error) => {
-                            console.error('Error:', error);
-                            alert('Error creating patient profile: ' + error.message);
-                        });
-                    });
-                }
-                
-                // Calculate age based on date of birth
-                const dobField = document.getElementById('dateOfBirth');
-                const ageField = document.getElementById('age');
-                
-                if (dobField && ageField) {
-                    dobField.addEventListener('change', function() {
-                        const dob = new Date(this.value);
-                        const today = new Date();
-                        let age = today.getFullYear() - dob.getFullYear();
-                        
-                        // Adjust age if birthday hasn't occurred yet this year
-                        const monthDiff = today.getMonth() - dob.getMonth();
-                        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
-                            age--;
-                        }
-                        
-                        ageField.value = age;
-                    });
-                    
-                    // Calculate initial age
-                    if (dobField.value) {
-                        const dob = new Date(dobField.value);
-                        const today = new Date();
-                        let age = today.getFullYear() - dob.getFullYear();
-                        
-                        const monthDiff = today.getMonth() - dob.getMonth();
-                        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
-                            age--;
-                        }
-                        
-                        ageField.value = age;
-                    }
-                }
-            });
-
-            // Drug allergies management
-            document.addEventListener('DOMContentLoaded', function() {
-                const drugAllergyInput = document.getElementById('drugAllergyInput');
-                const drugsDropdown = document.getElementById('drugsDropdown');
-                const addAllergyBtn = document.getElementById('addAllergyBtn');
-                const allergiesList = document.getElementById('allergiesList');
-                const drugAllergiesInput = document.getElementById('drugAllergies');
-                
-                // Initialize the hidden input if not set
-                if (drugAllergiesInput) {
-                    drugAllergiesInput.value = drugAllergiesInput.value || '';
-                } else {
-                    console.error('drugAllergies input element not found');
-                }
-                
-                const selectedAllergies = new Set();
-                const drugMap = {};
-                
-                // Get drugs data from the pre-initialized variable
-                console.log('Available drugs:', allDrugsData);
-                
-                // Create a map of drug IDs to drug names
-                if (Array.isArray(allDrugsData)) {
-                    allDrugsData.forEach(drug => {
-                        // Handle different property structures
-                        const drugId = drug.id || '';
-                        const drugName = drug.name || drug.drugName || drug.genericName || '';
-                        if (drugId) {
-                            drugMap[drugId] = drugName;
-                        }
-                    });
-                } else {
-                    console.error('allDrugs is not properly initialized:', allDrugsData);
-                }
-                
-                console.log('Drug name mapping:', drugMap);
-                
-                // Show warning if no drugs are loaded
-                if (!Array.isArray(allDrugsData) || allDrugsData.length === 0) {
-                    console.error('No drugs available in the system');
-                    // Add a visual warning to the page
-                    const warningDiv = document.createElement('div');
-                    warningDiv.style.color = '#ff9800';
-                    warningDiv.style.padding = '0.5rem 0';
-                    warningDiv.textContent = 'Warning: No drugs available in the system. Contact administrator.';
-                    document.querySelector('.drug-selection-container').after(warningDiv);
-                }
-                
-                // Set up input event listener for drug search
-                drugAllergyInput.addEventListener('input', function() {
-                    filterDrugs(this.value);
-                });
-                
-                // Hide dropdown when clicking outside
-                document.addEventListener('click', function(e) {
-                    if (!drugAllergyInput.contains(e.target) && !drugsDropdown.contains(e.target)) {
-                        drugsDropdown.style.display = 'none';
-                    }
-                });
-                
-                // Show dropdown when input is focused
-                drugAllergyInput.addEventListener('focus', function() {
-                    if (this.value.length > 0) {
-                        filterDrugs(this.value);
-                    }
-                });
-                
-                // Function to filter and display drugs based on search input
-                function filterDrugs(searchText) {
-                    // Clear the dropdown
-                    drugsDropdown.innerHTML = '';
-                    
-                    if (!searchText || searchText.length < 2) {
-                        drugsDropdown.style.display = 'none';
-                        return;
-                    }
-                    
-                    // Debugging
-                    console.log('Filtering drugs with search text:', searchText);
-                    console.log('Available drugs for filtering:', allDrugsData);
-                    
-                    // Make sure allDrugs is an array with the expected properties
-                    if (!Array.isArray(allDrugsData) || allDrugsData.length === 0) {
-                        console.error('allDrugs is not properly initialized:', allDrugsData);
-                        
-                        // Show no results message
-                        const noResults = document.createElement('div');
-                        noResults.className = 'no-results';
-                        noResults.textContent = 'Error loading drugs. Please try again.';
-                        drugsDropdown.appendChild(noResults);
-                        drugsDropdown.style.display = 'block';
-                        return;
-                    }
-                    
-                    // Filter drugs based on search text
-                    const searchLower = searchText.toLowerCase();
-                    const filteredDrugs = allDrugsData.filter(drug => {
-                        // Determine the property to use for drug name
-                        const drugName = drug.name || drug.drugName || drug.genericName || '';
-                        return drugName.toLowerCase().includes(searchLower);
-                    });
-                    
-                    console.log('Filtered drugs:', filteredDrugs);
-                    
-                    // Display filtered drugs
-                    if (filteredDrugs.length > 0) {
-                        filteredDrugs.forEach(drug => {
-                            // Determine the drug ID and name properties
-                            const drugId = drug.id || '';
-                            const drugName = drug.name || drug.drugName || drug.genericName || '';
-                            
-                            const drugItem = document.createElement('div');
-                            drugItem.className = 'drug-item';
-                            drugItem.setAttribute('data-id', drugId);
-                            drugItem.setAttribute('data-name', drugName);
-                            drugItem.innerHTML = `<div class="drug-name">${drugName}</div>`;
-                            
-                            // Add click event to select the drug
-                            drugItem.addEventListener('click', function() {
-                                selectDrug(this.getAttribute('data-id'), this.getAttribute('data-name'));
-                            });
-                            
-                            drugsDropdown.appendChild(drugItem);
-                        });
-                        
-                        drugsDropdown.style.display = 'block';
-                    } else {
-                        // Show no results message
-                        const noResults = document.createElement('div');
-                        noResults.className = 'no-results';
-                        noResults.textContent = 'No matching drugs found';
-                        drugsDropdown.appendChild(noResults);
-                        drugsDropdown.style.display = 'block';
-                    }
-                }
-                
-                // Function to select a drug from the dropdown
-                function selectDrug(drugId, drugName) {
-                    drugAllergyInput.value = drugName;
-                    drugsDropdown.style.display = 'none';
-                    
-                    // Store selected drug ID to use when adding to allergies
-                    drugAllergyInput.setAttribute('data-selected-id', drugId);
-                }
-                
-                // Function to update the hidden input with selected drug IDs
-                function updateDrugAllergiesInput() {
-                    drugAllergiesInput.value = Array.from(selectedAllergies).join(',');
-                }
-                
-                // Function to add a drug allergy
-                function addDrugAllergy() {
-                    const drugName = drugAllergyInput.value;
-                    if (!drugName) return;
-                    
-                    // Get the drug ID from the input attribute
-                    const drugId = drugAllergyInput.getAttribute('data-selected-id');
-                    
-                    if (!drugId) {
-                        alert('Please select a valid drug from the list');
-                        return;
-                    }
-                    
-                    // Check if drugAllergiesInput exists
-                    if (!drugAllergiesInput) {
-                        console.error('drugAllergies input element not found');
-                        return;
-                    }
-                    
-                    // Check if already selected
-                    if (selectedAllergies.has(drugId)) {
-                        alert('This drug is already in the allergies list');
-                        drugAllergyInput.value = '';
-                        return;
-                    }
-                    
-                    // Remove empty row if it exists
-                    const emptyRow = allergiesList.querySelector('.empty-allergies-row');
-                    if (emptyRow) {
-                        emptyRow.remove();
-                    }
-                    
-                    // Create new row for the allergy
-                    const row = document.createElement('tr');
-                    row.setAttribute('data-drug-id', drugId);
-                    row.innerHTML = `
-                        <td>${drugName}</td>
-                        <td>
-                            <button type="button" class="remove-allergy-btn">
-                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M2 4H3.33333H14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <path d="M5.33334 4V2.66667C5.33334 2.31305 5.47382 1.97391 5.72387 1.72386C5.97392 1.47381 6.31305 1.33334 6.66668 1.33334H9.33334C9.68697 1.33334 10.0261 1.47381 10.2762 1.72386C10.5262 1.97391 10.6667 2.31305 10.6667 2.66667V4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <path d="M12.6667 4V13.3333C12.6667 13.687 12.5262 14.0261 12.2762 14.2761C12.0261 14.5262 11.687 14.6667 11.3333 14.6667H4.66668C4.31305 14.6667 3.97392 14.5262 3.72387 14.2761C3.47382 14.0261 3.33334 13.687 3.33334 13.3333V4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                </svg>
-                                Remove
-                            </button>
-                        </td>
-                    `;
-                    
-                    allergiesList.appendChild(row);
-                    selectedAllergies.add(drugId);
-                    updateDrugAllergiesInput();
-                    
-                    // Clear input and selected data
-                    drugAllergyInput.value = '';
-                    drugAllergyInput.removeAttribute('data-selected-id');
-                }
-                
-                // Add drug allergy when clicking the add button
-                if (addAllergyBtn) {
-                    addAllergyBtn.addEventListener('click', addDrugAllergy);
-                }
-                
-                // Add drug allergy when pressing Enter in the input field
-                if (drugAllergyInput) {
-                    drugAllergyInput.addEventListener('keydown', function(e) {
-                        if (e.key === 'Enter') {
-                            e.preventDefault();
-                            if (drugsDropdown.style.display === 'block') {
-                                // If dropdown is open and an item is selected, use that
-                                const firstItem = drugsDropdown.querySelector('.drug-item');
-                                if (firstItem) {
-                                    selectDrug(firstItem.getAttribute('data-id'), firstItem.getAttribute('data-name'));
-                                }
-                            }
-                            addDrugAllergy();
-                        }
-                    });
-                }
-                
-                // Remove drug allergy when clicking the remove button
-                if (allergiesList) {
-                    allergiesList.addEventListener('click', function(e) {
-                        const removeBtn = e.target.closest('.remove-allergy-btn');
-                        if (removeBtn) {
-                            const row = removeBtn.closest('tr');
-                            const drugId = row.getAttribute('data-drug-id');
-                            
-                            row.remove();
-                            selectedAllergies.delete(drugId);
-                            updateDrugAllergiesInput();
-                            
-                            // Add empty row if no allergies left
-                            if (selectedAllergies.size === 0) {
-                                const emptyRow = document.createElement('tr');
-                                emptyRow.className = 'empty-allergies-row';
-                                emptyRow.innerHTML = '<td colspan="2">No drug allergies selected</td>';
-                                allergiesList.appendChild(emptyRow);
-                            }
-                        }
-                    });
-                }
-            });
-        </script>
+        <script th:src="@{/js/create-patient.js}"></script>
     </th:block>
 </body>
 </html> 
