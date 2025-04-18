@@ -36,51 +36,60 @@
                     </div>
                     
                     <div class="form-wrapper">
-                        <form id="user-form" th:object="${user}">
+                        <form id="user-form" th:object="${user}" novalidate>
                             <!-- Add hidden input for user ID when in edit mode -->
                             <input type="hidden" id="userId" name="id" th:if="${isEdit != null && isEdit}" th:value="*{id}">
                             
                             <div class="form-group">
-                                <label for="username">Username</label>
-                                <input type="text" id="username" name="username" class="form-control" th:field="*{username}" required>
+                                <label for="username">Username <span class="required">*</span></label>
+                                <input type="text" id="username" name="username" class="form-control" th:field="*{username}" placeholder="nightingale20" required>
                                 <small class="text-muted">Note: 'admin' is a reserved username</small>
                             </div>
                             
                             <div class="form-group">
-                                <label for="password">Password</label>
-                                <input type="password" id="password" name="password" class="form-control" th:field="*{password}" th:required="${isEdit == null || !isEdit}">
-                                <small class="text-muted" th:if="${isEdit != null && isEdit}">Leave empty to keep current password</small>
+                                <label for="password">Password <span class="required" th:if="${isEdit == null || !isEdit}">*</span></label>
+                                <input type="password" id="password" name="password" class="form-control" th:field="*{password}" 
+                                       th:placeholder="${isEdit != null && isEdit ? '••••••••' : 'Please do not enter a simple password'}" 
+                                       th:required="${isEdit == null || !isEdit}">
+                                <small class="text-muted" th:if="${isEdit != null && isEdit}">Leave unchanged to keep current password</small>
                             </div>
                             
                             <div class="form-group">
-                                <label for="firstName">First Name</label>
-                                <input type="text" id="firstName" name="firstName" class="form-control" th:field="*{firstName}" required>
+                                <label for="confirmPassword">Confirm Password <span class="required" th:if="${isEdit == null || !isEdit}">*</span></label>
+                                <input type="password" id="confirmPassword" name="confirmPassword" class="form-control" 
+                                       th:placeholder="${isEdit != null && isEdit ? '••••••••' : 'Re-enter your password'}">
+                                <small class="text-muted" th:if="${isEdit != null && isEdit}">Only required if changing password</small>
                             </div>
                             
                             <div class="form-group">
-                                <label for="lastName">Last Name</label>
-                                <input type="text" id="lastName" name="lastName" class="form-control" th:field="*{lastName}" required>
+                                <label for="firstName">First Name <span class="required">*</span></label>
+                                <input type="text" id="firstName" name="firstName" class="form-control" th:field="*{firstName}" placeholder="Florence" required>
                             </div>
                             
                             <div class="form-group">
-                                <label for="email">Email</label>
-                                <input type="email" id="email" name="email" class="form-control" th:field="*{email}" required>
+                                <label for="lastName">Last Name <span class="required">*</span></label>
+                                <input type="text" id="lastName" name="lastName" class="form-control" th:field="*{lastName}" placeholder="Nightingale" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="email">Email <span class="required">*</span></label>
+                                <input type="email" id="email" name="email" class="form-control" th:field="*{email}" placeholder="example@email.com" required>
                             </div>
                             
                             <div class="form-group">
                                 <label for="phoneNumber">Phone Number</label>
-                                <input type="tel" id="phoneNumber" name="phoneNumber" class="form-control" th:field="*{phoneNumber}">
+                                <input type="tel" id="phoneNumber" name="phoneNumber" class="form-control" th:field="*{phoneNumber}" placeholder="1234-5678">
                             </div>
                             
                             <div class="form-group">
-                                <label for="licenseKey">License key</label>
-                                <input type="text" id="licenseKey" name="licenseKey" class="form-control" th:field="*{licenseKey}" required>
+                                <label for="licenseKey">License Key <span class="required">*</span></label>
+                                <input type="text" id="licenseKey" name="licenseKey" class="form-control" th:field="*{licenseKey}" placeholder="ABCD-1234-EFGH-5678" required>
                             </div>
                             
                             <div class="form-group">
-                                <label for="role">Role</label>
+                                <label for="role">Role <span class="required">*</span></label>
                                 <select id="role" name="role" class="form-control" th:field="*{role}" required>
-                                    <option value=""></option>
+                                    <option value="">Select a role</option>
                                     <option value="ADMIN">Administrator</option>
                                     <option value="DOCTOR">Doctor</option>
                                     <option value="NURSE">Nurse</option>
@@ -132,6 +141,22 @@
                     </div>
                     <div class="modal-footer">
                         <button id="errorOk" class="btn btn-error">OK</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Validation Popup -->
+            <div id="validationPopup" class="validation-popup" style="display: none;">
+                <div class="validation-popup-content">
+                    <h3 class="validation-popup-title">Form Validation Error</h3>
+                    <div class="validation-popup-body">
+                        <p>Please fix the following errors:</p>
+                        <ul id="validationErrorList" class="validation-error-list">
+                            <!-- Validation errors will be inserted here dynamically -->
+                        </ul>
+                    </div>
+                    <div class="validation-popup-footer">
+                        <button id="validationOk" class="btn btn-error">OK</button>
                     </div>
                 </div>
             </div>

@@ -220,6 +220,14 @@ body, html {
 
 .radio-option input[type="radio"] {
     margin-right: 0.5rem;
+    margin-top: 0;
+    vertical-align: middle;
+}
+
+.radio-option label {
+    display: inline-block;
+    vertical-align: middle;
+    margin-bottom: 0;
 }
 
 /* Unauthorized access styling */
@@ -252,4 +260,74 @@ body, html {
 
 .unauthorized-access a:hover {
     background-color: #7b26cd;
+}
+
+/* Required field asterisk styling */
+.required {
+    color: #ff4d4d;
+    margin-left: 2px;
+}
+
+/* Invalid input styling */
+.invalid-input {
+    border-color: #ff4d4d !important;
+    box-shadow: 0 0 0 1px #ff4d4d !important;
+}
+
+/* Field validation message */
+.field-validation-error {
+    color: #ff4d4d;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    display: block;
+}
+
+/* Custom validation popup */
+.validation-popup {
+    position: fixed;
+    z-index: 1100;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.validation-popup-content {
+    background-color: var(--primary-bg);
+    padding: 20px;
+    border-radius: 8px;
+    width: 400px;
+    max-width: 90%;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+}
+
+.validation-popup-title {
+    color: #ff4d4d;
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 1.5rem;
+}
+
+.validation-error-list {
+    margin-bottom: 20px;
+    padding-left: 20px;
+}
+
+.validation-error-item {
+    margin-bottom: 5px;
+    color: #333;
+}
+
+.validation-popup-footer {
+    display: flex;
+    justify-content: flex-end;
 }
