@@ -223,10 +223,10 @@
             <div class="user-profile-container">
                 <!-- User Profile Dropdown -->
                 <div class="user-profile-dropdown" id="user-profile-dropdown">
-                    <div class="duty-status" id="duty-status" sec:authorize="hasRole('ROLE_DOCTOR')">On Duty Since 20:00</div>
+                    <div class="duty-status" id="duty-status" sec:authorize="hasAnyRole('ROLE_DOCTOR', 'ROLE_NURSE')">On Duty Since 20:00</div>
                     <div class="profile-actions">
-                        <a href="/logout" class="btn-logout" th:classappend="${!#authorization.expression('hasRole(''ROLE_DOCTOR'')')} ? 'full-width' : ''">Logout</a>
-                        <button type="button" class="btn-duty" id="duty-toggle" sec:authorize="hasRole('ROLE_DOCTOR')">Off Duty</button>
+                        <a href="/logout" class="btn-logout" th:classappend="${!#authorization.expression('hasAnyRole(''ROLE_DOCTOR'', ''ROLE_NURSE'')')} ? 'full-width' : ''">Logout</a>
+                        <button type="button" class="btn-duty" id="duty-toggle" sec:authorize="hasAnyRole('ROLE_DOCTOR', 'ROLE_NURSE')">Off Duty</button>
                     </div>
                 </div>
                 
