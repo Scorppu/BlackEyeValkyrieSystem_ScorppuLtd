@@ -142,3 +142,57 @@
     background-color: rgba(244, 67, 54, 0.2);
     color: #F44336;
 }
+
+/* Add styling for the toggle button and loading state */
+.toggle-duty-btn {
+    min-width: 120px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.toggle-duty-btn.loading {
+    opacity: 0.7;
+    position: relative;
+    color: transparent;
+}
+
+.toggle-duty-btn.loading::after {
+    content: "";
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Improve responsive layout for mobile */
+@media (max-width: 768px) {
+    .stats-container {
+        flex-wrap: wrap;
+    }
+    
+    .stat-card {
+        min-width: calc(50% - 20px);
+    }
+    
+    .toggle-duty-btn {
+        min-width: 100px;
+        padding: 4px 8px;
+        font-size: 0.9rem;
+    }
+    
+    .queue-table th,
+    .queue-table td {
+        padding: 8px 6px;
+        font-size: 0.9rem;
+    }
+}
