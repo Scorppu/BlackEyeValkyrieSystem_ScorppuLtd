@@ -236,4 +236,76 @@
     padding: 1.5rem;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     width: 100%;
-} 
+    box-sizing: border-box;
+    overflow: visible !important;
+    min-width: 100%;
+    max-width: 100%;
+    height: auto !important;
+    min-height: 0;
+    max-height: none !important;
+    margin-top: 2rem;
+    margin-bottom: 0;
+}
+
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: visible;
+    -webkit-overflow-scrolling: touch;
+}
+
+.patient-stats th {
+padding: 12px 10px;
+text-align: left;
+border-bottom: 1px solid var(--border-color);
+font-weight: 500;
+}
+
+.patient-stats th:nth-child(1) { width: 20%; } /* Patient Name */
+.patient-stats th:nth-child(2) { width: 27%; } /* Patient ID */
+.patient-stats th:nth-child(3) { width:  5%; } /* Age */
+.patient-stats th:nth-child(4) { width:  8%; } /* Gender */
+.patient-stats th:nth-child(5) { width: 16%; } /* Contact */
+.patient-stats th:nth-child(6) { width: 11%; } /* Status */
+.patient-stats th:nth-child(7) { width: 13%; } /* Action */
+.patient-stats td {
+    padding: 12px 10px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+/* Responsive breakpoints */
+@media screen and (max-width: 1380px) {
+    .stat-number h3 {
+        font-size: 0.875rem;
+    }
+    
+    .stat-number p {
+        font-size: 2.25rem;
+    }
+}
+
+@media screen and (max-width: 1200px) {
+    .stat-number h3 {
+        font-size: 0.75rem;
+    }
+    
+    .stat-number p {
+        font-size: 2rem;
+    }
+    .patient-table th.id-col,
+    .patient-table td:nth-child(2) {
+        display: none;
+    }
+    .patient-stats th:nth-child(1) { width: 28%; } /* Patient Name */
+    .patient-stats th:nth-child(3) { width:  7%; } /* Age */
+    .patient-stats th:nth-child(4) { width: 11%; } /* Gender */
+    .patient-stats th:nth-child(5) { width: 22%; } /* Contact */
+    .patient-stats th:nth-child(6) { width: 15%; } /* Status */
+    .patient-stats th:nth-child(7) { width: 17%; } /* Action */
+}
+
+/* Hide the three dots menu in all views */
+.stat-actions {
+    display: none;
+}

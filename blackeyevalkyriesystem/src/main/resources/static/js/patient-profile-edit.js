@@ -1,145 +1,311 @@
-// Patient Profile Edit JavaScript
-document.addEventListener('DOMContentLoaded', function() {
-    // Tab navigation
-    const tabItems = document.querySelectorAll('.tab-item');
-    
-    // Switch between form sections based on tab
-    function switchFormSection(tabId) {
-        // Hide all form sections
-        document.querySelectorAll('.form-section').forEach(section => {
-            section.classList.remove('active');
-        });
-        
-        // Show the correct form section
-        if (tabId === 'personal-info-tab') {
-            document.getElementById('personal-info-form').classList.add('active');
-            document.querySelectorAll('.tab-item').forEach(tab => {
-                if (tab.dataset.target === 'personal-info-tab') {
-                    tab.classList.add('active');
-                } else {
-                    tab.classList.remove('active');
-                }
-            });
-            document.getElementById('personal-info-tab').classList.add('active');
-            document.getElementById('contact-info-tab').classList.remove('active');
-            document.getElementById('allergies-tab').classList.remove('active');
-        } else if (tabId === 'contact-info-tab') {
-            document.getElementById('contact-info-form').classList.add('active');
-            document.querySelectorAll('.tab-item').forEach(tab => {
-                if (tab.dataset.target === 'contact-info-tab') {
-                    tab.classList.add('active');
-                } else {
-                    tab.classList.remove('active');
-                }
-            });
-            document.getElementById('contact-info-tab').classList.add('active');
-            document.getElementById('personal-info-tab').classList.remove('active');
-            document.getElementById('allergies-tab').classList.remove('active');
-        } else if (tabId === 'allergies-tab') {
-            document.getElementById('allergies-form').classList.add('active');
-            document.querySelectorAll('.tab-item').forEach(tab => {
-                if (tab.dataset.target === 'allergies-tab') {
-                    tab.classList.add('active');
-                } else {
-                    tab.classList.remove('active');
-                }
-            });
-            document.getElementById('allergies-tab').classList.add('active');
-            document.getElementById('personal-info-tab').classList.remove('active');
-            document.getElementById('contact-info-tab').classList.remove('active');
-        }
+.patient-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+/* Add media query to stack stat cards vertically */
+@media screen and (max-width: 1050px) {
+    .patient-stats {
+        grid-template-columns: 1fr;
     }
     
-    // Tab click event handling
-    tabItems.forEach(function(tab) {
-        tab.addEventListener('click', function() {
-            const targetId = this.dataset.target;
-            switchFormSection(targetId);
-        });
-    });
-    
-    // Calculate age from date of birth
-    const dobField = document.getElementById('dateOfBirth');
-    const ageField = document.getElementById('age');
-    
-    if (dobField && ageField) {
-        dobField.addEventListener('change', function() {
-            const dob = new Date(this.value);
-            const today = new Date();
-            let age = today.getFullYear() - dob.getFullYear();
-            
-            // Adjust age if birthday hasn't occurred yet this year
-            const monthDiff = today.getMonth() - dob.getMonth();
-            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
-                age--;
-            }
-            
-            ageField.value = age;
-        });
-        
-        // Calculate initial age
-        if (dobField.value) {
-            const dob = new Date(dobField.value);
-            const today = new Date();
-            let age = today.getFullYear() - dob.getFullYear();
-            
-            const monthDiff = today.getMonth() - dob.getMonth();
-            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
-                age--;
-            }
-            
-            ageField.value = age;
-        }
+    .stat-card {
+        margin-bottom: 0.75rem;
+        padding: 1rem;
     }
     
-    // Drug allergies management
-    const drugSelect = document.getElementById('drugSelect');
-    const addAllergyBtn = document.getElementById('addAllergyBtn');
-    const allergiesTableBody = document.getElementById('allergiesTableBody');
-    const noAllergiesRow = document.getElementById('noAllergiesRow');
-    
-    if (addAllergyBtn && drugSelect && allergiesTableBody && noAllergiesRow) {
-        addAllergyBtn.addEventListener('click', function() {
-            const selectedDrug = drugSelect.value;
-            const selectedDrugText = drugSelect.options[drugSelect.selectedIndex].text;
-            
-            if (selectedDrug) {
-                // Hide the "no allergies" row if visible
-                if (noAllergiesRow) {
-                    noAllergiesRow.style.display = 'none';
-                }
-                
-                // Create a new row for the allergy
-                const newRow = document.createElement('tr');
-                newRow.innerHTML = `
-                    <td>${selectedDrugText}</td>
-                    <td>
-                        <input type="hidden" name="allergies[]" value="${selectedDrug}">
-                        <button type="button" class="remove-allergy-btn">
-                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12.6667 4.27337L11.7267 3.33337L8.00001 7.06004L4.27334 3.33337L3.33334 4.27337L7.06001 8.00004L3.33334 11.7267L4.27334 12.6667L8.00001 8.94004L11.7267 12.6667L12.6667 11.7267L8.94001 8.00004L12.6667 4.27337Z" fill="#DC3545"/>
-                            </svg>
-                            Remove
-                        </button>
-                    </td>
-                `;
-                
-                allergiesTableBody.appendChild(newRow);
-                
-                // Add event listener to the remove button
-                const removeButton = newRow.querySelector('.remove-allergy-btn');
-                removeButton.addEventListener('click', function() {
-                    allergiesTableBody.removeChild(newRow);
-                    
-                    // Show the "no allergies" row if there are no allergies
-                    if (allergiesTableBody.children.length === 1) { // 1 because of the noAllergiesRow
-                        noAllergiesRow.style.display = 'table-row';
-                    }
-                });
-                
-                // Reset the select
-                drugSelect.value = '';
-            }
-        });
+    /* Keep display consistent on mobile */
+    .stat-number {
+        display: flex;
+        flex-direction: column;
     }
-}); 
+    
+    .stat-number p {
+        font-size: 1.75rem;
+    }
+    
+    .stat-number h3 {
+        font-size: 0.875rem;
+        display: block;
+    }
+}
+
+.stat-card {
+    background-color: var(--secondary-bg);
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.stat-number {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-number p {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0;
+    line-height: 1;
+    color: var(--primary-text);
+}
+
+.stat-number h3 {
+    font-size: 1rem;
+    font-weight: 400;
+    margin: 0.25rem 0 0;
+    color: var(--secondary-text);
+}
+
+.stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+}
+
+.stat-icon.purple {
+    background-color: rgba(138, 43, 226, 0.2);
+}
+
+.stat-icon.green {
+    background-color: rgba(35, 178, 126, 0.2);
+}
+
+.stat-icon.blue {
+    background-color: rgba(64, 115, 255, 0.2);
+}
+
+.stat-info h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.stat-info p {
+    margin: 0.25rem 0 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.stat-actions {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+}
+
+.patient-table {
+    width: 100%;
+    margin-bottom: 1rem;
+    border-collapse: collapse;
+}
+
+.patient-table th,
+.patient-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.patient-table th {
+    font-weight: 600;
+    color: var(--primary-text);
+    position: relative;
+}
+
+/* Add column width percentages */
+.patient-table th:nth-child(1) { width: 20%; } /* Patient name */
+.patient-table th:nth-child(2) { width: 27%; } /* Patient ID */
+.patient-table th:nth-child(3) { width: 5%; }  /* Age */
+.patient-table th:nth-child(4) { width: 8%; }  /* Gender */
+.patient-table th:nth-child(5) { width: 16%; } /* Contact */
+.patient-table th:nth-child(6) { width: 11%; } /* Status */
+.patient-table th:nth-child(7) { width: 13%; } /* Action */
+
+.patient-table th a {
+    color: var(--primary-text);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.patient-table th a:hover {
+    text-decoration: none;
+}
+
+.patient-table th span.sort-icon {
+    margin-left: 0.5rem;
+    font-size: 0.75rem;
+    display: inline-block;
+    width: 10px;
+    text-align: center;
+}
+
+.patient-table th a::after {
+    content: "";
+    width: 10px;
+    display: inline-block;
+}
+
+.patient-table tr:hover {
+    background-color: rgba(138, 43, 226, 0.05);
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.status-badge.admitted {
+    background-color: rgba(35, 178, 126, 0.2);
+    color: #23b27e;
+}
+
+.status-badge.discharged {
+    background-color: rgba(100, 116, 139, 0.2);
+    color: #64748b;
+}
+
+.patient-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.patient-actions svg {
+    cursor: pointer;
+}
+
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.create-button {
+    display: inline-block;
+    background-color: var(--accent-color);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background-color 0.2s;
+}
+
+.create-button:hover {
+    background-color: #7b26cd;
+}
+
+.pagination-text {
+    color: var(--secondary-text);
+    text-align: right;
+}
+
+.patient-name-link {
+    color: var(--primary-text);
+    text-decoration: underline;
+    font-weight: 500;
+}
+
+.patient-name-link:hover {
+    text-decoration: underline;
+    color: var(--primary-text);
+}
+
+.content-card {
+    background-color: var(--secondary-bg);
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    box-sizing: border-box;
+    overflow: visible !important;
+    min-width: 100%;
+    max-width: 100%;
+    height: auto !important;
+    min-height: 0;
+    max-height: none !important;
+    margin-top: 2rem;
+    margin-bottom: 0;
+}
+
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: visible;
+    -webkit-overflow-scrolling: touch;
+}
+
+.patient-stats th {
+padding: 12px 10px;
+text-align: left;
+border-bottom: 1px solid var(--border-color);
+font-weight: 500;
+}
+
+.patient-stats th:nth-child(1) { width: 20%; } /* Patient Name */
+.patient-stats th:nth-child(2) { width: 27%; } /* Patient ID */
+.patient-stats th:nth-child(3) { width:  5%; } /* Age */
+.patient-stats th:nth-child(4) { width:  8%; } /* Gender */
+.patient-stats th:nth-child(5) { width: 16%; } /* Contact */
+.patient-stats th:nth-child(6) { width: 11%; } /* Status */
+.patient-stats th:nth-child(7) { width: 13%; } /* Action */
+.patient-stats td {
+    padding: 12px 10px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+/* Responsive breakpoints */
+@media screen and (max-width: 1380px) {
+    .stat-number h3 {
+        font-size: 0.875rem;
+    }
+    
+    .stat-number p {
+        font-size: 2.25rem;
+    }
+}
+
+@media screen and (max-width: 1200px) {
+    .stat-number h3 {
+        font-size: 0.75rem;
+    }
+    
+    .stat-number p {
+        font-size: 2rem;
+    }
+    .patient-table th.id-col,
+    .patient-table td:nth-child(2) {
+        display: none;
+    }
+    .patient-stats th:nth-child(1) { width: 28%; } /* Patient Name */
+    .patient-stats th:nth-child(3) { width:  7%; } /* Age */
+    .patient-stats th:nth-child(4) { width: 11%; } /* Gender */
+    .patient-stats th:nth-child(5) { width: 22%; } /* Contact */
+    .patient-stats th:nth-child(6) { width: 15%; } /* Status */
+    .patient-stats th:nth-child(7) { width: 17%; } /* Action */
+}
+
+/* Hide the three dots menu in all views */
+.stat-actions {
+    display: none;
+}

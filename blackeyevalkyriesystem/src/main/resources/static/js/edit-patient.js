@@ -1,4 +1,3 @@
-// Tab navigation for personal to contact info
 document.addEventListener('DOMContentLoaded', function() {
     const nextButton = document.getElementById('next-btn');
     const backButton = document.getElementById('back-btn');
@@ -193,4 +192,4 @@ document.addEventListener('DOMContentLoaded', function() {
             ageField.value = age;
         }
     }
-}); 
+});
