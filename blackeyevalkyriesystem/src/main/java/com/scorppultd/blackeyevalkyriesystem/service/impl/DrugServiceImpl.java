@@ -351,6 +351,11 @@ public class DrugServiceImpl implements DrugService {
     public Drug addInteractionToDrug(String drugId, String interactingDrugId) {
         return drugRepository.findById(drugId)
             .map(drug -> {
+                // First verify that the interacting drug exists
+                if (!drugRepository.findById(interactingDrugId).isPresent()) {
+                    throw new RuntimeException("Interacting drug not found with ID: " + interactingDrugId);
+                }
+                
                 if (drug.getInteractingDrugIds() == null) {
                     System.out.println("Drug " + drugId + " has no interactions yet, initializing list");
                     drug.setInteractingDrugIds(new ArrayList<>());
