@@ -50,7 +50,7 @@
 }
 
 .stat-number p {
-    font-size: 2.5rem;
+    font-size: 2.25rem;
     font-weight: 700;
     margin: 0;
     line-height: 1;
@@ -58,7 +58,7 @@
 }
 
 .stat-number h3 {
-    font-size: 1rem;
+    font-size: 0.875rem;
     font-weight: 400;
     margin: 0.25rem 0 0;
     color: var(--secondary-text);
@@ -173,14 +173,19 @@
     font-weight: 600;
 }
 
+.status-badge.active {
+    background-color: rgba(138, 43, 226, 0.2);
+    color: #8A2BE2;
+}
+
 .status-badge.admitted {
-    background-color: rgba(35, 178, 126, 0.2);
-    color: #23b27e;
+    background-color: rgba(43, 226, 86, 0.2);
+    color: #56AF82;
 }
 
 .status-badge.discharged {
-    background-color: rgba(100, 116, 139, 0.2);
-    color: #64748b;
+    background-color: rgba(48, 169, 222, 0.2);
+    color: #30A9DE;
 }
 
 .patient-actions {
@@ -275,15 +280,6 @@ font-weight: 500;
 }
 
 /* Responsive breakpoints */
-@media screen and (max-width: 1380px) {
-    .stat-number h3 {
-        font-size: 0.875rem;
-    }
-    
-    .stat-number p {
-        font-size: 2.25rem;
-    }
-}
 
 @media screen and (max-width: 1200px) {
     .stat-number h3 {

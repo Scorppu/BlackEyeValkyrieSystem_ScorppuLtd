@@ -112,21 +112,74 @@ public class WebController {
                 }
             }
             
-            // Add duty status counts to model
+            // Get total patient count for dashboard
+            int totalPatients = 0;
+            int activePatients = 0;
+            int admittedPatients = 0;
+            int dischargedPatients = 0;
+            int activePercentage = 0;
+            int admittedPercentage = 0;
+            int dischargedPercentage = 0;
+            
+
+            try {
+                List<Patient> allPatients = patientService.getAllPatients();
+                totalPatients = allPatients.size();
+                
+                // Count admitted and discharged patients
+                if (totalPatients > 0) {
+                    for (Patient patient : allPatients) {
+                        if (patient.getStatus() != null) {
+                            if (patient.getStatus().equalsIgnoreCase("active")) {
+                                activePatients++;
+                            } else if (patient.getStatus().equalsIgnoreCase("admitted")) {
+                                admittedPatients++;
+                            } else if (patient.getStatus().equalsIgnoreCase("discharged")) {
+                                dischargedPatients++;
+                            }
+                        }
+                    }
+                    
+                    // Calculate percentages
+                    admittedPercentage = Math.round((float) admittedPatients / totalPatients * 100);
+                    dischargedPercentage = Math.round((float) dischargedPatients / totalPatients * 100);
+                    activePercentage = Math.round((float) activePatients / totalPatients * 100);
+                }
+                
+                logger.info("Total patients count for homepage: {}, admitted: {}, discharged: {}", 
+                           totalPatients, admittedPatients, dischargedPatients);
+            } catch (Exception e) {
+                logger.error("Error fetching total patients count: {}", e.getMessage(), e);
+            }
+            
+            // Add all counts to model
             model.addAttribute("doctorsOnDuty", doctorsOnDuty);
             model.addAttribute("doctorsOffDuty", doctorsOffDuty);
             model.addAttribute("nursesOnDuty", nursesOnDuty);
             model.addAttribute("nursesOffDuty", nursesOffDuty);
+            model.addAttribute("totalPatients", totalPatients);
+            model.addAttribute("activePatients", activePatients);
+            model.addAttribute("admittedPatients", admittedPatients);
+            model.addAttribute("dischargedPatients", dischargedPatients);
+            model.addAttribute("activePercentage", activePercentage);
+            model.addAttribute("admittedPercentage", admittedPercentage);
+            model.addAttribute("dischargedPercentage", dischargedPercentage);
             
-            logger.info("Home page duty stats - doctors: {}/{}, nurses: {}/{}", 
-                        doctorsOnDuty, doctorsOffDuty, nursesOnDuty, nursesOffDuty);
+            logger.info("Home page stats - doctors: {}/{}, nurses: {}/{}, patients: {}, admitted: {}%, discharged: {}%", 
+                        doctorsOnDuty, doctorsOffDuty, nursesOnDuty, nursesOffDuty, totalPatients, 
+                        admittedPercentage, dischargedPercentage);
         } catch (Exception e) {
-            logger.error("Error calculating duty status for homepage: {}", e.getMessage(), e);
+            logger.error("Error calculating stats for homepage: {}", e.getMessage(), e);
             // Set defaults if there's an error
             model.addAttribute("doctorsOnDuty", 0);
             model.addAttribute("doctorsOffDuty", 0);
             model.addAttribute("nursesOnDuty", 0);
             model.addAttribute("nursesOffDuty", 0);
+            model.addAttribute("totalPatients", 0);
+            model.addAttribute("admittedPatients", 0);
+            model.addAttribute("dischargedPatients", 0);
+            model.addAttribute("admittedPercentage", 0);
+            model.addAttribute("dischargedPercentage", 0);
         }
         
         return "index";

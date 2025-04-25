@@ -138,7 +138,12 @@
                             <td th:text="${patient.sex ? 'Male' : 'Female'}"></td>
                             <td th:text="${patient.contactNumber}"></td>
                             <td>
-                                <span class="status-badge" th:classappend="${patient.status == 'Admitted' ? 'admitted' : 'discharged'}" th:text="${patient.status}"></span>
+                                <span class="status-badge" 
+                                      th:classappend="${patient.status == 'Active' ? 'active' : 
+                                                      (patient.status == 'Admitted' ? 'admitted' : 
+                                                      (patient.status == 'Discharged' ? 'discharged' : ''))}">
+                                      <span th:text="${patient.status}"></span>
+                                </span>
                             </td>
                             <td>
                                 <div class="patient-actions">
