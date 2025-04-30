@@ -6,13 +6,13 @@ html {
 /* Default dark theme variables */
 :root {
     color-scheme: dark;
-    --primary-bg: #0a0a23;
-    --secondary-bg: #111133;
+    --primary-bg: #1e2130;
+    --secondary-bg: #15171e;
     --primary-text: #ffffff;
-    --secondary-text: #b3b3ff;
-    --accent-color: #8a2be2;
-    --input-bg: #111133;
-    --border-color: #222266;
+    --secondary-text: #9ba3b0;
+    --accent-color: #8a2be2;;
+    --input-bg: #15171e;
+    --border-color: #2e3243;
     --icon-stroke: #ffffff;
 }
 

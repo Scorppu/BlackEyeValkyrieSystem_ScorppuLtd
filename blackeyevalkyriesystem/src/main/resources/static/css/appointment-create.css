@@ -51,7 +51,7 @@
 }
 
 .patient-table th a {
-    color: var(--accent-color);
+    color: var(--secondary-text);
     text-decoration: none;
     display: flex;
     align-items: center;

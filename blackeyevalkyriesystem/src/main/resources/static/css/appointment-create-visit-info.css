@@ -209,7 +209,7 @@ input[type="date"]::-webkit-clear-button {
 #doctorName {
     position: relative;
     z-index: 2;
-    background: white;
+    background: var(--input-bg);
 }
 
 /* Timeline styles */
