@@ -108,6 +108,108 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    // This function will ensure that the appropriate sidebar dropdown is expanded
+    // based on the current URL path
+    function fixSidebarNavigation() {
+        console.log('Fixing sidebar navigation...');
+        const currentPath = window.location.pathname;
+        console.log('Current path:', currentPath);
+        
+        // Special handling for consultation and dispensary sections
+        if (currentPath.includes('consultation') || currentPath.includes('dispensary')) {
+            console.log('CRITICAL PATH DETECTED:', currentPath);
+            // Get the corresponding nav item
+            let selector = currentPath.includes('consultation') 
+                ? 'a.nav-item[href="/consultation"]' 
+                : 'a.nav-item[href="/dispensary"]';
+            
+            const navItem = document.querySelector(selector);
+            if (navItem) {
+                console.log('Found matching nav item:', navItem);
+                navItem.classList.add('active');
+                // Force the active class
+                setTimeout(() => {
+                    navItem.classList.add('active');
+                }, 500);
+            } else {
+                console.log('Navigation item not found for', selector);
+            }
+        }
+        
+        // Get all dropdown toggles
+        const dropdownToggles = document.querySelectorAll('.nav-item.dropdown-toggle');
+        
+        // For each dropdown toggle, check if the current path starts with a path
+        // that would be contained within its submenu
+        dropdownToggles.forEach(function(toggle) {
+            // Get the corresponding dropdown menu
+            const dropdownMenu = toggle.nextElementSibling;
+            if (!dropdownMenu || !dropdownMenu.classList.contains('dropdown-menu')) {
+                return;
+            }
+            
+            // Get all links within the dropdown menu
+            const links = dropdownMenu.querySelectorAll('a.nav-subitem');
+            
+            // Check if any of the links' href attribute begins with the current path
+            let shouldExpand = false;
+            links.forEach(function(link) {
+                const linkPath = link.getAttribute('href');
+                if (currentPath.startsWith(linkPath)) {
+                    shouldExpand = true;
+                    link.classList.add('active');
+                }
+            });
+            
+            // Also check if the toggle itself is marked for expansion based on URL
+            // by looking at its Thymeleaf-generated class
+            if (toggle.classList.contains('expanded')) {
+                shouldExpand = true;
+            }
+            
+            // If the toggle should be expanded based on current URL
+            if (shouldExpand || currentPath.startsWith(toggle.getAttribute('data-path'))) {
+                console.log('Expanding:', toggle);
+                // Expand the dropdown
+                toggle.classList.add('expanded');
+                dropdownMenu.classList.add('active');
+                dropdownMenu.style.maxHeight = dropdownMenu.scrollHeight + "px";
+            }
+        });
+
+        // Handle highlighting of non-dropdown menu items
+        // Get all non-dropdown nav items (direct links)
+        const directNavItems = document.querySelectorAll('a.nav-item:not(.dropdown-toggle)');
+        
+        directNavItems.forEach(function(item) {
+            const itemPath = item.getAttribute('href');
+            
+            // Only process items with a valid href
+            if (!itemPath) return;
+            
+            // Special handling and logging for consultation and dispensary
+            if (itemPath === '/consultation' || itemPath === '/dispensary') {
+                console.log('Processing special item:', itemPath, 'Current path:', currentPath);
+                
+                if (currentPath === itemPath || currentPath.startsWith(itemPath + '/')) {
+                    console.log('MATCH FOUND for', itemPath);
+                }
+            }
+            
+            // Check if the current URL starts with this item's path
+            if (currentPath === itemPath || currentPath.startsWith(itemPath + '/')) {
+                console.log('Highlighting direct nav item:', item, 'path:', itemPath);
+                item.classList.add('active');
+                
+                // If this item has a special container, highlight it too
+                const container = item.querySelector('.nav-item-content');
+                if (container) {
+                    container.classList.add('active');
+                }
+            }
+        });
+    }
+    
     // Dropdown menus in sidebar - improved implementation
     const dropdownLinks = document.querySelectorAll('.dropdown-toggle');
     
@@ -145,20 +247,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
         });
+    }
+    
+    // Special direct fix for consultation and dispensary
+    function applySpecialMenuFixes() {
+        const consultationItem = document.getElementById('consultation-nav-item');
+        const dispensaryItem = document.getElementById('dispensary-nav-item');
         
-        // Auto-expand dropdown if a child is active
-        refreshedDropdownLinks.forEach(function(link) {
-            const submenu = link.nextElementSibling;
-            if (submenu && submenu.classList.contains('dropdown-menu')) {
-                const hasActiveChild = submenu.querySelector('.active');
-                
-                if (hasActiveChild) {
-                    link.classList.add('expanded');
-                    submenu.classList.add('active');
-                    submenu.style.maxHeight = submenu.scrollHeight + "px";
-                }
-            }
-        });
+        if (consultationItem && window.location.pathname.includes('/consultation')) {
+            console.log('Direct fix for consultation tab');
+            consultationItem.classList.add('active');
+            const content = consultationItem.querySelector('.nav-item-content');
+            if (content) content.classList.add('active');
+        }
+        
+        if (dispensaryItem && window.location.pathname.includes('/dispensary')) {
+            console.log('Direct fix for dispensary tab');
+            dispensaryItem.classList.add('active');
+            const content = dispensaryItem.querySelector('.nav-item-content');
+            if (content) content.classList.add('active');
+        }
     }
     
     // Tab navigation
@@ -340,4 +448,21 @@ document.addEventListener('DOMContentLoaded', function() {
         const minutes = String(now.getMinutes()).padStart(2, '0');
         return `${hours}:${minutes}`;
     }
+    
+    // Initialize sidebar navigation
+    setTimeout(fixSidebarNavigation, 100);
+    applySpecialMenuFixes();
+    
+    // Add event listeners for navigation changes
+    window.addEventListener('resize', fixSidebarNavigation);
+    window.addEventListener('popstate', fixSidebarNavigation);
+    
+    // Add additional listener for clicks on special links
+    document.addEventListener('click', function(e) {
+        if (e.target && (e.target.closest('a[href="/consultation"]') || e.target.closest('a[href="/dispensary"]'))) {
+            console.log('Special link clicked:', e.target);
+            // Let the page load and then fix navigation
+            setTimeout(fixSidebarNavigation, 300);
+        }
+    });
 }); 

@@ -191,8 +191,28 @@ nav {
 }
 
 .nav-item.active {
-    background-color: rgba(138, 43, 226, 0.2);
-    color: var(--accent-color);
+    background-color: var(--secondary-bg);
+    color: var(--primary-color);
+    font-weight: 500;
+    border-left: 3px solid var(--primary-color);
+    padding-left: calc(var(--spacing-md) - 3px);
+}
+
+.nav-item.active svg {
+    stroke: var(--primary-color);
+    fill: transparent;
+}
+
+/* Ensure SVG icons inside nav-items get highlighted properly */
+.nav-item.active svg path {
+    stroke: var(--primary-color);
+}
+
+/* Ensure content inside active nav items is properly styled */
+.nav-item-content.active, 
+.nav-item.active .nav-item-content {
+    color: var(--primary-color);
+    font-weight: 500;
 }
 
 .nav-item svg {
