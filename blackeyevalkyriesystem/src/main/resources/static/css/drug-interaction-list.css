@@ -44,7 +44,8 @@
     border-bottom: none;
 }
 .drug-interaction-item:hover {
-    background-color: var(--hover-bg);
+    background-color: var(--secondary-bg);
+    border-radius: 0 0 8px 8px;
 }
 .empty-state {
     text-align: center;

@@ -1,5 +1,6 @@
-// First, add a simple function at the top of our script section to detect dark mode
 let forceDarkMode = false;
+// Track theme state with a global variable
+let currentThemeIsDark = false;
 
 // This function will be called immediately and again when creating visualizations
 function detectDarkMode() {
@@ -9,6 +10,7 @@ function detectDarkMode() {
         if (allButtons[i].textContent.includes('Switch to Light Mode')) {
             console.log("Detected dark mode from button text");
             forceDarkMode = true;
+            currentThemeIsDark = true;
             return true;
         }
     }
@@ -19,6 +21,7 @@ function detectDarkMode() {
         document.body.classList.contains('dark-mode')) {
         console.log("Detected dark mode from attributes/classes");
         forceDarkMode = true;
+        currentThemeIsDark = true;
         return true;
     }
     
@@ -30,11 +33,13 @@ function detectDarkMode() {
         bodyBgColor.includes('rgb(13, 17, 23)'))) {
         console.log("Detected dark mode from body background color");
         forceDarkMode = true;
+        currentThemeIsDark = true;
         return true;
     }
     
     // Default to light mode
     forceDarkMode = false;
+    currentThemeIsDark = false;
     return false;
 }
 
@@ -91,6 +96,9 @@ document.addEventListener('DOMContentLoaded', function() {
         '#bubbleMap, .map-container { background-color: white !important; }';
     document.head.appendChild(style);
     
+    // Theme switcher event handler
+    setupThemeSwitcherEvents();
+    
     // Make sure D3 is loaded before proceeding with the rest
     // ...continue with existing code
 });
@@ -133,7 +141,26 @@ let lastUsedDrugId = null;
 
 // Optimize data loading with caching
 function updateInteractionMap() {
+    console.log("updateInteractionMap called");
     const drugId = document.getElementById('drugSelect').value;
+    
+    // Always clear the visualization first to avoid showing previous maps
+    const bubbleMap = document.getElementById('bubbleMap');
+    if (bubbleMap) {
+        bubbleMap.style.display = 'none';
+        // Force SVG clearing
+        bubbleMap.innerHTML = '';
+    }
+    
+    // Reset SVG content to prevent persistence of previous visualizations
+    d3.select("#bubbleMap").html("");
+    
+    // Show loading state
+    const emptyState = document.getElementById('emptyState');
+    if (emptyState) {
+        emptyState.innerHTML = '<div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div><p>Loading interaction data...</p>';
+        emptyState.style.display = 'block';
+    }
     
     // Check if we're requesting the same data we already have
     if (drugId === lastUsedDrugId && cachedNodeData[drugId]) {
@@ -151,20 +178,10 @@ function updateInteractionMap() {
             console.log("Using cached data for full relationship graph");
             generateNetworkGraph(cachedInteractionData);
         } else {
-        loadFullRelationshipGraph();
+            loadFullRelationshipGraph();
         }
         return;
     }
-    
-    // Show loading state
-    const emptyState = document.getElementById('emptyState');
-    if (emptyState) {
-        emptyState.innerHTML = '<div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div><p>Loading interaction data...</p>';
-        emptyState.style.display = 'block';
-    }
-    
-    const bubbleMap = document.getElementById('bubbleMap');
-    if (bubbleMap) bubbleMap.style.display = 'none';
     
     // Check if we have cached data for this drug
     if (cachedNodeData[drugId]) {
@@ -186,7 +203,7 @@ function updateInteractionMap() {
                 };
                 
                 // If no interactions
-                if (interactionIds.length === 0) {
+                if (!Array.isArray(interactionIds) || interactionIds.length === 0) {
                     const emptyState = document.getElementById('emptyState');
                     const bubbleMap = document.getElementById('bubbleMap');
                     const mapLegend = document.getElementById('mapLegend');
@@ -219,7 +236,10 @@ function updateInteractionMap() {
     });
 }
 
+// Update document.ready to ensure everything is properly initialized
 document.addEventListener('DOMContentLoaded', function() {
+    console.log("DOM content loaded - initializing map");
+    
     // First, explicitly set the theme based on the toggle button text
     initializeTheme();
     
@@ -232,12 +252,16 @@ document.addEventListener('DOMContentLoaded', function() {
         if (drugsSelect) {
             // Add change event listener
             drugsSelect.addEventListener('change', function() {
+                console.log("Drug selection changed:", drugsSelect.value);
                 if (typeof updateInteractionMap === 'function') {
                     updateInteractionMap();
                 } else {
                     console.error("updateInteractionMap function is not defined");
                 }
             });
+            
+            // Clear existing drugs array to prevent duplicates
+            allDrugs = [];
             
             for (let i = 0; i < drugsSelect.options.length; i++) {
                 if (drugsSelect.options[i].value) {
@@ -260,41 +284,40 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+// Improved function to create bubble map with more robust error handling
 function createBubbleMap(drugId, interactionIds) {
+    console.log("Creating bubble map for drug ID:", drugId, "with interactions:", interactionIds);
+    
     // Ensure D3 is loaded
     if (typeof d3 === 'undefined') {
         console.error("D3 is not defined. Cannot create visualization.");
-        const emptyState = document.getElementById('emptyState');
-        const bubbleMap = document.getElementById('bubbleMap');
-        const mapLegend = document.getElementById('mapLegend');
-        
-        if (emptyState) {
-            emptyState.innerHTML = '<h3>Visualization Error</h3><p>Required library is not available. Please try refreshing the page.</p>';
-            emptyState.style.display = 'block';
-        }
-        if (bubbleMap) bubbleMap.style.display = 'none';
-        if (mapLegend && mapLegend.style) mapLegend.style.display = 'none';
+        showError("Visualization Error", "Required library is not available. Please try refreshing the page.");
+        return;
+    }
+    
+    // Check for empty interactions first
+    if (!Array.isArray(interactionIds) || interactionIds.length === 0) {
+        console.log("No interactions found for drug ID:", drugId);
+        showError("No Interactions Found", "This drug has no recorded interactions.");
         return;
     }
     
     try {
-        // Clear previous visualization
+        // Force clear previous visualization
+        const svgElement = document.getElementById('bubbleMap');
+        if (svgElement) {
+            svgElement.innerHTML = '';
+            svgElement.style.display = 'block';
+        }
+        
+        // Clear any previous content
         d3.select("#bubbleMap").html("");
         
         // Find main drug details
         const mainDrug = allDrugs.find(drug => drug.id === drugId);
         if (!mainDrug) {
             console.error("Main drug not found in dataset");
-            const emptyState = document.getElementById('emptyState');
-            const bubbleMap = document.getElementById('bubbleMap');
-            const mapLegend = document.getElementById('mapLegend');
-            
-            if (emptyState) {
-                emptyState.innerHTML = '<h3>Data Error</h3><p>Selected drug information could not be found.</p>';
-                emptyState.style.display = 'block';
-            }
-            if (bubbleMap) bubbleMap.style.display = 'none';
-            if (mapLegend && mapLegend.style) mapLegend.style.display = 'none';
+            showError("Data Error", "Selected drug information could not be found.");
             return;
         }
         
@@ -311,13 +334,16 @@ function createBubbleMap(drugId, interactionIds) {
         });
         
         // Add interaction drug nodes and links
+        let validInteractionCount = 0;
         interactionIds.forEach((interactionId, index) => {
             const interactingDrug = allDrugs.find(drug => drug.id === interactionId);
             if (!interactingDrug) return;
             
+            validInteractionCount++;
             nodes.push({
                 id: interactingDrug.id,
                 name: interactingDrug.name,
+                group: "high", // Give a default group for proper coloring
                 value: 45  // Increased size of interaction bubbles
             });
             
@@ -327,6 +353,13 @@ function createBubbleMap(drugId, interactionIds) {
                 value: 1
             });
         });
+        
+        // Double-check valid interactions
+        if (validInteractionCount === 0) {
+            console.log("No valid interactions found for drug ID:", drugId);
+            showError("No Valid Interactions Found", "This drug has no valid interactions with other drugs in the system.");
+            return;
+        }
         
         // First show the SVG and hide the empty state
         const emptyState = document.getElementById('emptyState');
@@ -342,78 +375,25 @@ function createBubbleMap(drugId, interactionIds) {
         createForceGraph(nodes, links);
     } catch (error) {
         console.error("Error creating bubble map:", error);
-        const emptyState = document.getElementById('emptyState');
-        const bubbleMap = document.getElementById('bubbleMap');
-        const mapLegend = document.getElementById('mapLegend');
-        
-        // Safely update DOM elements if they exist
-        if (emptyState) {
-            emptyState.innerHTML = '<h3>Visualization Error</h3><p>An error occurred while creating the visualization: ' + error.message + '</p>';
-            emptyState.style.display = 'block';
-        }
-        if (bubbleMap) bubbleMap.style.display = 'none';
-        if (mapLegend && mapLegend.style) mapLegend.style.display = 'none';
+        showError("Visualization Error", "An error occurred while creating the visualization: " + error.message);
     }
 }
 
-// Modify the document ready handler to check again
-document.addEventListener('DOMContentLoaded', function() {
-    // Check dark mode on page load
-    detectDarkMode();
-    console.log("Initial dark mode detection:", forceDarkMode);
+// Helper function to display errors
+function showError(title, message) {
+    const emptyState = document.getElementById('emptyState');
+    const bubbleMap = document.getElementById('bubbleMap');
+    const mapLegend = document.getElementById('mapLegend');
     
-    // Make sure D3 is loaded before proceeding
-    ensureD3Loaded(function() {
-        console.log("D3.js is loaded and ready");
-        
-        // Store all drugs from Thymeleaf model
-        const drugsSelect = document.getElementById('drugSelect');
-        if (drugsSelect) {
-            // Add change event listener
-            drugsSelect.addEventListener('change', function() {
-                if (typeof updateInteractionMap === 'function') {
-                    updateInteractionMap();
-                } else {
-                    console.error("updateInteractionMap function is not defined");
-                }
-            });
-            
-            for (let i = 0; i < drugsSelect.options.length; i++) {
-                if (drugsSelect.options[i].value) {
-                    allDrugs.push({
-                        id: drugsSelect.options[i].value,
-                        name: drugsSelect.options[i].text
-                    });
-                }
-            }
-            console.log("Loaded " + allDrugs.length + " drugs");
-            
-            // Instead of showing empty state, load the full relationship graph
-            loadFullRelationshipGraph();
-        } else {
-            console.error("Drug select element not found");
-        }
-        
-        // Add event listeners to detect theme changes
-        document.querySelectorAll('a, button').forEach(el => {
-            el.addEventListener('click', function() {
-                if (el.textContent.includes('Switch to Dark Mode') || 
-                    el.textContent.includes('Switch to Light Mode')) {
-                    console.log("Theme button clicked:", el.textContent);
-                    
-                    // Toggle the mode without delay
-                    forceDarkMode = !forceDarkMode;
-                    console.log("Force dark mode toggled to:", forceDarkMode);
-                    
-                    // Apply colors directly to existing elements
-                    applyColorsDirectly(forceDarkMode);
-                }
-            });
-        });
-    });
-});
+    if (emptyState) {
+        emptyState.innerHTML = `<h3>${title}</h3><p>${message}</p>`;
+        emptyState.style.display = 'block';
+    }
+    if (bubbleMap) bubbleMap.style.display = 'none';
+    if (mapLegend && mapLegend.style) mapLegend.style.display = 'none';
+}
 
-// Modify createForceGraph to use hardcoded colors based on forceDarkMode
+// Improved createForceGraph function with explicit color handling
 function createForceGraph(nodes, links) {
     try {
         if (typeof d3 === 'undefined') {
@@ -426,17 +406,18 @@ function createForceGraph(nodes, links) {
         
         // Get SVG element
         const svgElement = document.getElementById('bubbleMap');
-        if (svgElement) {
-            // Set the background color for the SVG 
-            const bgColor = forceDarkMode ? '#121212' : 'white';
-            
-            // Direct application of background color
-            svgElement.style.backgroundColor = bgColor;
-            svgElement.setAttribute('fill', bgColor);
-        } else {
+        if (!svgElement) {
             console.error("SVG element not found");
-            return;
+            throw new Error("SVG element not found");
         }
+        
+        // Always set the background color for the SVG 
+        const bgColor = forceDarkMode ? '#121212' : 'white';
+        
+        // Direct application of background color through multiple methods
+        svgElement.style.backgroundColor = bgColor;
+        svgElement.setAttribute('fill', bgColor);
+        svgElement.style.setProperty('background-color', bgColor, 'important');
         
         // Use D3 to select the SVG
         const svg = d3.select("#bubbleMap");
@@ -444,20 +425,16 @@ function createForceGraph(nodes, links) {
             throw new Error("SVG element not found");
         }
         
-        // Get dimensions from the SVG element or fallback to parent container 
+        // Get dimensions from the container
         let width, height;
-        
-        // Try to get dimensions from the container
         const container = document.querySelector(".map-container");
         if (container) {
             width = container.clientWidth || 800;
             height = container.clientHeight || 600;
             
             // Also set the container background in dark mode
-            if (forceDarkMode) {
-                container.style.backgroundColor = '#121212';
-                container.style.borderColor = '#333';
-            }
+            container.style.backgroundColor = forceDarkMode ? '#121212' : 'white';
+            container.style.borderColor = forceDarkMode ? '#333' : '#ddd';
         } else {
             // Fallback to default dimensions
             width = window.innerWidth - 40 || 800;
@@ -474,7 +451,6 @@ function createForceGraph(nodes, links) {
         svg.selectAll("*").remove();
         
         // Add a background rectangle that covers the entire SVG area
-        const bgColor = forceDarkMode ? '#121212' : 'white';
         svg.append("rect")
            .attr("class", "svg-background")
            .attr("x", 0)
@@ -517,30 +493,52 @@ function createForceGraph(nodes, links) {
                 .on("drag", dragged)
                 .on("end", dragended));
         
-        // Add circles to nodes with hardcoded colors for each mode
+        // ABSOLUTE HARDCODED COLORS - No variables, no lookup tables
+        const mainColorDark = "#8021B0";
+        const highColorDark = "#c13c38";
+        const mediumColorDark = "#e09c40";
+        const lowColorDark = "#49a2bc";
+        const unknownColorDark = "#666666";
+        
+        const mainColorLight = "#9932CC";
+        const highColorLight = "#d9534f";
+        const mediumColorLight = "#f0ad4e";
+        const lowColorLight = "#5bc0de";
+        const unknownColorLight = "#777777";
+        
+        // Apply circles with explicit coloring
         node.append("circle")
             .attr("r", d => Math.sqrt(d.value) * 2)
-            .attr("class", d => "category-" + (d.group || "unknown"))
-            .attr("fill", d => {
+            .each(function(d) {
+                const element = d3.select(this);
+                let color;
                 const group = d.group || "unknown";
                 
                 if (forceDarkMode) {
                     // Dark mode colors
-                    if (group === "main") return "#8021B0";
-                    if (group === "high") return "#c13c38";
-                    if (group === "medium") return "#e09c40";
-                    if (group === "low") return "#49a2bc";
-                    return "#666666"; // unknown
+                    if (group === "main") color = mainColorDark;
+                    else if (group === "high") color = highColorDark;
+                    else if (group === "medium") color = mediumColorDark;
+                    else if (group === "low") color = lowColorDark;
+                    else color = unknownColorDark;
                 } else {
                     // Light mode colors
-                    if (group === "main") return "#9932CC";
-                    if (group === "high") return "#d9534f";
-                    if (group === "medium") return "#f0ad4e";
-                    if (group === "low") return "#5bc0de";
-                    return "#777777"; // unknown
+                    if (group === "main") color = mainColorLight;
+                    else if (group === "high") color = highColorLight;
+                    else if (group === "medium") color = mediumColorLight;
+                    else if (group === "low") color = lowColorLight;
+                    else color = unknownColorLight;
                 }
-            })
-            .attr("stroke", forceDarkMode ? "#555555" : "#888888");
+                
+                // Apply the color directly to the DOM with !important
+                this.setAttribute("fill", color);
+                this.style.fill = color;
+                this.setAttribute("stroke", forceDarkMode ? "#555555" : "#888888");
+                this.setAttribute("stroke-width", "2px");
+                
+                // Add class for potential CSS hooks but don't rely on them for coloring
+                element.classed("category-" + group, true);
+            });
         
         // Add text labels
         node.append("text")
@@ -599,13 +597,11 @@ function createForceGraph(nodes, links) {
         }
     } catch (error) {
         console.error("Error creating force graph:", error);
-        document.getElementById('emptyState').innerHTML = '<h3>Visualization Error</h3><p>An error occurred while rendering the graph: ' + error.message + '</p>';
-        document.getElementById('emptyState').style.display = 'block';
-        document.getElementById('bubbleMap').style.display = 'none';
+        showError("Visualization Error", "An error occurred while rendering the graph: " + error.message);
     }
 }
 
-// Make similar changes to createNetworkGraph using the same approach
+// Similarly update the createNetworkGraph function with the same color approach
 function createNetworkGraph(nodes, links) {
     try {
         if (typeof d3 === 'undefined') {
@@ -618,17 +614,18 @@ function createNetworkGraph(nodes, links) {
         
         // Get SVG element
         const svgElement = document.getElementById('bubbleMap');
-        if (svgElement) {
-            // Set the background color for the SVG
-            const bgColor = forceDarkMode ? '#121212' : 'white';
-            
-            // Direct application of background color
-            svgElement.style.backgroundColor = bgColor;
-            svgElement.setAttribute('fill', bgColor);
-        } else {
+        if (!svgElement) {
             console.error("SVG element not found");
-            return;
+            throw new Error("SVG element not found");
         }
+        
+        // Always set the background color for the SVG
+        const bgColor = forceDarkMode ? '#121212' : 'white';
+        
+        // Direct application of background color through multiple methods
+        svgElement.style.backgroundColor = bgColor;
+        svgElement.setAttribute('fill', bgColor);
+        svgElement.style.setProperty('background-color', bgColor, 'important');
         
         // Use D3 to select the SVG
         const svg = d3.select("#bubbleMap");
@@ -646,10 +643,8 @@ function createNetworkGraph(nodes, links) {
             height = container.clientHeight || 600;
             
             // Also set the container background in dark mode
-            if (forceDarkMode) {
-                container.style.backgroundColor = '#121212';
-                container.style.borderColor = '#333';
-            }
+            container.style.backgroundColor = forceDarkMode ? '#121212' : 'white';
+            container.style.borderColor = forceDarkMode ? '#333' : '#ddd';
         } else {
             // Fallback to default dimensions
             width = window.innerWidth - 40 || 800;
@@ -666,7 +661,6 @@ function createNetworkGraph(nodes, links) {
         svg.selectAll("*").remove();
         
         // Add a background rectangle that covers the entire SVG area
-        const bgColor = forceDarkMode ? '#121212' : 'white';
         svg.append("rect")
            .attr("class", "svg-background")
            .attr("x", 0)
@@ -678,7 +672,7 @@ function createNetworkGraph(nodes, links) {
         // Multiple ways to set the background
         svg.style("background-color", bgColor);
         
-        // Force simulation for the graph with hardcoded colors
+        // Force simulation for the graph
         const simulation = d3.forceSimulation(nodes)
             .force("link", d3.forceLink(links).id(d => d.id).distance(d => 180))
             .force("charge", d3.forceManyBody().strength(d => -350 - (d.value * 3)))
@@ -722,37 +716,52 @@ function createNetworkGraph(nodes, links) {
                 .on("drag", dragged)
                 .on("end", dragended));
         
-        // Add circles to nodes with hardcoded colors for each mode
+        // ABSOLUTE HARDCODED COLORS - No variables, no lookup tables
+        const mainColorDark = "#8021B0";
+        const highColorDark = "#c13c38";
+        const mediumColorDark = "#e09c40";
+        const lowColorDark = "#49a2bc";
+        const unknownColorDark = "#666666";
+        
+        const mainColorLight = "#9932CC";
+        const highColorLight = "#d9534f";
+        const mediumColorLight = "#f0ad4e";
+        const lowColorLight = "#5bc0de";
+        const unknownColorLight = "#777777";
+        
+        // Add circles to nodes with explicit coloring
         node.append("circle")
             .attr("r", d => Math.sqrt(d.value) * 1.5)
-            .attr("class", d => {
-                const group = d.group || "unknown";
-                if (group === "high") return "category-high";
-                if (group === "medium") return "category-medium";
-                if (group === "low") return "category-low"; 
-                if (group === "main") return "category-main";
-                return "category-unknown";
-            })
-            .attr("fill", d => {
+            .each(function(d) {
+                const element = d3.select(this);
+                let color;
                 const group = d.group || "unknown";
                 
                 if (forceDarkMode) {
                     // Dark mode colors
-                    if (group === "high") return "#c13c38";
-                    if (group === "medium") return "#e09c40";
-                    if (group === "low") return "#49a2bc";
-                    if (group === "main") return "#8021B0";
-                    return "#666666"; // unknown
+                    if (group === "main") color = mainColorDark;
+                    else if (group === "high") color = highColorDark;
+                    else if (group === "medium") color = mediumColorDark;
+                    else if (group === "low") color = lowColorDark;
+                    else color = unknownColorDark;
                 } else {
                     // Light mode colors
-                    if (group === "high") return "#d9534f";
-                    if (group === "medium") return "#f0ad4e";
-                    if (group === "low") return "#5bc0de";
-                    if (group === "main") return "#9932CC";
-                    return "#777777"; // unknown
+                    if (group === "main") color = mainColorLight;
+                    else if (group === "high") color = highColorLight;
+                    else if (group === "medium") color = mediumColorLight;
+                    else if (group === "low") color = lowColorLight;
+                    else color = unknownColorLight;
                 }
-            })
-            .attr("stroke", forceDarkMode ? "#555555" : "#888888");
+                
+                // Apply the color directly to the DOM with !important
+                this.setAttribute("fill", color);
+                this.style.fill = color;
+                this.setAttribute("stroke", forceDarkMode ? "#555555" : "#888888");
+                this.setAttribute("stroke-width", "2px");
+                
+                // Add class for potential CSS hooks but don't rely on them for coloring
+                element.classed("category-" + group, true);
+            });
         
         // Add text labels
         node.append("text")
@@ -815,15 +824,377 @@ function createNetworkGraph(nodes, links) {
         }
     } catch (error) {
         console.error("Error creating network graph:", error);
-        const emptyState = document.getElementById('emptyState');
-        if (emptyState) {
-            emptyState.innerHTML = '<h3>Visualization Error</h3><p>An error occurred while creating the network visualization: ' + error.message + '</p>';
-            emptyState.style.display = 'block';
-        }
+        showError("Visualization Error", "An error occurred while creating the network visualization: " + error.message);
     }
 }
 
-// Optimize loadFullRelationshipGraph with caching
+// Function to generate the network graph from the full interaction data
+function generateNetworkGraph(interactionData) {
+    try {
+        console.log("Generating network graph with", Object.keys(interactionData).length, "drugs");
+        
+        // Hide empty state and show loading
+        const emptyState = document.getElementById('emptyState');
+        if (emptyState) {
+            emptyState.innerHTML = '<div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div><p>Generating visualization...</p>';
+            emptyState.style.display = 'block';
+        }
+        
+        // Force clear any existing visualization
+        const bubbleMap = document.getElementById('bubbleMap');
+        if (bubbleMap) {
+            bubbleMap.style.display = 'none';
+            bubbleMap.innerHTML = '';
+        }
+        
+        // Create graph data structure
+        const nodes = [];
+        const links = [];
+        const nodeMap = new Map(); // For quick node lookup
+        
+        // Safely get drugs from the interaction data (excluding timestamp)
+        const drugKeys = Object.keys(interactionData).filter(key => key !== 'timestamp');
+        console.log("Drug keys:", drugKeys.length);
+        
+        // Add each drug as a node
+        drugKeys.forEach(drugId => {
+            const drug = interactionData[drugId];
+            // Skip if drug data is invalid
+            if (!drug || typeof drug !== 'object') {
+                console.warn("Invalid drug data for ID:", drugId);
+                return;
+            }
+            
+            // Ensure interactions array exists
+            const interactions = Array.isArray(drug.interactions) ? drug.interactions : [];
+            
+            // Count number of interactions for sizing the node
+            const interactionCount = interactions.length;
+            
+            // Add node with properties
+            nodes.push({
+                id: drug.id || drugId,
+                name: drug.name || `Drug ${drugId}`,
+                value: 20 + (interactionCount * 5), // Base size + scaling based on interactions
+                interactionCount: interactionCount,
+                group: getNodeGroup(interactionCount) // Categorize node based on interaction count
+            });
+            
+            // Add to nodeMap for quick lookup
+            nodeMap.set(drug.id || drugId, nodes.length - 1);
+        });
+        
+        // Add interaction links (avoid duplicates)
+        const linkSet = new Set(); // Track added links to avoid duplicates
+        
+        // Safely iterate over drugs
+        drugKeys.forEach(drugId => {
+            const drug = interactionData[drugId];
+            // Skip if drug data is invalid
+            if (!drug || typeof drug !== 'object') {
+                return;
+            }
+            
+            // Ensure interactions is an array
+            const interactions = Array.isArray(drug.interactions) ? drug.interactions : [];
+            
+            // Process each interaction
+            interactions.forEach(targetId => {
+                // Skip if targetId is invalid
+                if (!targetId) {
+                    return;
+                }
+                
+                // Create a unique identifier for this link (using sorted IDs to catch both directions)
+                const linkKey = [drugId, targetId].sort().join('-');
+                
+                // Only add if not already added and both drugs exist in our dataset
+                if (!linkSet.has(linkKey) && nodeMap.has(targetId)) {
+                    links.push({
+                        source: drugId,
+                        target: targetId,
+                        value: 1
+                    });
+                    
+                    linkSet.add(linkKey);
+                }
+            });
+        });
+        
+        // Check if we have data to visualize
+        if (nodes.length === 0) {
+            console.warn("No valid nodes found for visualization");
+            showError("No Data to Visualize", "No valid drug interaction data was found.");
+            return;
+        }
+        
+        // Create visualization
+        if (emptyState) emptyState.style.display = 'none';
+        if (bubbleMap) bubbleMap.style.display = 'block';
+        
+        // Create network visualization
+        createNetworkGraph(nodes, links);
+        
+    } catch (error) {
+        console.error("Error generating network graph:", error);
+        showError("Visualization Error", "An error occurred while creating the network visualization: " + error.message);
+        
+        // Clear any cached data that might be corrupted
+        cachedInteractionData = {};
+    }
+}
+
+// Helper function to categorize nodes based on interaction count
+function getNodeGroup(interactionCount) {
+    if (interactionCount === 0) return "none";
+    if (interactionCount <= 2) return "low";
+    if (interactionCount <= 5) return "medium";
+    return "high";
+}
+
+// Add a debounce function to prevent excessive refreshes
+function debounce(func, wait) {
+    let timeout;
+    return function(...args) {
+        const context = this;
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(context, args), wait);
+    };
+}
+
+// Keep track of the last refresh time
+let lastRefreshTime = 0;
+let refreshInProgress = false;
+
+// Add a global theme state tracker
+// Default to light mode - variable declared at the top of the file
+
+// Update the checkDarkMode function to use our state tracker
+function checkDarkMode() {
+    // Get the toggle button text to determine current theme
+    const themeToggleButtons = Array.from(document.querySelectorAll('a, button'));
+    const themeButton = themeToggleButtons.find(el => 
+        el.textContent.includes('Switch to Dark Mode') || 
+        el.textContent.includes('Switch to Light Mode')
+    );
+    
+    if (themeButton) {
+        // If the button says "Switch to Dark Mode", we must be in light mode
+        // If it says "Switch to Light Mode", we must be in dark mode
+        const buttonText = themeButton.textContent.trim();
+        const isDarkBasedOnButton = buttonText.includes('Switch to Light Mode');
+        
+        // Update our global state
+        currentThemeIsDark = isDarkBasedOnButton;
+    }
+    
+    // Log our state for debugging
+    console.log("Dark mode check - Button text indicates dark mode:", currentThemeIsDark);
+    console.log("HTML theme:", document.documentElement.getAttribute('data-bs-theme'));
+    console.log("Body theme:", document.body.getAttribute('data-bs-theme'));
+    console.log("Body class:", document.body.classList.contains('dark-mode'));
+    
+    return currentThemeIsDark;
+}
+
+// Update the setupThemeDetection function to initialize and track theme state
+function setupThemeDetection() {
+    // Initialize theme state based on button text
+    const themeToggleButtons = Array.from(document.querySelectorAll('a, button'));
+    const themeButton = themeToggleButtons.find(el => 
+        el.textContent.includes('Switch to Dark Mode') || 
+        el.textContent.includes('Switch to Light Mode')
+    );
+    
+    if (themeButton) {
+        // Initialize the global dark mode state
+        currentThemeIsDark = themeButton.textContent.includes('Switch to Light Mode');
+        console.log("Initial theme detection based on button:", currentThemeIsDark ? "dark" : "light");
+    } else {
+        console.log("Theme button not found, defaulting to:", currentThemeIsDark ? "dark" : "light");
+    }
+    
+    applyCurrentTheme();
+    
+    // Add click event listeners to theme toggle buttons
+    document.querySelectorAll('a, button').forEach(el => {
+        if (el.textContent.includes('Switch to Dark Mode') || 
+            el.textContent.includes('Switch to Light Mode')) {
+            
+            // Remove any existing click event listeners to avoid duplicates
+            el.removeEventListener('click', themeClickHandler);
+            
+            // Add new click event listener
+            el.addEventListener('click', themeClickHandler);
+        }
+    });
+
+    // Added a MutationObserver to watch for theme changes in the DOM
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach(mutation => {
+            if (mutation.type === 'attributes' && 
+                (mutation.attributeName === 'data-bs-theme' || 
+                 mutation.attributeName === 'data-theme' || 
+                 mutation.attributeName === 'class')) {
+                // Theme may have changed, check and update
+                detectDarkMode();
+                updateVisualizations();
+            }
+        });
+    });
+
+    // Start observing
+    observer.observe(document.documentElement, { 
+        attributes: true, 
+        attributeFilter: ['data-bs-theme', 'data-theme', 'class'] 
+    });
+    observer.observe(document.body, { 
+        attributes: true, 
+        attributeFilter: ['data-bs-theme', 'data-theme', 'class'] 
+    });
+}
+
+// Theme click handler function
+function themeClickHandler() {
+    console.log("Theme button clicked");
+    
+    // Toggle the theme state when button is clicked
+    forceDarkMode = !forceDarkMode;
+    currentThemeIsDark = forceDarkMode;
+    console.log("Theme toggled to:", forceDarkMode ? "dark" : "light");
+    
+    // Update visualizations with the new theme
+    updateVisualizations();
+}
+
+// Function to update visualizations after theme change
+function updateVisualizations() {
+    console.log("Updating visualizations for theme change");
+    
+    // Get current drug selection
+    const drugSelect = document.getElementById('drugSelect');
+    if (!drugSelect) return;
+    
+    const currentDrugId = drugSelect.value;
+    console.log("Current drug selection:", currentDrugId);
+    
+    // If we're in overview mode, refresh the network graph
+    if (!currentDrugId) {
+        if (cachedInteractionData && Object.keys(cachedInteractionData).length > 0) {
+            console.log("Refreshing network graph");
+            generateNetworkGraph(cachedInteractionData);
+        } else {
+            console.log("No cached data for network graph, reloading");
+            loadFullRelationshipGraph();
+        }
+    } 
+    // If we have a specific drug selected, refresh that view
+    else if (cachedNodeData[currentDrugId]) {
+        console.log("Refreshing drug interaction map");
+        createBubbleMap(currentDrugId, cachedNodeData[currentDrugId].interactionIds);
+    } else {
+        console.log("No cached data for drug, triggering reload");
+        // Force a reload
+        lastUsedDrugId = null;
+        updateInteractionMap();
+    }
+    
+    // Also directly apply colors to existing elements
+    applyColorsDirectly(forceDarkMode);
+}
+
+// Function to directly update colors without redrawing
+function applyColorsDirectly(isDarkMode) {
+    console.log("Applying colors directly, dark mode:", isDarkMode);
+    
+    // ABSOLUTE HARDCODED COLORS - No variables, no lookup tables
+    const mainColorDark = "#8021B0";
+    const highColorDark = "#c13c38";
+    const mediumColorDark = "#e09c40";
+    const lowColorDark = "#49a2bc";
+    const unknownColorDark = "#666666";
+    
+    const mainColorLight = "#9932CC";
+    const highColorLight = "#d9534f";
+    const mediumColorLight = "#f0ad4e";
+    const lowColorLight = "#5bc0de";
+    const unknownColorLight = "#777777";
+    
+    // Get background elements
+    const svgElement = document.getElementById('bubbleMap');
+    const container = document.querySelector(".map-container");
+    const bgColor = isDarkMode ? '#121212' : 'white';
+    
+    // Set background colors immediately
+    if (svgElement) {
+        svgElement.style.backgroundColor = bgColor;
+        svgElement.style.setProperty('background-color', bgColor, 'important');
+        svgElement.setAttribute('fill', bgColor);
+    }
+    
+    if (container) {
+        container.style.backgroundColor = isDarkMode ? '#121212' : 'white';
+        container.style.setProperty('background-color', isDarkMode ? '#121212' : 'white', 'important');
+        container.style.borderColor = isDarkMode ? '#333333' : '#ddd';
+    }
+    
+    // If D3 isn't loaded yet, we can't continue
+    if (typeof d3 === 'undefined') return;
+    
+    // Background rectangle
+    d3.select("#bubbleMap rect.svg-background").attr("fill", bgColor);
+    
+    // Update links
+    d3.selectAll("#bubbleMap line.link")
+      .attr("stroke", isDarkMode ? "#444444" : "#cccccc");
+    
+    // Update main drug nodes
+    d3.selectAll(".category-main circle, circle.category-main").each(function() {
+        this.setAttribute("fill", isDarkMode ? mainColorDark : mainColorLight);
+        this.style.fill = isDarkMode ? mainColorDark : mainColorLight;
+        this.setAttribute("stroke", isDarkMode ? "#555555" : "#888888");
+    });
+    
+    // Update high risk nodes
+    d3.selectAll(".category-high circle, circle.category-high").each(function() {
+        this.setAttribute("fill", isDarkMode ? highColorDark : highColorLight);
+        this.style.fill = isDarkMode ? highColorDark : highColorLight;
+        this.setAttribute("stroke", isDarkMode ? "#555555" : "#888888");
+    });
+    
+    // Update medium risk nodes
+    d3.selectAll(".category-medium circle, circle.category-medium").each(function() {
+        this.setAttribute("fill", isDarkMode ? mediumColorDark : mediumColorLight);
+        this.style.fill = isDarkMode ? mediumColorDark : mediumColorLight;
+        this.setAttribute("stroke", isDarkMode ? "#555555" : "#888888");
+    });
+    
+    // Update low risk nodes
+    d3.selectAll(".category-low circle, circle.category-low").each(function() {
+        this.setAttribute("fill", isDarkMode ? lowColorDark : lowColorLight);
+        this.style.fill = isDarkMode ? lowColorDark : lowColorLight;
+        this.setAttribute("stroke", isDarkMode ? "#555555" : "#888888");
+    });
+    
+    // Update unknown nodes
+    d3.selectAll(".category-unknown circle, circle.category-unknown").each(function() {
+        this.setAttribute("fill", isDarkMode ? unknownColorDark : unknownColorLight);
+        this.style.fill = isDarkMode ? unknownColorDark : unknownColorLight;
+        this.setAttribute("stroke", isDarkMode ? "#555555" : "#888888");
+    });
+    
+    // Update text backgrounds
+    d3.selectAll("#bubbleMap .node-label-bg")
+      .attr("fill", isDarkMode ? "rgba(20, 20, 20, 0.9)" : "rgba(0, 0, 0, 0.7)");
+    
+    // Update text color
+    d3.selectAll("#bubbleMap .node text")
+      .attr("fill", isDarkMode ? "#f0f0f0" : "white");
+      
+    console.log("Direct color application complete");
+}
+
+// Add back the loadFullRelationshipGraph function that was removed
 function loadFullRelationshipGraph() {
     console.log("Loading full relationship graph");
     const emptyState = document.getElementById('emptyState');
@@ -842,7 +1213,7 @@ function loadFullRelationshipGraph() {
     
     // Safely check cached data
     const cacheAge = !cachedInteractionData || !cachedInteractionData.timestamp ? Infinity : 
-                    (Date.now() - cachedInteractionData.timestamp);
+                   (Date.now() - cachedInteractionData.timestamp);
     
     // If we have cached interaction data and it's less than 5 minutes old
     if (cachedInteractionData && 
@@ -922,222 +1293,131 @@ function loadFullRelationshipGraph() {
     processNextDrug(0);
 }
 
-// Function to generate the network graph from the full interaction data
-function generateNetworkGraph(interactionData) {
-    try {
-        console.log("Generating network graph with", Object.keys(interactionData).length, "drugs");
+// Add a function to initialize theme state on page load
+function initializeTheme() {
+    // Check if we pre-detected dark mode
+    if (window.initialDarkMode === true) {
+        currentThemeIsDark = true;
+        console.log("Using pre-detected dark mode");
+    } else {
+        // First, check if the button text indicates we're in dark mode
+        const themeToggleButtons = Array.from(document.querySelectorAll('a, button'));
+        const themeButton = themeToggleButtons.find(el => 
+            el.textContent.includes('Switch to Dark Mode') || 
+            el.textContent.includes('Switch to Light Mode')
+        );
         
-        // Create graph data structure
-        const nodes = [];
-        const links = [];
-        const nodeMap = new Map(); // For quick node lookup
-        
-        // Safely get drugs from the interaction data (excluding timestamp)
-        const drugKeys = Object.keys(interactionData).filter(key => key !== 'timestamp');
-        console.log("Drug keys:", drugKeys.length);
-        
-        // Add each drug as a node
-        drugKeys.forEach(drugId => {
-            const drug = interactionData[drugId];
-            // Skip if drug data is invalid
-            if (!drug || typeof drug !== 'object') {
-                console.warn("Invalid drug data for ID:", drugId);
-                return;
-            }
+        if (themeButton) {
+            // Parse the button text to determine current theme
+            const buttonText = themeButton.textContent.trim();
+            currentThemeIsDark = buttonText.includes('Switch to Light Mode');
+            console.log("Initial theme from button:", currentThemeIsDark ? "dark" : "light");
+        } else {
+            // Fallback to checking CSS variables or other indicators
+            const computedStyle = getComputedStyle(document.documentElement);
+            const bgColor = computedStyle.getPropertyValue('--map-bg') || 
+                            computedStyle.getPropertyValue('--body-bg') || 
+                            computedStyle.backgroundColor;
             
-            // Ensure interactions array exists
-            const interactions = Array.isArray(drug.interactions) ? drug.interactions : [];
+            // If background is dark, assume dark mode
+            const isDarkBg = bgColor.includes('121212') || 
+                            bgColor.includes('rgba(18,') || 
+                            bgColor.includes('#121') || 
+                            bgColor.includes('var(--secondary-bg)');
             
-            // Count number of interactions for sizing the node
-            const interactionCount = interactions.length;
+            currentThemeIsDark = isDarkBg;
+            console.log("Initial theme from CSS:", currentThemeIsDark ? "dark" : "light");
+        }
+    }
+    
+    // Force apply the theme classes
+    applyInitialTheme();
+    
+    // Set CSS variables to match the detected theme
+    const root = document.documentElement;
+    if (currentThemeIsDark) {
+        root.style.setProperty('--map-bg', '#121212', 'important');
+        root.style.setProperty('--link-color', '#444444', 'important');
+    } else {
+        root.style.setProperty('--map-bg', 'white', 'important');
+        root.style.setProperty('--link-color', '#cccccc', 'important');
+    }
+    
+    // Explicitly set SVG background color
+    const bubbleMap = document.getElementById('bubbleMap');
+    if (bubbleMap) {
+        // If we have active visualization, try to just update colors instead of reloading
+        if (bubbleMap.style.display !== 'none') {
+            console.log("Fast path: updating colors without reloading");
+            updateVisualizationColors();
             
-            // Add node with properties
-            nodes.push({
-                id: drug.id || drugId,
-                name: drug.name || `Drug ${drugId}`,
-                value: 20 + (interactionCount * 5), // Base size + scaling based on interactions
-                interactionCount: interactionCount,
-                group: getNodeGroup(interactionCount) // Categorize node based on interaction count
-            });
-            
-            // Add to nodeMap for quick lookup
-            nodeMap.set(drug.id || drugId, nodes.length - 1);
-        });
-        
-        // Add interaction links (avoid duplicates)
-        const linkSet = new Set(); // Track added links to avoid duplicates
-        
-        // Safely iterate over drugs
-        drugKeys.forEach(drugId => {
-            const drug = interactionData[drugId];
-            // Skip if drug data is invalid
-            if (!drug || typeof drug !== 'object') {
-                return;
-            }
-            
-            // Ensure interactions is an array
-            const interactions = Array.isArray(drug.interactions) ? drug.interactions : [];
-            
-            // Process each interaction
-            interactions.forEach(targetId => {
-                // Skip if targetId is invalid
-                if (!targetId) {
-                    return;
-                }
-                
-                // Create a unique identifier for this link (using sorted IDs to catch both directions)
-                const linkKey = [drugId, targetId].sort().join('-');
-                
-                // Only add if not already added and both drugs exist in our dataset
-                if (!linkSet.has(linkKey) && nodeMap.has(targetId)) {
-                    links.push({
-                        source: drugId,
-                        target: targetId,
-                        value: 1
-                    });
-                    
-                    linkSet.add(linkKey);
-                }
-            });
-        });
-        
-        // Check if we have data to visualize
-        if (nodes.length === 0) {
-            console.warn("No valid nodes found for visualization");
-            const emptyState = document.getElementById('emptyState');
-            if (emptyState) {
-                emptyState.innerHTML = '<h3>No Data to Visualize</h3><p>No valid drug interaction data was found.</p>';
-                emptyState.style.display = 'block';
-            }
+            // Reset refresh state quickly
+            setTimeout(() => {
+                refreshInProgress = false;
+                console.log("Fast refresh completed");
+            }, 50);
             return;
         }
         
-        // Create visualization
-        const emptyState = document.getElementById('emptyState');
-        const bubbleMap = document.getElementById('bubbleMap');
-        const mapLegend = document.getElementById('mapLegend');
+        // Otherwise, proceed with full update
+        const bgColor = currentThemeIsDark ? '#121212' : 'white';
         
-        // Safely update DOM elements if they exist
-        if (emptyState) emptyState.style.display = 'none';
-        if (bubbleMap) bubbleMap.style.display = 'block';
-        if (mapLegend && mapLegend.style) mapLegend.style.display = 'block';
+        // Set multiple ways to ensure it takes effect
+        bubbleMap.style.setProperty('background-color', bgColor, 'important');
+        bubbleMap.setAttribute('fill', bgColor);
         
-        // Create network visualization
-        createNetworkGraph(nodes, links);
-        
-    } catch (error) {
-        console.error("Error generating network graph:", error);
-        const emptyState = document.getElementById('emptyState');
-        if (emptyState) {
-            emptyState.innerHTML = '<h3>Visualization Error</h3><p>An error occurred while creating the network visualization: ' + error.message + '</p>';
-            emptyState.style.display = 'block';
+        // Other theme settings...
+        if (currentThemeIsDark) {
+            bubbleMap.setAttribute('data-theme', 'dark');
+            document.body.classList.add('dark-mode-applied');
+        } else {
+            bubbleMap.removeAttribute('data-theme');
+            document.body.classList.remove('dark-mode-applied');
         }
-        
-        // Clear any cached data that might be corrupted
-        cachedInteractionData = {};
-    }
-}
-
-// Helper function to categorize nodes based on interaction count
-function getNodeGroup(interactionCount) {
-    if (interactionCount === 0) return "none";
-    if (interactionCount <= 2) return "low";
-    if (interactionCount <= 5) return "medium";
-    return "high";
-}
-
-// Add a debounce function to prevent excessive refreshes
-function debounce(func, wait) {
-    let timeout;
-    return function(...args) {
-        const context = this;
-        clearTimeout(timeout);
-        timeout = setTimeout(() => func.apply(context, args), wait);
-    };
-}
-
-// Keep track of the last refresh time
-let lastRefreshTime = 0;
-let refreshInProgress = false;
-
-// Add a global theme state tracker
-let currentThemeIsDark = false; // Default to light mode
-
-// Update the checkDarkMode function to use our state tracker
-function checkDarkMode() {
-    // Get the toggle button text to determine current theme
-    const themeToggleButtons = Array.from(document.querySelectorAll('a, button'));
-    const themeButton = themeToggleButtons.find(el => 
-        el.textContent.includes('Switch to Dark Mode') || 
-        el.textContent.includes('Switch to Light Mode')
-    );
-    
-    if (themeButton) {
-        // If the button says "Switch to Dark Mode", we must be in light mode
-        // If it says "Switch to Light Mode", we must be in dark mode
-        const buttonText = themeButton.textContent.trim();
-        const isDarkBasedOnButton = buttonText.includes('Switch to Light Mode');
-        
-        // Update our global state
-        currentThemeIsDark = isDarkBasedOnButton;
     }
     
-    // Log our state for debugging
-    console.log("Dark mode check - Button text indicates dark mode:", currentThemeIsDark);
-    console.log("HTML theme:", document.documentElement.getAttribute('data-bs-theme'));
-    console.log("Body theme:", document.body.getAttribute('data-bs-theme'));
-    console.log("Body class:", document.body.classList.contains('dark-mode'));
+    // If we have an active visualization, refresh it
+    if (bubbleMap && bubbleMap.style.display !== 'none') {
+        console.log("Refreshing visualization for theme change");
+        // Store the current selection
+        const currentSelection = document.getElementById('drugSelect').value;
+        
+        // Completely recreate the visualization
+        if (!currentSelection) {
+            loadFullRelationshipGraph();
+        } else {
+            updateInteractionMap();
+        }
+    }
     
-    return currentThemeIsDark;
+    // Reset refresh state after a short delay
+    setTimeout(() => {
+        refreshInProgress = false;
+        console.log("Refresh completed");
+    }, 300); // Reduced from 1000ms
 }
 
-// Update the setupThemeDetection function to initialize and track theme state
-function setupThemeDetection() {
-    // Initialize theme state based on button text
-    const themeToggleButtons = Array.from(document.querySelectorAll('a, button'));
-    const themeButton = themeToggleButtons.find(el => 
-        el.textContent.includes('Switch to Dark Mode') || 
-        el.textContent.includes('Switch to Light Mode')
-    );
+// Add a function to apply initial theme without animation
+function applyInitialTheme() {
+    // No need to check for concurrent refresh since this is initialization
+    const isDarkMode = currentThemeIsDark;
+    console.log("Applying initial theme:", isDarkMode ? "dark" : "light");
     
-    if (themeButton) {
-        // Initialize the global dark mode state
-        currentThemeIsDark = themeButton.textContent.includes('Switch to Light Mode');
-        console.log("Initial theme detection based on button:", currentThemeIsDark ? "dark" : "light");
+    // Set theme classes/attributes on body and document
+    if (isDarkMode) {
+        document.body.classList.add('dark-mode-applied');
+        document.documentElement.setAttribute('data-theme', 'dark');
     } else {
-        console.log("Theme button not found, defaulting to:", currentThemeIsDark ? "dark" : "light");
+        document.body.classList.remove('dark-mode-applied');
+        document.documentElement.removeAttribute('data-theme');
     }
     
-    applyCurrentTheme();
-    
-    // Create a debounced version of applyCurrentTheme
-    const debouncedApplyTheme = debounce(() => {
-        if (!refreshInProgress && Date.now() - lastRefreshTime > 500) {
-            // Toggle our theme state on each theme change
-            currentThemeIsDark = !currentThemeIsDark;
-            console.log("Theme toggled to:", currentThemeIsDark ? "dark" : "light");
-                applyCurrentTheme();
-            }
-    }, 250);
-    
-    // Add click event listeners to theme toggle buttons - use proper DOM selectors
-    document.querySelectorAll('a, button').forEach(el => {
-        if (el.textContent.includes('Switch to Dark Mode') || 
-            el.textContent.includes('Switch to Light Mode')) {
-            el.addEventListener('click', function() {
-                // Toggle the theme state when button is clicked
-                currentThemeIsDark = !currentThemeIsDark;
-                console.log("Theme button clicked. New state:", currentThemeIsDark ? "dark" : "light");
-                
-                // Small delay to ensure button text has updated
-                setTimeout(() => {
-        applyCurrentTheme();
-                }, 50);
-    });
-}
-    });
-
-    // Rest of the setupThemeDetection function remains the same...
+    // Set the map container background directly
+    const mapContainer = document.querySelector(".map-container");
+    if (mapContainer) {
+        mapContainer.style.setProperty('background-color', isDarkMode ? 'var(--secondary-bg)' : 'var(--secondary-bg)', 'important');
+        mapContainer.style.setProperty('border-color', isDarkMode ? '#333333' : 'var(--border-color)', 'important');
+    }
 }
 
 // Update applyCurrentTheme to avoid reloading when possible
@@ -1235,6 +1515,19 @@ function updateVisualizationColors() {
     const isDarkMode = checkDarkMode();
     console.log("Updating visualization colors only, dark mode:", isDarkMode);
     
+    // ABSOLUTE HARDCODED COLORS - No variables, no lookup tables
+    const mainColorDark = "#8021B0";
+    const highColorDark = "#c13c38";
+    const mediumColorDark = "#e09c40";
+    const lowColorDark = "#49a2bc";
+    const unknownColorDark = "#666666";
+    
+    const mainColorLight = "#9932CC";
+    const highColorLight = "#d9534f";
+    const mediumColorLight = "#f0ad4e";
+    const lowColorLight = "#5bc0de";
+    const unknownColorLight = "#777777";
+    
     // Hide empty state if visible
     const emptyState = document.getElementById('emptyState');
     if (emptyState) emptyState.style.display = 'none';
@@ -1250,7 +1543,7 @@ function updateVisualizationColors() {
         
         // Update SVG background
         d3.select("#bubbleMap")
-          .style("background-color", bgColor, 'important')
+          .style("background-color", bgColor)
           .attr("fill", bgColor);
           
         // Update background rectangle
@@ -1259,267 +1552,220 @@ function updateVisualizationColors() {
         
         // Update links
         d3.selectAll(".link")
-          .style("stroke", isDarkMode ? "#444444" : "#cccccc", 'important')
-          .style("stroke-opacity", isDarkMode ? 0.6 : 0.4, 'important');
+          .style("stroke", isDarkMode ? "#444444" : "#cccccc");
           
-        // Update all nodes
+        // Update all nodes with hardcoded colors
         d3.selectAll("circle.category-main, .category-main circle")
-          .style("fill", isDarkMode ? "var(--node-main-fill)" : "var(--node-main-fill)", 'important')
-          .style("stroke", isDarkMode ? "#555555" : "#888888", 'important');
+          .style("fill", isDarkMode ? mainColorDark : mainColorLight)
+          .attr("fill", isDarkMode ? mainColorDark : mainColorLight)
+          .style("stroke", isDarkMode ? "#555555" : "#888888");
           
         d3.selectAll("circle.category-high, .category-high circle")
-          .style("fill", isDarkMode ? "var(--node-high-fill)" : "var(--node-high-fill)", 'important')
-          .style("stroke", isDarkMode ? "#555555" : "#888888", 'important');
+          .style("fill", isDarkMode ? highColorDark : highColorLight)
+          .attr("fill", isDarkMode ? highColorDark : highColorLight)
+          .style("stroke", isDarkMode ? "#555555" : "#888888");
           
         d3.selectAll("circle.category-medium, .category-medium circle")
-          .style("fill", isDarkMode ? "var(--node-medium-fill)" : "var(--node-medium-fill)", 'important')
-          .style("stroke", isDarkMode ? "#555555" : "#888888", 'important');
+          .style("fill", isDarkMode ? mediumColorDark : mediumColorLight)
+          .attr("fill", isDarkMode ? mediumColorDark : mediumColorLight)
+          .style("stroke", isDarkMode ? "#555555" : "#888888");
           
         d3.selectAll("circle.category-low, .category-low circle")
-          .style("fill", isDarkMode ? "var(--node-low-fill)" : "var(--node-low-fill)", 'important')
-          .style("stroke", isDarkMode ? "#555555" : "#888888", 'important');
+          .style("fill", isDarkMode ? lowColorDark : lowColorLight)
+          .attr("fill", isDarkMode ? lowColorDark : lowColorLight)
+          .style("stroke", isDarkMode ? "#555555" : "#888888");
           
         d3.selectAll("circle.category-unknown, .category-unknown circle")
-          .style("fill", isDarkMode ? "var(--node-unknown-fill)" : "var(--node-unknown-fill)", 'important')
-          .style("stroke", isDarkMode ? "#555555" : "#888888", 'important');
+          .style("fill", isDarkMode ? unknownColorDark : unknownColorLight)
+          .attr("fill", isDarkMode ? unknownColorDark : unknownColorLight)
+          .style("stroke", isDarkMode ? "#555555" : "#888888");
           
         // Update text elements
         d3.selectAll(".node-label-bg")
-          .style("fill", isDarkMode ? "rgba(20, 20, 20, 0.9)" : "rgba(0, 0, 0, 0.7)", 'important');
+          .style("fill", isDarkMode ? "rgba(20, 20, 20, 0.9)" : "rgba(0, 0, 0, 0.7)");
           
         d3.selectAll(".node text")
-          .style("fill", isDarkMode ? "#f0f0f0" : "white", 'important');
+          .style("fill", isDarkMode ? "#f0f0f0" : "white");
           
         // Update container
         const mapContainer = document.querySelector(".map-container");
         if (mapContainer) {
-            mapContainer.style.setProperty('background-color', isDarkMode ? '#121212' : 'var(--secondary-bg)', 'important');
-            mapContainer.style.setProperty('border-color', isDarkMode ? '#333333' : 'var(--border-color)', 'important');
+            mapContainer.style.backgroundColor = isDarkMode ? '#121212' : 'white';
+            mapContainer.style.borderColor = isDarkMode ? '#333333' : '#ddd';
         }
     }
 }
 
-// Add a function to initialize theme state on page load
-function initializeTheme() {
-    // Check if we pre-detected dark mode
-    if (window.initialDarkMode === true) {
-        currentThemeIsDark = true;
-        console.log("Using pre-detected dark mode");
-    } else {
-        // First, check if the button text indicates we're in dark mode
-        const themeToggleButtons = Array.from(document.querySelectorAll('a, button'));
-        const themeButton = themeToggleButtons.find(el => 
-            el.textContent.includes('Switch to Dark Mode') || 
-            el.textContent.includes('Switch to Light Mode')
-        );
-        
-        if (themeButton) {
-            // Parse the button text to determine current theme
-            const buttonText = themeButton.textContent.trim();
-            currentThemeIsDark = buttonText.includes('Switch to Light Mode');
-            console.log("Initial theme from button:", currentThemeIsDark ? "dark" : "light");
+// Add a dedicated function for setting up theme switcher events
+function setupThemeSwitcherEvents() {
+    console.log("Setting up theme switcher events");
+    
+    // Add click event listeners to theme toggle buttons
+    document.querySelectorAll('a, button').forEach(el => {
+        if (el.textContent.includes('Switch to Dark Mode') || 
+            el.textContent.includes('Switch to Light Mode')) {
+            
+            // Remove any existing click event to avoid duplicates
+            el.removeEventListener('click', themeSwitchHandler);
+            
+            // Add the event listener
+            el.addEventListener('click', themeSwitchHandler);
+            console.log("Added theme switch handler to element:", el.textContent);
+        }
+    });
+}
+
+// Handler for theme switching clicks
+function themeSwitchHandler(event) {
+    console.log("Theme switch button clicked");
+    
+    // Toggle our theme tracker variables
+    forceDarkMode = !forceDarkMode;
+    currentThemeIsDark = !currentThemeIsDark;
+    
+    console.log("Theme switched to:", currentThemeIsDark ? "dark" : "light");
+    
+    // Force immediate update to our visualization without waiting for app theme changes
+    setTimeout(() => {
+        updateCurrentVisualization();
+    }, 50);
+}
+
+// Function to update current visualization based on theme change
+function updateCurrentVisualization() {
+    console.log("Updating current visualization for theme change");
+    
+    // Get the current drug selection
+    const drugSelect = document.getElementById('drugSelect');
+    if (!drugSelect) return;
+    
+    const currentSelection = drugSelect.value;
+    
+    // Update based on current view
+    if (!currentSelection) {
+        // Overview mode - refresh network graph
+        if (cachedInteractionData && Object.keys(cachedInteractionData).length > 1) {
+            console.log("Refreshing network graph with cached data");
+            generateNetworkGraph(cachedInteractionData);
         } else {
-            // Fallback to checking CSS variables or other indicators
-            const computedStyle = getComputedStyle(document.documentElement);
-            const bgColor = computedStyle.getPropertyValue('--map-bg') || 
-                            computedStyle.getPropertyValue('--body-bg') || 
-                            computedStyle.backgroundColor;
-            
-            // If background is dark, assume dark mode
-            const isDarkBg = bgColor.includes('121212') || 
-                            bgColor.includes('rgba(18,') || 
-                            bgColor.includes('#121') || 
-                            bgColor.includes('var(--secondary-bg)');
-            
-            currentThemeIsDark = isDarkBg;
-            console.log("Initial theme from CSS:", currentThemeIsDark ? "dark" : "light");
+            console.log("No cached data, reloading full relationship graph");
+            loadFullRelationshipGraph();
+        }
+    } else {
+        // Drug specific view - refresh drug interaction map
+        if (cachedNodeData[currentSelection]) {
+            console.log("Refreshing drug interaction map with cached data");
+            createBubbleMap(currentSelection, cachedNodeData[currentSelection].interactionIds);
+        } else {
+            console.log("No cached data for drug, forcing refresh");
+            lastUsedDrugId = null; // Force refresh
+            updateInteractionMap();
         }
     }
     
-    // Force apply the theme classes
-    applyInitialTheme();
-    
-    // Set CSS variables to match the detected theme
-    const root = document.documentElement;
-    if (currentThemeIsDark) {
-        root.style.setProperty('--map-bg', '#121212', 'important');
-        root.style.setProperty('--link-color', '#444444', 'important');
-        root.style.setProperty('--node-main-fill', '#8021B0', 'important');
-        root.style.setProperty('--node-high-fill', '#c13c38', 'important');
-        root.style.setProperty('--node-medium-fill', '#e09c40', 'important');
-        root.style.setProperty('--node-low-fill', '#49a2bc', 'important');
-        root.style.setProperty('--node-unknown-fill', '#666666', 'important');
-        
-        // Force dark mode on body and html elements
-        document.body.classList.add('dark-mode');
-        document.documentElement.setAttribute('data-theme', 'dark');
-        
-        // Find and apply dark mode to map container and SVG early
-        setTimeout(() => {
-            forceApplyDarkMode();
-        }, 0);
-    } else {
-        root.style.setProperty('--map-bg', 'white', 'important');
-        root.style.setProperty('--link-color', '#cccccc', 'important');
-        root.style.setProperty('--node-main-fill', '#9932CC', 'important');
-        root.style.setProperty('--node-high-fill', '#d9534f', 'important');
-        root.style.setProperty('--node-medium-fill', '#f0ad4e', 'important');
-        root.style.setProperty('--node-low-fill', '#5bc0de', 'important');
-        root.style.setProperty('--node-unknown-fill', '#777777', 'important');
-        
-        // Clear dark mode
-        document.body.classList.remove('dark-mode');
-        document.documentElement.removeAttribute('data-theme');
-    }
+    // Also directly apply colors to all existing nodes 
+    applyColorsToExistingNodes();
 }
 
-// Add a function to apply initial theme without animation
-function applyInitialTheme() {
-    // No need to check for concurrent refresh since this is initialization
-    const isDarkMode = currentThemeIsDark;
-    console.log("Applying initial theme:", isDarkMode ? "dark" : "light");
+// Function to apply colors directly to all existing nodes
+function applyColorsToExistingNodes() {
+    console.log("Directly applying colors to existing nodes, dark mode:", currentThemeIsDark);
     
-    // Set theme classes/attributes on body and document
-    if (isDarkMode) {
-        document.body.classList.add('dark-mode-applied');
-        document.documentElement.setAttribute('data-theme', 'dark');
-    } else {
-        document.body.classList.remove('dark-mode-applied');
-        document.documentElement.removeAttribute('data-theme');
-    }
+    // ABSOLUTE HARDCODED COLORS - No variables, no lookup tables
+    const mainColorDark = "#8021B0";
+    const highColorDark = "#c13c38";
+    const mediumColorDark = "#e09c40";
+    const lowColorDark = "#49a2bc";
+    const unknownColorDark = "#666666";
     
-    // Set the map container background directly
-    const mapContainer = document.querySelector(".map-container");
-    if (mapContainer) {
-        mapContainer.style.setProperty('background-color', isDarkMode ? 'var(--secondary-bg)' : 'var(--secondary-bg)', 'important');
-        mapContainer.style.setProperty('border-color', isDarkMode ? '#333333' : 'var(--border-color)', 'important');
-    }
-}
-
-// Add a function to force dark mode styles immediately
-function forceApplyDarkMode() {
-    console.log("Forcing dark mode styles");
+    const mainColorLight = "#9932CC";
+    const highColorLight = "#d9534f";
+    const mediumColorLight = "#f0ad4e";
+    const lowColorLight = "#5bc0de";
+    const unknownColorLight = "#777777";
     
-    // Apply to the SVG
-    const bubbleMap = document.getElementById('bubbleMap');
-    if (bubbleMap) {
-        bubbleMap.classList.add('dark-mode');
-        bubbleMap.style.backgroundColor = '#121212';
-        bubbleMap.style.fill = '#121212';
-    }
-    
-    // Apply to the container
-    const mapContainer = document.querySelector('.map-container');
-    if (mapContainer) {
-        mapContainer.style.backgroundColor = '#121212';
-        mapContainer.style.borderColor = '#333333';
-    }
-    
-    // Apply to existing nodes
-    document.querySelectorAll('.category-main circle, circle.category-main').forEach(el => {
-        el.style.fill = '#8021B0';
-        el.style.stroke = '#555555';
-    });
-    
-    document.querySelectorAll('.category-high circle, circle.category-high').forEach(el => {
-        el.style.fill = '#c13c38';
-        el.style.stroke = '#555555';
-    });
-    
-    document.querySelectorAll('.category-medium circle, circle.category-medium').forEach(el => {
-        el.style.fill = '#e09c40';
-        el.style.stroke = '#555555';
-    });
-    
-    document.querySelectorAll('.category-low circle, circle.category-low').forEach(el => {
-        el.style.fill = '#49a2bc';
-        el.style.stroke = '#555555';
-    });
-    
-    document.querySelectorAll('.category-unknown circle, circle.category-unknown').forEach(el => {
-        el.style.fill = '#666666';
-        el.style.stroke = '#555555';
-    });
-    
-    // Apply to links
-    document.querySelectorAll('.link').forEach(el => {
-        el.style.stroke = '#444444';
-    });
-}
-
-// Add this new function to directly update colors without redrawing
-function applyColorsDirectly(isDarkMode) {
-    console.log("Applying colors directly, dark mode:", isDarkMode);
-    
-    // Get background elements
+    // Apply background colors
     const svgElement = document.getElementById('bubbleMap');
-    const container = document.querySelector(".map-container");
-    const bgColor = isDarkMode ? '#121212' : 'white';
-    
-    // Set background colors immediately
     if (svgElement) {
+        const bgColor = currentThemeIsDark ? '#121212' : 'white';
         svgElement.style.backgroundColor = bgColor;
+        svgElement.style.setProperty('background-color', bgColor, 'important');
         svgElement.setAttribute('fill', bgColor);
+        
+        // Also set the background rect if it exists
+        const bgRect = svgElement.querySelector('.svg-background');
+        if (bgRect) {
+            bgRect.setAttribute('fill', bgColor);
+        }
     }
     
+    const container = document.querySelector('.map-container');
     if (container) {
-        container.style.backgroundColor = isDarkMode ? '#121212' : 'var(--secondary-bg)';
-        container.style.borderColor = isDarkMode ? '#333333' : 'var(--border-color)';
+        container.style.backgroundColor = currentThemeIsDark ? '#121212' : 'white';
+        container.style.setProperty('background-color', currentThemeIsDark ? '#121212' : 'white', 'important');
+        container.style.borderColor = currentThemeIsDark ? '#333333' : '#ddd';
     }
     
-    // If D3 isn't loaded yet, we can't continue
-    if (typeof d3 === 'undefined') return;
-    
-    // Background rectangle
-    d3.select("#bubbleMap rect.svg-background").attr("fill", bgColor);
-    
-    // Update links
-    d3.selectAll("#bubbleMap line.link")
-      .attr("stroke", isDarkMode ? "#444444" : "#cccccc");
-    
-    // Update nodes directly with theme-specific colors
-    d3.selectAll("#bubbleMap circle").each(function() {
-        const element = d3.select(this);
-        let category = "";
-        
-        // Find which category this circle belongs to
-        if (element.classed("category-main") || element.parent && element.parent().classed("category-main")) {
+    // Update all circle elements with the appropriate colors
+    const circles = document.querySelectorAll('#bubbleMap circle');
+    circles.forEach(circle => {
+        // Determine the category from classes
+        let category = "unknown";
+        if (circle.classList.contains('category-main') || 
+            circle.parentElement && circle.parentElement.classList.contains('category-main')) {
             category = "main";
-        } else if (element.classed("category-high") || element.parent && element.parent().classed("category-high")) {
+        } else if (circle.classList.contains('category-high') || 
+                  circle.parentElement && circle.parentElement.classList.contains('category-high')) {
             category = "high";
-        } else if (element.classed("category-medium") || element.parent && element.parent().classed("category-medium")) {
+        } else if (circle.classList.contains('category-medium') || 
+                  circle.parentElement && circle.parentElement.classList.contains('category-medium')) {
             category = "medium";
-        } else if (element.classed("category-low") || element.parent && element.parent().classed("category-low")) {
+        } else if (circle.classList.contains('category-low') || 
+                  circle.parentElement && circle.parentElement.classList.contains('category-low')) {
             category = "low";
-        } else {
-            category = "unknown";
         }
         
-        // Apply appropriate color based on category and theme
-        if (isDarkMode) {
-            // Dark mode colors
-            if (category === "main") element.attr("fill", "#8021B0");
-            else if (category === "high") element.attr("fill", "#c13c38");
-            else if (category === "medium") element.attr("fill", "#e09c40");
-            else if (category === "low") element.attr("fill", "#49a2bc");
-            element.attr("stroke", "#555555");
+        // Apply the appropriate color based on category and theme
+        let fillColor;
+        if (currentThemeIsDark) {
+            if (category === "main") fillColor = mainColorDark;
+            else if (category === "high") fillColor = highColorDark;
+            else if (category === "medium") fillColor = mediumColorDark;
+            else if (category === "low") fillColor = lowColorDark;
+            else fillColor = unknownColorDark;
         } else {
-            // Light mode colors
-            if (category === "main") element.attr("fill", "#9932CC");
-            else if (category === "high") element.attr("fill", "#d9534f");
-            else if (category === "medium") element.attr("fill", "#f0ad4e");
-            else if (category === "low") element.attr("fill", "#5bc0de");
-            element.attr("stroke", "#888888");
+            if (category === "main") fillColor = mainColorLight;
+            else if (category === "high") fillColor = highColorLight;
+            else if (category === "medium") fillColor = mediumColorLight;
+            else if (category === "low") fillColor = lowColorLight;
+            else fillColor = unknownColorLight;
         }
+        
+        // Apply the color directly to the circle element
+        circle.setAttribute('fill', fillColor);
+        circle.style.fill = fillColor;
+        circle.style.setProperty('fill', fillColor, 'important');
+        circle.setAttribute('stroke', currentThemeIsDark ? "#555555" : "#888888");
+    });
+    
+    // Update link colors
+    const links = document.querySelectorAll('#bubbleMap line.link');
+    links.forEach(link => {
+        link.setAttribute('stroke', currentThemeIsDark ? "#444444" : "#cccccc");
+        link.style.stroke = currentThemeIsDark ? "#444444" : "#cccccc";
     });
     
     // Update text backgrounds
-    d3.selectAll("#bubbleMap .node-label-bg")
-      .attr("fill", isDarkMode ? "rgba(20, 20, 20, 0.9)" : "rgba(0, 0, 0, 0.7)");
+    const textBgs = document.querySelectorAll('#bubbleMap .node-label-bg');
+    textBgs.forEach(bg => {
+        bg.setAttribute('fill', currentThemeIsDark ? "rgba(20, 20, 20, 0.9)" : "rgba(0, 0, 0, 0.7)");
+    });
     
-    // Update text color
-    d3.selectAll("#bubbleMap .node text")
-      .attr("fill", isDarkMode ? "#f0f0f0" : "white");
+    // Update text colors
+    const texts = document.querySelectorAll('#bubbleMap .node text');
+    texts.forEach(text => {
+        text.setAttribute('fill', currentThemeIsDark ? "#f0f0f0" : "white");
+    });
     
-    // No delays or timeouts needed - changes are applied immediately
+    console.log("Direct color application complete");
 }
