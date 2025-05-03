@@ -50,7 +50,7 @@
 }
 
 .stat-number p {
-    font-size: 2.25rem;
+    font-size: 2rem;
     font-weight: 700;
     margin: 0;
     line-height: 1;
@@ -58,7 +58,7 @@
 }
 
 .stat-number h3 {
-    font-size: 0.875rem;
+    font-size: 0.75rem;
     font-weight: 400;
     margin: 0.25rem 0 0;
     color: var(--secondary-text);
@@ -282,13 +282,6 @@ font-weight: 500;
 /* Responsive breakpoints */
 
 @media screen and (max-width: 1200px) {
-    .stat-number h3 {
-        font-size: 0.75rem;
-    }
-    
-    .stat-number p {
-        font-size: 2rem;
-    }
     .patient-table th.id-col,
     .patient-table td:nth-child(2) {
         display: none;
