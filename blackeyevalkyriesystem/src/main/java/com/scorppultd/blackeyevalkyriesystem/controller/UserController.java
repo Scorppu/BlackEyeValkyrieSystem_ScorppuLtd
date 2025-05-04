@@ -154,7 +154,7 @@ class UserApiController {
             if (userService.isReservedUsername(user.getUsername())) {
                 logger.warn("Attempt to create reserved username: {}", user.getUsername());
                 Map<String, String> error = new HashMap<>();
-                error.put("error", "Username 'admin' is reserved for system use");
+                error.put("message", "Username 'admin' is reserved for system use");
                 return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
             }
             
@@ -162,7 +162,7 @@ class UserApiController {
             if (userService.findUserByUsername(user.getUsername()).isPresent()) {
                 logger.warn("Username already exists: {}", user.getUsername());
                 Map<String, String> error = new HashMap<>();
-                error.put("error", "Username already exists");
+                error.put("message", "Username already exists");
                 return new ResponseEntity<>(error, HttpStatus.CONFLICT);
             }
             
@@ -170,16 +170,28 @@ class UserApiController {
             user.setPassword(passwordEncoder.encode(user.getPassword()));
             
             user.setCreatedDate(LocalDate.now());
+            user.setActive(true);
             
             logger.info("Creating new user: username={}, role={}", user.getUsername(), user.getRole());
             User savedUser = userService.saveUser(user);
             logger.info("User created successfully: id={}", savedUser.getId());
             
-            return ResponseEntity.ok(savedUser);
+            // Create response with user details
+            Map<String, Object> response = new HashMap<>();
+            response.put("id", savedUser.getId());
+            response.put("username", savedUser.getUsername());
+            response.put("firstName", savedUser.getFirstName());
+            response.put("lastName", savedUser.getLastName());
+            response.put("email", savedUser.getEmail());
+            response.put("role", savedUser.getRole());
+            response.put("active", savedUser.isActive());
+            response.put("message", "User created successfully");
+            
+            return new ResponseEntity<>(response, HttpStatus.CREATED);
         } catch (Exception e) {
             logger.error("Error creating user: {}", e.getMessage(), e);
             Map<String, String> error = new HashMap<>();
-            error.put("error", e.getMessage());
+            error.put("message", e.getMessage());
             return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

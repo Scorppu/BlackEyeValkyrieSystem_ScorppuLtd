@@ -46,14 +46,14 @@ public class LicenseKeyServiceImpl implements LicenseKeyService {
         
         // Check if the license is expired and update its status if necessary
         if (isLicenseExpired(license)) {
-            // If the license is expired, deactivate it automatically
-            license.setActive(false);
+            // If the license is expired, update status to Expired
+            license.setStatus(LicenseKey.Status.EXPIRED);
             licenseKeyRepository.save(license);
             return false;
         }
         
         // Finally check if the license is active
-        return license.isActive();
+        return LicenseKey.Status.ACTIVE.equals(license.getStatus());
     }
     
     /**
@@ -101,6 +101,11 @@ public class LicenseKeyServiceImpl implements LicenseKeyService {
             licenseKey.setIssuedOn(LocalDate.now());
         }
         
+        // Set status to Active if not set
+        if (licenseKey.getStatus() == null) {
+            licenseKey.setStatus(LicenseKey.Status.ACTIVE);
+        }
+        
         // Save and return the license key
         return licenseKeyRepository.save(licenseKey);
     }
@@ -108,6 +113,11 @@ public class LicenseKeyServiceImpl implements LicenseKeyService {
     @Override
     public Optional<LicenseKey> findByKey(String key) {
         return licenseKeyRepository.findByKey(key);
+    }
+
+    @Override
+    public Optional<LicenseKey> findById(String id) {
+        return licenseKeyRepository.findById(id);
     }
 
     @Override
@@ -157,6 +167,8 @@ public class LicenseKeyServiceImpl implements LicenseKeyService {
         }
         
         license.setIssuedTo(userId);
+        license.setUser(userId);
+        license.setStatus(LicenseKey.Status.USED);
         licenseKeyRepository.save(license);
         
         return true;
@@ -170,10 +182,15 @@ public class LicenseKeyServiceImpl implements LicenseKeyService {
         }
         
         LicenseKey license = licenseKeyOpt.get();
-        license.setActive(false);
+        license.setStatus(LicenseKey.Status.DEACTIVATED);
         licenseKeyRepository.save(license);
         
         return true;
+    }
+    
+    @Override
+    public void deleteLicenseKey(LicenseKey licenseKey) {
+        licenseKeyRepository.delete(licenseKey);
     }
     
     /**
@@ -186,16 +203,16 @@ public class LicenseKeyServiceImpl implements LicenseKeyService {
         List<LicenseKey> allLicenses = licenseKeyRepository.findAll();
         
         for (LicenseKey license : allLicenses) {
-            // Skip already inactive licenses
-            if (!license.isActive()) {
+            // Skip already inactive or expired licenses
+            if (!LicenseKey.Status.ACTIVE.equals(license.getStatus())) {
                 continue;
             }
             
             // Check if this license has expired
             if (license.getExpiresOn() != null && license.getExpiresOn().isBefore(today)) {
-                license.setActive(false);
+                license.setStatus(LicenseKey.Status.EXPIRED);
                 licenseKeyRepository.save(license);
-                System.out.println("Deactivated expired license key: " + license.getKey());
+                System.out.println("Expired license key: " + license.getKey());
             }
         }
     }

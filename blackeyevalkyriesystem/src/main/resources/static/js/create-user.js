@@ -554,6 +554,23 @@ document.addEventListener('DOMContentLoaded', function() {
                     throw new Error(data.message || 'Invalid license key');
                 }
                 
+                // If role is provided in the license key response, set it for the user
+                if (data.role && !isEditMode) {
+                    // If license key has a predetermined role, override the user selection
+                    const roleSelect = document.getElementById('role');
+                    if (roleSelect) {
+                        // Convert license key role to enum value (all uppercase)
+                        const roleValue = data.role.toUpperCase();
+                        for (let i = 0; i < roleSelect.options.length; i++) {
+                            if (roleSelect.options[i].value === roleValue) {
+                                roleSelect.value = roleValue;
+                                userData.role = roleValue;
+                                break;
+                            }
+                        }
+                    }
+                }
+                
                 // If license is valid, proceed with user creation/update
                 return fetch(endpoint, {
                     method: method,
@@ -565,42 +582,47 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .then(response => {
                 if (!response.ok) {
-                    // Get more detailed error information
-                    return response.text().then(text => {
-                        console.error('Server error response:', text);
-                        
-                        // Try to parse the error response as JSON
-                        let errorMessage = `Server responded with status: ${response.status} ${response.statusText}`;
-                        try {
-                            const errorData = JSON.parse(text);
-                            if (errorData.error) {
-                                // Use the specific error message from the server
-                                errorMessage = errorData.error;
-                            }
-                        } catch (e) {
-                            // If the response is not valid JSON, try to extract a meaningful message from the text
-                            if (text && text.includes('error')) {
-                                const matches = text.match(/"error"\s*:\s*"([^"]+)"/);
-                                if (matches && matches.length > 1) {
-                                    errorMessage = matches[1];
-                                }
-                            }
-                        }
-                        
-                        throw new Error(errorMessage);
+                    return response.json().then(data => {
+                        throw new Error(data.message || 'Error creating/updating user');
                     });
                 }
                 return response.json();
             })
             .then(data => {
-                const action = isEditMode ? 'updated' : 'created';
-                
-                // Show success modal instead of alert
-                showSuccessModal(`User ${action} successfully!`);
+                // Mark the license key as used and associate it with the user
+                if (!isEditMode) {
+                    const userId = data.id;
+                    return fetch('/api/licenses/' + userData.licenseKey + '/update-status', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ 
+                            status: 'Used',
+                            user: userId
+                        })
+                    }).then(() => data);
+                }
+                return data;
             })
-            .catch((error) => {
+            .then(data => {
+                // Show success message
+                successTitle.textContent = isEditMode ? 'User Updated' : 'User Created';
+                successMessage.textContent = isEditMode 
+                    ? `The user "${userData.username}" has been updated successfully.` 
+                    : `The user "${userData.username}" has been created successfully.`;
+                successModal.style.display = 'block';
+                
+                // Clear form if not in edit mode
+                if (!isEditMode) {
+                    form.reset();
+                }
+            })
+            .catch(error => {
                 console.error('Error:', error);
-                showErrorModal(`Error ${isEditMode ? 'updating' : 'creating'} user: ${error.message}`);
+                errorTitle.textContent = 'Error';
+                errorMessage.textContent = error.message;
+                errorModal.style.display = 'block';
             });
         });
     }
