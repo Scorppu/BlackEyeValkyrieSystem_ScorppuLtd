@@ -51,6 +51,14 @@ public interface LicenseKeyService {
     Optional<LicenseKey> findByKey(String key);
     
     /**
+     * Find a license key by its ID
+     * 
+     * @param id The license key ID
+     * @return Optional containing the license key if found
+     */
+    Optional<LicenseKey> findById(String id);
+    
+    /**
      * Get all license keys
      * 
      * @return List of all license keys
@@ -69,7 +77,7 @@ public interface LicenseKeyService {
      * 
      * @param licenseKey The license key string
      * @param userId The user ID
-     * @return true if the license key was assigned, false otherwise
+     * @return true if the assignment was successful, false otherwise
      */
     boolean assignLicenseKeyToUser(String licenseKey, String userId);
     
@@ -77,7 +85,14 @@ public interface LicenseKeyService {
      * Deactivate a license key
      * 
      * @param licenseKey The license key string
-     * @return true if the license key was deactivated, false otherwise
+     * @return true if the deactivation was successful, false otherwise
      */
     boolean deactivateLicenseKey(String licenseKey);
+    
+    /**
+     * Delete a license key
+     * 
+     * @param licenseKey The license key to delete
+     */
+    void deleteLicenseKey(LicenseKey licenseKey);
 } 

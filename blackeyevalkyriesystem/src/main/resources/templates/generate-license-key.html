@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main}"
+      lang="en">
+<head>
+    <title>Generate License Key</title>
+    <th:block layout:fragment="head">
+        <link rel="stylesheet" th:href="@{/css/generate-license-key.css}">
+    </th:block>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="content-header">
+            <h1>Generate License Key</h1>
+        </div>
+        
+        <!-- Alert messages -->
+        <div class="alert alert-success" th:if="${successMessage}" th:text="${successMessage}"></div>
+        <div class="alert alert-danger" th:if="${errorMessage}" th:text="${errorMessage}"></div>
+        
+        <div class="form-container">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">License Key Details</h3>
+                </div>
+                <div class="card-body">
+                    <form th:action="@{/admin/licenses/generate}" method="post">
+                        <div class="form-section">
+                            <!-- Role selection -->
+                            <div class="form-group">
+                                <label for="role">Role:</label>
+                                <select id="role" name="role" class="form-control" required>
+                                    <option value="">Select a role</option>
+                                    <option th:each="roleOption : ${roleOptions}" 
+                                            th:value="${roleOption}" 
+                                            th:text="${roleOption}"></option>
+                                </select>
+                            </div>
+                            
+                            <!-- Expiry options -->
+                            <div class="form-group">
+                                <label for="expiryOption">Expiry Date:</label>
+                                <select id="expiryOption" name="expiryOption" class="form-control" required>
+                                    <option value="">Select expiry option</option>
+                                    <option value="7days">7 days</option>
+                                    <option value="30days">30 days</option>
+                                    <option value="90days">90 days</option>
+                                    <option value="180days">180 days</option>
+                                    <option value="365days">365 days</option>
+                                    <option value="noexpiry">No expiry date</option>
+                                    <option value="custom">Custom date</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Custom date container (shown only when custom option is selected) -->
+                            <div id="customDateContainer" class="form-group">
+                                <label for="customDate">Custom Expiry Date:</label>
+                                <input type="date" id="customDate" name="customDate" class="form-control">
+                            </div>
+                        </div>
+                        
+                        <!-- Form actions -->
+                        <div class="form-actions">
+                            <a th:href="@{/admin/licenses}" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Generate License Key</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <th:block layout:fragment="scripts">
+        <script th:src="@{/js/generate-license-key.js}"></script>
+    </th:block>
+</body>
+</html> 
