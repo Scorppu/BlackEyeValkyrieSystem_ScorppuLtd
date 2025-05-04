@@ -263,7 +263,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
                 
                 this.classList.add('active');
-                document.getElementById(target).classList.add('active');
+                const targetElement = document.getElementById(target);
+                if (targetElement) {
+                    targetElement.classList.add('active');
+                } else {
+                    console.warn(`Tab content element with ID '${target}' not found.`);
+                }
             });
         });
         
