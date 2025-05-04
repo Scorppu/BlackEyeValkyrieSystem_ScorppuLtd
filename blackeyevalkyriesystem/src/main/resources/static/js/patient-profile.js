@@ -1,57 +1,222 @@
-const patient = /*[[${patient}]]*/ {};
-const drugNamesMap = /*[[${drugNamesMap}]]*/ {};
-const pastConsultations = /*[[${pastConsultations}]]*/ [];
+// Initialize empty data structures that will be populated via API calls
+let patient = {};
+let drugNamesMap = {};
+let pastConsultations = [];
+let isLoading = true;
 
-document.addEventListener('DOMContentLoaded', function() {
-    // Populate personal information
-    if (patient) {
-        document.getElementById('firstName').textContent = patient.firstName || '';
-        document.getElementById('lastName').textContent = patient.lastName || '';
-        document.getElementById('sex').textContent = patient.sex ? 'Male' : 'Female';
-        document.getElementById('relativeName').textContent = patient.relativeName || '';
-        document.getElementById('dateOfBirth').textContent = patient.dateOfBirth || '';
-        document.getElementById('age').textContent = patient.age || '';
-        document.getElementById('maritalStatus').textContent = patient.maritalStatus || '';
-        document.getElementById('bloodType').textContent = patient.bloodType || '';
-        
-        // Populate contact information
-        if (patient.address) {
-            document.getElementById('contactNumber').textContent = patient.contactNumber || '';
-            document.getElementById('email').textContent = patient.email || '';
-            document.getElementById('address1').textContent = patient.address.addressLine1 || '';
-            document.getElementById('address2').textContent = patient.address.addressLine2 || '';
-            document.getElementById('address3').textContent = patient.address.addressLine3 || '';
-            document.getElementById('country').textContent = patient.address.country || '';
-            document.getElementById('state').textContent = patient.address.state || '';
-            document.getElementById('town').textContent = patient.address.town || '';
-            document.getElementById('pinCode').textContent = patient.address.pinCode || '';
+document.addEventListener('DOMContentLoaded', async function() {
+    try {
+        // Extract patient ID from URL path
+        const patientId = extractPatientIdFromUrl();
+        if (!patientId) {
+            showErrorMessage("Could not determine patient ID from URL.");
+            return;
         }
-        
-        // Populate drug allergies
-        if (patient.drugAllergies && patient.drugAllergies.length > 0) {
-            const allergiesList = document.getElementById('allergiesList');
-            const emptyRow = allergiesList.querySelector('.empty-allergies-row');
-            if (emptyRow) {
-                emptyRow.remove();
-            }
-            
-            patient.drugAllergies.forEach(drugId => {
-                const drugName = drugNamesMap[drugId] || 'Unknown Drug';
-                const row = document.createElement('tr');
-                row.innerHTML = `<td>${drugName}</td>`;
-                allergiesList.appendChild(row);
-            });
-        }
+
+        // Show loading indicators
+        showLoadingState();
+
+        // Fetch all required data
+        await Promise.all([
+            fetchPatientData(patientId),
+            fetchDrugsData(),
+            fetchPastConsultations(patientId)
+        ]);
+
+        // Populate the UI with the data
+        populatePatientInfo();
+        populateDrugAllergies();
+        populatePastConsultations();
+
+        // Set up event listeners for tab navigation
+        setupTabNavigation();
+
+        // Hide loading indicators
+        hideLoadingState();
+    } catch (error) {
+        console.error("Error initializing patient profile:", error);
+        showErrorMessage("Failed to load patient data. Please try refreshing the page.");
     }
+});
+
+// Extract patient ID from the current URL
+function extractPatientIdFromUrl() {
+    const pathParts = window.location.pathname.split('/');
+    const idIndex = pathParts.indexOf('view') + 1;
+    return pathParts[idIndex] || null;
+}
+
+// Show loading indicators throughout the UI
+function showLoadingState() {
+    isLoading = true;
     
-    // Populate past consultations if available
-    if (pastConsultations && pastConsultations.length > 0) {
-        const consultationsList = document.getElementById('pastConsultationsList');
-        const emptyRow = consultationsList.querySelector('.empty-consultations-row');
-        if (emptyRow) {
-            emptyRow.remove();
+    // Add loading indicators to key sections
+    document.querySelectorAll('.info-value').forEach(el => {
+        el.innerHTML = '<span class="loading-placeholder">Loading...</span>';
+    });
+    
+    document.getElementById('allergiesList').innerHTML = `
+        <tr><td><span class="loading-placeholder">Loading allergies...</span></td></tr>
+    `;
+    
+    document.getElementById('pastConsultationsList').innerHTML = `
+        <tr><td colspan="8"><span class="loading-placeholder">Loading consultations...</span></td></tr>
+    `;
+}
+
+// Hide loading indicators
+function hideLoadingState() {
+    isLoading = false;
+    document.querySelectorAll('.loading-placeholder').forEach(el => {
+        el.parentElement.removeChild(el);
+    });
+}
+
+// Show an error message to the user
+function showErrorMessage(message) {
+    hideLoadingState();
+    
+    // Create an error notification
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'error-notification';
+    errorDiv.textContent = message;
+    errorDiv.style.cssText = 'position: fixed; top: 20px; right: 20px; background-color: #f8d7da; color: #721c24; padding: 10px 15px; border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 1000;';
+    
+    // Add close button
+    const closeBtn = document.createElement('span');
+    closeBtn.innerHTML = '&times;';
+    closeBtn.style.cssText = 'margin-left: 10px; cursor: pointer; font-weight: bold;';
+    closeBtn.onclick = function() { document.body.removeChild(errorDiv); };
+    errorDiv.appendChild(closeBtn);
+    
+    document.body.appendChild(errorDiv);
+    
+    // Auto remove after 8 seconds
+    setTimeout(() => {
+        if (document.body.contains(errorDiv)) {
+            document.body.removeChild(errorDiv);
+        }
+    }, 8000);
+}
+
+// Fetch patient data from API
+async function fetchPatientData(patientId) {
+    try {
+        const response = await fetch(`/api/patients/${patientId}`);
+        if (!response.ok) {
+            throw new Error(`Failed to fetch patient data: ${response.status} ${response.statusText}`);
         }
         
+        patient = await response.json();
+        console.log("Patient data fetched successfully:", patient);
+    } catch (error) {
+        console.error("Error fetching patient data:", error);
+        throw error;
+    }
+}
+
+// Fetch drug data for mapping drug IDs to names
+async function fetchDrugsData() {
+    try {
+        const response = await fetch('/api/drugs');
+        if (!response.ok) {
+            throw new Error(`Failed to fetch drugs data: ${response.status} ${response.statusText}`);
+        }
+        
+        const drugs = await response.json();
+        
+        // Convert the array to a map of id -> name
+        drugNamesMap = drugs.reduce((map, drug) => {
+            map[drug.id] = drug.name;
+            return map;
+        }, {});
+        
+        console.log("Drugs data fetched successfully:", drugs.length, "drugs loaded");
+    } catch (error) {
+        console.error("Error fetching drugs data:", error);
+        throw error;
+    }
+}
+
+// Fetch past consultations for this patient
+async function fetchPastConsultations(patientId) {
+    try {
+        const response = await fetch(`/api/consultations/patient/${patientId}`);
+        if (!response.ok) {
+            throw new Error(`Failed to fetch consultations: ${response.status} ${response.statusText}`);
+        }
+        
+        const allConsultations = await response.json();
+        
+        // Filter to only include completed consultations
+        pastConsultations = allConsultations
+            .filter(c => c.status === 'Completed')
+            .sort((a, b) => new Date(b.consultationDateTime) - new Date(a.consultationDateTime))
+            .slice(0, 10); // Limit to 10 most recent
+        
+        console.log("Past consultations fetched successfully:", pastConsultations.length, "consultations found");
+    } catch (error) {
+        console.error("Error fetching consultations:", error);
+        throw error;
+    }
+}
+
+// Populate personal information in the UI
+function populatePatientInfo() {
+    if (!patient) return;
+    
+    // Populate personal information
+    document.getElementById('firstName').textContent = patient.firstName || '';
+    document.getElementById('lastName').textContent = patient.lastName || '';
+    document.getElementById('sex').textContent = patient.sex ? 'Male' : 'Female';
+    document.getElementById('relativeName').textContent = patient.relativeName || '';
+    document.getElementById('dateOfBirth').textContent = patient.dateOfBirth || '';
+    document.getElementById('age').textContent = patient.age || '';
+    document.getElementById('maritalStatus').textContent = patient.maritalStatus || '';
+    document.getElementById('bloodType').textContent = patient.bloodType || '';
+    
+    // Populate contact information
+    if (patient.address) {
+        document.getElementById('contactNumber').textContent = patient.contactNumber || '';
+        document.getElementById('email').textContent = patient.email || '';
+        document.getElementById('address1').textContent = patient.address.addressLine1 || '';
+        document.getElementById('address2').textContent = patient.address.addressLine2 || '';
+        document.getElementById('address3').textContent = patient.address.addressLine3 || '';
+        document.getElementById('country').textContent = patient.address.country || '';
+        document.getElementById('state').textContent = patient.address.state || '';
+        document.getElementById('town').textContent = patient.address.town || '';
+        document.getElementById('pinCode').textContent = patient.address.pinCode || '';
+    }
+}
+
+// Populate drug allergies section
+function populateDrugAllergies() {
+    const allergiesList = document.getElementById('allergiesList');
+    allergiesList.innerHTML = '';
+    
+    if (patient.drugAllergies && patient.drugAllergies.length > 0) {
+        patient.drugAllergies.forEach(drugId => {
+            const drugName = drugNamesMap[drugId] || 'Unknown Drug';
+            const row = document.createElement('tr');
+            row.innerHTML = `<td>${drugName}</td>`;
+            allergiesList.appendChild(row);
+        });
+    } else {
+        // Show empty state
+        allergiesList.innerHTML = `
+            <tr class="empty-allergies-row">
+                <td>No drug allergies recorded</td>
+            </tr>
+        `;
+    }
+}
+
+// Populate past consultations table
+function populatePastConsultations() {
+    const consultationsList = document.getElementById('pastConsultationsList');
+    consultationsList.innerHTML = '';
+    
+    if (pastConsultations && pastConsultations.length > 0) {
         pastConsultations.forEach(consult => {
             const row = document.createElement('tr');
             
@@ -117,9 +282,18 @@ document.addEventListener('DOMContentLoaded', function() {
             
             consultationsList.appendChild(row);
         });
+    } else {
+        // Show empty state
+        consultationsList.innerHTML = `
+            <tr class="empty-consultations-row">
+                <td colspan="8">No past consultations recorded</td>
+            </tr>
+        `;
     }
-    
-    // Tab navigation
+}
+
+// Set up tab navigation
+function setupTabNavigation() {
     const tabItems = document.querySelectorAll('.tab-item');
     const personalInfoSection = document.getElementById('personal-info-section');
     const contactInfoSection = document.getElementById('contact-info-section');
@@ -157,7 +331,7 @@ document.addEventListener('DOMContentLoaded', function() {
             switchSection(targetId);
         });
     });
-});
+}
 
 // Function to show consultation details in modal
 function showConsultationDetails(element) {
