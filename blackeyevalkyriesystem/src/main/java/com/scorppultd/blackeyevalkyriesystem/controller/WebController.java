@@ -25,6 +25,8 @@ import com.scorppultd.blackeyevalkyriesystem.service.AppointmentService;
 import com.scorppultd.blackeyevalkyriesystem.service.PatientService;
 import com.scorppultd.blackeyevalkyriesystem.service.DoctorService;
 import com.scorppultd.blackeyevalkyriesystem.model.Doctor;
+import com.scorppultd.blackeyevalkyriesystem.model.Drug;
+import com.scorppultd.blackeyevalkyriesystem.service.DrugService;
 import com.scorppultd.blackeyevalkyriesystem.model.Visit;
 import com.scorppultd.blackeyevalkyriesystem.service.DutyStatusService;
 import com.scorppultd.blackeyevalkyriesystem.model.DutyStatus;
@@ -41,24 +43,28 @@ import java.time.LocalDate;
 @Controller
 public class WebController {
     
+    private static final Logger logger = LoggerFactory.getLogger(WebController.class);
+    
     private final PatientService patientService;
     private final AppointmentService appointmentService;
     private final DoctorService doctorService;
     private final UserService userService;
     private final DutyStatusService dutyStatusService;
-    private static final Logger logger = LoggerFactory.getLogger(WebController.class);
+    private final DrugService drugService;
     
     @Autowired
     public WebController(PatientService patientService, 
                         AppointmentService appointmentService,
                         DoctorService doctorService,
                         UserService userService,
-                        DutyStatusService dutyStatusService) {
+                        DutyStatusService dutyStatusService,
+                        DrugService drugService) {
         this.patientService = patientService;
         this.appointmentService = appointmentService;
         this.doctorService = doctorService;
         this.userService = userService;
         this.dutyStatusService = dutyStatusService;
+        this.drugService = drugService;
     }
 
     /**
@@ -165,6 +171,16 @@ public class WebController {
             model.addAttribute("admittedPercentage", admittedPercentage);
             model.addAttribute("dischargedPercentage", dischargedPercentage);
             
+            // Get drugs for the dashboard
+            try {
+                List<Drug> allDrugs = drugService.getAllDrugs();
+                model.addAttribute("drugs", allDrugs);
+                logger.info("Added {} drugs to the dashboard", allDrugs.size());
+            } catch (Exception e) {
+                logger.error("Error fetching drugs for dashboard: {}", e.getMessage(), e);
+                model.addAttribute("drugs", new ArrayList<>());
+            }
+            
             logger.info("Home page stats - doctors: {}/{}, nurses: {}/{}, patients: {}, admitted: {}%, discharged: {}%", 
                         doctorsOnDuty, doctorsOffDuty, nursesOnDuty, nursesOffDuty, totalPatients, 
                         admittedPercentage, dischargedPercentage);
@@ -180,6 +196,7 @@ public class WebController {
             model.addAttribute("dischargedPatients", 0);
             model.addAttribute("admittedPercentage", 0);
             model.addAttribute("dischargedPercentage", 0);
+            model.addAttribute("drugs", new ArrayList<>());
         }
         
         return "index";
