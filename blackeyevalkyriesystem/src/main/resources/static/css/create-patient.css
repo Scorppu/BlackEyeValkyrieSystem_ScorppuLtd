@@ -292,3 +292,120 @@ select.form-control {
     font-style: italic;
     text-align: center;
 }
+
+/* Required field asterisk styling */
+.required {
+    color: #ff4d4d;
+    margin-left: 2px;
+}
+
+/* Invalid input styling */
+.invalid-input {
+    border-color: #ff4d4d !important;
+    box-shadow: 0 0 0 1px #ff4d4d !important;
+}
+
+/* Field validation message */
+.field-validation-error {
+    color: #ff4d4d;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    display: block;
+}
+
+/* Modal styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+    background-color: var(--primary-bg, #ffffff);
+    margin: 15% auto;
+    padding: 20px;
+    border-radius: 8px;
+    width: 400px;
+    max-width: 90%;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.modal-title {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 1.5rem;
+}
+
+.modal-title.success {
+    color: #23b27e;
+}
+
+.modal-title.error {
+    color: #ff4d4d;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.btn-success {
+    background-color: #23b27e;
+    color: white;
+}
+
+.btn-error {
+    background-color: #ff4d4d;
+    color: white;
+}
+
+/* Validation popup */
+.validation-popup {
+    position: fixed;
+    z-index: 1100;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.validation-popup-content {
+    background-color: var(--primary-bg, #ffffff);
+    padding: 20px;
+    border-radius: 8px;
+    width: 400px;
+    max-width: 90%;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+}
+
+.validation-popup-title {
+    color: #ff4d4d;
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 1.5rem;
+}
+
+.validation-error-list {
+    margin-bottom: 20px;
+    padding-left: 20px;
+}
+
+.validation-error-item {
+    margin-bottom: 5px;
+    color: #333;
+}

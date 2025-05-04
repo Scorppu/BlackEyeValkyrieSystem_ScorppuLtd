@@ -294,3 +294,9 @@ select.form-control {
     align-items: center;
     gap: 0.5rem;
 }
+
+/* Required field asterisk styling */
+.required {
+    color: #ff4d4d;
+    margin-left: 2px;
+}
