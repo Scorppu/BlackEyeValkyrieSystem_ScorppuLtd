@@ -1,5 +1,11 @@
+/**
+ * Main application JavaScript
+ * Handles sidebar navigation, search, UI interactions and form processing
+ */
 document.addEventListener('DOMContentLoaded', function() {
-    // Toggle navigation on mobile
+    /**
+     * Initializes mobile menu toggle functionality
+     */
     const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
     const sidebar = document.querySelector('.sidebar');
     
@@ -9,80 +15,69 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Implement search functionality for sidebar
+    /**
+     * Implements search functionality for sidebar navigation items
+     */
     const searchInput = document.getElementById('sidebar-search');
     const clearSearchButton = document.getElementById('clear-search');
     
     if (searchInput) {
-        // Show/hide clear button based on input content
         searchInput.addEventListener('input', function() {
             const searchText = this.value.toLowerCase().trim();
             clearSearchButton.style.display = searchText.length > 0 ? 'block' : 'none';
-            
-            // Filter sidebar items
             filterSidebarItems(searchText);
         });
         
-        // Add clear button functionality
         if (clearSearchButton) {
             clearSearchButton.addEventListener('click', function() {
                 searchInput.value = '';
                 clearSearchButton.style.display = 'none';
-                // Trigger the input event to reset the sidebar
                 searchInput.dispatchEvent(new Event('input'));
             });
         }
         
-        // Handle Escape key to clear search
         searchInput.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 this.value = '';
                 clearSearchButton.style.display = 'none';
-                // Trigger the input event to reset the sidebar
                 this.dispatchEvent(new Event('input'));
             }
         });
     }
     
-    // Function to filter sidebar items based on search text
+    /**
+     * Filters sidebar navigation items based on search text
+     * @param {string} searchText - The text to search for in navigation items
+     */
     function filterSidebarItems(searchText) {
         const navItems = document.querySelectorAll('.nav-item');
         
         navItems.forEach(function(item) {
-            // Get the text content of the item (excluding any sub-items)
             const itemContent = item.querySelector('.nav-item-content') || item;
             const itemText = itemContent.textContent.toLowerCase().trim();
             
-            // For dropdown items, check if it's a parent dropdown
             const isDropdownToggle = item.classList.contains('dropdown-toggle');
             const dropdownMenu = isDropdownToggle ? item.nextElementSibling : null;
             
-            // Check if item or any of its children match the search
             if (searchText === '') {
-                // If search is empty, show everything
                 item.style.display = '';
                 if (dropdownMenu) {
                     dropdownMenu.style.display = '';
-                    // Reset the subitems display
                     dropdownMenu.querySelectorAll('.nav-subitem').forEach(subitem => {
                         subitem.style.display = '';
                     });
                 }
             } else {
-                // If this is a regular nav item
                 if (!isDropdownToggle) {
                     item.style.display = itemText.includes(searchText) ? '' : 'none';
                 } else {
-                    // If this is a dropdown, check all child items
                     const subItems = dropdownMenu.querySelectorAll('.nav-subitem');
                     let hasVisibleChild = false;
                     
-                    // Check each subitem for matches
                     subItems.forEach(function(subItem) {
                         const subItemText = subItem.textContent.toLowerCase().trim();
                         const subItemMatches = subItemText.includes(searchText);
                         
-                        // Show/hide subitem based on match
                         subItem.style.display = subItemMatches ? '' : 'none';
                         
                         if (subItemMatches) {
@@ -90,11 +85,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     });
                     
-                    // Show parent dropdown if either the dropdown text matches or any child matches
                     const parentMatches = itemText.includes(searchText);
                     item.style.display = (parentMatches || hasVisibleChild) ? '' : 'none';
                     
-                    // If parent or any child matches, expand the dropdown
                     if (parentMatches || hasVisibleChild) {
                         dropdownMenu.style.display = '';
                         dropdownMenu.classList.add('active');
@@ -108,31 +101,112 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Dropdown menus in sidebar - improved implementation
+    /**
+     * Ensures appropriate sidebar dropdown is expanded based on current URL path
+     * Handles special cases for consultation and dispensary sections
+     */
+    function fixSidebarNavigation() {
+        console.log('Fixing sidebar navigation...');
+        const currentPath = window.location.pathname;
+        console.log('Current path:', currentPath);
+        
+        if (currentPath.includes('consultation') || currentPath.includes('dispensary')) {
+            console.log('CRITICAL PATH DETECTED:', currentPath);
+            let selector = currentPath.includes('consultation') 
+                ? 'a.nav-item[href="/consultation"]' 
+                : 'a.nav-item[href="/dispensary"]';
+            
+            const navItem = document.querySelector(selector);
+            if (navItem) {
+                console.log('Found matching nav item:', navItem);
+                navItem.classList.add('active');
+                setTimeout(() => {
+                    navItem.classList.add('active');
+                }, 500);
+            } else {
+                console.log('Navigation item not found for', selector);
+            }
+        }
+        
+        const dropdownToggles = document.querySelectorAll('.nav-item.dropdown-toggle');
+        
+        dropdownToggles.forEach(function(toggle) {
+            const dropdownMenu = toggle.nextElementSibling;
+            if (!dropdownMenu || !dropdownMenu.classList.contains('dropdown-menu')) {
+                return;
+            }
+            
+            const links = dropdownMenu.querySelectorAll('a.nav-subitem');
+            
+            let shouldExpand = false;
+            links.forEach(function(link) {
+                const linkPath = link.getAttribute('href');
+                if (currentPath.startsWith(linkPath)) {
+                    shouldExpand = true;
+                    link.classList.add('active');
+                }
+            });
+            
+            if (toggle.classList.contains('expanded')) {
+                shouldExpand = true;
+            }
+            
+            if (shouldExpand || currentPath.startsWith(toggle.getAttribute('data-path'))) {
+                console.log('Expanding:', toggle);
+                toggle.classList.add('expanded');
+                dropdownMenu.classList.add('active');
+                dropdownMenu.style.maxHeight = dropdownMenu.scrollHeight + "px";
+            }
+        });
+
+        const directNavItems = document.querySelectorAll('a.nav-item:not(.dropdown-toggle)');
+        
+        directNavItems.forEach(function(item) {
+            const itemPath = item.getAttribute('href');
+            
+            if (!itemPath) return;
+            
+            if (itemPath === '/consultation' || itemPath === '/dispensary') {
+                console.log('Processing special item:', itemPath, 'Current path:', currentPath);
+                
+                if (currentPath === itemPath || currentPath.startsWith(itemPath + '/')) {
+                    console.log('MATCH FOUND for', itemPath);
+                }
+            }
+            
+            if (currentPath === itemPath || currentPath.startsWith(itemPath + '/')) {
+                console.log('Highlighting direct nav item:', item, 'path:', itemPath);
+                item.classList.add('active');
+                
+                const container = item.querySelector('.nav-item-content');
+                if (container) {
+                    container.classList.add('active');
+                }
+            }
+        });
+    }
+    
+    /**
+     * Sets up dropdown menu toggle functionality in the sidebar
+     */
     const dropdownLinks = document.querySelectorAll('.dropdown-toggle');
     
     if (dropdownLinks.length > 0) {
-        // Remove any existing click event listeners first to prevent duplicates
         dropdownLinks.forEach(function(link) {
-            // Clone the node to remove all event listeners
             const newLink = link.cloneNode(true);
             link.parentNode.replaceChild(newLink, link);
         });
         
-        // Re-query the elements after replacing them
         const refreshedDropdownLinks = document.querySelectorAll('.dropdown-toggle');
         
-        // Add new click event listeners
         refreshedDropdownLinks.forEach(function(link) {
             link.addEventListener('click', function(e) {
-                console.log('Dropdown toggle clicked'); // Debug log
+                console.log('Dropdown toggle clicked');
                 e.preventDefault();
-                e.stopPropagation(); // Stop event bubbling
+                e.stopPropagation();
                 
-                // Toggle expanded class
                 this.classList.toggle('expanded');
                 
-                // Handle the dropdown menu
                 const submenu = this.nextElementSibling;
                 if (submenu && submenu.classList.contains('dropdown-menu')) {
                     if (submenu.classList.contains('active')) {
@@ -145,23 +219,33 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
         });
-        
-        // Auto-expand dropdown if a child is active
-        refreshedDropdownLinks.forEach(function(link) {
-            const submenu = link.nextElementSibling;
-            if (submenu && submenu.classList.contains('dropdown-menu')) {
-                const hasActiveChild = submenu.querySelector('.active');
-                
-                if (hasActiveChild) {
-                    link.classList.add('expanded');
-                    submenu.classList.add('active');
-                    submenu.style.maxHeight = submenu.scrollHeight + "px";
-                }
-            }
-        });
     }
     
-    // Tab navigation
+    /**
+     * Applies special fixes for consultation and dispensary menu items
+     */
+    function applySpecialMenuFixes() {
+        const consultationItem = document.getElementById('consultation-nav-item');
+        const dispensaryItem = document.getElementById('dispensary-nav-item');
+        
+        if (consultationItem && window.location.pathname.includes('/consultation')) {
+            console.log('Direct fix for consultation tab');
+            consultationItem.classList.add('active');
+            const content = consultationItem.querySelector('.nav-item-content');
+            if (content) content.classList.add('active');
+        }
+        
+        if (dispensaryItem && window.location.pathname.includes('/dispensary')) {
+            console.log('Direct fix for dispensary tab');
+            dispensaryItem.classList.add('active');
+            const content = dispensaryItem.querySelector('.nav-item-content');
+            if (content) content.classList.add('active');
+        }
+    }
+    
+    /**
+     * Handles tab navigation within content pages
+     */
     const tabItems = document.querySelectorAll('.tab-item');
     const tabContents = document.querySelectorAll('.tab-content');
     
@@ -170,27 +254,30 @@ document.addEventListener('DOMContentLoaded', function() {
             tab.addEventListener('click', function() {
                 const target = this.dataset.target;
                 
-                // Hide all tab contents
                 tabContents.forEach(function(content) {
                     content.classList.remove('active');
                 });
                 
-                // Deactivate all tabs
                 tabItems.forEach(function(tab) {
                     tab.classList.remove('active');
                 });
                 
-                // Activate clicked tab and its content
                 this.classList.add('active');
-                document.getElementById(target).classList.add('active');
+                const targetElement = document.getElementById(target);
+                if (targetElement) {
+                    targetElement.classList.add('active');
+                } else {
+                    console.warn(`Tab content element with ID '${target}' not found.`);
+                }
             });
         });
         
-        // Activate first tab by default
         tabItems[0].click();
     }
     
-    // Form submission handling
+    /**
+     * Handles patient form submission via AJAX
+     */
     const patientForm = document.getElementById('patient-form');
     
     if (patientForm) {
@@ -225,7 +312,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('Success:', data);
                 alert('Patient profile created successfully!');
                 
-                // Redirect to patient list
                 window.location.href = '/patient/list';
             })
             .catch((error) => {
@@ -235,7 +321,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Calculate age from date of birth
+    /**
+     * Calculates age automatically from date of birth input
+     */
     const dobField = document.getElementById('dateOfBirth');
     const ageField = document.getElementById('age');
     
@@ -245,7 +333,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const today = new Date();
             let age = today.getFullYear() - dob.getFullYear();
             
-            // Adjust age if birthday hasn't occurred yet this year
             const monthDiff = today.getMonth() - dob.getMonth();
             if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
                 age--;
@@ -255,7 +342,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // User profile dropdown handling
+    /**
+     * Handles user profile dropdown toggle and animations
+     */
     const userProfileToggle = document.getElementById('user-profile-toggle');
     const userProfileDropdown = document.getElementById('user-profile-dropdown');
     const profileArrow = document.querySelector('.profile-arrow');
@@ -263,32 +352,26 @@ document.addEventListener('DOMContentLoaded', function() {
     if (userProfileToggle && userProfileDropdown) {
         userProfileToggle.addEventListener('click', function() {
             if (userProfileDropdown.classList.contains('active')) {
-                // Add animation class for disappearing
                 userProfileDropdown.style.animation = 'popdown 0.2s ease-out forwards';
                 
-                // Wait for animation to complete before hiding
                 setTimeout(() => {
                     userProfileDropdown.classList.remove('active');
                     profileArrow.classList.remove('flipped');
                 }, 200);
             } else {
-                // Show and animate appearance
                 userProfileDropdown.classList.add('active');
                 userProfileDropdown.style.animation = 'popup 0.2s ease-out';
                 profileArrow.classList.add('flipped');
             }
         });
         
-        // Close dropdown when clicking outside
         document.addEventListener('click', function(event) {
             if (!userProfileToggle.contains(event.target) && 
                 !userProfileDropdown.contains(event.target) && 
                 userProfileDropdown.classList.contains('active')) {
                 
-                // Add animation class for disappearing
                 userProfileDropdown.style.animation = 'popdown 0.2s ease-out forwards';
                 
-                // Wait for animation to complete before hiding
                 setTimeout(() => {
                     userProfileDropdown.classList.remove('active');
                     profileArrow.classList.remove('flipped');
@@ -297,12 +380,13 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Duty status toggle
+    /**
+     * Handles staff duty status toggle and persistence
+     */
     const dutyToggleBtn = document.getElementById('duty-toggle');
     const dutyStatusText = document.getElementById('duty-status');
     
     if (dutyToggleBtn && dutyStatusText) {
-        // Check local storage for duty status
         let isOnDuty = localStorage.getItem('dutyStatus') === 'on';
         let dutyTime = localStorage.getItem('dutyTime') || getCurrentTime();
         
@@ -312,7 +396,6 @@ document.addEventListener('DOMContentLoaded', function() {
             isOnDuty = !isOnDuty;
             dutyTime = getCurrentTime();
             
-            // Save to localStorage
             localStorage.setItem('dutyStatus', isOnDuty ? 'on' : 'off');
             localStorage.setItem('dutyTime', dutyTime);
             
@@ -320,6 +403,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    /**
+     * Updates the duty status text and button based on current state
+     * @param {boolean} isOnDuty - Whether the user is currently on duty
+     * @param {string} time - The time to display in the status text
+     */
     function updateDutyStatus(isOnDuty, time) {
         if (dutyToggleBtn && dutyStatusText) {
             if (isOnDuty) {
@@ -334,10 +422,30 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+    /**
+     * Returns the current time formatted as HH:MM
+     * @returns {string} The current time in HH:MM format
+     */
     function getCurrentTime() {
         const now = new Date();
         const hours = String(now.getHours()).padStart(2, '0');
         const minutes = String(now.getMinutes()).padStart(2, '0');
         return `${hours}:${minutes}`;
     }
+    
+    // Initialize sidebar navigation
+    setTimeout(fixSidebarNavigation, 100);
+    applySpecialMenuFixes();
+    
+    // Add event listeners for navigation changes
+    window.addEventListener('resize', fixSidebarNavigation);
+    window.addEventListener('popstate', fixSidebarNavigation);
+    
+    // Add additional listener for clicks on special links
+    document.addEventListener('click', function(e) {
+        if (e.target && (e.target.closest('a[href="/consultation"]') || e.target.closest('a[href="/dispensary"]'))) {
+            console.log('Special link clicked:', e.target);
+            setTimeout(fixSidebarNavigation, 300);
+        }
+    });
 }); 
