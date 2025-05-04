@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark light">
+    <title>Register - Black Eye Valkyrie System</title>
+    
+    <!-- Critical CSS for preventing theme flash -->
+    <link rel="stylesheet" th:href="@{/css/critical.css}">
+    
+    <!-- Immediate theme detection script - must run before any rendering -->
+    <script th:src="@{/js/theme-detection.js}"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="stylesheet" th:href="@{/css/login.css}">
+    <link rel="stylesheet" th:href="@{/css/register.css}">
+</head>
+<body>
+    <div class="login-container register-container">
+        <div class="login-logo">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="10" fill="#8A2BE2"/>
+                <path d="M12 7V17M7 12H17" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <h1 style="color: var(--primary-text);">Black Eye Valkyrie System</h1>
+        </div>
+        
+        <div class="login-form">
+            <h2 class="register-title">User Registration</h2>
+            
+            <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+            
+            <!-- License Key Verification Step -->
+            <div id="license-key-verification" class="step active">
+                <div class="form-group">
+                    <label for="licenseKey">License Key</label>
+                    <input type="text" id="licenseKey" name="licenseKey" class="form-control" required autofocus placeholder="Enter your license key">
+                </div>
+                
+                <div class="form-group">
+                    <button type="button" id="verifyLicenseButton" class="btn btn-primary" style="width: 100%">Verify License Key</button>
+                </div>
+                
+                <div class="login-links" style="justify-content: center;">
+                    <a href="/login">Already have an account? Sign in</a>
+                </div>
+            </div>
+            
+            <!-- Registration Form Step (initially hidden) -->
+            <div id="registration-form" class="step">
+                <form action="/register" method="post">
+                    <input type="hidden" id="verifiedLicenseKey" name="licenseKey">
+                    
+                    <div class="form-group">
+                        <label for="fullName">Full Name</label>
+                        <input type="text" id="fullName" name="fullName" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" name="username" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group password-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" name="password" class="form-control" required>
+                        <button type="button" class="password-toggle" tabindex="-1">
+                            <i class="fa fa-eye"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="form-group password-group">
+                        <label for="confirmPassword">Confirm Password</label>
+                        <input type="password" id="confirmPassword" name="confirmPassword" class="form-control" required>
+                        <button type="button" class="password-toggle" tabindex="-1">
+                            <i class="fa fa-eye"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary" style="width: 100%">Create Account</button>
+                    </div>
+                    
+                    <div class="login-links" style="justify-content: center;">
+                        <a href="/login">Already have an account? Sign in</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- License Key Verification Modal -->
+    <div id="verificationModal" class="modal">
+        <div class="modal-content">
+            <h3 id="modalTitle">License Key Verification</h3>
+            <p id="modalMessage">You are about to create a <span id="roleType">USER</span> account.</p>
+            <div class="modal-buttons">
+                <button id="proceedButton" class="btn btn-primary">Proceed</button>
+                <button id="cancelButton" class="btn btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add font awesome for the eye icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- JavaScript for License Key Verification and UI Logic -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const licenseKeyInput = document.getElementById('licenseKey');
+            const verifyButton = document.getElementById('verifyLicenseButton');
+            const verificationStep = document.getElementById('license-key-verification');
+            const registrationForm = document.getElementById('registration-form');
+            const verifiedLicenseKeyInput = document.getElementById('verifiedLicenseKey');
+            const modal = document.getElementById('verificationModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalMessage = document.getElementById('modalMessage');
+            const roleTypeSpan = document.getElementById('roleType');
+            const proceedButton = document.getElementById('proceedButton');
+            const cancelButton = document.getElementById('cancelButton');
+            
+            // Toggle password visibility
+            document.querySelectorAll('.password-toggle').forEach(function(toggle) {
+                toggle.addEventListener('click', function() {
+                    const passwordInput = this.previousElementSibling;
+                    const icon = this.querySelector('i');
+                    
+                    if (passwordInput.type === 'password') {
+                        passwordInput.type = 'text';
+                        icon.classList.remove('fa-eye');
+                        icon.classList.add('fa-eye-slash');
+                    } else {
+                        passwordInput.type = 'password';
+                        icon.classList.remove('fa-eye-slash');
+                        icon.classList.add('fa-eye');
+                    }
+                });
+            });
+            
+            // Verify license key
+            verifyButton.addEventListener('click', function() {
+                const licenseKey = licenseKeyInput.value.trim();
+                
+                if (!licenseKey) {
+                    alert('Please enter a license key.');
+                    return;
+                }
+                
+                // Send license key to server for verification
+                fetch('/api/verify-license-key', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ licenseKey: licenseKey })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.valid) {
+                        // Show confirmation modal
+                        roleTypeSpan.textContent = data.role;
+                        modal.style.display = 'block';
+                    } else {
+                        alert('Invalid or expired license key. Please try again with a valid key.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error verifying license key:', error);
+                    alert('Error verifying license key. Please try again.');
+                });
+            });
+            
+            // Modal proceed button
+            proceedButton.addEventListener('click', function() {
+                // Hide modal
+                modal.style.display = 'none';
+                
+                // Set the verified license key in the hidden input
+                verifiedLicenseKeyInput.value = licenseKeyInput.value.trim();
+                
+                // Switch to registration form
+                verificationStep.classList.remove('active');
+                registrationForm.classList.add('active');
+            });
+            
+            // Modal cancel button
+            cancelButton.addEventListener('click', function() {
+                modal.style.display = 'none';
+            });
+            
+            // Close modal when clicking outside
+            window.addEventListener('click', function(event) {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        });
+    </script>
+    
+    <!-- Add theme-toggle.js to ensure theme consistency -->
+    <script th:src="@{/js/theme-toggle.js}"></script>
+</body>
+</html> 

@@ -45,7 +45,36 @@ public class LicenseKey {
     private LocalDate expiresOn;
     
     /**
-     * Whether this license key is active
+     * Status of the license key: Active, Used, Expired, Deactivated
      */
-    private boolean isActive;
+    private String status;
+    
+    /**
+     * Role for the user that will be created with this license key: admin, doctor, nurse
+     */
+    private String role;
+    
+    /**
+     * The user ID of the user who used this license key
+     */
+    private String user;
+    
+    /**
+     * Enum for license key status values
+     */
+    public static class Status {
+        public static final String ACTIVE = "Active";
+        public static final String USED = "Used";
+        public static final String EXPIRED = "Expired";
+        public static final String DEACTIVATED = "Deactivated";
+    }
+    
+    /**
+     * Enum for license key role values
+     */
+    public static class Role {
+        public static final String ADMIN = "admin";
+        public static final String DOCTOR = "doctor";
+        public static final String NURSE = "nurse";
+    }
 } 

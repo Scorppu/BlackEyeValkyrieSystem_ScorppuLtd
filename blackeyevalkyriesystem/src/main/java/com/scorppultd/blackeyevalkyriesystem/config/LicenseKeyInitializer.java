@@ -33,19 +33,22 @@ public class LicenseKeyInitializer {
                         .key("AAAA-BBBB-CCCC-DDDD")
                         .issuedOn(LocalDate.now())
                         .expiresOn(LocalDate.now().plusYears(1))
-                        .isActive(true)
+                        .status(LicenseKey.Status.ACTIVE)
+                        .role(LicenseKey.Role.ADMIN)
                         .build(),
                     LicenseKey.builder()
                         .key("TEST-1234-ABCD-5678")
                         .issuedOn(LocalDate.now())
                         .expiresOn(LocalDate.now().plusYears(1))
-                        .isActive(true)
+                        .status(LicenseKey.Status.ACTIVE)
+                        .role(LicenseKey.Role.DOCTOR)
                         .build(),
                     LicenseKey.builder()
                         .key("DEMO-9876-WXYZ-5432")
                         .issuedOn(LocalDate.now())
                         .expiresOn(LocalDate.now().plusMonths(1))
-                        .isActive(true)
+                        .status(LicenseKey.Status.ACTIVE)
+                        .role(LicenseKey.Role.NURSE)
                         .build()
                 );
                 

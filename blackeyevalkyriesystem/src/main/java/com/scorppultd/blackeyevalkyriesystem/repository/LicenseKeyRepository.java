@@ -4,6 +4,7 @@ import com.scorppultd.blackeyevalkyriesystem.model.LicenseKey;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -29,11 +30,35 @@ public interface LicenseKeyRepository extends MongoRepository<LicenseKey, String
     boolean existsByKey(String key);
     
     /**
-     * Check if a key is valid (exists, is active, and not expired)
+     * Check if a key is valid with a specific status
      * 
      * @param key The license key string
-     * @param isActive Whether the license key should be active
-     * @return true if a valid license key exists with the given key
+     * @param status The status of the license key
+     * @return true if a valid license key exists with the given key and status
      */
-    boolean existsByKeyAndIsActive(String key, boolean isActive);
+    boolean existsByKeyAndStatus(String key, String status);
+    
+    /**
+     * Find license keys by status
+     * 
+     * @param status The status to search for
+     * @return List of license keys with the given status
+     */
+    List<LicenseKey> findByStatus(String status);
+    
+    /**
+     * Find license keys by role
+     * 
+     * @param role The role to search for
+     * @return List of license keys with the given role
+     */
+    List<LicenseKey> findByRole(String role);
+    
+    /**
+     * Find license keys by user
+     * 
+     * @param user The user ID to search for
+     * @return List of license keys assigned to the given user
+     */
+    List<LicenseKey> findByUser(String user);
 } 
