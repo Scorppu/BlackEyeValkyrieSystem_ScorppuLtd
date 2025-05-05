@@ -25,10 +25,54 @@
         <div class="card">
             <div class="card-header">
                 <h3 class="card-title">License Keys</h3>
-                <a th:href="@{/admin/licenses/generate}" class="btn btn-primary">
+                <a th:href="@{/licenses/generate}" class="btn btn-primary">
                     <i class="fas fa-plus"></i> Generate New License Key
                 </a>
             </div>
+            
+            <!-- Filter and sorting controls -->
+            <div class="filter-controls">
+                <form th:action="@{/licenses}" method="get" class="filter-form">
+                    <div class="filter-group">
+                        <label for="statusFilter">Status:</label>
+                        <select id="statusFilter" name="statusFilter" class="form-control">
+                            <option value="">All Statuses</option>
+                            <option th:each="status : ${allStatuses}" 
+                                    th:value="${status}" 
+                                    th:text="${status}"
+                                    th:selected="${status == currentStatusFilter}"></option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="roleFilter">Role:</label>
+                        <select id="roleFilter" name="roleFilter" class="form-control">
+                            <option value="">All Roles</option>
+                            <option th:each="role : ${allRoles}" 
+                                    th:value="${role}" 
+                                    th:text="${role}"
+                                    th:selected="${role == currentRoleFilter}"></option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="sortOrder">Sort By Expiry:</label>
+                        <select id="sortOrder" name="sortOrder" class="form-control">
+                            <option value="asc" th:selected="${currentSortOrder == 'asc'}">Earliest First</option>
+                            <option value="desc" th:selected="${currentSortOrder == 'desc'}">Latest First</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-filter">
+                        <i class="fas fa-filter"></i> Apply Filters
+                    </button>
+                    
+                    <a th:href="@{/licenses}" class="btn btn-reset-filter">
+                        <i class="fas fa-times"></i> Reset
+                    </a>
+                </form>
+            </div>
+            
             <div class="card-body">
                 <div class="table-responsive">
                     <table class="data-table">
@@ -38,7 +82,17 @@
                                 <th>Status</th>
                                 <th>Role</th>
                                 <th>User</th>
-                                <th>Expiry Date</th>
+                                <th>
+                                    Expire at
+                                    <a th:href="@{/licenses(sortOrder='asc', statusFilter=${currentStatusFilter}, roleFilter=${currentRoleFilter})}" 
+                                       class="sort-icon" th:classappend="${currentSortOrder == 'asc' ? 'active' : ''}">
+                                        <i class="fas fa-sort-up"></i>
+                                    </a>
+                                    <a th:href="@{/licenses(sortOrder='desc', statusFilter=${currentStatusFilter}, roleFilter=${currentRoleFilter})}" 
+                                       class="sort-icon" th:classappend="${currentSortOrder == 'desc' ? 'active' : ''}">
+                                        <i class="fas fa-sort-down"></i>
+                                    </a>
+                                </th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -53,24 +107,24 @@
                                 <td>
                                     <span th:if="${licenseKey.user != null}" 
                                           th:text="${userNames.get(licenseKey.user)}"></span>
-                                    <span th:if="${licenseKey.user == null}">-</span>
+                                    <span th:if="${licenseKey.user == null}">No assigned user</span>
                                 </td>
                                 <td>
                                     <span th:if="${licenseKey.expiresOn != null}" 
-                                          th:text="${#temporals.format(licenseKey.expiresOn, 'yyyy-MM-dd')}"></span>
+                                          th:text="${#temporals.format(licenseKey.expiresOn, 'HH:mm:ss dd-MM-yy')}"></span>
                                     <span th:if="${licenseKey.expiresOn == null}">No Expiry</span>
                                 </td>
                                 <td>
                                     <div class="license-key-actions">
-                                        <a th:href="@{/admin/licenses/edit/{id}(id=${licenseKey.id})}" 
+                                        <a th:href="@{/licenses/edit/{id}(id=${licenseKey.id})}" 
                                            class="btn btn-sm btn-primary" title="Edit">
                                             <i class="fas fa-edit"></i>
                                         </a>
                                         <button type="button" class="btn btn-sm btn-info copy-btn" 
-                                                th:attr="data-key=${licenseKey.key}" title="Copy to Clipboard">
+                                                th:data-key="${licenseKey.key}" title="Copy to Clipboard">
                                             <i class="fas fa-copy"></i>
                                         </button>
-                                        <form th:action="@{/admin/licenses/delete/{id}(id=${licenseKey.id})}" method="post" style="display:inline;">
+                                        <form th:action="@{/licenses/delete/{id}(id=${licenseKey.id})}" method="post" style="display:inline;">
                                             <button type="submit" class="btn btn-sm btn-danger" 
                                                    onclick="return confirm('Are you sure you want to delete this license key?')" title="Delete">
                                                 <i class="fas fa-trash"></i>

@@ -8,6 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -124,7 +126,7 @@ public class LicenseKeyController {
     @PostMapping("/generate")
     public ResponseEntity<Map<String, Object>> generateLicenseKey(@RequestBody(required = false) Map<String, Object> request) {
         // Default values
-        LocalDate expiresOn = null;
+        LocalDateTime expiresOn = null;
         String role = null;
         
         // Parse request parameters if provided
@@ -134,33 +136,45 @@ public class LicenseKeyController {
                 String expiryOption = (String) request.get("expiryOption");
                 switch (expiryOption) {
                     case "7days":
-                        expiresOn = LocalDate.now().plusDays(7);
+                        expiresOn = LocalDateTime.now().plusDays(7);
                         break;
                     case "30days":
-                        expiresOn = LocalDate.now().plusDays(30);
+                        expiresOn = LocalDateTime.now().plusDays(30);
                         break;
                     case "90days":
-                        expiresOn = LocalDate.now().plusDays(90);
+                        expiresOn = LocalDateTime.now().plusDays(90);
                         break;
                     case "180days":
-                        expiresOn = LocalDate.now().plusDays(180);
+                        expiresOn = LocalDateTime.now().plusDays(180);
                         break;
                     case "365days":
-                        expiresOn = LocalDate.now().plusDays(365);
+                        expiresOn = LocalDateTime.now().plusDays(365);
                         break;
                     case "noexpiry":
-                        expiresOn = LocalDate.of(2099, 12, 31);
+                        expiresOn = LocalDateTime.of(2099, 12, 31, 23, 59, 59);
                         break;
                     case "custom":
                         if (request.containsKey("customDate")) {
-                            expiresOn = LocalDate.parse((String) request.get("customDate"));
+                            String dateStr = (String) request.get("customDate");
+                            try {
+                                if (dateStr.contains("T")) {
+                                    // Parse as LocalDateTime
+                                    expiresOn = LocalDateTime.parse(dateStr);
+                                } else {
+                                    // Parse as LocalDate and convert to LocalDateTime
+                                    expiresOn = LocalDate.parse(dateStr).atStartOfDay();
+                                }
+                            } catch (Exception e) {
+                                // If parsing fails, set to null
+                                expiresOn = null;
+                            }
                         }
                         break;
                 }
             } else if (request.containsKey("expiresInDays")) {
                 // For backward compatibility
                 int expiresInDays = (int) request.get("expiresInDays");
-                expiresOn = LocalDate.now().plusDays(expiresInDays);
+                expiresOn = LocalDateTime.now().plusDays(expiresInDays);
             }
             
             // Get role
@@ -262,15 +276,16 @@ public class LicenseKeyController {
             return ResponseEntity.notFound().build();
         }
         
-        LicenseKey licenseKey = licenseKeyOpt.get();
-        licenseKey.setStatus(newStatus);
-        
-        // Set the user if provided
-        if (userId != null && !userId.isEmpty()) {
-            licenseKey.setUser(userId);
-        }
-        
         try {
+            LicenseKey licenseKey = licenseKeyOpt.get();
+            licenseKey.setStatus(newStatus);
+            
+            // Set the user if provided
+            if (userId != null && !userId.isEmpty()) {
+                licenseKey.setUser(userId);
+            }
+            
+            // Save the updated license key
             LicenseKey updatedKey = licenseKeyService.createLicenseKey(licenseKey);
             return ResponseEntity.ok(updatedKey);
         } catch (Exception e) {

@@ -25,7 +25,7 @@
                     <h3 class="card-title">License Key Details</h3>
                 </div>
                 <div class="card-body">
-                    <form th:action="@{/admin/licenses/generate}" method="post">
+                    <form th:action="@{/licenses/generate}" method="post">
                         <div class="form-section">
                             <!-- Role selection -->
                             <div class="form-group">
@@ -55,14 +55,14 @@
                             
                             <!-- Custom date container (shown only when custom option is selected) -->
                             <div id="customDateContainer" class="form-group">
-                                <label for="customDate">Custom Expiry Date:</label>
-                                <input type="date" id="customDate" name="customDate" class="form-control">
+                                <label for="customDate">Custom Expiry Date and Time:</label>
+                                <input type="datetime-local" id="customDate" name="customDate" class="form-control" step="1">
                             </div>
                         </div>
                         
                         <!-- Form actions -->
                         <div class="form-actions">
-                            <a th:href="@{/admin/licenses}" class="btn btn-secondary">Cancel</a>
+                            <a th:href="@{/licenses}" class="btn btn-secondary">Cancel</a>
                             <button type="submit" class="btn btn-primary">Generate License Key</button>
                         </div>
                     </form>

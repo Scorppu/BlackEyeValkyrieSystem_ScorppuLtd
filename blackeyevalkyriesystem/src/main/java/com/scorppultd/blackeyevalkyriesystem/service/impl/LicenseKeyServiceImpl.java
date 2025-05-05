@@ -8,6 +8,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
@@ -70,7 +71,7 @@ public class LicenseKeyServiceImpl implements LicenseKeyService {
         }
         
         // Check if the expiration date is in the past
-        return licenseKey.getExpiresOn().isBefore(LocalDate.now());
+        return licenseKey.getExpiresOn().isBefore(LocalDateTime.now());
     }
     
     /**
@@ -199,7 +200,7 @@ public class LicenseKeyServiceImpl implements LicenseKeyService {
      */
     @Scheduled(cron = "0 0 0 * * ?")
     public void checkAndDeactivateExpiredLicenses() {
-        LocalDate today = LocalDate.now();
+        LocalDateTime now = LocalDateTime.now();
         List<LicenseKey> allLicenses = licenseKeyRepository.findAll();
         
         for (LicenseKey license : allLicenses) {
@@ -209,7 +210,7 @@ public class LicenseKeyServiceImpl implements LicenseKeyService {
             }
             
             // Check if this license has expired
-            if (license.getExpiresOn() != null && license.getExpiresOn().isBefore(today)) {
+            if (license.getExpiresOn() != null && license.getExpiresOn().isBefore(now)) {
                 license.setStatus(LicenseKey.Status.EXPIRED);
                 licenseKeyRepository.save(license);
                 System.out.println("Expired license key: " + license.getKey());

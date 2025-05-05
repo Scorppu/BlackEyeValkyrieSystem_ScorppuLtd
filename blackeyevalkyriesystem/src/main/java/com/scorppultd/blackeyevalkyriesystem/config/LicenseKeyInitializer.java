@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
@@ -32,21 +33,21 @@ public class LicenseKeyInitializer {
                     LicenseKey.builder()
                         .key("AAAA-BBBB-CCCC-DDDD")
                         .issuedOn(LocalDate.now())
-                        .expiresOn(LocalDate.now().plusYears(1))
+                        .expiresOn(LocalDateTime.now().plusYears(1))
                         .status(LicenseKey.Status.ACTIVE)
                         .role(LicenseKey.Role.ADMIN)
                         .build(),
                     LicenseKey.builder()
                         .key("TEST-1234-ABCD-5678")
                         .issuedOn(LocalDate.now())
-                        .expiresOn(LocalDate.now().plusYears(1))
+                        .expiresOn(LocalDateTime.now().plusYears(1))
                         .status(LicenseKey.Status.ACTIVE)
                         .role(LicenseKey.Role.DOCTOR)
                         .build(),
                     LicenseKey.builder()
                         .key("DEMO-9876-WXYZ-5432")
                         .issuedOn(LocalDate.now())
-                        .expiresOn(LocalDate.now().plusMonths(1))
+                        .expiresOn(LocalDateTime.now().plusMonths(1))
                         .status(LicenseKey.Status.ACTIVE)
                         .role(LicenseKey.Role.NURSE)
                         .build()

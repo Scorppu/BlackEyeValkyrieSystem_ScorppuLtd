@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.Builder;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /**
  * Entity representing a license key for the system.
@@ -40,9 +41,9 @@ public class LicenseKey {
     private LocalDate issuedOn;
     
     /**
-     * When this license key expires
+     * When this license key expires (date and time)
      */
-    private LocalDate expiresOn;
+    private LocalDateTime expiresOn;
     
     /**
      * Status of the license key: Active, Used, Expired, Deactivated

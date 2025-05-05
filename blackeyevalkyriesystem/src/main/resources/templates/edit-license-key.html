@@ -35,7 +35,7 @@
                         </p>
                     </div>
                     
-                    <form th:action="@{/admin/licenses/edit/{id}(id=${licenseKey.id})}" 
+                    <form th:action="@{/licenses/edit/{id}(id=${licenseKey.id})}" 
                           method="post" id="editForm" class="needs-validation">
                         <input type="hidden" name="_method" value="PUT">
                         
@@ -64,15 +64,15 @@
                             
                             <!-- Expiry date -->
                             <div class="form-group">
-                                <label for="expiresOn">Expiry Date:</label>
-                                <input type="date" id="expiresOn" name="expiresOn" class="form-control"
-                                       th:value="${licenseKey.expiresOn != null ? #temporals.format(licenseKey.expiresOn, 'yyyy-MM-dd') : ''}">
+                                <label for="expiresOn">Expiry Date and Time:</label>
+                                <input type="datetime-local" id="expiresOn" name="expiresOn" class="form-control" step="1"
+                                       th:value="${licenseKey.expiresOn != null ? #temporals.format(licenseKey.expiresOn, 'yyyy-MM-dd''T''HH:mm:ss') : ''}">
                             </div>
                         </div>
                         
                         <!-- Form actions -->
                         <div class="form-actions">
-                            <a th:href="@{/admin/licenses}" class="btn btn-secondary">Cancel</a>
+                            <a th:href="@{/licenses}" class="btn btn-secondary">Cancel</a>
                             <button type="submit" class="btn btn-primary">Save Changes</button>
                         </div>
                     </form>

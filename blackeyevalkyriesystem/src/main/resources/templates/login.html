@@ -38,6 +38,10 @@
             <div th:if="${param.logout}" class="alert alert-success">
                 You have been logged out.
             </div>
+            <div th:if="${param.registered}" class="alert alert-success">
+                Registration successful!<br>You can now log in with your credentials.
+            </div>
+            <!-- <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div> -->
             
             <form th:action="@{/login}" method="post">
                 <div class="form-group">
