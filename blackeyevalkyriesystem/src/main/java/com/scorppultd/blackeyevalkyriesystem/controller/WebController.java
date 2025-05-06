@@ -347,8 +347,8 @@ public class WebController {
             logger.info("Final model contents - doctors: {}, nurses: {}", 
                         doctors.size(), nurses.size());
             
-            logger.info("Rendering Detail-DutyStatus template");
-            return "Detail-DutyStatus";
+            logger.info("Rendering duty-status template");
+            return "duty-status";
         } catch (Exception e) {
             logger.error("Error in dutyStatus controller method: {}", e.getMessage(), e);
             model.addAttribute("errorMessage", "An error occurred while loading duty status: " + e.getMessage());
