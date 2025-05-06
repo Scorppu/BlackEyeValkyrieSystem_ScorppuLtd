@@ -58,24 +58,48 @@ public class RegistrationController {
                                @RequestParam String email,
                                @RequestParam String password,
                                @RequestParam String confirmPassword,
+                               @RequestParam(required = false) String phone,
                                RedirectAttributes redirectAttributes) {
         logger.info("Registration attempt with license key: {}", licenseKey);
 
         try {
             // Validate license key
             Optional<LicenseKey> licenseKeyOpt = licenseKeyService.findByKey(licenseKey);
-            if (licenseKeyOpt.isEmpty() || 
-                !LicenseKey.Status.ACTIVE.equals(licenseKeyOpt.get().getStatus()) ||
-                licenseKeyOpt.get().getUser() != null) {
-                redirectAttributes.addFlashAttribute("error", "Invalid or used license key");
+            if (licenseKeyOpt.isEmpty()) {
+                redirectAttributes.addFlashAttribute("error", "Invalid license key");
                 return "redirect:/register";
             }
             
             LicenseKey validLicense = licenseKeyOpt.get();
+            
+            // Check if license key is active and unused
+            if (!LicenseKey.Status.ACTIVE.equals(validLicense.getStatus())) {
+                if (LicenseKey.Status.EXPIRED.equals(validLicense.getStatus())) {
+                    redirectAttributes.addFlashAttribute("error", "License key has expired");
+                } else if (validLicense.getUser() != null) {
+                    redirectAttributes.addFlashAttribute("error", "License key has already been used");
+                } else {
+                    redirectAttributes.addFlashAttribute("error", "License key is not active");
+                }
+                return "redirect:/register";
+            }
+            
+            // Explicitly check if the license is expired (this will update the status if expired)
+            if (licenseKeyService.isLicenseExpired(validLicense)) {
+                redirectAttributes.addFlashAttribute("error", "License key has expired");
+                return "redirect:/register";
+            }
 
             // Validate passwords match
             if (!password.equals(confirmPassword)) {
                 redirectAttributes.addFlashAttribute("error", "Passwords do not match");
+                return "redirect:/register";
+            }
+            
+            // Check if username is reserved
+            if (userService.isReservedUsername(username)) {
+                logger.warn("Attempt to register with reserved username: {}", username);
+                redirectAttributes.addFlashAttribute("error", "Username 'admin' is reserved for system use");
                 return "redirect:/register";
             }
 
@@ -101,6 +125,10 @@ public class RegistrationController {
             newUser.setUsername(username);
             newUser.setEmail(email);
             newUser.setPassword(passwordEncoder.encode(password));
+            
+            // Store the phone number and license key
+            newUser.setPhoneNumber(phone);
+            newUser.setLicenseKey(licenseKey);
             
             // Convert role from license key to enum using the helper method
             try {
@@ -145,21 +173,36 @@ public class RegistrationController {
         try {
             Optional<LicenseKey> licenseKeyOpt = licenseKeyService.findByKey(licenseKey);
             
-            if (licenseKeyOpt.isPresent() && 
-                LicenseKey.Status.ACTIVE.equals(licenseKeyOpt.get().getStatus()) &&
-                licenseKeyOpt.get().getUser() == null) {
-                
-                LicenseKey validLicense = licenseKeyOpt.get();
+            if (licenseKeyOpt.isEmpty()) {
+                response.put("valid", false);
+                response.put("message", "License key not found");
+                logger.warn("License key not found: {}", licenseKey);
+                return ResponseEntity.ok(response);
+            }
+            
+            LicenseKey license = licenseKeyOpt.get();
+            
+            // Check if the license is expired
+            if (licenseKeyService.isLicenseExpired(license)) {
+                response.put("valid", false);
+                response.put("message", "License key has expired");
+                logger.warn("License key is expired: {}", licenseKey);
+                return ResponseEntity.ok(response);
+            }
+            
+            // Check if the license is active and unused
+            if (LicenseKey.Status.ACTIVE.equals(license.getStatus()) && license.getUser() == null) {
                 response.put("valid", true);
-                response.put("role", validLicense.getRole());
-                logger.info("License key verified successfully: {} for role {}", licenseKey, validLicense.getRole());
+                response.put("role", license.getRole());
+                logger.info("License key verified successfully: {} for role {}", licenseKey, license.getRole());
             } else {
                 response.put("valid", false);
-                if (licenseKeyOpt.isPresent()) {
-                    logger.warn("License key found but invalid: {} - Status: {}, User: {}", 
-                        licenseKey, licenseKeyOpt.get().getStatus(), licenseKeyOpt.get().getUser());
+                if (license.getUser() != null) {
+                    response.put("message", "License key has already been used");
+                    logger.warn("License key already used: {}", licenseKey);
                 } else {
-                    logger.warn("License key not found: {}", licenseKey);
+                    response.put("message", "License key is not active");
+                    logger.warn("License key not active: {} - Status: {}", licenseKey, license.getStatus());
                 }
             }
             
@@ -180,6 +223,16 @@ public class RegistrationController {
         Map<String, Object> response = new HashMap<>();
         
         try {
+            // First check if this is the reserved "admin" username
+            if (userService.isReservedUsername(username)) {
+                logger.info("Username '{}' is reserved and not available", username);
+                response.put("available", false);
+                response.put("message", "Username 'admin' is reserved for system use");
+                return ResponseEntity.ok()
+                    .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                    .body(response);
+            }
+            
             boolean isAvailable = !userService.findUserByUsername(username).isPresent();
             response.put("available", isAvailable);
             

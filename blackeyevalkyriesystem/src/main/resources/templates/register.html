@@ -62,14 +62,29 @@
         }
         
         /* Overriding login container width for part 2 */
-        .login-container.wide-form {
-            max-width: 800px !important;
-            width: 800px !important;
-        }
-        
-        .login-form.wide-form {
+        .login-container.wide-form, 
+        .login-container {
             max-width: 800px !important;
             width: 100% !important;
+            margin: 80px auto !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+        }
+        
+        .login-form.wide-form,
+        .login-form {
+            max-width: 100% !important;
+            width: 100% !important;
+        }
+        
+        /* Make all registration steps have consistent width */
+        #license-key-verification.step,
+        #registration-form-part1.step,
+        #registration-form-part2.step {
+            max-width: 800px;
+            width: 100%;
+            margin: 0 auto;
         }
         
         .register-form-part2 {
@@ -97,12 +112,6 @@
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
-        }
-        
-        #registration-form-part2.step {
-            max-width: 800px;
-            width: 100%;
-            margin: 0 auto;
         }
         
         #registration-form {
@@ -211,7 +220,7 @@
                     <label for="username">Username</label>
                     <div style="display: flex; align-items: center;">
                         <input type="text" id="username" name="username" class="form-control" required>
-                        <span id="username-status"></span>
+                        <span id="username-status" style="min-width: 120px; display: inline-block;"></span>
                     </div>
                     <div id="username-error" class="error-message"></div>
                 </div>
@@ -421,7 +430,13 @@
                             usernameIsAvailable = true;
                         } else {
                             usernameStatus.className = 'validation-error';
-                            usernameStatus.innerHTML = '<i class="fas fa-times-circle"></i> Already taken';
+                            // Check if there's a specific message about reserved username
+                            if (data.message) {
+                                usernameStatus.innerHTML = '<i class="fas fa-times-circle"></i> Reserved';
+                                document.getElementById('username-error').textContent = data.message;
+                            } else {
+                                usernameStatus.innerHTML = '<i class="fas fa-times-circle"></i> Already taken';
+                            }
                             usernameIsAvailable = false;
                         }
                     })
@@ -578,11 +593,9 @@
                     // Transition to step 2 with animation
                     registrationFormPart1.classList.remove('active');
                     
-                    // Expand container width for step 2
-                    mainContainer.classList.add('wide-form');
-                    mainForm.classList.add('wide-form');
+                    // No need to expand width since it's already 800px
                     
-                    // Small delay to allow width transition to start before showing step 2
+                    // Show step 2
                     setTimeout(() => {
                         registrationFormPart2.classList.add('active');
                         
@@ -591,7 +604,7 @@
                             if (index === 0) dot.classList.remove('active');
                             if (index === 1) dot.classList.add('active');
                         });
-                    }, 200);
+                    }, 100);
                 }
             });
             
@@ -606,16 +619,9 @@
                     if (index === 1) dot.classList.remove('active');
                 });
                 
-                // Small delay before transitioning container width
+                // Show step 1 after a short delay
                 setTimeout(() => {
-                    // Reset container width
-                    mainContainer.classList.remove('wide-form');
-                    mainForm.classList.remove('wide-form');
-                    
-                    // Show step 1 after container width transition starts
-                    setTimeout(() => {
-                        registrationFormPart1.classList.add('active');
-                    }, 200);
+                    registrationFormPart1.classList.add('active');
                 }, 100);
             });
             

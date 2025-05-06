@@ -8,7 +8,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
@@ -126,7 +125,7 @@ public class LicenseKeyController {
     @PostMapping("/generate")
     public ResponseEntity<Map<String, Object>> generateLicenseKey(@RequestBody(required = false) Map<String, Object> request) {
         // Default values
-        LocalDateTime expiresOn = null;
+        LocalDate expiresOn = null;
         String role = null;
         
         // Parse request parameters if provided
@@ -136,34 +135,28 @@ public class LicenseKeyController {
                 String expiryOption = (String) request.get("expiryOption");
                 switch (expiryOption) {
                     case "7days":
-                        expiresOn = LocalDateTime.now().plusDays(7);
+                        expiresOn = LocalDate.now().plusDays(7);
                         break;
                     case "30days":
-                        expiresOn = LocalDateTime.now().plusDays(30);
+                        expiresOn = LocalDate.now().plusDays(30);
                         break;
                     case "90days":
-                        expiresOn = LocalDateTime.now().plusDays(90);
+                        expiresOn = LocalDate.now().plusDays(90);
                         break;
                     case "180days":
-                        expiresOn = LocalDateTime.now().plusDays(180);
+                        expiresOn = LocalDate.now().plusDays(180);
                         break;
                     case "365days":
-                        expiresOn = LocalDateTime.now().plusDays(365);
+                        expiresOn = LocalDate.now().plusDays(365);
                         break;
                     case "noexpiry":
-                        expiresOn = LocalDateTime.of(2099, 12, 31, 23, 59, 59);
+                        expiresOn = LocalDate.of(2099, 12, 31);
                         break;
                     case "custom":
                         if (request.containsKey("customDate")) {
                             String dateStr = (String) request.get("customDate");
                             try {
-                                if (dateStr.contains("T")) {
-                                    // Parse as LocalDateTime
-                                    expiresOn = LocalDateTime.parse(dateStr);
-                                } else {
-                                    // Parse as LocalDate and convert to LocalDateTime
-                                    expiresOn = LocalDate.parse(dateStr).atStartOfDay();
-                                }
+                                expiresOn = LocalDate.parse(dateStr);
                             } catch (Exception e) {
                                 // If parsing fails, set to null
                                 expiresOn = null;
@@ -174,12 +167,16 @@ public class LicenseKeyController {
             } else if (request.containsKey("expiresInDays")) {
                 // For backward compatibility
                 int expiresInDays = (int) request.get("expiresInDays");
-                expiresOn = LocalDateTime.now().plusDays(expiresInDays);
+                expiresOn = LocalDate.now().plusDays(expiresInDays);
             }
             
             // Get role
             if (request.containsKey("role")) {
                 role = (String) request.get("role");
+                // Convert role to lowercase
+                if (role != null) {
+                    role = role.toLowerCase();
+                }
             }
         }
         
@@ -292,6 +289,75 @@ public class LicenseKeyController {
             return ResponseEntity.badRequest().body(Map.of(
                 "success", false,
                 "message", e.getMessage()
+            ));
+        }
+    }
+
+    /**
+     * Assign a license key to a user
+     * 
+     * @param request The request containing the license key and user ID
+     * @return Response entity with assignment result
+     */
+    @PostMapping("/assign-to-user")
+    public ResponseEntity<Map<String, Object>> assignLicenseKeyToUser(@RequestBody Map<String, String> request) {
+        String licenseKey = request.get("licenseKey");
+        String userId = request.get("userId");
+        
+        if (licenseKey == null || userId == null) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", "License key and user ID are required"
+            ));
+        }
+        
+        // Validate the license key format
+        if (!licenseKeyService.validateLicenseKeyFormat(licenseKey)) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", "Invalid license key format"
+            ));
+        }
+        
+        // First check if the license key exists
+        Optional<LicenseKey> licenseKeyOpt = licenseKeyService.findByKey(licenseKey);
+        if (licenseKeyOpt.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", "License key not found"
+            ));
+        }
+        
+        LicenseKey license = licenseKeyOpt.get();
+        
+        // Check if the license key is already in use
+        if (license.getUser() != null) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", "License key is already assigned to a user"
+            ));
+        }
+        
+        // Check if the license key is not active
+        if (!LicenseKey.Status.ACTIVE.equals(license.getStatus())) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", "License key is not active"
+            ));
+        }
+        
+        // Assign the license key to the user
+        boolean success = licenseKeyService.assignLicenseKeyToUser(licenseKey, userId);
+        
+        if (success) {
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "License key assigned successfully"
+            ));
+        } else {
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", "Failed to assign license key to user"
             ));
         }
     }

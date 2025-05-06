@@ -2,6 +2,8 @@ package com.scorppultd.blackeyevalkyriesystem.config;
 
 import com.scorppultd.blackeyevalkyriesystem.model.LicenseKey;
 import com.scorppultd.blackeyevalkyriesystem.repository.LicenseKeyRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
@@ -9,55 +11,61 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.List;
 
 /**
- * Initializes sample license keys on startup for testing
+ * Initializes sample license keys for development
  */
 @Configuration
 public class LicenseKeyInitializer {
 
+    private static final Logger logger = LoggerFactory.getLogger(LicenseKeyInitializer.class);
+
     /**
-     * Creates sample license keys if none exist
+     * CommandLineRunner bean to initialize sample license keys
      */
     @Bean
-    @Profile("!prod") // Only run in non-production environments
-    public CommandLineRunner initLicenseKeys(LicenseKeyRepository licenseKeyRepository) {
+    @Profile("dev")
+    public CommandLineRunner initializeLicenseKeys(LicenseKeyRepository licenseKeyRepository) {
         return args -> {
-            // Check if we already have license keys
-            if (licenseKeyRepository.count() == 0) {
-                // Create some sample license keys
-                List<LicenseKey> sampleKeys = Arrays.asList(
-                    LicenseKey.builder()
-                        .key("AAAA-BBBB-CCCC-DDDD")
-                        .issuedOn(LocalDate.now())
-                        .expiresOn(LocalDateTime.now().plusYears(1))
-                        .status(LicenseKey.Status.ACTIVE)
-                        .role(LicenseKey.Role.ADMIN)
-                        .build(),
-                    LicenseKey.builder()
-                        .key("TEST-1234-ABCD-5678")
-                        .issuedOn(LocalDate.now())
-                        .expiresOn(LocalDateTime.now().plusYears(1))
-                        .status(LicenseKey.Status.ACTIVE)
-                        .role(LicenseKey.Role.DOCTOR)
-                        .build(),
-                    LicenseKey.builder()
-                        .key("DEMO-9876-WXYZ-5432")
-                        .issuedOn(LocalDate.now())
-                        .expiresOn(LocalDateTime.now().plusMonths(1))
-                        .status(LicenseKey.Status.ACTIVE)
-                        .role(LicenseKey.Role.NURSE)
-                        .build()
-                );
-                
-                // Save the sample keys
-                licenseKeyRepository.saveAll(sampleKeys);
-                
-                System.out.println("Initialized " + sampleKeys.size() + " sample license keys");
+            // Check if there are already license keys
+            if (licenseKeyRepository.count() > 0) {
+                logger.info("License keys already exist, skipping initialization");
+                return;
             }
+            
+            logger.info("Initializing sample license keys");
+            
+            // Create a license key that never expires
+            LicenseKey adminKey = LicenseKey.builder()
+                    .key("AAAA-BBBB-CCCC-DDDD")
+                    .issuedOn(LocalDate.now())
+                    .expiresOn(LocalDate.now().plusDays(365))
+                    .status(LicenseKey.Status.ACTIVE)
+                    .role(LicenseKey.Role.ADMIN)
+                    .build();
+            licenseKeyRepository.save(adminKey);
+            
+            // Create a license key that expires in 30 days
+            LicenseKey doctorKey = LicenseKey.builder()
+                    .key("TEST-1234-ABCD-5678")
+                    .issuedOn(LocalDate.now())
+                    .expiresOn(LocalDate.now().plusDays(30))
+                    .status(LicenseKey.Status.ACTIVE)
+                    .role(LicenseKey.Role.DOCTOR)
+                    .build();
+            licenseKeyRepository.save(doctorKey);
+            
+            // Create a license key that expires in 90 days
+            LicenseKey nurseKey = LicenseKey.builder()
+                    .key("DEMO-9876-WXYZ-5432")
+                    .issuedOn(LocalDate.now())
+                    .expiresOn(LocalDate.now().plusDays(90))
+                    .status(LicenseKey.Status.ACTIVE)
+                    .role(LicenseKey.Role.NURSE)
+                    .build();
+            licenseKeyRepository.save(nurseKey);
+            
+            logger.info("Sample license keys initialized successfully");
         };
     }
 } 

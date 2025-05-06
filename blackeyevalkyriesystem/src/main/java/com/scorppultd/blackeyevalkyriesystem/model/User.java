@@ -68,12 +68,13 @@ public class User {
                 throw new IllegalArgumentException("Role cannot be null");
             }
             
+            // Always convert to uppercase for enum
             String normalizedRole = role.toUpperCase();
             
             try {
                 return UserRole.valueOf(normalizedRole);
             } catch (IllegalArgumentException e) {
-                throw new IllegalArgumentException("Invalid role: " + role + ". Valid roles are: ADMIN, DOCTOR, NURSE");
+                throw new IllegalArgumentException("Invalid role: " + role + ". Valid roles are: admin, doctor, nurse");
             }
         }
     }

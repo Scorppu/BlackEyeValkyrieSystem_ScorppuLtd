@@ -1,6 +1,9 @@
 document.addEventListener('DOMContentLoaded', function() {
     console.log('License keys JS loaded');
     
+    // Convert UTC dates to local timezone
+    convertDatesToLocalTimezone();
+    
     // Create notification element
     const notification = document.createElement('div');
     notification.className = 'copy-notification';
@@ -39,6 +42,35 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+    
+    function convertDatesToLocalTimezone() {
+        try {
+            const dateElements = document.querySelectorAll('.expires-date');
+            dateElements.forEach(function(element) {
+                try {
+                    const utcTimestamp = element.getAttribute('data-utc-timestamp');
+                    if (utcTimestamp) {
+                        const date = new Date(utcTimestamp + 'Z');  // 'Z' indicates UTC
+                        if (!isNaN(date.getTime())) {
+                            const options = {
+                                year: 'numeric',
+                                month: '2-digit',
+                                day: '2-digit',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                hour12: false
+                            };
+                            element.textContent = date.toLocaleString(undefined, options);
+                        }
+                    }
+                } catch (e) {
+                    // Silently handle error - keep original text
+                }
+            });
+        } catch (e) {
+            // Silently handle errors
+        }
+    }
     
     // Fallback copy method using execCommand
     function fallbackCopyToClipboard(text, buttonElement) {

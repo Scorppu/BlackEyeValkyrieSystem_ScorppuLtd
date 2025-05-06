@@ -17,7 +17,7 @@
             <h1>License Keys Management</h1>
         </div>
         
-        <!-- Alert messages -->
+        <!-- Alert messages with improved styling -->
         <div class="alert alert-success" th:if="${successMessage}" th:text="${successMessage}"></div>
         <div class="alert alert-danger" th:if="${errorMessage}" th:text="${errorMessage}"></div>
         
@@ -37,10 +37,10 @@
                         <label for="statusFilter">Status:</label>
                         <select id="statusFilter" name="statusFilter" class="form-control">
                             <option value="">All Statuses</option>
-                            <option th:each="status : ${allStatuses}" 
-                                    th:value="${status}" 
-                                    th:text="${status}"
-                                    th:selected="${status == currentStatusFilter}"></option>
+                            <option value="Active" th:selected="${param.statusFilter eq 'Active'}">Active</option>
+                            <option value="Used" th:selected="${param.statusFilter eq 'Used'}">Used</option>
+                            <option value="Expired" th:selected="${param.statusFilter eq 'Expired'}">Expired</option>
+                            <option value="Deactivated" th:selected="${param.statusFilter eq 'Deactivated'}">Deactivated</option>
                         </select>
                     </div>
                     
@@ -48,18 +48,17 @@
                         <label for="roleFilter">Role:</label>
                         <select id="roleFilter" name="roleFilter" class="form-control">
                             <option value="">All Roles</option>
-                            <option th:each="role : ${allRoles}" 
-                                    th:value="${role}" 
-                                    th:text="${role}"
-                                    th:selected="${role == currentRoleFilter}"></option>
+                            <option value="Admin" th:selected="${param.roleFilter eq 'Admin'}">Admin</option>
+                            <option value="Doctor" th:selected="${param.roleFilter eq 'Doctor'}">Doctor</option>
+                            <option value="Nurse" th:selected="${param.roleFilter eq 'Nurse'}">Nurse</option>
                         </select>
                     </div>
                     
                     <div class="filter-group">
                         <label for="sortOrder">Sort By Expiry:</label>
                         <select id="sortOrder" name="sortOrder" class="form-control">
-                            <option value="asc" th:selected="${currentSortOrder == 'asc'}">Earliest First</option>
-                            <option value="desc" th:selected="${currentSortOrder == 'desc'}">Latest First</option>
+                            <option value="asc" th:selected="${param.sortOrder eq 'asc' or param.sortOrder == null}">Ascending</option>
+                            <option value="desc" th:selected="${param.sortOrder eq 'desc'}">Descending</option>
                         </select>
                     </div>
                     
@@ -82,37 +81,32 @@
                                 <th>Status</th>
                                 <th>Role</th>
                                 <th>User</th>
-                                <th>
-                                    Expire at
-                                    <a th:href="@{/licenses(sortOrder='asc', statusFilter=${currentStatusFilter}, roleFilter=${currentRoleFilter})}" 
-                                       class="sort-icon" th:classappend="${currentSortOrder == 'asc' ? 'active' : ''}">
-                                        <i class="fas fa-sort-up"></i>
-                                    </a>
-                                    <a th:href="@{/licenses(sortOrder='desc', statusFilter=${currentStatusFilter}, roleFilter=${currentRoleFilter})}" 
-                                       class="sort-icon" th:classappend="${currentSortOrder == 'desc' ? 'active' : ''}">
-                                        <i class="fas fa-sort-down"></i>
-                                    </a>
-                                </th>
+                                <th>Expire at</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr th:each="licenseKey : ${licenseKeys}">
-                                <td th:text="${licenseKey.key}"></td>
+                                <td class="monospace-font" th:text="${licenseKey.key}"></td>
                                 <td>
-                                    <span th:class="'status-badge status-' + ${#strings.toLowerCase(licenseKey.status)}" 
+                                    <span th:class="${'status-badge status-' + #strings.toLowerCase(licenseKey.status)}" 
                                           th:text="${licenseKey.status}"></span>
                                 </td>
-                                <td th:text="${licenseKey.role}"></td>
                                 <td>
-                                    <span th:if="${licenseKey.user != null}" 
+                                    <span th:class="${'role-badge role-' + #strings.toLowerCase(licenseKey.role)}" 
+                                          th:text="${licenseKey.role}"></span>
+                                </td>
+                                <td>
+                                    <span th:if="${licenseKey.user != null and userNames.get(licenseKey.user) != null}" 
                                           th:text="${userNames.get(licenseKey.user)}"></span>
-                                    <span th:if="${licenseKey.user == null}">No assigned user</span>
+                                    <span th:unless="${licenseKey.user != null and userNames.get(licenseKey.user) != null}">
+                                        No assigned user
+                                    </span>
                                 </td>
                                 <td>
                                     <span th:if="${licenseKey.expiresOn != null}" 
-                                          th:text="${#temporals.format(licenseKey.expiresOn, 'HH:mm:ss dd-MM-yy')}"></span>
-                                    <span th:if="${licenseKey.expiresOn == null}">No Expiry</span>
+                                          th:text="${#temporals.format(licenseKey.expiresOn, 'yyyy-MM-dd')}"></span>
+                                    <span th:unless="${licenseKey.expiresOn != null}">No Expiry</span>
                                 </td>
                                 <td>
                                     <div class="license-key-actions">
@@ -120,10 +114,10 @@
                                            class="btn btn-sm btn-primary" title="Edit">
                                             <i class="fas fa-edit"></i>
                                         </a>
-                                        <button type="button" class="btn btn-sm btn-info copy-btn" 
+                                        <!-- <button type="button" class="btn btn-sm btn-info copy-btn" 
                                                 th:data-key="${licenseKey.key}" title="Copy to Clipboard">
                                             <i class="fas fa-copy"></i>
-                                        </button>
+                                        </button> -->
                                         <form th:action="@{/licenses/delete/{id}(id=${licenseKey.id})}" method="post" style="display:inline;">
                                             <button type="submit" class="btn btn-sm btn-danger" 
                                                    onclick="return confirm('Are you sure you want to delete this license key?')" title="Delete">
@@ -142,7 +136,5 @@
             </div>
         </div>
     </div>
-    
-    <script th:src="@{/js/dashboard.js}"></script>
-    <script th:src="@{/js/license-keys.js}"></script>
+</body>
 </html> 

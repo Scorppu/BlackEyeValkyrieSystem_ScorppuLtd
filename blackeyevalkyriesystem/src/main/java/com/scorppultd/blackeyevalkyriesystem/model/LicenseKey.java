@@ -41,9 +41,9 @@ public class LicenseKey {
     private LocalDate issuedOn;
     
     /**
-     * When this license key expires (date and time)
+     * When this license key expires (date only)
      */
-    private LocalDateTime expiresOn;
+    private LocalDate expiresOn;
     
     /**
      * Status of the license key: Active, Used, Expired, Deactivated
@@ -52,6 +52,7 @@ public class LicenseKey {
     
     /**
      * Role for the user that will be created with this license key: admin, doctor, nurse
+     * All role values are stored in lowercase for consistent comparison
      */
     private String role;
     

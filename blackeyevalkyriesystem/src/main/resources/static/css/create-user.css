@@ -331,3 +331,67 @@ body, html {
     display: flex;
     justify-content: flex-end;
 }
+
+/* License key input group */
+.license-key-input-group {
+    display: flex;
+    gap: 10px;
+}
+
+.license-key-input-group .form-control {
+    flex: 1;
+}
+
+.license-key-input-group .btn {
+    white-space: nowrap;
+}
+
+/* Password input group */
+.password-input-group {
+    display: flex;
+    gap: 10px;
+}
+
+.password-input-group .form-control {
+    flex: 1;
+}
+
+.password-input-group .btn {
+    white-space: nowrap;
+}
+
+/* Generate buttons styling */
+.btn-generate {
+    background-color: #4682b4;
+    color: white;
+}
+
+.btn-generate:hover {
+    background-color: #3a6d96;
+}
+
+.btn-icon {
+    background-color: transparent;
+    color: var(--accent-color);
+    padding: 0.75rem;
+    margin-right: 5px;
+    border-radius: 0.25rem;
+}
+
+.btn-icon:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.btn-icon i {
+    font-size: 1rem;
+}
+
+/* Update generate license key button */
+#generateLicenseKeyBtn {
+    background-color: #4682b4;
+    color: white;
+}
+
+#generateLicenseKeyBtn:hover {
+    background-color: #3a6d96;
+}

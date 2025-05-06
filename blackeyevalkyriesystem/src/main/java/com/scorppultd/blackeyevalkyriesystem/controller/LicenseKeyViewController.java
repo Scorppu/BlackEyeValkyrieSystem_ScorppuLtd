@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
@@ -27,6 +26,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * Controller for license key management views (admin only)
@@ -54,6 +55,7 @@ public class LicenseKeyViewController {
      * @param sortOrder The sort order (asc or desc)
      * @param statusFilter Filter by status
      * @param roleFilter Filter by role
+     * @param request The HTTP request
      * @return The license keys view
      */
     @GetMapping
@@ -61,69 +63,107 @@ public class LicenseKeyViewController {
             Model model, 
             @RequestParam(required = false, defaultValue = "asc") String sortOrder,
             @RequestParam(required = false) String statusFilter,
-            @RequestParam(required = false) String roleFilter) {
+            @RequestParam(required = false) String roleFilter,
+            HttpServletRequest request) {
         
-        List<LicenseKey> licenseKeys = licenseKeyService.getAllLicenseKeys();
-        
-        // Apply status filter if provided
-        if (statusFilter != null && !statusFilter.isEmpty()) {
-            licenseKeys = licenseKeys.stream()
-                    .filter(key -> statusFilter.equals(key.getStatus()))
-                    .collect(Collectors.toList());
-        }
-        
-        // Apply role filter if provided
-        if (roleFilter != null && !roleFilter.isEmpty()) {
-            licenseKeys = licenseKeys.stream()
-                    .filter(key -> roleFilter.equals(key.getRole()))
-                    .collect(Collectors.toList());
-        }
-        
-        // Sort by expiration date
-        Comparator<LicenseKey> comparator = Comparator.comparing(
-                key -> key.getExpiresOn() != null ? key.getExpiresOn() : LocalDateTime.MAX,
-                Comparator.nullsLast(Comparator.naturalOrder())
-        );
-        
-        // Apply sort order
-        if ("desc".equalsIgnoreCase(sortOrder)) {
-            comparator = comparator.reversed();
-        }
-        
-        licenseKeys.sort(comparator);
-        
-        // Create a map to store user names for display
-        Map<String, String> userNames = new HashMap<>();
-        
-        // Get user names for all license keys that have a user
-        for (LicenseKey licenseKey : licenseKeys) {
-            if (licenseKey.getUser() != null) {
-                Optional<User> userOpt = userService.findUserById(licenseKey.getUser());
-                userOpt.ifPresent(user -> userNames.put(licenseKey.getUser(), user.getFullName()));
+        try {
+            // Check for expired license keys first - wrap in try-catch to prevent errors
+            try {
+                licenseKeyService.checkAndDeactivateExpiredLicenses();
+            } catch (Exception e) {
+                // Log the error but continue with the page load
+                e.printStackTrace();
             }
+            
+            // Get license keys with better error handling
+            List<LicenseKey> licenseKeys = new ArrayList<>();
+            try {
+                licenseKeys = licenseKeyService.getAllLicenseKeys();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            
+            // Apply status filter if provided
+            if (statusFilter != null && !statusFilter.isEmpty()) {
+                try {
+                    licenseKeys = licenseKeys.stream()
+                            .filter(key -> statusFilter.equals(key.getStatus()))
+                            .collect(Collectors.toList());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            
+            // Apply role filter if provided
+            if (roleFilter != null && !roleFilter.isEmpty()) {
+                String roleFilterLower = roleFilter.toLowerCase();
+                licenseKeys = licenseKeys.stream()
+                    .filter(key -> roleFilterLower.equalsIgnoreCase(key.getRole()))
+                    .collect(Collectors.toList());
+            }
+            
+            // Sort by expiration date with better error handling
+            try {
+                Comparator<LicenseKey> comparator = Comparator.comparing(
+                        key -> key.getExpiresOn() != null ? key.getExpiresOn() : LocalDate.MAX,
+                        Comparator.nullsLast(Comparator.naturalOrder())
+                );
+                
+                // Apply sort order
+                if ("desc".equalsIgnoreCase(sortOrder)) {
+                    comparator = comparator.reversed();
+                }
+                
+                licenseKeys.sort(comparator);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            
+            // Create a map to store user names for display with better error handling
+            Map<String, String> userNames = new HashMap<>();
+            
+            // Get user names for all license keys that have a user
+            for (LicenseKey licenseKey : licenseKeys) {
+                if (licenseKey.getUser() != null) {
+                    try {
+                        Optional<User> userOpt = userService.findUserById(licenseKey.getUser());
+                        userOpt.ifPresent(user -> userNames.put(licenseKey.getUser(), user.getFullName()));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            
+            // Add all available statuses and roles for filtering
+            List<String> allStatuses = new ArrayList<>();
+            allStatuses.add(LicenseKey.Status.ACTIVE);
+            allStatuses.add(LicenseKey.Status.USED);
+            allStatuses.add(LicenseKey.Status.EXPIRED);
+            allStatuses.add(LicenseKey.Status.DEACTIVATED);
+            
+            List<String> allRoles = new ArrayList<>();
+            allRoles.add(LicenseKey.Role.ADMIN);
+            allRoles.add(LicenseKey.Role.DOCTOR);
+            allRoles.add(LicenseKey.Role.NURSE);
+            
+            // Add the license keys to the model
+            model.addAttribute("licenseKeys", licenseKeys);
+            model.addAttribute("userNames", userNames);
+            
+            // Keep track of current filter and sort for UI
+            model.addAttribute("currentStatusFilter", statusFilter);
+            model.addAttribute("currentRoleFilter", roleFilter);
+            model.addAttribute("currentSortOrder", sortOrder);
+            
+            model.addAttribute("allStatuses", allStatuses);
+            model.addAttribute("allRoles", allRoles);
+            
+            return "license-keys";  // This will map to a license-keys.html template
+        } catch (Exception e) {
+            e.printStackTrace();
+            model.addAttribute("errorMessage", "An error occurred while loading license keys. Please try again.");
+            return "license-keys";
         }
-        
-        // Add all available statuses and roles for filtering
-        List<String> allStatuses = new ArrayList<>();
-        allStatuses.add(LicenseKey.Status.ACTIVE);
-        allStatuses.add(LicenseKey.Status.USED);
-        allStatuses.add(LicenseKey.Status.EXPIRED);
-        allStatuses.add(LicenseKey.Status.DEACTIVATED);
-        
-        List<String> allRoles = new ArrayList<>();
-        allRoles.add(LicenseKey.Role.ADMIN);
-        allRoles.add(LicenseKey.Role.DOCTOR);
-        allRoles.add(LicenseKey.Role.NURSE);
-        
-        model.addAttribute("licenseKeys", licenseKeys);
-        model.addAttribute("userNames", userNames);
-        model.addAttribute("currentSortOrder", sortOrder);
-        model.addAttribute("currentStatusFilter", statusFilter);
-        model.addAttribute("currentRoleFilter", roleFilter);
-        model.addAttribute("allStatuses", allStatuses);
-        model.addAttribute("allRoles", allRoles);
-        
-        return "license-keys";  // This will map to a license-keys.html template
     }
 
     /**
@@ -175,7 +215,7 @@ public class LicenseKeyViewController {
      * @param id The license key ID
      * @param status The new status
      * @param role The new role
-     * @param expiresOn The new expiry date and time
+     * @param expiresOn The new expiry date 
      * @param redirectAttributes For flash messages
      * @return Redirect to the license keys list
      */
@@ -199,16 +239,16 @@ public class LicenseKeyViewController {
             
             // Update properties
             licenseKey.setStatus(status);
-            licenseKey.setRole(role);
+            licenseKey.setRole(role.toLowerCase());
             
             // Update expiresOn if provided
             if (expiresOn != null && !expiresOn.isEmpty()) {
                 try {
-                    // Parse datetime-local format (yyyy-MM-ddTHH:mm)
-                    LocalDateTime dateTime = LocalDateTime.parse(expiresOn, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-                    licenseKey.setExpiresOn(dateTime);
+                    // Parse date format (yyyy-MM-dd)
+                    LocalDate date = LocalDate.parse(expiresOn, DateTimeFormatter.ISO_LOCAL_DATE);
+                    licenseKey.setExpiresOn(date);
                 } catch (DateTimeParseException e) {
-                    redirectAttributes.addFlashAttribute("errorMessage", "Invalid date/time format: " + e.getMessage());
+                    redirectAttributes.addFlashAttribute("errorMessage", "Invalid date format: " + e.getMessage());
                     return "redirect:/licenses/edit/" + id;
                 }
             } else {
@@ -218,7 +258,9 @@ public class LicenseKeyViewController {
             // Save the updated license key directly using repository
             licenseKeyRepository.save(licenseKey);
             
-            redirectAttributes.addFlashAttribute("successMessage", "License key updated successfully");
+            // Add success message
+            redirectAttributes.addFlashAttribute("successMessage", 
+                "License key " + licenseKey.getKey() + " updated successfully");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Error updating license key: " + e.getMessage());
         }
@@ -260,32 +302,35 @@ public class LicenseKeyViewController {
             String customDate, 
             RedirectAttributes redirectAttributes) {
         
-        LocalDateTime expiresOn = null;
+        // Convert role to lowercase
+        String normalizedRole = role != null ? role.toLowerCase() : role;
+        
+        LocalDate expiresOn = null;
         
         // Set expiry date based on option
         switch (expiryOption) {
             case "7days":
-                expiresOn = LocalDateTime.now().plusDays(7);
+                expiresOn = LocalDate.now().plusDays(7);
                 break;
             case "30days":
-                expiresOn = LocalDateTime.now().plusDays(30);
+                expiresOn = LocalDate.now().plusDays(30);
                 break;
             case "90days":
-                expiresOn = LocalDateTime.now().plusDays(90);
+                expiresOn = LocalDate.now().plusDays(90);
                 break;
             case "180days":
-                expiresOn = LocalDateTime.now().plusDays(180);
+                expiresOn = LocalDate.now().plusDays(180);
                 break;
             case "365days":
-                expiresOn = LocalDateTime.now().plusDays(365);
+                expiresOn = LocalDate.now().plusDays(365);
                 break;
             case "noexpiry":
-                expiresOn = LocalDateTime.of(2099, 12, 31, 23, 59, 59);
+                expiresOn = LocalDate.of(2099, 12, 31);
                 break;
             case "custom":
                 if (customDate != null && !customDate.isEmpty()) {
                     try {
-                        expiresOn = LocalDateTime.parse(customDate, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                        expiresOn = LocalDate.parse(customDate, DateTimeFormatter.ISO_LOCAL_DATE);
                     } catch (Exception e) {
                         redirectAttributes.addFlashAttribute("errorMessage", "Invalid date format");
                         return "redirect:/licenses/generate";
@@ -304,7 +349,7 @@ public class LicenseKeyViewController {
                     .issuedOn(LocalDate.now())
                     .expiresOn(expiresOn)
                     .status(LicenseKey.Status.ACTIVE)
-                    .role(role)
+                    .role(normalizedRole)
                     .build();
             
             LicenseKey savedKey = licenseKeyService.createLicenseKey(licenseKey);
@@ -346,5 +391,21 @@ public class LicenseKeyViewController {
         }
         
         return "redirect:/licenses";
+    }
+
+    /**
+     * Safely formats a date for display
+     * @param date The date to format
+     * @return Formatted date string or empty string if date is null
+     */
+    private String safeFormatDate(LocalDate date) {
+        if (date == null) {
+            return "";
+        }
+        try {
+            return date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        } catch (Exception e) {
+            return "";
+        }
     }
 } 
