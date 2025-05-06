@@ -44,13 +44,24 @@
             </div>
             
             <nav>
-                <a href="/" class="nav-item" th:classappend="${request != null && #strings.startsWith(request.requestURI, '/') && request.requestURI == '/' ? 'active' : ''}">
+                <a href="/" class="nav-item" id="main-page-nav-item" th:classappend="${request != null && request.requestURI == '/' ? 'active' : ''}">
                     <div class="nav-item-content">
                         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M2 8.66667L8 2.66667L14 8.66667V13.3333C14 13.687 13.8595 14.0261 13.6095 14.2761C13.3594 14.5262 13.0203 14.6667 12.6667 14.6667H3.33333C2.97971 14.6667 2.64057 14.5262 2.39052 14.2761C2.14048 14.0261 2 13.687 2 13.3333V8.66667Z" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
                             <path d="M6 14.6667V8.66667H10V14.6667" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                         Main Page
+                    </div>
+                </a>
+
+                <a href="/duty-status" class="nav-item" sec:authorize="hasRole('ROLE_ADMIN')" th:classappend="${request != null && #strings.startsWith(request.requestURI, '/duty-status') ? 'active' : ''}">
+                    <div class="nav-item-content">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M14 10L8 14L2 10" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M14 6L8 10L2 6" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M14 2L8 6L2 2" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Duty Status
                     </div>
                 </a>
                 
@@ -224,6 +235,7 @@
             </div>
         </main>
     </div>
+    
     
     <script th:src="@{/js/theme-handling.js}"></script>
     <script th:src="@{/js/main.js}"></script>

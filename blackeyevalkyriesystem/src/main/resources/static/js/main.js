@@ -106,25 +106,19 @@ document.addEventListener('DOMContentLoaded', function() {
      * Handles special cases for consultation and dispensary sections
      */
     function fixSidebarNavigation() {
-        console.log('Fixing sidebar navigation...');
         const currentPath = window.location.pathname;
-        console.log('Current path:', currentPath);
         
         if (currentPath.includes('consultation') || currentPath.includes('dispensary')) {
-            console.log('CRITICAL PATH DETECTED:', currentPath);
             let selector = currentPath.includes('consultation') 
                 ? 'a.nav-item[href="/consultation"]' 
                 : 'a.nav-item[href="/dispensary"]';
             
             const navItem = document.querySelector(selector);
             if (navItem) {
-                console.log('Found matching nav item:', navItem);
                 navItem.classList.add('active');
                 setTimeout(() => {
                     navItem.classList.add('active');
                 }, 500);
-            } else {
-                console.log('Navigation item not found for', selector);
             }
         }
         
@@ -152,7 +146,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             if (shouldExpand || currentPath.startsWith(toggle.getAttribute('data-path'))) {
-                console.log('Expanding:', toggle);
                 toggle.classList.add('expanded');
                 dropdownMenu.classList.add('active');
                 dropdownMenu.style.maxHeight = dropdownMenu.scrollHeight + "px";
@@ -165,15 +158,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const itemPath = item.getAttribute('href');
             
             if (!itemPath) return;
-            
-            if (itemPath === '/consultation' || itemPath === '/dispensary') {
-                console.log('Processing special item:', itemPath, 'Current path:', currentPath);
-                
-                if (currentPath === itemPath || currentPath.startsWith(itemPath + '/')) {
-                    console.log('MATCH FOUND for', itemPath);
-                }
-            }
-            
+                        
             if (currentPath === itemPath || currentPath.startsWith(itemPath + '/')) {
                 console.log('Highlighting direct nav item:', item, 'path:', itemPath);
                 item.classList.add('active');
@@ -229,14 +214,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const dispensaryItem = document.getElementById('dispensary-nav-item');
         
         if (consultationItem && window.location.pathname.includes('/consultation')) {
-            console.log('Direct fix for consultation tab');
             consultationItem.classList.add('active');
             const content = consultationItem.querySelector('.nav-item-content');
             if (content) content.classList.add('active');
         }
         
         if (dispensaryItem && window.location.pathname.includes('/dispensary')) {
-            console.log('Direct fix for dispensary tab');
             dispensaryItem.classList.add('active');
             const content = dispensaryItem.querySelector('.nav-item-content');
             if (content) content.classList.add('active');
@@ -309,7 +292,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 return response.json();
             })
             .then(data => {
-                console.log('Success:', data);
                 alert('Patient profile created successfully!');
                 
                 window.location.href = '/patient/list';
@@ -444,7 +426,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Add additional listener for clicks on special links
     document.addEventListener('click', function(e) {
         if (e.target && (e.target.closest('a[href="/consultation"]') || e.target.closest('a[href="/dispensary"]'))) {
-            console.log('Special link clicked:', e.target);
             setTimeout(fixSidebarNavigation, 300);
         }
     });

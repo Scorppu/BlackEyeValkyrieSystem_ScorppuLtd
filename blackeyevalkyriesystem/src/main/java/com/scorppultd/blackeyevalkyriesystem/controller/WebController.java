@@ -52,6 +52,16 @@ public class WebController {
     private final DutyStatusService dutyStatusService;
     private final DrugService drugService;
     
+    /**
+     * Constructor for WebController
+     * 
+     * @param patientService Service for managing patient data
+     * @param appointmentService Service for managing appointment data
+     * @param doctorService Service for managing doctor data
+     * @param userService Service for managing user data
+     * @param dutyStatusService Service for managing duty status data
+     * @param drugService Service for managing drug data
+     */
     @Autowired
     public WebController(PatientService patientService, 
                         AppointmentService appointmentService,
@@ -69,14 +79,16 @@ public class WebController {
 
     /**
      * Display the home page
+     * 
+     * @param request The HTTP request
+     * @param model The model to be populated for the view
+     * @return The view name
      */
     @GetMapping("/")
     public String index(HttpServletRequest request, Model model) {
         model.addAttribute("request", request);
         
-        // Calculate duty status counts for dashboard display
         try {
-            // Get doctors duty status
             int doctorsOnDuty = 0;
             int doctorsOffDuty = 0;
             
@@ -87,7 +99,6 @@ public class WebController {
                     Optional<DutyStatus> dutyStatus = dutyStatusService.getLatestDutyStatus(doctor);
                     isOnDuty = dutyStatus.isPresent() && dutyStatus.get().isOnDuty();
                 } catch (Exception e) {
-                    logger.warn("Error checking duty status for doctor {}: {}", doctor.getId(), e.getMessage());
                 }
                 
                 if (isOnDuty) {
@@ -97,7 +108,6 @@ public class WebController {
                 }
             }
             
-            // Get nurses duty status
             int nursesOnDuty = 0;
             int nursesOffDuty = 0;
             
@@ -108,7 +118,6 @@ public class WebController {
                     Optional<DutyStatus> dutyStatus = dutyStatusService.getLatestDutyStatus(nurse);
                     isOnDuty = dutyStatus.isPresent() && dutyStatus.get().isOnDuty();
                 } catch (Exception e) {
-                    logger.warn("Error checking duty status for nurse {}: {}", nurse.getId(), e.getMessage());
                 }
                 
                 if (isOnDuty) {
@@ -118,7 +127,6 @@ public class WebController {
                 }
             }
             
-            // Get total patient count for dashboard
             int totalPatients = 0;
             int activePatients = 0;
             int admittedPatients = 0;
@@ -132,7 +140,6 @@ public class WebController {
                 List<Patient> allPatients = patientService.getAllPatients();
                 totalPatients = allPatients.size();
                 
-                // Count admitted and discharged patients
                 if (totalPatients > 0) {
                     for (Patient patient : allPatients) {
                         if (patient.getStatus() != null) {
@@ -146,19 +153,14 @@ public class WebController {
                         }
                     }
                     
-                    // Calculate percentages
                     admittedPercentage = Math.round((float) admittedPatients / totalPatients * 100);
                     dischargedPercentage = Math.round((float) dischargedPatients / totalPatients * 100);
                     activePercentage = Math.round((float) activePatients / totalPatients * 100);
                 }
-                
-                logger.info("Total patients count for homepage: {}, admitted: {}, discharged: {}", 
-                           totalPatients, admittedPatients, dischargedPatients);
             } catch (Exception e) {
                 logger.error("Error fetching total patients count: {}", e.getMessage(), e);
             }
             
-            // Add all counts to model
             model.addAttribute("doctorsOnDuty", doctorsOnDuty);
             model.addAttribute("doctorsOffDuty", doctorsOffDuty);
             model.addAttribute("nursesOnDuty", nursesOnDuty);
@@ -171,22 +173,15 @@ public class WebController {
             model.addAttribute("admittedPercentage", admittedPercentage);
             model.addAttribute("dischargedPercentage", dischargedPercentage);
             
-            // Get drugs for the dashboard
             try {
                 List<Drug> allDrugs = drugService.getAllDrugs();
                 model.addAttribute("drugs", allDrugs);
-                logger.info("Added {} drugs to the dashboard", allDrugs.size());
             } catch (Exception e) {
                 logger.error("Error fetching drugs for dashboard: {}", e.getMessage(), e);
                 model.addAttribute("drugs", new ArrayList<>());
             }
-            
-            logger.info("Home page stats - doctors: {}/{}, nurses: {}/{}, patients: {}, admitted: {}%, discharged: {}%", 
-                        doctorsOnDuty, doctorsOffDuty, nursesOnDuty, nursesOffDuty, totalPatients, 
-                        admittedPercentage, dischargedPercentage);
         } catch (Exception e) {
             logger.error("Error calculating stats for homepage: {}", e.getMessage(), e);
-            // Set defaults if there's an error
             model.addAttribute("doctorsOnDuty", 0);
             model.addAttribute("doctorsOffDuty", 0);
             model.addAttribute("nursesOnDuty", 0);
@@ -204,6 +199,10 @@ public class WebController {
     
     /**
      * Display the login page
+     * 
+     * @param request The HTTP request
+     * @param model The model to be populated for the view
+     * @return The view name
      */
     @GetMapping("/login")
     public String login(HttpServletRequest request, Model model) {
@@ -213,6 +212,10 @@ public class WebController {
     
     /**
      * Display the appointments page
+     * 
+     * @param request The HTTP request
+     * @param model The model to be populated for the view
+     * @return The view name
      */
     @GetMapping("/appointments")
     public String appointments(HttpServletRequest request, Model model) {
@@ -222,6 +225,10 @@ public class WebController {
     
     /**
      * Display the settings page
+     * 
+     * @param request The HTTP request
+     * @param model The model to be populated for the view
+     * @return The view name
      */
     @GetMapping("/settings")
     public String settings(HttpServletRequest request, Model model) {
@@ -229,19 +236,22 @@ public class WebController {
         return "settings";
     }
 
+    /**
+     * Display the duty status page showing all doctors and nurses with their duty status
+     * 
+     * @param request The HTTP request
+     * @param model The model to be populated for the view
+     * @return The view name
+     */
     @GetMapping("/duty-status")
     public String dutyStatus(HttpServletRequest request, Model model) {
         try {
-            logger.info("Duty status page requested");
             model.addAttribute("request", request);
             
-            // Fetch all doctors using DoctorService
             List<Map<String, Object>> doctors = new ArrayList<>();
             try {
                 List<Doctor> doctorsList = doctorService.getAllDoctors();
-                logger.info("Retrieved {} raw doctors from service", doctorsList.size());
                 
-                // Calculate doctors on duty count for stats
                 int doctorsOnDuty = 0;
                 
                 for (Doctor doctor : doctorsList) {
@@ -252,7 +262,6 @@ public class WebController {
                     doctorMap.put("email", doctor.getEmail() != null ? doctor.getEmail() : "");
                     doctorMap.put("specialization", doctor.getSpecialization() != null ? doctor.getSpecialization() : "General");
                     
-                    // Fetch duty status for this doctor
                     boolean isOnDuty = false;
                     try {
                         Optional<DutyStatus> dutyStatus = dutyStatusService.getLatestDutyStatus(doctor);
@@ -261,7 +270,6 @@ public class WebController {
                             doctorsOnDuty++;
                         }
                     } catch (Exception e) {
-                        logger.warn("Error fetching duty status for doctor {}: {}", doctor.getId(), e.getMessage());
                     }
                     
                     doctorMap.put("dutyStatus", isOnDuty);
@@ -269,24 +277,14 @@ public class WebController {
                 }
                 
                 model.addAttribute("doctorsOnDuty", doctorsOnDuty);
-                logger.info("Processed {} doctors for view, {} on duty", doctors.size(), doctorsOnDuty);
-                
-                // Log some sample doctor data for troubleshooting
-                if (!doctors.isEmpty()) {
-                    logger.info("Sample doctor data: {}", doctors.get(0));
-                }
             } catch (Exception e) {
                 logger.error("Error fetching doctors: {}", e.getMessage(), e);
-                // Continue with empty list
             }
             
-            // Create a service method to get users by role and use it here
             List<Map<String, Object>> nurses = new ArrayList<>();
             try {
                 List<User> nursesList = userService.findByRole(User.UserRole.NURSE);
-                logger.info("Retrieved {} raw nurses from service", nursesList.size());
                 
-                // Calculate nurses on duty count for stats
                 int nursesOnDuty = 0;
                 
                 for (User nurse : nursesList) {
@@ -296,10 +294,8 @@ public class WebController {
                     nurseMap.put("lastName", nurse.getLastName() != null ? nurse.getLastName() : "");
                     nurseMap.put("email", nurse.getEmail() != null ? nurse.getEmail() : "");
                     
-                    // Get department with safe handling
                     String department = "General";
                     try {
-                        // Try to cast to Nurse if possible
                         if (nurse instanceof Nurse) {
                             Nurse nurseObj = (Nurse) nurse;
                             if (nurseObj.getDepartment() != null && !nurseObj.getDepartment().isEmpty()) {
@@ -307,12 +303,10 @@ public class WebController {
                             }
                         }
                     } catch (Exception e) {
-                        // If casting fails, use default department
-                        logger.warn("Could not cast User to Nurse for ID: {}", nurse.getId());
+                        logger.error("Error fetching department for nurse {}: {}", nurse.getId(), e.getMessage(), e);
                     }
                     nurseMap.put("department", department);
                     
-                    // Fetch duty status for this nurse
                     boolean isOnDuty = false;
                     try {
                         Optional<DutyStatus> dutyStatus = dutyStatusService.getLatestDutyStatus(nurse);
@@ -321,7 +315,6 @@ public class WebController {
                             nursesOnDuty++;
                         }
                     } catch (Exception e) {
-                        logger.warn("Error fetching duty status for nurse {}: {}", nurse.getId(), e.getMessage());
                     }
                     
                     nurseMap.put("dutyStatus", isOnDuty);
@@ -329,25 +322,13 @@ public class WebController {
                 }
                 
                 model.addAttribute("nursesOnDuty", nursesOnDuty);
-                logger.info("Processed {} nurses for view, {} on duty", nurses.size(), nursesOnDuty);
-                
-                // Log some sample nurse data for troubleshooting
-                if (!nurses.isEmpty()) {
-                    logger.info("Sample nurse data: {}", nurses.get(0));
-                }
             } catch (Exception e) {
                 logger.error("Error fetching nurses: {}", e.getMessage(), e);
-                // Continue with empty list
             }
             
             model.addAttribute("doctors", doctors);
             model.addAttribute("nurses", nurses);
             
-            // Log final model state
-            logger.info("Final model contents - doctors: {}, nurses: {}", 
-                        doctors.size(), nurses.size());
-            
-            logger.info("Rendering duty-status template");
             return "duty-status";
         } catch (Exception e) {
             logger.error("Error in dutyStatus controller method: {}", e.getMessage(), e);
@@ -358,6 +339,10 @@ public class WebController {
     
     /**
      * Display the error page
+     * 
+     * @param request The HTTP request
+     * @param model The model to be populated for the view
+     * @return The view name
      */
     @GetMapping("/error")
     public String error(HttpServletRequest request, Model model) {
@@ -365,17 +350,30 @@ public class WebController {
         return "error";
     }
     
+    /**
+     * Display the access denied page
+     * 
+     * @param request The HTTP request
+     * @param model The model to be populated for the view
+     * @return The view name
+     */
     @GetMapping("/access-denied")
     public String accessDenied(HttpServletRequest request, Model model) {
         model.addAttribute("request", request);
         return "access-denied";
     }
     
+    /**
+     * Display the appointment timeline page
+     * 
+     * @param request The HTTP request
+     * @param model The model to be populated for the view
+     * @return The view name
+     */
     @GetMapping("/appointment/timeline")
     public String appointmentTimeline(HttpServletRequest request, Model model) {
         model.addAttribute("request", request);
         
-        // Calculate actual doctors on duty
         int doctorsOnDuty = 0;
         try {
             List<Doctor> doctorsList = doctorService.getAllDoctors();
@@ -386,26 +384,19 @@ public class WebController {
                         doctorsOnDuty++;
                     }
                 } catch (Exception e) {
-                    logger.warn("Error checking duty status for doctor {}: {}", doctor.getId(), e.getMessage());
                 }
             }
-            logger.info("Found {} doctors on duty for timeline page", doctorsOnDuty);
         } catch (Exception e) {
             logger.error("Error calculating doctors on duty: {}", e.getMessage(), e);
-            // Default to 0 if there's an error
             doctorsOnDuty = 0;
         }
         
-        // Calculate patients seen today
         int patientsToday = 0;
         try {
-            // Get all appointments
             List<Appointment> allAppointments = appointmentService.getAllAppointments();
             
-            // Get today's date
             LocalDate today = LocalDate.now();
             
-            // Filter appointments to only include those scheduled for today
             if (allAppointments != null) {
                 List<Appointment> todayAppointments = allAppointments.stream()
                     .filter(appointment -> {
@@ -417,14 +408,10 @@ public class WebController {
                     })
                     .collect(Collectors.toList());
                 
-                // Count the appointments for today
                 patientsToday = todayAppointments.size();
-                
-                logger.info("Found {} appointments scheduled for today", patientsToday);
             }
         } catch (Exception e) {
             logger.error("Error calculating today's patients: {}", e.getMessage(), e);
-            // Default to 0 if there's an error
             patientsToday = 0;
         }
         
@@ -434,6 +421,17 @@ public class WebController {
         return "appointment-timeline";
     }
     
+    /**
+     * Display the appointment creation page with patient selection
+     * 
+     * @param sortBy The field to sort patients by (default: lastName)
+     * @param direction The sort direction (default: asc)
+     * @param rowsPerPage Number of patients per page (default: 10)
+     * @param page Current page number (default: 1)
+     * @param request The HTTP request
+     * @param model The model to be populated for the view
+     * @return The view name
+     */
     @GetMapping("/appointment/create")
     public String createAppointment(
             @RequestParam(required = false, defaultValue = "lastName") String sortBy,
@@ -446,22 +444,17 @@ public class WebController {
         model.addAttribute("request", request);
         
         try {
-            // Get sorted patients for patient selection
             List<Patient> allPatients = patientService.getAllPatientsSorted(sortBy, direction);
             
-            // Calculate total patients count
             int totalPatients = allPatients.size();
             
-            // Calculate start and end index for pagination
             int startIndex = (page - 1) * rowsPerPage;
             int endIndex = Math.min(startIndex + rowsPerPage, totalPatients);
             
-            // Get sub-list for current page
             List<Patient> paginatedPatients = startIndex < totalPatients ? 
                 allPatients.subList(startIndex, endIndex) : 
                 new ArrayList<>();
                 
-            // Create simplified DTOs to avoid large object graphs
             List<Map<String, Object>> simplifiedPatients = new ArrayList<>();
             for (Patient patient : paginatedPatients) {
                 Map<String, Object> patientData = new HashMap<>();
@@ -471,7 +464,6 @@ public class WebController {
                 patientData.put("age", patient.getAge());
                 patientData.put("sex", patient.getSex());
                 
-                // Add last visit date if available
                 if (patient.getVisits() != null && !patient.getVisits().isEmpty() && patient.getVisits().get(0) != null) {
                     Visit lastVisit = patient.getVisits().get(0);
                     if (lastVisit.getVisitDate() != null) {
@@ -487,29 +479,23 @@ public class WebController {
                 simplifiedPatients.add(patientData);
             }
             
-            // Add patients to the model
             model.addAttribute("patients", simplifiedPatients);
             
-            // Pagination information
             model.addAttribute("currentPage", page);
             model.addAttribute("totalPatients", totalPatients);
             model.addAttribute("rowsPerPage", rowsPerPage);
             
-            // Sort parameters
             model.addAttribute("currentSortBy", sortBy);
             model.addAttribute("currentDirection", direction);
             
             return "appointment-create";
         } catch (Exception e) {
-            // Log the error
             System.err.println("Error loading appointment create page: " + e.getMessage());
             e.printStackTrace();
             
-            // Add error message to the model
             model.addAttribute("errorMessage", "Failed to load patients. Please try again.");
             model.addAttribute("patients", new ArrayList<>());
             
-            // Add default values for pagination and sorting
             model.addAttribute("currentPage", page);
             model.addAttribute("totalPatients", 0);
             model.addAttribute("rowsPerPage", rowsPerPage);
@@ -520,6 +506,14 @@ public class WebController {
         }
     }
     
+    /**
+     * Process the patient selection for appointment creation
+     * 
+     * @param selectedPatientIds List of selected patient IDs
+     * @param request The HTTP request
+     * @param model The model to be populated for the view
+     * @return The view name or redirect URL
+     */
     @PostMapping("/appointment/create")
     public String processPatientSelection(
             @RequestParam(value = "selectedPatients", required = false) List<String> selectedPatientIds,
@@ -527,23 +521,27 @@ public class WebController {
             Model model) {
         
         if (selectedPatientIds == null || selectedPatientIds.isEmpty()) {
-            // If no patients selected, redirect back with an error message
             return "redirect:/appointment/create?error=noPatientSelected";
         }
         
-        // For simplicity, we'll assume only one patient is selected (first one)
         String patientId = selectedPatientIds.get(0);
         
-        // Find the patient by ID
         Optional<Patient> patientOpt = patientService.getPatientById(patientId);
         if (!patientOpt.isPresent()) {
             return "redirect:/appointment/create?error=patientNotFound";
         }
         
-        // Redirect to visit information page with the patient ID
         return "redirect:/appointment/create/visit-info?patientId=" + patientId;
     }
     
+    /**
+     * Display the visit information form for appointment creation
+     * 
+     * @param patientId ID of the selected patient
+     * @param request The HTTP request
+     * @param model The model to be populated for the view
+     * @return The view name or redirect URL
+     */
     @GetMapping("/appointment/create/visit-info")
     public String createAppointmentVisitInfo(
             @RequestParam("patientId") String patientId,
@@ -552,7 +550,6 @@ public class WebController {
         
         model.addAttribute("request", request);
         
-        // Find the patient by ID
         Optional<Patient> patientOpt = patientService.getPatientById(patientId);
         if (!patientOpt.isPresent()) {
             return "redirect:/appointment/create?error=patientNotFound";
@@ -561,7 +558,6 @@ public class WebController {
         Patient patient = patientOpt.get();
         model.addAttribute("patient", patient);
         
-        // Add appointment type options
         List<String> appointmentTypes = List.of(
             "General Consultation",
             "Follow-up Visit",
@@ -571,7 +567,6 @@ public class WebController {
         );
         model.addAttribute("appointmentTypes", appointmentTypes);
         
-        // Add appointment priority options
         List<String> appointmentPriorities = List.of(
             "low",
             "medium",
@@ -580,13 +575,26 @@ public class WebController {
         );
         model.addAttribute("appointmentPriorities", appointmentPriorities);
         
-        // Fetch all doctors for the dropdown
         List<Doctor> doctors = doctorService.getAllDoctors();
         model.addAttribute("doctors", doctors);
         
         return "appointment-create-visit-info";
     }
     
+    /**
+     * Process the appointment creation
+     * 
+     * @param patientId ID of the selected patient
+     * @param appointmentType Type of appointment
+     * @param requiredTime Required appointment time in minutes
+     * @param appointmentPriority Priority of the appointment
+     * @param notes Optional notes about the appointment
+     * @param doctorName Selected doctor's name
+     * @param scheduledTime Scheduled date and time
+     * @param request The HTTP request
+     * @param model The model to be populated for the view
+     * @return Redirect URL to appointment timeline or error page
+     */
     @PostMapping("/appointment/create/visit-info")
     public String processAppointmentCreation(
             @RequestParam("patientId") String patientId,
@@ -599,7 +607,6 @@ public class WebController {
             HttpServletRequest request,
             Model model) {
         
-        // Find the patient
         Optional<Patient> patientOpt = patientService.getPatientById(patientId);
         if (!patientOpt.isPresent()) {
             return "redirect:/appointment/create?error=patientNotFound";
@@ -607,25 +614,21 @@ public class WebController {
         
         Patient patient = patientOpt.get();
         
-        // Create a new appointment
         Appointment appointment = new Appointment();
         appointment.setPatient(patient);
         appointment.setAppointmentType(appointmentType);
         
-        // Parse required time (remove 'minutes' suffix if it exists)
         try {
             Integer time = Integer.parseInt(requiredTime.trim().split(" ")[0]);
             appointment.setRequiredTime(time);
         } catch (NumberFormatException e) {
-            // Default to 30 minutes if parsing fails
             appointment.setRequiredTime(30);
         }
         
         appointment.setAppointmentPriority(appointmentPriority);
         appointment.setCreationTime(LocalDateTime.now());
-        appointment.setStatus("pending"); // Ensure status is set
+        appointment.setStatus("pending");
         
-        // Set optional fields if provided
         if (notes != null && !notes.trim().isEmpty()) {
             appointment.setNotes(notes);
         }
@@ -634,34 +637,26 @@ public class WebController {
             appointment.setDoctorName(doctorName);
         }
         
-        // Parse and set scheduled time if provided
         if (scheduledTime != null && !scheduledTime.trim().isEmpty()) {
             try {
-                // Use DateTimeFormatter for more robust parsing
                 DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
                 LocalDateTime dateTime = LocalDateTime.parse(scheduledTime, formatter);
                 appointment.setScheduledTime(dateTime);
             } catch (Exception e) {
-                // If parsing fails, log the error and continue
                 System.err.println("Failed to parse scheduled time: " + e.getMessage());
                 System.err.println("Input was: " + scheduledTime);
             }
         }
         
         try {
-            // Save the appointment and log the ID
             appointment = appointmentService.createAppointment(appointment);
             System.out.println("Created appointment with ID: " + appointment.getId());
             
-            // Create a new Visit record and add it to the patient's visits list
             if (appointment.getScheduledTime() != null) {
-                // Create a new Visit
                 Visit visit = new Visit();
                 visit.setPatientId(patient.getId());
                 
-                // Set doctor ID if available
                 if (doctorName != null && !doctorName.trim().isEmpty()) {
-                    // Find the doctor by name
                     List<Doctor> doctors = doctorService.getAllDoctors();
                     Optional<Doctor> doctorOpt = doctors.stream()
                             .filter(d -> (d.getFirstName() + " " + d.getLastName()).equals(doctorName))
@@ -672,23 +667,18 @@ public class WebController {
                     }
                 }
                 
-                // Set visit date from appointment's scheduled time
                 visit.setVisitDate(appointment.getScheduledTime().toLocalDate());
                 
-                // Initialize patient's visits list if null
                 if (patient.getVisits() == null) {
                     patient.setVisits(new ArrayList<>());
                 }
                 
-                // Add the visit to the patient's visits list
                 patient.getVisits().add(visit);
                 
-                // Save the updated patient
                 patientService.savePatient(patient);
                 System.out.println("Added visit record to patient: " + patient.getId());
             }
         } catch (Exception e) {
-            // Log any exceptions during save
             System.err.println("Error saving appointment: " + e.getMessage());
             e.printStackTrace();
             return "redirect:/appointment/create?error=saveFailed";
@@ -697,6 +687,14 @@ public class WebController {
         return "redirect:/appointment/timeline?success=created&appointmentId=" + appointment.getId();
     }
     
+    /**
+     * Display the appointment edit page
+     * 
+     * @param id ID of the appointment to edit
+     * @param request The HTTP request
+     * @param model The model to be populated for the view
+     * @return The view name or redirect URL
+     */
     @GetMapping("/appointment/edit/{id}")
     public String editAppointment(
             @PathVariable String id,
@@ -705,7 +703,6 @@ public class WebController {
         
         model.addAttribute("request", request);
         
-        // Find the appointment by ID
         Optional<Appointment> appointmentOpt = appointmentService.getAppointmentById(id);
         if (!appointmentOpt.isPresent()) {
             return "redirect:/appointment/timeline?error=appointmentNotFound";
@@ -714,13 +711,11 @@ public class WebController {
         Appointment appointment = appointmentOpt.get();
         model.addAttribute("appointment", appointment);
         
-        // Find the patient from the appointment
         Patient patient = appointment.getPatient();
         if (patient != null) {
             model.addAttribute("patient", patient);
         }
         
-        // Add appointment type options
         List<String> appointmentTypes = List.of(
             "General Consultation",
             "Follow-up Visit",
@@ -730,7 +725,6 @@ public class WebController {
         );
         model.addAttribute("appointmentTypes", appointmentTypes);
         
-        // Add appointment priority options
         List<String> appointmentPriorities = List.of(
             "low",
             "medium",
@@ -739,11 +733,9 @@ public class WebController {
         );
         model.addAttribute("appointmentPriorities", appointmentPriorities);
         
-        // Fetch all doctors for the dropdown
         List<Doctor> doctors = doctorService.getAllDoctors();
         model.addAttribute("doctors", doctors);
         
-        // Format the scheduled time for the form
         if (appointment.getScheduledTime() != null) {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
             String formattedDateTime = appointment.getScheduledTime().format(formatter);
@@ -753,6 +745,21 @@ public class WebController {
         return "appointment-edit";
     }
     
+    /**
+     * Process the appointment edit
+     * 
+     * @param id ID of the appointment to edit
+     * @param patientId ID of the patient
+     * @param appointmentType Type of appointment
+     * @param requiredTime Required appointment time in minutes
+     * @param appointmentPriority Priority of the appointment
+     * @param notes Optional notes about the appointment
+     * @param doctorName Selected doctor's name
+     * @param scheduledTime Scheduled date and time
+     * @param request The HTTP request
+     * @param model The model to be populated for the view
+     * @return Redirect URL to appointment timeline
+     */
     @PostMapping("/appointment/edit/{id}")
     public String processAppointmentEdit(
             @PathVariable String id,
@@ -766,7 +773,6 @@ public class WebController {
             HttpServletRequest request,
             Model model) {
         
-        // Find the appointment by ID
         Optional<Appointment> appointmentOpt = appointmentService.getAppointmentById(id);
         if (!appointmentOpt.isPresent()) {
             return "redirect:/appointment/timeline?error=appointmentNotFound";
@@ -774,48 +780,51 @@ public class WebController {
         
         Appointment appointment = appointmentOpt.get();
         
-        // Update the appointment with new values
         appointment.setAppointmentType(appointmentType);
         appointment.setRequiredTime(Integer.parseInt(requiredTime));
         appointment.setAppointmentPriority(appointmentPriority);
         appointment.setNotes(notes);
         
-        // Update doctor if changed
         if (doctorName != null && !doctorName.isEmpty()) {
             appointment.setDoctorName(doctorName);
         }
         
-        // Update scheduled time if changed
         if (scheduledTime != null && !scheduledTime.isEmpty()) {
             LocalDateTime dateTime = LocalDateTime.parse(scheduledTime);
             appointment.setScheduledTime(dateTime);
         }
         
-        // Save the updated appointment
         appointmentService.updateAppointment(appointment);
         
-        // Redirect to appointment timeline with success message
         return "redirect:/appointment/timeline?success=appointmentUpdated";
     }
 
+    /**
+     * Cancel an appointment
+     * 
+     * @param id ID of the appointment to cancel
+     * @return Redirect URL to appointment timeline
+     */
     @GetMapping("/appointment/cancel/{id}")
     public String cancelAppointment(@PathVariable String id) {
-        // Find the appointment
         Optional<Appointment> appointmentOpt = appointmentService.getAppointmentById(id);
         if (appointmentOpt.isPresent()) {
-            // Delete the appointment
             appointmentService.deleteAppointment(id);
         }
         return "redirect:/appointment/timeline";
     }
     
+    /**
+     * Mark an appointment as completed
+     * 
+     * @param id ID of the appointment to complete
+     * @return Redirect URL to appointment timeline
+     */
     @GetMapping("/appointment/complete/{id}")
     public String completeAppointment(@PathVariable String id) {
-        // Find the appointment
         Optional<Appointment> appointmentOpt = appointmentService.getAppointmentById(id);
         if (appointmentOpt.isPresent()) {
             Appointment appointment = appointmentOpt.get();
-            // Mark as completed
             appointment.setStatus("Completed");
             appointmentService.updateAppointment(appointment);
         }

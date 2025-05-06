@@ -144,7 +144,7 @@
                 </table>
                 
                 <div style="text-align: center; margin-top: 1rem;">
-                    <a href="/drugs" class="btn btn-outline">more...</a>
+                    <a href="/drugs" class="btn btn-outline" sec:authorize="hasRole('ROLE_ADMIN')">more...</a>
                 </div>
             </div>
             
@@ -195,7 +195,7 @@
                     </div>
                 </div>
                 <div style="text-align: center;">
-                    <a href="/duty-status" class="btn btn-outline">more...</a>
+                    <a href="/duty-status" class="btn btn-outline" sec:authorize="hasRole('ROLE_ADMIN')">more...</a>
                 </div>
             </div>
         </div>
