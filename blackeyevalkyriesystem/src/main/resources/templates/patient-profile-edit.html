@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Patient Profile - BlackEyeValkyrieSystem</title>
+    
+    <th:block layout:fragment="head">
+        <link rel="stylesheet" th:href="@{/css/patient-profile-edit.css}">
+    </th:block>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="main-container">
+            <!-- Left Column - Credentials -->
+            <div class="credentials-sidebar">
+                <h2>Credentials</h2>
+                
+                <div class="tab-nav">
+                    <div class="tab-item active" data-target="personal-info-tab">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="8" cy="8" r="8" fill="#4263EB" opacity="0.1"/>
+                            <circle cx="8" cy="8" r="4" fill="#4263EB"/>
+                        </svg>
+                        Personal Information
+                    </div>
+                    
+                    <div class="tab-item" data-target="contact-info-tab">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M14.6667 11.28C14.6667 11.5333 14.6133 11.7933 14.5 12.04C14.3867 12.2867 14.2333 12.52 14.0333 12.7333C13.6933 13.0867 13.3133 13.3333 12.8867 13.48C12.4667 13.6267 12.0133 13.7067 11.5333 13.7067C10.8133 13.7067 10.0533 13.5467 9.26667 13.2267C8.48 12.9067 7.69333 12.4667 6.90667 11.9067C6.12 11.3467 5.37333 10.7267 4.66667 10.0467C3.96 9.36667 3.32 8.63333 2.74667 7.84667C2.17333 7.06 1.72 6.27333 1.4 5.48667C1.08 4.7 0.926667 3.94 0.926667 3.21333C0.926667 2.74667 1 2.30667 1.14667 1.88667C1.29333 1.46 1.53333 1.06667 1.88 0.72C2.3 0.293333 2.75333 0.08 3.22667 0.08C3.40667 0.08 3.58667 0.12 3.75333 0.2C3.92 0.28 4.07333 0.4 4.2 0.573333L5.88 2.92C6.00667 3.09333 6.1 3.24667 6.16667 3.4C6.23333 3.55333 6.26667 3.70667 6.26667 3.85333C6.26667 4.04 6.22 4.22667 6.12667 4.40667C6.03333 4.58667 5.90667 4.77333 5.74667 4.96L5.14667 5.6C5.07333 5.67333 5.04 5.76 5.04 5.86667C5.04 5.92 5.04667 5.97333 5.06 6.02667C5.07333 6.08 5.08667 6.12 5.09333 6.16C5.21333 6.40667 5.42667 6.71333 5.73333 7.08C6.04 7.44667 6.36667 7.82 6.72 8.18C7.08 8.54 7.44667 8.87333 7.82 9.18C8.19333 9.48667 8.5 9.7 8.74667 9.82C8.78667 9.82667 8.82667 9.84 8.88 9.85333C8.93333 9.86667 8.98667 9.87333 9.04667 9.87333C9.15333 9.87333 9.24 9.83333 9.31333 9.76L9.91333 9.16667C10.1067 9 10.2933 8.87333 10.4733 8.78667C10.6533 8.69333 10.84 8.64667 11.0333 8.64667C11.18 8.64667 11.3333 8.67333 11.4933 8.74C11.6533 8.80667 11.8067 8.9 11.98 9.02667L14.36 10.7333C14.5333 10.86 14.6533 11.0067 14.7267 11.1733C14.7933 11.34 14.6667 11.5133 14.6667 11.28Z" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Contact Information
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Column - Form Content -->
+            <div class="form-container" id="form-content-container">
+                <!-- Personal Information Form -->
+                <div id="personal-info-form" class="form-section active">
+                    <h2>Personal information</h2>
+                    <p>Edit patient's personal information</p>
+                    
+                    <form id="patient-form">
+                        <input type="hidden" id="patientId" name="patientId" th:value="${patient != null ? patient.id : ''}">
+                        
+                        <div class="form-group">
+                            <label for="firstName">First name</label>
+                            <input type="text" id="firstName" name="firstName" class="form-control" th:value="${patient != null ? patient.firstName : ''}">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="lastName">Last name</label>
+                            <input type="text" id="lastName" name="lastName" class="form-control" th:value="${patient != null ? patient.lastName : ''}">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="sex">Sex</label>
+                            <select id="sex" name="sex" class="form-control">
+                                <option value="Male" th:selected="${patient != null && patient.sex == true}">Male</option>
+                                <option value="Female" th:selected="${patient != null && patient.sex == false}">Female</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="relativeName">Relative Name</label>
+                            <input type="text" id="relativeName" name="relativeName" class="form-control" th:value="${patient != null ? patient.relativeName : ''}">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="dateOfBirth">Date Of Birth</label>
+                            <input type="date" id="dateOfBirth" name="dateOfBirth" class="form-control" th:value="${patient != null ? patient.dateOfBirth : ''}">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="age">Age</label>
+                            <input type="number" id="age" name="age" class="form-control" readonly th:value="${patient != null ? patient.age : ''}">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="maritalStatus">Marital Status</label>
+                            <select id="maritalStatus" name="maritalStatus" class="form-control">
+                                <option value="Single" th:selected="${patient != null && patient.maritalStatus == 'Single'}">Single</option>
+                                <option value="Married" th:selected="${patient != null && patient.maritalStatus == 'Married'}">Married</option>
+                                <option value="Divorced" th:selected="${patient != null && patient.maritalStatus == 'Divorced'}">Divorced</option>
+                                <option value="Widowed" th:selected="${patient != null && patient.maritalStatus == 'Widowed'}">Widowed</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="bloodType">Blood Type</label>
+                            <select id="bloodType" name="bloodType" class="form-control">
+                                <option value="A+" th:selected="${patient != null && patient.bloodType == 'A+'}">A+</option>
+                                <option value="A-" th:selected="${patient != null && patient.bloodType == 'A-'}">A-</option>
+                                <option value="B+" th:selected="${patient != null && patient.bloodType == 'B+'}">B+</option>
+                                <option value="B-" th:selected="${patient != null && patient.bloodType == 'B-'}">B-</option>
+                                <option value="AB+" th:selected="${patient != null && patient.bloodType == 'AB+'}">AB+</option>
+                                <option value="AB-" th:selected="${patient != null && patient.bloodType == 'AB-'}">AB-</option>
+                                <option value="O+" th:selected="${patient != null && patient.bloodType == 'O+'}">O+</option>
+                                <option value="O-" th:selected="${patient != null && patient.bloodType == 'O-'}">O-</option>
+                            </select>
+                        </div>
+
+                        <!-- Drug allergies section -->
+                        <div class="mb-4" style="padding-bottom: 1rem;">
+                            <div>
+                                <div class="form-control-label">Drug Allergies</div>
+                                <div class="drug-selection-container">
+                                    <div class="search-container">
+                                        <input type="text" id="drugAllergyInput" class="form-control" placeholder="Type to search for drugs">
+                                        <div id="drugsDropdown" class="drugs-dropdown">
+                                            <!-- Drugs will be dynamically added here -->
+                                        </div>
+                                    </div>
+                                    <button type="button" id="addAllergyBtn" class="btn btn-primary ms-2">Add</button>
+                                </div>
+                            </div>
+                            
+                            <div class="allergies-table-container mt-3">
+                                <table class="allergies-table w-100">
+                                    <thead>
+                                        <tr>
+                                            <th>Drug Name</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="allergiesList">
+                                        <tr th:if="${#lists.isEmpty(patient.drugAllergies)}" class="empty-allergies-row">
+                                            <td colspan="2">No drug allergies selected</td>
+                                        </tr>
+                                        <!-- This will be populated with JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <input type="hidden" id="drugAllergies" name="drugAllergies">
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" id="next-btn" class="btn btn-primary">NEXT</button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Contact Information Form -->
+                <div id="contact-info-form" class="form-section">
+                    <h2>Contact Information</h2>
+                    <p>Edit patient's contact information</p>
+                    <form id="contact-form">
+                        <div class="form-group">
+                            <label for="contactNumber">Phone / Mobile</label>
+                            <input type="tel" id="contactNumber" name="contactNumber" class="form-control" th:value="${patient != null ? patient.contactNumber : ''}">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="email">Email Address</label>
+                            <input type="email" id="email" name="email" class="form-control" th:value="${patient != null ? patient.email : ''}">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="address1">Address 1</label>
+                            <input type="text" id="address1" name="address1" class="form-control" th:value="${patient != null && patient.address != null ? patient.address.addressLine1 : ''}">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="address2">Address 2</label>
+                            <input type="text" id="address2" name="address2" class="form-control" th:value="${patient != null && patient.address != null ? patient.address.addressLine2 : ''}">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="address3">Address 3</label>
+                            <input type="text" id="address3" name="address3" class="form-control" th:value="${patient != null && patient.address != null ? patient.address.addressLine3 : ''}">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="country">Country</label>
+                            <input type="text" id="country" name="country" class="form-control" th:value="${patient != null && patient.address != null ? patient.address.country : ''}">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="state">State</label>
+                            <input type="text" id="state" name="state" class="form-control" th:value="${patient != null && patient.address != null ? patient.address.state : ''}">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="town">Town</label>
+                            <input type="text" id="town" name="town" class="form-control" th:value="${patient != null && patient.address != null ? patient.address.town : ''}">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="pinCode">Pin Code</label>
+                            <input type="text" id="pinCode" name="pinCode" class="form-control" th:value="${patient != null && patient.address != null ? patient.address.pinCode : ''}">
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" id="back-btn" class="btn btn-secondary">BACK</button>
+                            <button type="submit" id="submit-btn" class="btn btn-success">UPDATE PATIENT</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

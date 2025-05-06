@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" 
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark light">
+    <title>BlackEyeValkyrieSystem - <th:block th:include=":: title">Title</th:block></title>
+    
+    <link rel="stylesheet" th:href="@{/css/critical.css}">
+    <script th:src="@{/js/theme-detection.js}"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    
+    <th:block layout:fragment="head"></th:block>
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <a href="/" class="logo">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="10" fill="#8A2BE2"/>
+                    <path d="M12 7V17M7 12H17" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                BlackEyeValkyrieSystem
+            </a>
+            
+            <div class="search-bar">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M7.33333 12.6667C10.2789 12.6667 12.6667 10.2789 12.6667 7.33333C12.6667 4.38781 10.2789 2 7.33333 2C4.38781 2 2 4.38781 2 7.33333C2 10.2789 4.38781 12.6667 7.33333 12.6667Z" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M14 14.0001L11.1 11.1001" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <input type="text" id="sidebar-search" placeholder="Search for..." autocomplete="off">
+                <button type="button" id="clear-search" class="search-clear" style="display: none;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M18 6L6 18M6 6l12 12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <nav>
+                <a href="/" class="nav-item" th:classappend="${request != null && #strings.startsWith(request.requestURI, '/') && request.requestURI == '/' ? 'active' : ''}">
+                    <div class="nav-item-content">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M2 8.66667L8 2.66667L14 8.66667V13.3333C14 13.687 13.8595 14.0261 13.6095 14.2761C13.3594 14.5262 13.0203 14.6667 12.6667 14.6667H3.33333C2.97971 14.6667 2.64057 14.5262 2.39052 14.2761C2.14048 14.0261 2 13.687 2 13.3333V8.66667Z" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M6 14.6667V8.66667H10V14.6667" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Main Page
+                    </div>
+                </a>
+                
+                <a href="#" class="nav-item dropdown-toggle" data-path="/patient" th:classappend="${request != null && #strings.startsWith(request.requestURI, '/patient') ? 'expanded' : ''}">
+                    <div class="nav-item-content">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M10.6667 14V12.6667C10.6667 11.9594 10.3857 11.2811 9.88562 10.781C9.38552 10.281 8.70724 10 8 10H3.33333C2.62609 10 1.9478 10.281 1.44771 10.781C0.947617 11.2811 0.666666 11.9594 0.666666 12.6667V14" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M5.66667 7.33333C7.13943 7.33333 8.33333 6.13943 8.33333 4.66667C8.33333 3.19391 7.13943 2 5.66667 2C4.19391 2 3 3.19391 3 4.66667C3 6.13943 4.19391 7.33333 5.66667 7.33333Z" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M15.3333 14V12.6667C15.3328 12.0758 15.1362 11.5019 14.7742 11.0349C14.4122 10.5679 13.9053 10.2344 13.3333 10.0867" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M10.6667 2.08667C11.2406 2.2335 11.7492 2.56712 12.1118 3.03488C12.4744 3.50264 12.6709 4.07769 12.6709 4.67C12.6709 5.26232 12.4744 5.83737 12.1118 6.30513C11.7492 6.77289 11.2406 7.1065 10.6667 7.25334" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Patient Profile
+                    </div>
+                    <svg class="dropdown-arrow" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4 6L8 10L12 6" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </a>
+                
+                <div class="dropdown-menu" th:classappend="${request != null && #strings.startsWith(request.requestURI, '/patient') ? 'active' : ''}">
+                    <a href="/patient/list" class="nav-item nav-subitem" th:classappend="${request != null && #strings.startsWith(request.requestURI, '/patient/list') ? 'active' : ''}">
+                        Patient List
+                    </a>
+                    
+                    <a href="/patient/create" class="nav-item nav-subitem" th:classappend="${request != null && #strings.startsWith(request.requestURI, '/patient/create') ? 'active' : ''}">
+                        Create Patient Profile
+                    </a>
+                </div>
+                
+                <a href="#" class="nav-item dropdown-toggle" data-path="/appointment" th:classappend="${request != null && #strings.startsWith(request.requestURI, '/appointment') ? 'expanded' : ''}">
+                    <div class="nav-item-content">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12.6667 2.66667H3.33333C2.59695 2.66667 2 3.26362 2 4.00001V13.3333C2 14.0697 2.59695 14.6667 3.33333 14.6667H12.6667C13.403 14.6667 14 14.0697 14 13.3333V4.00001C14 3.26362 13.403 2.66667 12.6667 2.66667Z" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M10.6667 1.33333V4" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M5.33334 1.33333V4" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M2 6.66667H14" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Appointment Scheduling
+                    </div>
+                    <svg class="dropdown-arrow" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4 6L8 10L12 6" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </a>
+
+                <div class="dropdown-menu" th:classappend="${request != null && #strings.startsWith(request.requestURI, '/appointment') ? 'active' : ''}">
+                    <a href="/appointment/timeline" class="nav-item nav-subitem" th:classappend="${request != null && #strings.startsWith(request.requestURI, '/appointment/timeline') ? 'active' : ''}">
+                        Appointment Timeline
+                    </a>
+                    
+                    <a href="/appointment/create" class="nav-item nav-subitem" th:classappend="${request != null && #strings.startsWith(request.requestURI, '/appointment/create') ? 'active' : ''}">
+                        Create Appointment
+                    </a>
+                </div>
+
+                <a href="/vital/list" class="nav-item" sec:authorize="hasAnyRole('ROLE_NURSE', 'ROLE_ADMIN')" th:classappend="${request != null && #strings.startsWith(request.requestURI, '/vital') ? 'active' : ''}">
+                    <div class="nav-item-content">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M11.3333 1.33334H4.66667C3.93029 1.33334 3.33334 1.93029 3.33334 2.66667V13.3333C3.33334 14.0697 3.93029 14.6667 4.66667 14.6667H11.3333C12.0697 14.6667 12.6667 14.0697 12.6667 13.3333V2.66667C12.6667 1.93029 12.0697 1.33334 11.3333 1.33334Z" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M8 11.3333V12" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M8 4V8" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Vital Input
+                    </div>
+                </a>
+                
+                <a href="/consultation" class="nav-item" id="consultation-nav-item" sec:authorize="hasAnyRole('ROLE_DOCTOR', 'ROLE_ADMIN')" th:classappend="${request != null && #strings.startsWith(request.requestURI, '/consultation') ? 'active' : ''}">
+                    <div class="nav-item-content">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6 14.6667V13.3333C6 12.8 6.2 12.4 6.6 12C7 11.6 7.4 11.3333 8 11.3333H13.3333" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M10.6667 3.33333C10.6667 2.60026 10.2619 2 9.33333 2C8.40476 2 8 2.60026 8 3.33333C8 4.06641 8.40476 4.66667 9.33333 4.66667C10.2619 4.66667 10.6667 4.06641 10.6667 3.33333Z" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M9.33333 4.66667V6.66667C9.33333 7.77124 8.43791 8.66667 7.33333 8.66667H5.33333" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M4 6.66667H6.66667" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M5.33333 5.33333V8" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Consultation Module
+                    </div>
+                </a>
+                
+                <a href="/dispensary" class="nav-item" id="dispensary-nav-item" sec:authorize="hasAnyRole('ROLE_DOCTOR', 'ROLE_PHARMACIST', 'ROLE_NURSE', 'ROLE_ADMIN')" th:classappend="${request != null && #strings.startsWith(request.requestURI, '/dispensary') ? 'active' : ''}">
+                    <div class="nav-item-content">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M13.3333 6H2.66666C1.93028 6 1.33333 6.59695 1.33333 7.33333V12.6667C1.33333 13.4031 1.93028 14 2.66666 14H13.3333C14.0697 14 14.6667 13.4031 14.6667 12.6667V7.33333C14.6667 6.59695 14.0697 6 13.3333 6Z" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M10.6667 14V4.66667C10.6667 4.31305 10.5262 3.97391 10.2761 3.72386C10.0261 3.47381 9.68694 3.33333 9.33333 3.33333H6.66666C6.31304 3.33333 5.9739 3.47381 5.72385 3.72386C5.4738 3.97391 5.33333 4.31305 5.33333 4.66667V14" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Dispensary
+                    </div>
+                </a>
+
+                <a href="#" class="nav-item dropdown-toggle" data-path="/drugs" th:classappend="${request != null && #strings.startsWith(request.requestURI, '/drugs') ? 'expanded' : ''}" sec:authorize="hasRole('ROLE_ADMIN')">
+                    <div class="nav-item-content">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M11.5355 4.46447C12.7834 5.71236 12.7834 7.76252 11.5355 9.01041L8.59633 11.9497C7.34844 13.1976 5.29828 13.1976 4.05039 11.9497C2.8025 10.7018 2.8025 8.65165 4.05039 7.40376L6.98959 4.46447" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M7.0607 6.06069L8.9394 7.93939" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M9.29295 4.70714L11.2929 6.70714" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M4.70711 9.29285L6.70711 11.2929" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Drugs
+                    </div>
+                    <svg class="dropdown-arrow" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4 6L8 10L12 6" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </a>
+                
+                <div class="dropdown-menu" th:classappend="${request != null && #strings.startsWith(request.requestURI, '/drugs') ? 'active' : ''}" sec:authorize="hasRole('ROLE_ADMIN')">
+                    <a href="/drugs/list" class="nav-item nav-subitem" th:classappend="${request != null && #strings.startsWith(request.requestURI, '/drugs/list') ? 'active' : ''}">
+                        Drug List
+                    </a>
+                    
+                    <a href="/drugs/interactions" class="nav-item nav-subitem" th:classappend="${request != null && #strings.startsWith(request.requestURI, '/drugs/interactions') ? 'active' : ''}">
+                        Drug Interactions
+                    </a>
+                </div>
+            
+                <a sec:authorize="hasRole('ROLE_ADMIN')" href="#" class="nav-item dropdown-toggle" data-path="/user" th:classappend="${request != null && #strings.startsWith(request.requestURI, '/user') ? 'expanded' : ''}">
+                    <div class="nav-item-content">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M10.6667 14V12.6667C10.6667 11.9594 10.3857 11.2811 9.88562 10.781C9.38552 10.281 8.70724 10 8 10H3.33333C2.62609 10 1.9478 10.281 1.44771 10.781C0.947617 11.2811 0.666666 11.9594 0.666666 12.6667V14" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M5.66667 7.33333C7.13943 7.33333 8.33333 6.13943 8.33333 4.66667C8.33333 3.19391 7.13943 2 5.66667 2C4.19391 2 3 3.19391 3 4.66667C3 6.13943 4.19391 7.33333 5.66667 7.33333Z" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M15.3333 14V12.6667C15.3328 12.0758 15.1362 11.5019 14.7742 11.0349C14.4122 10.5679 13.9053 10.2344 13.3333 10.0867" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M10.6667 2.08667C11.2406 2.2335 11.7492 2.56712 12.1118 3.03488C12.4744 3.50264 12.6709 4.07769 12.6709 4.67C12.6709 5.26232 12.4744 5.83737 12.1118 6.30513C11.7492 6.77289 11.2406 7.1065 10.6667 7.25334" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Users
+                    </div>
+                    <svg class="dropdown-arrow" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4 6L8 10L12 6" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </a>
+
+                <div sec:authorize="hasRole('ROLE_ADMIN')" class="dropdown-menu" th:classappend="${request != null && #strings.startsWith(request.requestURI, '/user') ? 'active' : ''}">
+                    <a href="/user/list" class="nav-item nav-subitem" th:classappend="${request != null && #strings.startsWith(request.requestURI, '/user/list') ? 'active' : ''}">
+                        User List
+                    </a>
+                    
+                    <a href="/user/create" class="nav-item nav-subitem" th:classappend="${request != null && #strings.startsWith(request.requestURI, '/user/create') ? 'active' : ''}">
+                        Create User
+                    </a>
+                </div>
+            </nav>  
+                
+            <div class="user-profile-container">
+                <div class="user-profile-dropdown" id="user-profile-dropdown">
+                    <div class="duty-status" id="duty-status" sec:authorize="hasAnyRole('ROLE_DOCTOR', 'ROLE_NURSE')">On Duty Since 20:00</div>
+                    <div class="profile-actions">
+                        <a href="/logout" class="btn-logout" th:classappend="${!#authorization.expression('hasAnyRole(''ROLE_DOCTOR'', ''ROLE_NURSE'')')} ? 'full-width' : ''">Logout</a>
+                        <button type="button" class="btn-duty" id="duty-toggle" sec:authorize="hasAnyRole('ROLE_DOCTOR', 'ROLE_NURSE')">Off Duty</button>
+                    </div>
+                </div>
+                
+                <div class="user-profile" id="user-profile-toggle">
+                    <div class="avatar">
+                        <span th:text="${#authentication.principal.username.substring(0,2).toUpperCase()}">JC</span>
+                    </div>
+                    <div class="user-info">
+                        <div class="user-name" th:text="${#authentication.principal.fullName != null ? #authentication.principal.fullName : #authentication.principal.username}">AA BB</div>
+                    </div>
+                    <svg class="profile-arrow" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4 10L8 6L12 10" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+            </div>
+        </aside>
+        
+        <main class="main-content">
+            <div th:remove="tag" layout:fragment="custom-header">
+                <header class="header" th:if="${false}">
+                    <h1 layout:fragment="header-title">Page Title</h1>
+                </header>
+            </div>
+            
+            <div layout:fragment="content">
+                Page content goes here
+            </div>
+        </main>
+    </div>
+    
+    <script th:src="@{/js/theme-handling.js}"></script>
+    <script th:src="@{/js/main.js}"></script>
+    <script th:src="@{/js/theme-toggle.js}"></script>
+    <script th:src="@{/js/duty-status.js}"></script>
+    <script th:src="@{/js/user-profile.js}"></script>
+    
+    <th:block layout:fragment="scripts"></th:block>
+    
+    <script th:src="@{/webjars/bootstrap/5.3.2/js/bootstrap.bundle.min.js}"></script>
+</body>
+</html> 

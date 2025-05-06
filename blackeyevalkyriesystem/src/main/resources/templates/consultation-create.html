@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{layout/main}">
+
+<head>
+    <title>Consultation</title>
+    <!-- Include Chart.js for displaying graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" th:href="@{/css/consultation-create.css}">
+</head>
+
+<body>
+    <div layout:fragment="content">
+        <div class="container-fluid">
+            <div class="header-container">
+                <h1>Consultation</h1>
+            </div>
+
+            <form th:action="@{/consultation/save}" method="post" th:object="${consultation}">
+                <input type="hidden" th:field="*{id}" />
+                <input type="hidden" th:field="*{prescription.id}" th:if="${consultation.prescription != null}" />
+                <input type="hidden" th:field="*{appointmentId}" />
+                <!-- Add hidden input with patient ID -->
+                <input type="hidden" id="patientId" th:value="${consultation.patient != null ? consultation.patient.id : ''}" />
+
+            <div class="row">
+                <!-- Patient Information Section -->
+                <div class="col-md-6">
+                    <div class="info-section">
+                        <h2 class="section-label">Patient Information</h2>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <span class="info-label">Visit ID</span>
+                                <span class="info-value" th:text="${consultation.id}">OP8021</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Appointment Type</span>
+                                <span class="info-value" th:text="${consultation.consultationType}">General Consultation</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Patient Name</span>
+                                <span class="info-value" th:text="${consultation.patient.firstName + ' ' + consultation.patient.lastName}">Somebody</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Patient Age</span>
+                                <span class="info-value" th:text="${consultation.patient.age}">20</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Patient Vitals Section -->
+                <div class="col-md-6">
+                    <div class="info-section">
+                        <h2 class="section-label">Patient Vitals</h2>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <span class="info-label">Height</span>
+                                    <input type="number" step="0.1" class="info-value editable-vital" id="height" th:field="*{vitalSigns.height}" placeholder="cm" >
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Weight</span>
+                                    <input type="number" step="0.1" class="info-value editable-vital" id="weight" th:field="*{vitalSigns.weight}" placeholder="kg" >
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Temperature</span>
+                                    <input type="number" step="0.1" class="info-value editable-vital" id="temperature" th:field="*{vitalSigns.temperature}" placeholder="°C">
+                            </div>
+                                
+                                <!-- Replace separate BP fields with a combined horizontal layout -->
+                            <div class="info-item">
+                                    <span class="info-label">Blood Pressure</span>
+                                    <div style="display: flex; align-items: center;">
+                                        <input type="number" class="info-value editable-vital" id="systolicBP" placeholder="Systolic" min="0" max="300" style="flex: 1; margin-right: 5px;">
+                                        <span style="font-weight: bold; margin: 0 5px; color: var(--secondary-text);">/</span>
+                                        <input type="number" class="info-value editable-vital" id="diastolicBP" placeholder="Diastolic" min="0" max="200" style="flex: 1; margin-left: 5px;">
+                            </div>
+                        </div>
+                                
+                                <div class="info-item">
+                                    <span class="info-label">Heart Rate</span>
+                                    <input type="number" class="info-value editable-vital" id="heartRate" th:field="*{vitalSigns.heartRate}" placeholder="bpm">
+                    </div>
+                                <div class="info-item">
+                                    <span class="info-label">Respiratory Rate</span>
+                                    <input type="number" class="info-value editable-vital" id="respiratoryRate" th:field="*{vitalSigns.respiratoryRate}" placeholder="breaths/min">
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Oxygen Saturation</span>
+                                    <input type="number" step="0.1" class="info-value editable-vital" id="oxygenSaturation" th:field="*{vitalSigns.oxygenSaturation}" placeholder="%">
+                                </div>
+                                <!-- Hidden field to store the combined BP value -->
+                                <input type="hidden" id="combinedBP" th:field="*{vitalSigns.bloodPressure}">
+                            </div>
+                            <button type="button" class="confirm-btn" id="confirmVitals">Confirm Vitals</button>
+                        </div>
+                </div>
+            </div>
+
+                <!-- Past Consultations Section -->
+                <div class="info-section" th:if="${pastConsultations != null && !pastConsultations.isEmpty()}">
+                    <h2 class="section-label" style="cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="togglePastConsultations()">
+                        Patient's Past Consultations
+                        <span id="toggleIcon" style="font-size: 18px; transition: transform 0.3s;">▼</span>
+                    </h2>
+                    <div id="pastConsultationsContent" class="past-consultations-container" style="max-height: 300px; overflow-y: auto;">
+                        <table class="table" style="width: 100%; border-collapse: collapse; margin-bottom: 0;">
+                            <thead>
+                                <tr style="background-color: var(--secondary-bg); border-bottom: 1px solid var(--border-color);">
+                                    <th style="padding: 10px; text-align: left;">Date</th>
+                                    <th style="padding: 10px; text-align: left;">Doctor</th>
+                                    <th style="padding: 10px; text-align: left; cursor: pointer; color: var(--accent-color);" onclick="showVitalsHistory('height')" title="Click to view height history">Height <span style="font-size: 12px;">📊</span></th>
+                                    <th style="padding: 10px; text-align: left; cursor: pointer; color: var(--accent-color);" onclick="showVitalsHistory('weight')" title="Click to view weight history">Weight <span style="font-size: 12px;">📊</span></th>
+                                    <th style="padding: 10px; text-align: left;">BP</th>
+                                    <th style="padding: 10px; text-align: left;">Diagnosis</th>
+                                    <th style="padding: 10px; text-align: left;">Notes</th>
+                                    <th style="padding: 10px; text-align: left;">Details</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="pastConsult : ${pastConsultations}" style="border-bottom: 1px solid var(--border-color);">
+                                    <td style="padding: 10px;" th:text="${#temporals.format(pastConsult.consultationDateTime, 'yyyy-MM-dd')}">2023-01-01</td>
+                                    <td style="padding: 10px;" th:text="${pastConsult.doctor != null ? pastConsult.doctor.firstName + ' ' + pastConsult.doctor.lastName : 'Unknown'}">Dr. John Doe</td>
+                                    <td style="padding: 10px;" th:text="${pastConsult.vitalSigns?.height != null ? pastConsult.vitalSigns?.height + ' cm' : 'N/A'}">170 cm</td>
+                                    <td style="padding: 10px;" th:text="${pastConsult.vitalSigns?.weight != null ? pastConsult.vitalSigns?.weight + ' kg' : 'N/A'}">70 kg</td>
+                                    <td style="padding: 10px;" th:text="${pastConsult.vitalSigns?.bloodPressure != null ? pastConsult.vitalSigns?.bloodPressure : 'N/A'}">120/80</td>
+                                    <td style="padding: 10px;" th:text="${pastConsult.diagnosis}">Diagnosis</td>
+                                    <td style="padding: 10px;">
+                                        <div class="consultation-notes" th:text="${#strings.abbreviate(pastConsult.clinicalNotes, 100)}" style="cursor: pointer;" 
+                                             th:attr="data-full-notes=${pastConsult.clinicalNotes}" onclick="showFullNotes(this)">
+                                            Notes preview...
+                                        </div>
+                                    </td>
+                                    <td style="padding: 10px;">
+                                        <button type="button" class="btn-secondary" style="padding: 4px 8px; margin: 0;" 
+                                                th:attr="data-id=${pastConsult.id},
+                                                        data-date=${#temporals.format(pastConsult.consultationDateTime, 'yyyy-MM-dd')},
+                                                        data-diagnosis=${pastConsult.diagnosis},
+                                                        data-notes=${pastConsult.clinicalNotes},
+                                                        data-consultation-type=${pastConsult.consultationType},
+                                                        data-status=${pastConsult.status},
+                                                        data-doctor=${pastConsult.doctor != null ? pastConsult.doctor.firstName + ' ' + pastConsult.doctor.lastName : 'Unknown'},
+                                                        data-bp=${pastConsult.vitalSigns?.bloodPressure},
+                                                        data-temp=${pastConsult.vitalSigns?.temperature},
+                                                        data-hr=${pastConsult.vitalSigns?.heartRate},
+                                                        data-rr=${pastConsult.vitalSigns?.respiratoryRate},
+                                                        data-weight=${pastConsult.vitalSigns?.weight},
+                                                        data-height=${pastConsult.vitalSigns?.height},
+                                                        data-o2=${pastConsult.vitalSigns?.oxygenSaturation},
+                                                        data-bmi=${pastConsult.vitalSigns?.bmi}"
+                                                onclick="showConsultationDetails(this)">
+                                            View
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Consultation Transcript Section -->
+                <div class="info-section">
+                    <h2 class="section-label">Consultation Transcript:</h2>
+                    <textarea class="transcript-box" th:field="*{clinicalNotes}" placeholder="Enter consultation notes here..."></textarea>
+                </div>
+
+                <!-- Final Diagnosis Section -->
+                <div class="info-section">
+                    <h2 class="section-label">Final Diagnosis:</h2>
+                    <input type="text" class="diagnosis-input" th:field="*{diagnosis}" placeholder="Enter final diagnosis" />
+                    <button type="button" class="confirm-btn" id="confirmDiagnosis">Confirm diagnosis</button>
+                    <div class="clearfix"></div>
+                </div>
+
+                <!-- Prescription Section -->
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="info-section">
+                            <h2 class="section-label">Filter by Category</h2>
+                            <select id="templateSelect" class="info-value" onchange="selectTemplateFromDropdown(this)">
+                                <option value="">All Drugs</option>
+                                <option th:each="template : ${drugTemplates}" 
+                                        th:value="${template}" 
+                                        th:text="${template}">Template Name</option>
+                            </select>
+                            
+                            <!-- Drug List Display -->
+                            <div id="drugListContainer" style="margin-top: 15px; max-height: 300px; overflow-y: auto;">
+                                <h3 class="section-label" style="font-size: 16px; margin-bottom: 10px;">Available Drugs</h3>
+                                
+                                <!-- Diagnostics info (can be made collapsible if needed) -->
+                                <div th:if="${totalDrugCount != null}" style="margin-bottom: 10px; font-size: 0.9em; color: var(--secondary-text); padding: 8px; background-color: rgba(138, 43, 226, 0.05); border-radius: 4px; display: none;">
+                                    <div>Total drugs in database: <span th:text="${totalDrugCount}">0</span></div>
+                                    <div>Template drug counts:</div>
+                                    <ul style="margin: 5px 0; padding-left: 20px;">
+                                        <li th:each="entry : ${drugCounts}" 
+                                            th:text="${entry.key + ': ' + entry.value}"
+                                            th:attr="data-drug-count=${entry.value},data-template=${entry.key}">Template: 0</li>
+                            </ul>
+                                    <div th:if="${totalDrugCount == 0}" style="color: #ff5c5c; margin-top: 5px;">
+                                        No drugs found in database. Using fallback data.
+                        </div>
+                    </div>
+                                
+                                <!-- Drug List Header -->
+                                <div style="font-weight: bold; padding: 8px 10px; background-color: var(--input-bg); border-radius: 4px 4px 0 0; border: 1px solid var(--border-color); display: flex; justify-content: space-between;">
+                                    <span>Drug Name (Click to select)</span>
+                                    <span>Details</span>
+                                </div>
+                                
+                                <!-- Drug List -->
+                                <ul id="drugList" class="drug-list" style="list-style-type: none; padding: 0; margin-top: 0; border: 1px solid var(--border-color); border-top: none; border-radius: 0 0 4px 4px;">
+                                    <!-- Initial drug list will be populated with all drugs -->
+                                    <li th:each="drug : ${defaultDrugs}" 
+                                        class="drug-item"
+                                        th:data-id="${drug.id}"
+                                        th:data-name="${drug.name}"
+                                        th:data-dosage="${drug.dosageInstructions}"
+                                        th:data-route="${drug.routeOfAdministration}"
+                                        th:data-template="${drug.templateCategory}"
+                                        th:data-is-allergen="${consultation.patient.drugAllergies != null && consultation.patient.drugAllergies.contains(drug.id)}"
+                                        onclick="toggleDrugSelection(this)">
+                                        <div>
+                                            <strong th:text="${drug.name}" th:style="${consultation.patient.drugAllergies != null && consultation.patient.drugAllergies.contains(drug.id) ? 'color: #ff0000;' : ''}">Drug Name</strong>
+                                            <span th:if="${consultation.patient.drugAllergies != null && consultation.patient.drugAllergies.contains(drug.id)}" 
+                                                  class="allergen-indicator" 
+                                                  title="Patient is allergic to this drug"
+                                                  style="color: #ff0000; margin-left: 5px;">⚠️</span>
+                                        </div>
+                                        <div style="text-align: right; color: var(--secondary-text); font-size: 0.9em;">
+                                            <span th:if="${drug.dosageInstructions}" th:text="${drug.dosageInstructions}">Dosage</span>
+                                            <span th:if="${drug.routeOfAdministration}" th:text="'(' + ${drug.routeOfAdministration} + ')'">Route</span>
+                                        </div>
+                                    </li>
+                                    <li th:if="${#lists.isEmpty(defaultDrugs)}" style="padding: 8px 10px; font-style: italic; color: var(--secondary-text);">
+                                        No drugs available
+                                    </li>
+                                </ul>
+                                
+                                <!-- Empty state message -->
+                                <div id="emptyDrugList" style="text-align: center; padding: 15px; color: var(--secondary-text); font-style: italic; display: none;">
+                                    Select a template to filter drugs by category
+                                </div>
+                                
+                                <!-- Add Selected button -->
+                                <button type="button" id="addSelectedBtn" class="add-selected-btn" onclick="addSelectedDrugsToCart()" disabled>
+                                    Add Selected
+                                </button>
+                                <div style="clear: both;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Drug Cart Section -->
+                <div class="info-section">
+                    <h2 class="section-label">Drug Cart</h2>
+                    <div id="drugCart" class="drug-cart">
+                        <!-- Cart items will be added here dynamically -->
+                    </div>
+                    <button type="submit" class="checkout-btn" id="checkoutButton" disabled>Checkout <span class="checkout-icon">→</span></button>
+                    <div id="checkoutMessage" style="clear: both; padding-top: 10px; color: #ff5c5c; display: none;">
+                        Please confirm both Vitals and Diagnosis before checkout
+                    </div>
+                </div>
+            </form>
+            
+            <!-- Drug Details Modal -->
+            <div id="drugDetailsModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Add Drug to Prescription</h3>
+                        <span class="close">&times;</span>
+                    </div>
+                    <div class="modal-body">
+                        <div id="modalDrugsList">
+                            <!-- Selected drugs list will be shown here -->
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="modalDosage">Dosage Instructions:</label>
+                            <input type="text" id="modalDosage" class="form-control">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="modalDays">Duration (days):</label>
+                            <input type="number" id="modalDays" class="form-control" value="7" min="1">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="modalQuantity">Quantity:</label>
+                            <input type="number" id="modalQuantity" class="form-control" value="1" min="1">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn-secondary" onclick="closeModal()">Cancel</button>
+                        <button type="button" class="btn-primary" onclick="confirmAddToCart()">Add to Cart</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Past Consultation Notes Modal -->
+            <div id="pastConsultationNotesModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Consultation Notes</h3>
+                        <span class="close" onclick="closeNotesModal()">&times;</span>
+                    </div>
+                    <div class="modal-body">
+                        <div id="fullConsultationNotes" style="white-space: pre-wrap; max-height: 400px; overflow-y: auto;"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn-secondary" onclick="closeNotesModal()">Close</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Full Vitals Modal -->
+            <div id="fullVitalsModal" class="modal">
+                <div class="modal-content" style="width: 600px; max-width: 95%;">
+                    <div class="modal-header">
+                        <h3>Consultation Details</h3>
+                        <span class="close" onclick="closeVitalsModal()">&times;</span>
+                    </div>
+                    <div class="modal-body">
+                        <div id="fullVitalsContent" style="max-height: 500px; overflow-y: auto;">
+                            <div style="margin-bottom: 20px;">
+                                <h4 style="margin-top: 0; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">General Information</h4>
+                                <table style="width: 100%; border-collapse: collapse;">
+                                    <tr>
+                                        <td style="padding: 8px; font-weight: bold; width: 180px;">Consultation ID:</td>
+                                        <td id="modal-id" style="padding: 8px;"></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; font-weight: bold;">Date:</td>
+                                        <td id="modal-date" style="padding: 8px;"></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; font-weight: bold;">Consultation Type:</td>
+                                        <td id="modal-type" style="padding: 8px;"></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; font-weight: bold;">Doctor:</td>
+                                        <td id="modal-doctor" style="padding: 8px;"></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; font-weight: bold;">Status:</td>
+                                        <td id="modal-status" style="padding: 8px;"></td>
+                                    </tr>
+                                </table>
+                            </div>
+
+                            <div style="margin-bottom: 20px;">
+                                <h4 style="margin-top: 0; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">Diagnosis</h4>
+                                <div id="modal-diagnosis" style="padding: 8px; white-space: pre-wrap;"></div>
+                            </div>
+                            
+                            <div style="margin-bottom: 20px;">
+                                <h4 style="margin-top: 0; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">Clinical Notes</h4>
+                                <div id="modal-notes" style="padding: 8px; white-space: pre-wrap; max-height: 150px; overflow-y: auto;"></div>
+                            </div>
+
+                            <div>
+                                <h4 style="margin-top: 0; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">Vital Signs</h4>
+                                <table style="width: 100%; border-collapse: collapse;">
+                                    <tr>
+                                        <td style="padding: 8px; font-weight: bold; width: 180px;">Blood Pressure:</td>
+                                        <td id="modal-bp" style="padding: 8px;"></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; font-weight: bold;">Temperature:</td>
+                                        <td id="modal-temp" style="padding: 8px;"></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; font-weight: bold;">Heart Rate:</td>
+                                        <td id="modal-hr" style="padding: 8px;"></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; font-weight: bold;">Respiratory Rate:</td>
+                                        <td id="modal-rr" style="padding: 8px;"></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; font-weight: bold;">Oxygen Saturation:</td>
+                                        <td id="modal-o2" style="padding: 8px;"></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; font-weight: bold;">Weight:</td>
+                                        <td id="modal-weight" style="padding: 8px;"></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; font-weight: bold;">Height:</td>
+                                        <td id="modal-height" style="padding: 8px;"></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding: 8px; font-weight: bold;">BMI:</td>
+                                        <td id="modal-bmi" style="padding: 8px;"></td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn-secondary" onclick="closeVitalsModal()">Close</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vitals History Modal -->
+            <div id="vitalsHistoryModal" class="modal">
+                <div class="modal-content" style="width: 600px; max-width: 95%;">
+                    <div class="modal-header">
+                        <h3 id="vitalsHistoryTitle">Patient History</h3>
+                        <span class="close" onclick="closeVitalsHistoryModal()">&times;</span>
+                    </div>
+                    <div class="modal-body">
+                        <div id="vitalsHistoryContent">
+                            <div id="vitalsHistoryChart" style="width: 100%; height: 300px;"></div>
+                            <div id="vitalsHistoryTable" style="margin-top: 20px; max-height: 300px; overflow-y: auto;">
+                                <table style="width: 100%; border-collapse: collapse;">
+                                    <thead>
+                                        <tr style="background-color: var(--secondary-bg); border-bottom: 1px solid var(--border-color);">
+                                            <th style="padding: 10px; text-align: left;">Date</th>
+                                            <th style="padding: 10px; text-align: left;">Value</th>
+                                            <th style="padding: 10px; text-align: left;">Doctor</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="vitalsHistoryTableBody">
+                                        <!-- Will be populated dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn-secondary" onclick="closeVitalsHistoryModal()">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Move script outside of layout:fragment to ensure it's loaded directly -->
+    <th:block layout:fragment="scripts">
+        <script th:src="@{/js/consultation-create.js}"></script>
+    </th:block>
+
+</body>
+</html>

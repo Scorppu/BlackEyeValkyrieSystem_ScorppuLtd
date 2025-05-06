@@ -1,0 +1,43 @@
+/* Appointments specific styles */
+.content-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+}
+
+.content-card {
+    background-color: var(--secondary-bg);
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.calendar-container {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background-color: var(--primary-bg);
+    border-radius: 0.5rem;
+    min-height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px dashed var(--border-color);
+}
+
+.appointment-list {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background-color: var(--primary-bg);
+    border-radius: 0.5rem;
+    min-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px dashed var(--border-color);
+}
+
+@media (min-width: 768px) {
+    .content-grid {
+        grid-template-columns: 2fr 1fr;
+    }
+} 

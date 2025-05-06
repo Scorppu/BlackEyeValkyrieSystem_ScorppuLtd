@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{layout/main}">
+
+<head>
+    <title>Consultation Queue</title>
+    <link rel="stylesheet" th:href="@{/css/consultation-queue.css}">
+</head>
+
+<body>
+    <div layout:fragment="content">
+        <div class="container-fluid">
+            <div class="header-container">
+                <h1>Consultation Queue</h1>
+            </div>
+
+            <!-- Current Appointments Section -->
+            <div class="queue-section">
+                <h2 class="queue-title">Overdue Appointments</h2>
+                <table class="queue-table">
+                    <thead>
+                        <tr>
+                            <th>Patient Name</th>
+                            <th>Patient ID</th>
+                            <th>Age</th>
+                            <th>Gender</th>
+                            <th>Last Visit</th>
+                            <th>Scheduled Time</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="appointment : ${overdueAppointments}" th:if="${appointment.patient != null}">
+                            <td th:text="${appointment.patient.firstName + ' ' + appointment.patient.lastName}">Sophie Moore</td>
+                            <td th:text="${appointment.patient.id}">123412434</td>
+                            <td th:text="${appointment.patient.age}">18</td>
+                            <td th:text="${appointment.patient.sex ? 'Female' : 'Male'}">Female</td>
+                            <td th:with="lastVisit=${@consultationViewController.getLastVisitDate(appointment.patient)}" 
+                                th:text="${lastVisit != null ? #temporals.format(lastVisit, 'dd MMM yyyy') : 'No visits'}">IP0001</td>
+                            <td th:text="${appointment.scheduledTime != null ? #temporals.format(appointment.scheduledTime, 'dd MMM yyyy HH:mm') : 'Not scheduled'}">10:00 AM</td>
+                            <td>
+                                <span th:if="${appointment.status == 'pending'}" class="status-pending appointment-status">Pending</span>
+                                <span th:if="${appointment.status == 'vitalChecked'}" class="status-vitalsChecked appointment-status">Vitals Checked</span>
+                                <span th:if="${appointment.status != 'pending' && appointment.status != 'vitalChecked'}" class="status-default appointment-status" th:text="${appointment.status}">Status</span>
+                            </td>
+                            <td>
+                                <a th:href="@{/consultation/create/{id}(id=${appointment.patient.id}, appointmentId=${appointment.id})}" class="consultation-btn">Begin consultation</a>
+                            </td>
+                        </tr>
+                        <tr th:if="${overdueAppointments.empty}">
+                            <td colspan="8" class="empty-state">No overdue appointments</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Future Appointments Section -->
+            <div class="queue-section">
+                <h2 class="queue-title">Upcoming Appointments</h2>
+                <table class="queue-table">
+                    <thead>
+                        <tr>
+                            <th>Patient Name</th>
+                            <th>Patient ID</th>
+                            <th>Age</th>
+                            <th>Gender</th>
+                            <th>Last Visit</th>
+                            <th>Scheduled Time</th>
+                            <th>Status</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="appointment : ${upcomingAppointments}" th:if="${appointment.patient != null}">
+                            <td th:text="${appointment.patient.firstName + ' ' + appointment.patient.lastName}">Sophie Moore</td>
+                            <td th:text="${appointment.patient.id}">123412434</td>
+                            <td th:text="${appointment.patient.age}">18</td>
+                            <td th:text="${appointment.patient.sex ? 'Female' : 'Male'}">Female</td>
+                            <td th:with="lastVisit=${@consultationViewController.getLastVisitDate(appointment.patient)}" 
+                                th:text="${lastVisit != null ? #temporals.format(lastVisit, 'dd MMM yyyy') : 'No visits'}">IP0001</td>
+                            <td th:text="${appointment.scheduledTime != null ? #temporals.format(appointment.scheduledTime, 'dd MMM yyyy HH:mm') : 'Not scheduled'}">10:00 AM</td>
+                            <td>
+                                <span th:if="${appointment.status == 'pending'}" class="status-pending appointment-status">Pending</span>
+                                <span th:if="${appointment.status == 'vitalChecked'}" class="status-vitalsChecked appointment-status">Vitals Checked</span>
+                                <span th:if="${appointment.status != 'pending' && appointment.status != 'vitalChecked'}" class="status-default appointment-status" th:text="${appointment.status}">Status</span>
+                            </td>
+                            <td></td>
+                        </tr>
+                        <tr th:if="${upcomingAppointments.empty}">
+                            <td colspan="7" class="empty-state">No upcoming appointments</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <!-- Pagination information -->
+                <div class="pagination-info" th:if="${!upcomingAppointments.empty}">
+                    <span th:text="${'1 - ' + upcomingAppointments.size() + ' of ' + upcomingAppointments.size()}">1 - 10 of 256</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Profile - BlackEyeValkyrieSystem</title>
+    
+    <th:block layout:fragment="head">
+        <link rel="stylesheet" th:href="@{/css/patient-profile.css}">
+    </th:block>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="main-container">
+            <!-- Left Column - Credentials -->
+            <div class="credentials-sidebar">
+                <h2>Credentials</h2>
+                
+                <div class="tab-nav">
+                    <div class="tab-item active" data-target="personal-info-tab">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="8" cy="8" r="8" fill="#4263EB" opacity="0.1"/>
+                            <circle cx="8" cy="8" r="4" fill="#4263EB"/>
+                        </svg>
+                        Personal Information
+                    </div>
+                    
+                    <div class="tab-item" data-target="contact-info-tab">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M14.6667 11.28C14.6667 11.5333 14.6133 11.7933 14.5 12.04C14.3867 12.2867 14.2333 12.52 14.0333 12.7333C13.6933 13.0867 13.3133 13.3333 12.8867 13.48C12.4667 13.6267 12.0133 13.7067 11.5333 13.7067C10.8133 13.7067 10.0533 13.5467 9.26667 13.2267C8.48 12.9067 7.69333 12.4667 6.90667 11.9067C6.12 11.3467 5.37333 10.7267 4.66667 10.0467C3.96 9.36667 3.32 8.63333 2.74667 7.84667C2.17333 7.06 1.72 6.27333 1.4 5.48667C1.08 4.7 0.926667 3.94 0.926667 3.21333C0.926667 2.74667 1 2.30667 1.14667 1.88667C1.29333 1.46 1.53333 1.06667 1.88 0.72C2.3 0.293333 2.75333 0.08 3.22667 0.08C3.40667 0.08 3.58667 0.12 3.75333 0.2C3.92 0.28 4.07333 0.4 4.2 0.573333L5.88 2.92C6.00667 3.09333 6.1 3.24667 6.16667 3.4C6.23333 3.55333 6.26667 3.70667 6.26667 3.85333C6.26667 4.04 6.22 4.22667 6.12667 4.40667C6.03333 4.58667 5.90667 4.77333 5.74667 4.96L5.14667 5.6C5.07333 5.67333 5.04 5.76 5.04 5.86667C5.04 5.92 5.04667 5.97333 5.06 6.02667C5.07333 6.08 5.08667 6.12 5.09333 6.16C5.21333 6.40667 5.42667 6.71333 5.73333 7.08C6.04 7.44667 6.36667 7.82 6.72 8.18C7.08 8.54 7.44667 8.87333 7.82 9.18C8.19333 9.48667 8.5 9.7 8.74667 9.82C8.78667 9.82667 8.82667 9.84 8.88 9.85333C8.93333 9.86667 8.98667 9.87333 9.04667 9.87333C9.15333 9.87333 9.24 9.83333 9.31333 9.76L9.91333 9.16667C10.1067 9 10.2933 8.87333 10.4733 8.78667C10.6533 8.69333 10.84 8.64667 11.0333 8.64667C11.18 8.64667 11.3333 8.67333 11.4933 8.74C11.6533 8.80667 11.8067 8.9 11.98 9.02667L14.36 10.7333C14.5333 10.86 14.6533 11.0067 14.7267 11.1733C14.7933 11.34 14.6667 11.5133 14.6667 11.28Z" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Contact Information
+                    </div>
+                    
+                    <div class="tab-item" data-target="consultations-tab">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.33333"/>
+                            <path d="M5 7H11" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round"/>
+                            <path d="M5 10H9" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round"/>
+                        </svg>
+                        Past Consultations
+                    </div>
+                </div>
+                
+            </div>
+            
+            <!-- Right Column - Information Display -->
+            <div class="info-container" id="info-content-container">
+                <!-- Personal Information Display -->
+                <div id="personal-info-section" class="info-section active">
+                    <h2>Personal Information</h2>
+                    <p>Patient's personal information details</p>
+                    
+                    <div class="info-group">
+                        <label>First name</label>
+                        <div class="info-value" id="firstName"></div>
+                    </div>
+                    
+                    <div class="info-group">
+                        <label>Last name</label>
+                        <div class="info-value" id="lastName"></div>
+                    </div>
+                    
+                    <div class="info-group">
+                        <label>Sex</label>
+                        <div class="info-value" id="sex"></div>
+                    </div>
+                    
+                    <div class="info-group">
+                        <label>Relative Name</label>
+                        <div class="info-value" id="relativeName"></div>
+                    </div>
+                    
+                    <div class="info-group">
+                        <label>Date Of Birth</label>
+                        <div class="info-value" id="dateOfBirth"></div>
+                    </div>
+                    
+                    <div class="info-group">
+                        <label>Age</label>
+                        <div class="info-value" id="age"></div>
+                    </div>
+                    
+                    <div class="info-group">
+                        <label>Marital Status</label>
+                        <div class="info-value" id="maritalStatus"></div>
+                    </div>
+                    
+                    <div class="info-group">
+                        <label>Blood Type</label>
+                        <div class="info-value" id="bloodType"></div>
+                    </div>
+
+                    <!-- Drug Allergies -->
+                    <div class="info-group mb-4">
+                        <label>Drug Allergies</label>
+                        <div class="allergies-list-container mt-3">
+                            <table class="allergies-table">
+                                <thead>
+                                    <tr>
+                                        <th>Drug Name</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="allergiesList">
+                                    <tr class="empty-allergies-row">
+                                        <td>No drug allergies recorded</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Contact Information Display -->
+                <div id="contact-info-section" class="info-section">
+                    <h2>Contact Information</h2>
+                    <p>Patient's contact information details</p>
+                    
+                    <div class="info-group">
+                        <label>Phone / Mobile</label>
+                        <div class="info-value" id="contactNumber"></div>
+                    </div>
+                    
+                    <div class="info-group">
+                        <label>Email Address</label>
+                        <div class="info-value" id="email"></div>
+                    </div>
+                    
+                    <div class="info-group">
+                        <label>Address 1</label>
+                        <div class="info-value" id="address1"></div>
+                    </div>
+                    
+                    <div class="info-group">
+                        <label>Address 2</label>
+                        <div class="info-value" id="address2"></div>
+                    </div>
+                    
+                    <div class="info-group">
+                        <label>Address 3</label>
+                        <div class="info-value" id="address3"></div>
+                    </div>
+                    
+                    <div class="info-group">
+                        <label>Country</label>
+                        <div class="info-value" id="country"></div>
+                    </div>
+                    
+                    <div class="info-group">
+                        <label>State</label>
+                        <div class="info-value" id="state"></div>
+                    </div>
+                    
+                    <div class="info-group">
+                        <label>Town</label>
+                        <div class="info-value" id="town"></div>
+                    </div>
+                    
+                    <div class="info-group">
+                        <label>Pin Code</label>
+                        <div class="info-value" id="pinCode"></div>
+                    </div>
+                </div>
+                
+                <!-- Past Consultations Display -->
+                <div id="consultations-section" class="info-section">
+                    <h2>Past Consultations</h2>
+                    <p>Patient's medical consultation history</p>
+                    
+                    <div id="pastConsultationsContent" class="past-consultations-container" style="max-height: 500px; overflow-y: auto;">
+                        <table class="allergies-table" style="width: 100%;">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Doctor</th>
+                                    <th style="cursor: pointer; color: var(--accent-color);" onclick="showVitalsHistory('height')" title="Click to view height history">Height <span style="font-size: 12px;">📊</span></th>
+                                    <th style="cursor: pointer; color: var(--accent-color);" onclick="showVitalsHistory('weight')" title="Click to view weight history">Weight <span style="font-size: 12px;">📊</span></th>
+                                    <th>BP</th>
+                                    <th>Diagnosis</th>
+                                    <th>Notes</th>
+                                    <th>Details</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pastConsultationsList">
+                                <tr class="empty-consultations-row">
+                                    <td colspan="8">No past consultations recorded</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Past Consultation Details Modal -->
+        <div id="consultationDetailsModal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6);">
+            <div class="modal-content" style="background-color: var(--primary-bg); margin: 5% auto; padding: 20px; border: 1px solid var(--border-color); border-radius: 8px; width: 600px; max-width: 95%; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);">
+                <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+                    <h3 id="modalTitle" style="margin: 0; color: var(--primary-text);">Consultation Details</h3>
+                    <span class="close" style="cursor: pointer; font-size: 24px; color: var(--secondary-text);" onclick="closeConsultationModal()">&times;</span>
+                </div>
+                <div class="modal-body" style="max-height: 500px; overflow-y: auto;">
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="margin-top: 0; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">General Information</h4>
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr>
+                                <td style="padding: 8px; font-weight: bold; width: 180px;">Date:</td>
+                                <td id="modalDate" style="padding: 8px;"></td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; font-weight: bold;">Consultation Type:</td>
+                                <td id="modalType" style="padding: 8px;"></td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; font-weight: bold;">Doctor:</td>
+                                <td id="modalDoctor" style="padding: 8px;"></td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; font-weight: bold;">Status:</td>
+                                <td id="modalStatus" style="padding: 8px;"></td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="margin-top: 0; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">Diagnosis</h4>
+                        <div id="modalDiagnosis" style="padding: 8px; white-space: pre-wrap;"></div>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="margin-top: 0; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">Clinical Notes</h4>
+                        <div id="modalNotes" style="padding: 8px; white-space: pre-wrap; max-height: 150px; overflow-y: auto;"></div>
+                    </div>
+
+                    <div>
+                        <h4 style="margin-top: 0; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">Vital Signs</h4>
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr>
+                                <td style="padding: 8px; font-weight: bold; width: 180px;">Blood Pressure:</td>
+                                <td id="modalBP" style="padding: 8px;"></td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; font-weight: bold;">Temperature:</td>
+                                <td id="modalTemp" style="padding: 8px;"></td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; font-weight: bold;">Heart Rate:</td>
+                                <td id="modalHR" style="padding: 8px;"></td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; font-weight: bold;">Respiratory Rate:</td>
+                                <td id="modalRR" style="padding: 8px;"></td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; font-weight: bold;">Oxygen Saturation:</td>
+                                <td id="modalO2" style="padding: 8px;"></td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; font-weight: bold;">Weight:</td>
+                                <td id="modalWeight" style="padding: 8px;"></td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; font-weight: bold;">Height:</td>
+                                <td id="modalHeight" style="padding: 8px;"></td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; font-weight: bold;">BMI:</td>
+                                <td id="modalBMI" style="padding: 8px;"></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer" style="display: flex; justify-content: flex-end; margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border-color);">
+                    <button type="button" style="background-color: var(--secondary-bg); color: var(--primary-text); border: 1px solid var(--border-color); border-radius: 4px; padding: 8px 15px; cursor: pointer;" onclick="closeConsultationModal()">Close</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Past Consultation Notes Modal -->
+        <div id="pastConsultationNotesModal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6);">
+            <div class="modal-content" style="background-color: var(--primary-bg); margin: 10% auto; padding: 20px; border: 1px solid var(--border-color); border-radius: 8px; width: 600px; max-width: 90%; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);">
+                <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+                    <h3>Consultation Notes</h3>
+                    <span class="close" style="cursor: pointer; font-size: 24px; color: var(--secondary-text);" onclick="closeNotesModal()">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div id="fullConsultationNotes" style="white-space: pre-wrap; max-height: 400px; overflow-y: auto;"></div>
+                </div>
+                <div class="modal-footer" style="display: flex; justify-content: flex-end; margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border-color);">
+                    <button type="button" style="background-color: var(--secondary-bg); color: var(--primary-text); border: 1px solid var(--border-color); border-radius: 4px; padding: 8px 15px; cursor: pointer;" onclick="closeNotesModal()">Close</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Vitals History Modal -->
+        <div id="vitalsHistoryModal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6);">
+            <div class="modal-content" style="background-color: var(--primary-bg); margin: 10% auto; padding: 20px; border: 1px solid var(--border-color); border-radius: 8px; width: 600px; max-width: 90%; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);">
+                <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+                    <h3 id="vitalsHistoryTitle">Patient History</h3>
+                    <span class="close" style="cursor: pointer; font-size: 24px; color: var(--secondary-text);" onclick="closeVitalsHistoryModal()">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div id="vitalsHistoryContent">
+                        <div id="vitalsHistoryChart" style="width: 100%; height: 300px;"></div>
+                        <div id="vitalsHistoryTable" style="margin-top: 20px; max-height: 300px; overflow-y: auto;">
+                            <table style="width: 100%; border-collapse: collapse;">
+                                <thead>
+                                    <tr style="background-color: var(--secondary-bg); border-bottom: 1px solid var(--border-color);">
+                                        <th style="padding: 10px; text-align: left;">Date</th>
+                                        <th style="padding: 10px; text-align: left;">Value</th>
+                                        <th style="padding: 10px; text-align: left;">Doctor</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="vitalsHistoryTableBody">
+                                    <!-- Will be populated dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="display: flex; justify-content: flex-end; margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border-color);">
+                    <button type="button" style="background-color: var(--secondary-bg); color: var(--primary-text); border: 1px solid var(--border-color); border-radius: 4px; padding: 8px 15px; cursor: pointer;" onclick="closeVitalsHistoryModal()">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <th:block layout:fragment="scripts">
+        <script th:src="@{/js/patient-profile.js}"></script>
+    </th:block>
+</body>
+</html> 

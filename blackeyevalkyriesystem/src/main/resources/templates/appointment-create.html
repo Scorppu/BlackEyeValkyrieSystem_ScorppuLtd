@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Appointment - BlackEyeValkyrieSystem</title>
+    
+    <th:block layout:fragment="head">
+        <!-- Create Appointment specific CSS -->
+        <link rel="stylesheet" th:href="@{/css/appointment-create.css}">
+    </th:block>
+</head>
+<body>
+    <div layout:fragment="custom-header">
+        <header class="header">
+            <div class="header-container">
+                <h1>Create Appointment</h1>
+                <a href="#" class="btn btn-primary" id="nextButton">Confirm</a>
+            </div>
+        </header>
+    </div>
+    
+    <div layout:fragment="content">
+        <div class="content-section">
+            <h2>Select Patient</h2>
+            <p class="pagination-info" th:text="${currentPage + ' - ' + (currentPage + rowsPerPage - 1) + ' of ' + totalPatients}">1 - 10 of 256</p>
+            
+            <!-- Error message -->
+            <div th:if="${errorMessage}" class="error-message" style="padding: 1rem; margin-bottom: 1rem; background-color: rgba(239, 68, 68, 0.1); color: #ef4444; border-radius: 0.25rem; border: 1px solid rgba(239, 68, 68, 0.2);">
+                <p th:text="${errorMessage}">Error loading patients</p>
+            </div>
+            
+            <div class="table-card">
+                <div class="search-box">
+                    <input type="text" class="search-input" placeholder="" id="patientSearch">
+                </div>
+                
+                <form id="appointmentForm" method="post" action="/appointment/create">
+                    <table class="patient-table">
+                        <thead>
+                            <tr>
+                                <th width="40">
+                                </th>
+                                <th>
+                                    <a th:href="@{/appointment/create(sortBy='name', direction=${currentSortBy == 'name' && currentDirection == 'asc' ? 'desc' : 'asc'})}">
+                                        Name
+                                        <span th:if="${currentSortBy == 'name'}" th:text="${currentDirection == 'asc' ? '▲' : '▼'}"></span>
+                                    </a>
+                                </th>
+                                <th>
+                                    <a th:href="@{/appointment/create(sortBy='patientId', direction=${currentSortBy == 'patientId' && currentDirection == 'asc' ? 'desc' : 'asc'})}">
+                                        Patient ID
+                                        <span th:if="${currentSortBy == 'patientId'}" th:text="${currentDirection == 'asc' ? '▲' : '▼'}"></span>
+                                    </a>
+                                </th>
+                                <th>
+                                    <a th:href="@{/appointment/create(sortBy='age', direction=${currentSortBy == 'age' && currentDirection == 'asc' ? 'desc' : 'asc'})}">
+                                        Age
+                                        <span th:if="${currentSortBy == 'age'}" th:text="${currentDirection == 'asc' ? '▲' : '▼'}"></span>
+                                    </a>
+                                </th>
+                                <th>
+                                    <a th:href="@{/appointment/create(sortBy='gender', direction=${currentSortBy == 'gender' && currentDirection == 'asc' ? 'desc' : 'asc'})}">
+                                        Gender
+                                        <span th:if="${currentSortBy == 'gender'}" th:text="${currentDirection == 'asc' ? '▲' : '▼'}"></span>
+                                    </a>
+                                </th>
+                                <th>
+                                    Last Recent Visit
+                                </th>
+                                <th width="80">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="patientTableBody">
+                            <tr th:each="patient : ${patients}">
+                                <td>
+                                    <input type="checkbox" class="select-checkbox patient-select" th:value="${patient.id}" name="selectedPatients">
+                                </td>
+                                <td th:text="${patient.firstName + ' ' + patient.lastName}"></td>
+                                <td th:text="${patient.id}"></td>
+                                <td th:text="${patient.age}"></td>
+                                <td th:text="${patient.sex ? 'Male' : 'Female'}"></td>
+                                <td th:text="${patient.lastVisitDate}"></td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <a th:href="@{'/patient/edit/' + ${patient.id}}" class="action-button">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                <path d="M18.5 2.50001C18.8978 2.10219 19.4374 1.87869 20 1.87869C20.5626 1.87869 21.1022 2.10219 21.5 2.50001C21.8978 2.89784 22.1213 3.4374 22.1213 4.00001C22.1213 4.56262 21.8978 5.10219 21.5 5.50001L12 15L8 16L9 12L18.5 2.50001Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                            </svg>
+                                        </a>
+                                        <a th:href="@{'/patient/delete/' + ${patient.id}}" class="action-button" onclick="return confirm('Are you sure you want to delete this patient?');">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M3 6H5H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                <path d="M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6H19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                            </svg>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            
+                            <!-- Empty state when no patients found -->
+                            <tr th:if="${#lists.isEmpty(patients)}">
+                                <td colspan="8" class="text-center" style="padding: 2rem;">
+                                    <p>No patients found. <a href="/patient/create">Create a new patient</a>.</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </form>
+                
+                <div class="table-footer">
+                    <div class="pagination-info" th:text="${'1 - ' + #lists.size(patients) + ' of ' + totalPatients}">
+                        1 - 10 of 460
+                    </div>
+                    
+                    <div class="pagination-controls">
+                        <label for="rowsPerPage">Rows per page:</label>
+                        <select id="rowsPerPage" class="page-select" name="rowsPerPage">
+                            <option value="10" th:selected="${rowsPerPage == 10}">10</option>
+                            <option value="25" th:selected="${rowsPerPage == 25}">25</option>
+                            <option value="50" th:selected="${rowsPerPage == 50}">50</option>
+                            <option value="100" th:selected="${rowsPerPage == 100}">100</option>
+                        </select>
+                        
+                        <button class="page-button prev-page" disabled>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+                        
+                        <button class="page-button next-page">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <th:block layout:fragment="scripts">
+        <script th:src="@{/js/appointment-create.js}"></script>
+    </th:block>
+</body>
+</html> 

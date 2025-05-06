@@ -1,0 +1,722 @@
+.timeline-container {
+    background-color: var(--secondary-bg);
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-top: 1rem;
+    margin-bottom: 1.5rem;
+    width: 100%;
+    box-sizing: border-box;
+    overflow: hidden !important;
+    max-width: 100%;
+}
+
+.timeline-scroll-container {
+    overflow-x: auto;
+    overflow-y: hidden;
+    width: 100%;
+    max-width: 100%;
+}
+
+.timeline-content {
+    position: relative;
+    width: fit-content;
+    min-width: min(100%, 800px);
+    overflow: visible !important; /* Prevent inner scrollbar */
+}
+
+/* Scrollbar styling for webkit browsers */
+.timeline-scroll-container::-webkit-scrollbar {
+    height: 8px;
+    width: 8px;
+}
+
+.timeline-scroll-container::-webkit-scrollbar-track {
+    background: rgba(138, 43, 226, 0.1);
+    border-radius: 4px;
+}
+
+.timeline-scroll-container::-webkit-scrollbar-thumb {
+    background-color: var(--accent-color);
+    border-radius: 4px;
+}
+
+.timeline-header {
+    display: flex;
+    margin-bottom: 1rem;
+    width: 100%;
+}
+
+.timeline-header h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--primary-text);
+    width: 120px;
+    min-width: 120px;
+    flex-shrink: 0;
+    padding-left: 1rem;
+    text-align: left;
+    box-sizing: border-box;
+}
+
+.timeline-grid {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    position: relative;
+}
+
+.doctor-row {
+    display: flex;
+    margin-bottom: 10px;
+    position: relative;
+    height: 80px;
+    align-items: center;
+}
+
+.doctor-column {
+    padding: 1rem;
+    background-color: transparent;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    font-weight: 500;
+    width: 120px;
+    min-width: 120px;
+    flex-shrink: 0;
+    color: var(--primary-text);
+}
+
+.timeline-time {
+    text-align: left;
+    font-size: 0.875rem;
+    font-weight: 500;
+    width: 100px;
+    min-width: 100px;
+    flex-shrink: 0;
+    position: relative;
+    box-sizing: border-box;
+    color: var(--secondary-text);
+}
+
+/* Add line indicators for time markers */
+.timeline-time::after {
+    content: '';
+    position: absolute;
+    bottom: -12px;
+    left: 0;
+    height: 12px;
+    width: 1px;
+    background-color: var(--border-color);
+}
+
+/* Add stronger indicator for full hours */
+.timeline-time.full-hour::after {
+    width: 2px;
+    height: 15px;
+    background-color: var(--accent-color);
+    opacity: 0.5;
+}
+
+.timeline-times {
+    display: flex;
+    flex-grow: 1;
+    gap: 0;
+    max-width: calc(100% - 120px);
+    position: relative;
+}
+
+.timeline-slots {
+    display: flex;
+    flex-grow: 1;
+    position: relative;
+    height: 80px;
+    max-width: calc(100% - 120px);
+}
+
+/* Add vertical grid lines */
+.timeline-slots::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: linear-gradient(90deg, var(--border-color) 1px, transparent 1px);
+    background-size: 100px 100%;
+    background-position: 0 0; /* Ensure grid lines start at left edge */
+    opacity: 0.2;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Stronger vertical grid lines for full hours */
+.timeline-slots::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: linear-gradient(90deg, var(--accent-color) 2px, transparent 2px);
+    background-size: 200px 100%; /* 200px = 2 slots (full hour) */
+    background-position: 0 0;
+    opacity: 0.15;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.appointment-block {
+    background-color: rgba(138, 43, 226, 0.1);
+    border-left: 4px solid #8a2be2;
+    border-radius: 0.375rem;
+    padding: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+    height: 80%;
+    margin: auto 0;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    min-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    box-sizing: border-box;
+    z-index: 1;
+    cursor: pointer;
+}
+
+.appointment-block.teal {
+    background-color: rgba(20, 184, 166, 0.1);
+    border-left-color: #14b8a6;
+}
+
+.appointment-block.red {
+    background-color: rgba(239, 68, 68, 0.1);
+    border-left-color: #ef4444;
+}
+
+/* Force width constraints on all containers */
+html, body, .main-content, .content-container, .timeline-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
+}
+
+/* Only allow scrolling in the designated scroll container */
+.timeline-scroll-container {
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+}
+
+/* Make sure the timeline content is properly sized */
+.timeline-content {
+    position: relative;
+    width: fit-content !important;
+    min-width: min(100%, 800px) !important;
+    overflow: visible !important;
+}
+
+@media (min-width: 1200px) {
+    .timeline-scroll-container:not([data-overflow="true"]) {
+        overflow-x: hidden;
+    }
+}
+
+/* Ensure proper responsiveness */
+@media (max-width: 767px) {
+    .doctor-column {
+        width: 100px;
+        min-width: 100px;
+        padding: 0.75rem;
+        font-size: 0.875rem;
+    }
+    
+    .timeline-header h2 {
+        width: 100px;
+        min-width: 100px;
+    }
+    
+    .timeline-time {
+        width: 80px;
+        min-width: 80px;
+    }
+    
+    .timeline-slots::before {
+        background-size: 80px 100%;
+    }
+    
+    .timeline-times {
+        max-width: calc(100% - 100px);
+    }
+    
+    .timeline-slots {
+        max-width: calc(100% - 100px);
+    }
+
+    .content-card {
+        background-color: var(--secondary-bg);
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        box-sizing: border-box;
+        overflow: visible !important;
+        min-width: 100%; /* Ensure it's at least 100% wide */
+        max-width: 100%; /* Don't exceed container width */
+        height: auto !important; /* Allow height to grow naturally */
+        min-height: 0; /* Remove min-height constraints */
+        max-height: none !important; /* No maximum height */
+        margin-top: 2rem;
+        margin-bottom: 0;
+    }
+    
+    .d-flex {
+        display: flex;
+    }
+    
+    .justify-content-between {
+        justify-content: space-between;
+    }
+    
+    .align-items-center {
+        align-items: center;
+    }
+    
+    .mb-4 {
+        margin-bottom: 1.5rem;
+    }
+    
+    .py-4 {
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+    }
+    
+    .text-center {
+        text-align: center;
+    }
+    
+    h2 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin: 0;
+        color: var(--primary-text);
+    }
+    
+    /* Specific styles for pending appointments */
+    .pending-appointments-container {
+        overflow: visible !important;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        min-width: 100%;
+        max-width: 100%;
+        height: auto !important;
+        min-height: 0;
+        max-height: none !important;
+    }
+    
+    .pending-appointments-table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+        height: auto !important;
+        min-height: 0;
+        max-height: none !important;
+    }
+    
+    .pending-appointments-table th,
+    .pending-appointments-table td {
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 1px solid var(--border-color);
+        white-space: normal;
+        word-wrap: break-word;
+    }
+    
+    .pending-appointments-table th {
+        font-weight: 600;
+        color: var(--accent-color);
+        text-align: left;
+    }
+    
+    .pending-appointments-table tr:hover {
+        background-color: rgba(138, 43, 226, 0.05);
+    }
+    
+    .status-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 1rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        background-color: rgba(138, 43, 226, 0.1);
+        color: #8a2be2;
+    }
+    
+    .status-badge.red {
+        background-color: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+    }
+    
+    .status-badge.yellow {
+        background-color: rgba(234, 179, 8, 0.1);
+        color: #eab308;
+    }
+
+    .status-badge.blue {
+        background-color: rgba(42, 115, 239, 0.1);
+        color: #2a73ef;
+    }
+    
+    .status-badge.teal {
+        background-color: rgba(20, 184, 166, 0.1);
+        color: #14b8a6;
+    }
+    
+    .patient-actions {
+        display: flex;
+        gap: 8px;
+    }
+    
+    .patient-actions a {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 4px;
+        background-color: rgba(138, 43, 226, 0.1);
+        transition: background-color 0.2s;
+    }
+    
+    .patient-actions a:hover {
+        background-color: rgba(138, 43, 226, 0.2);
+    }
+    
+    /* Date range selector styles */
+    .date-range-selector {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.9rem;
+    }
+    
+    .date-input {
+        padding: 6px 12px;
+        border-radius: 4px;
+        border: 1px solid var(--border-color);
+        background-color: var(--input-bg);
+        color: var(--primary-text);
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'%3E%3C/rect%3E%3Cline x1='16' y1='2' x2='16' y2='6'%3E%3C/line%3E%3Cline x1='8' y1='2' x2='8' y2='6'%3E%3C/line%3E%3Cline x1='3' y1='10' x2='21' y2='10'%3E%3C/line%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 8px center;
+        background-size: 16px;
+        padding-right: 32px;
+    }
+    
+    .btn-sm {
+        padding: 6px 12px;
+        font-size: 0.9rem;
+    }
+    
+    .btn-primary {
+        background-color: var(--accent-color);
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    
+    .btn-primary:hover {
+        background-color: #7b26cd;
+    }
+
+    /* Fix for calendar icon in date inputs */
+    .date-input {
+        padding: 6px 12px;
+        border-radius: 4px;
+        border: 1px solid var(--border-color);
+        background-color: var(--input-bg);
+        color: var(--primary-text);
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'%3E%3C/rect%3E%3Cline x1='16' y1='2' x2='16' y2='6'%3E%3C/line%3E%3Cline x1='8' y1='2' x2='8' y2='6'%3E%3C/line%3E%3Cline x1='3' y1='10' x2='21' y2='10'%3E%3C/line%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 8px center;
+        background-size: 16px;
+        padding-right: 32px;
+        /* Remove the browser's default calendar icon */
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+    }
+
+    /* Date selector for timeline */
+    .date-selector {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.9rem;
+        margin-right: 20px;
+    }
+
+    /* Loading indicator */
+    .loading-indicator {
+        text-align: center;
+        padding: 1rem;
+        color: var(--secondary-text);
+    }
+
+    .pending-appointments-table th:nth-child(1) { width: 16%; } /* Patient Name */
+    .pending-appointments-table th:nth-child(2) { width: 16%; } /* Doctor */
+    .pending-appointments-table th:nth-child(3) { width: 23%; } /* Appointment Type */
+    .pending-appointments-table th:nth-child(4) { width: 18%; } /* Date & Time */
+    .pending-appointments-table th:nth-child(5) { width:  9%; } /* Duration */
+    .pending-appointments-table th:nth-child(6) { width:  9%; } /* Priority */
+    .pending-appointments-table th:nth-child(7) { width:  9%; } /* Actions */
+
+    @media screen and (max-width: 1490px) {
+    /* Hide Appointment Type column */
+    .pending-appointments-table th:nth-child(3),
+    .pending-appointments-table td:nth-child(3) {
+        display: none;
+    }
+    
+    /* Redistribute widths */
+    .pending-appointments-table th:nth-child(1) { width: 20%; } /* Patient Name */
+    .pending-appointments-table th:nth-child(2) { width: 20%; } /* Doctor */
+    .pending-appointments-table th:nth-child(4) { width: 26%; } /* Date & Time */
+    .pending-appointments-table th:nth-child(5) { width: 12%; } /* Duration */
+    .pending-appointments-table th:nth-child(6) { width: 11%; } /* Priority */
+    .pending-appointments-table th:nth-child(7) { width: 11%; } /* Action */
+    }
+
+    @media screen and (max-width: 1230px) {
+    /* Hide Duration column */
+    .pending-appointments-table th:nth-child(5),
+    .pending-appointments-table td:nth-child(5) {
+        display: none;
+    }
+    
+    /* Redistribute widths */
+    .pending-appointments-table th:nth-child(1) { width: 23%; } /* Patient Name */
+    .pending-appointments-table th:nth-child(2) { width: 23%; } /* Doctor */
+    .pending-appointments-table th:nth-child(4) { width: 28%; } /* Date & Time */
+    .pending-appointments-table th:nth-child(6) { width: 13%; } /* Priority */
+    .pending-appointments-table th:nth-child(7) { width: 13%; } /* Action */
+    }
+}
+
+/* Header Layout with Date Picker */
+.d-flex.justify-content-between.align-items-center.mb-4 {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.date-selector {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+}
+
+.date-selector input {
+    padding: 6px 12px;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    background-color: var(--input-bg);
+    color: var(--primary-text);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'%3E%3C/rect%3E%3Cline x1='16' y1='2' x2='16' y2='6'%3E%3C/line%3E%3Cline x1='8' y1='2' x2='8' y2='6'%3E%3C/line%3E%3Cline x1='3' y1='10' x2='21' y2='10'%3E%3C/line%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 16px;
+    padding-right: 32px;
+    appearance: none;
+}
+
+/* Pending Appointments Section */
+.content-card {
+    background-color: var(--secondary-bg);
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    box-sizing: border-box;
+    overflow: visible !important;
+    min-width: 100%;
+    max-width: 100%;
+    height: auto !important;
+    min-height: 0;
+    max-height: none !important;
+    margin-top: 2rem;
+    margin-bottom: 0;
+}
+
+.d-flex {
+    display: flex;
+}
+
+.justify-content-between {
+    justify-content: space-between;
+}
+
+.align-items-center {
+    align-items: center;
+}
+
+.mb-4 {
+    margin-bottom: 1.5rem;
+}
+
+.py-4 {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+
+.text-center {
+    text-align: center;
+}
+
+h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--primary-text);
+}
+
+/* Specific styles for pending appointments */
+.pending-appointments-container {
+    overflow: visible !important;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    min-width: 100%;
+    max-width: 100%;
+    height: auto !important;
+    min-height: 0;
+    max-height: none !important;
+}
+
+.pending-appointments-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    height: auto !important;
+    min-height: 0;
+    max-height: none !important;
+}
+
+.pending-appointments-table th,
+.pending-appointments-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+    white-space: normal;
+    word-wrap: break-word;
+}
+
+.pending-appointments-table th {
+    font-weight: 600;
+    color: var(--accent-color);
+    text-align: left;
+}
+
+.pending-appointments-table tbody tr:hover {
+    background-color: rgba(138, 43, 226, 0.05);
+}
+
+/* Status badges for priorities */
+.status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background-color: rgba(138, 43, 226, 0.1);
+    color: #8a2be2;
+}
+
+.status-badge.red {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.status-badge.yellow {
+    background-color: rgba(234, 179, 8, 0.1);
+    color: #eab308;
+}
+
+.status-badge.blue {
+    background-color: rgba(42, 115, 239, 0.1);
+    color: #2a73ef;
+}
+
+.status-badge.teal {
+    background-color: rgba(20, 184, 166, 0.1);
+    color: #14b8a6;
+}
+
+/* Patient actions */
+.patient-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.patient-actions a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    background-color: rgba(138, 43, 226, 0.1);
+    transition: background-color 0.2s;
+}
+
+.patient-actions a:hover {
+    background-color: rgba(138, 43, 226, 0.2);
+}
+
+/* Date range selector */
+.date-range-selector {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+}
+
+.date-input {
+    padding: 6px 12px;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    background-color: var(--input-bg);
+    color: var(--primary-text);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='18' rx='2' ry='2'%3E%3C/rect%3E%3Cline x1='16' y1='2' x2='16' y2='6'%3E%3C/line%3E%3Cline x1='8' y1='2' x2='8' y2='6'%3E%3C/line%3E%3Cline x1='3' y1='10' x2='21' y2='10'%3E%3C/line%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 16px;
+    padding-right: 32px;
+    appearance: none;
+}
+
+/* Dark theme specific adjustments */
+.timeline-loading {
+    text-align: center;
+    padding: 1rem;
+    color: var(--secondary-text);
+}
+
+/* Table column widths for pending appointments */
+.pending-appointments-table th:nth-child(1) { width: 16%; } /* Patient Name */
+.pending-appointments-table th:nth-child(2) { width: 16%; } /* Doctor */
+.pending-appointments-table th:nth-child(3) { width: 23%; } /* Appointment Type */
+.pending-appointments-table th:nth-child(4) { width: 18%; } /* Date & Time */
+.pending-appointments-table th:nth-child(5) { width:  9%; } /* Duration */
+.pending-appointments-table th:nth-child(6) { width:  9%; } /* Priority */
+.pending-appointments-table th:nth-child(7) { width:  9%; } /* Actions */

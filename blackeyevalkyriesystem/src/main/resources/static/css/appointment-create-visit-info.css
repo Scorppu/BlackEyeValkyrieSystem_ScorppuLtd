@@ -1,0 +1,638 @@
+.form-card {
+    background-color: var(--secondary-bg);
+    border-radius: 0.75rem;
+    padding: 2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+/* Container constraints */
+.content-container {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+body {
+    overflow-x: hidden;
+}
+
+/* Remove redundant calendar icon */
+input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+input[type="date"]::-webkit-calendar-picker-indicator {
+    opacity: 1;
+    display: block;
+    background: url('data:image/svg+xml;utf8,<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12.6667 3.33334H3.33333C2.59695 3.33334 2 3.93029 2 4.66668V12.6667C2 13.403 2.59695 14 3.33333 14H12.6667C13.403 14 14 13.403 14 12.6667V4.66668C14 3.93029 13.403 3.33334 12.6667 3.33334Z" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/><path d="M10.6667 2V4.66667" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.33334 2V4.66667" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 7.33334H14" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/></svg>') no-repeat;
+    width: 16px;
+    height: 16px;
+    border-width: thin;
+    position: absolute;
+    right: 10px;
+}
+
+/* Hide the second calendar icon */
+input[type="datetime-local"]::-webkit-inner-spin-button,
+input[type="date"]::-webkit-inner-spin-button,
+input[type="datetime-local"]::-webkit-clear-button,
+input[type="date"]::-webkit-clear-button {
+    display: none;
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.form-section {
+    margin-bottom: 2rem;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.form-section-header {
+    margin-bottom: 1.5rem;
+}
+
+.form-section-header h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--primary-text);
+}
+
+.form-section-header p {
+    font-size: 0.875rem;
+    color: var(--secondary-text);
+    margin: 0.5rem 0 0;
+}
+
+.form-row {
+    margin-bottom: 1.5rem;
+}
+
+.form-group {
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+
+.form-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--secondary-text);
+    margin-bottom: 0.5rem;
+}
+
+.form-label svg {
+    width: 1rem;
+    height: 1rem;
+    color: var(--secondary-text);
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid var(--border-color);
+    background-color: var(--input-bg);
+    color: var(--primary-text);
+    font-size: 1rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-select {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid var(--border-color);
+    background-color: var(--input-bg);
+    color: var(--primary-text);
+    font-size: 1rem;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4 6L8 10L12 6' stroke='%236B7280' stroke-width='1.33333' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-control:focus, .form-select:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 2px rgba(138, 43, 226, 0.3);
+}
+
+.form-control:disabled, .form-select:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.input-group {
+    display: flex;
+    width: 100%;
+}
+
+.input-group .form-control {
+    flex: 1;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.input-group-text {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background-color: var(--secondary-bg);
+    border: 1px solid var(--border-color);
+    border-left: none;
+    border-top-right-radius: 0.5rem;
+    border-bottom-right-radius: 0.5rem;
+    color: var(--secondary-text);
+    font-size: 1rem;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    text-decoration: none;
+    border: none;
+}
+
+.btn-primary {
+    display: inline-flex;
+    align-items: center;
+    background-color: var(--accent-color);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    text-decoration: none;
+    border: none;
+    transition: background-color 0.2s;
+}
+
+.btn-primary:hover {
+    background-color: #7b26cd;
+}
+
+.select-wrapper {
+    position: relative;
+}
+
+.doctor-search {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1;
+    background: transparent;
+    border: none;
+    padding: 0.375rem 0.75rem;
+    color: transparent;
+}
+
+.doctor-search:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+#doctorName {
+    position: relative;
+    z-index: 2;
+    background: var(--input-bg);
+}
+
+/* Timeline styles */
+.timeline-container {
+    background-color: var(--secondary-bg);
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-top: 1rem;
+    margin-bottom: 1.5rem;
+    display: none; /* Hidden by default */
+    width: 100%;
+    box-sizing: border-box;
+    overflow: hidden; /* Prevent container overflow */
+    max-width: 100%;
+}
+
+.timeline-scroll-container {
+    overflow-x: auto;
+    overflow-y: hidden;
+    width: 100%;
+    max-width: 100%;
+}
+
+.timeline-content {
+    position: relative;
+    width: fit-content;
+    min-width: min(100%, 800px);
+}
+
+/* Scrollbar styling for webkit browsers */
+.timeline-scroll-container::-webkit-scrollbar {
+    height: 8px;
+    width: 8px;
+}
+
+.timeline-scroll-container::-webkit-scrollbar-track {
+    background: rgba(138, 43, 226, 0.1);
+    border-radius: 4px;
+}
+
+.timeline-scroll-container::-webkit-scrollbar-thumb {
+    background-color: var(--accent-color);
+    border-radius: 4px;
+}
+
+.timeline-header {
+    display: flex;
+    margin-bottom: 1rem;
+    width: 100%;
+}
+
+.timeline-header h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--primary-text);
+    width: 120px;
+    min-width: 120px;
+    flex-shrink: 0;
+    padding-left: 1rem;
+    text-align: left;
+    box-sizing: border-box;
+}
+
+.timeline-grid {
+    display: flex;
+    margin-bottom: 10px;
+    position: relative;
+    gap: 0;
+}
+
+.doctor-column {
+    padding: 1rem;
+    background-color: var(--secondary-bg);
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: left;
+    font-weight: 500;
+    width: 120px;
+    min-width: 120px;
+    flex-shrink: 0;
+}
+
+.timeline-slots {
+    padding: 1rem;
+    background-color: var(--secondary-bg);
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    font-weight: 500;
+    width: 120px;
+    min-width: 120px;
+    flex-shrink: 0;
+}
+
+.timeline-time {
+    text-align: left;
+    font-size: 0.875rem;
+    font-weight: 500;
+    width: 100px;
+    min-width: 100px;
+    flex-shrink: 0;
+    position: relative;
+    box-sizing: border-box;
+}
+
+/* Add line indicators for time markers */
+.timeline-time::after {
+    content: '';
+    position: absolute;
+    bottom: 0px;
+    left: 0;
+    height: 12px;
+    width: 1px;
+    background-color: var(--border-color);
+}
+
+.timeline-times {
+    display: flex;
+    flex-grow: 1;
+    gap: 0;
+    max-width: calc(100% - 100px);
+    position: relative;
+}
+
+.timeline-slots {
+    display: flex;
+    flex-grow: 1;
+    position: relative;
+    height: 50px;
+    max-width: calc(100% - 120px);
+}
+
+/* Add vertical grid lines */
+.timeline-slots::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: linear-gradient(90deg, var(--border-color) 1px, transparent 1px);
+    background-size: 100px 100%;
+    background-position: 0 0; /* Ensure grid lines start at left edge */
+    opacity: 0.2;
+    pointer-events: none;
+}
+
+.appointment-block {
+    background-color: rgba(138, 43, 226, 0.1);
+    border-left: 4px solid #8a2be2;
+    border-radius: 0.375rem;
+    padding: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+    height: 80%;
+    margin: auto 0;
+    position: absolute;
+    top: 50%;
+    min-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    box-sizing: border-box;
+    z-index: 1;
+    cursor: pointer;
+}
+
+.appointment-block.teal {
+    background-color: rgba(20, 184, 166, 0.1);
+    border-left-color: #14b8a6;
+}
+
+.appointment-block.red {
+    background-color: rgba(239, 68, 68, 0.1);
+    border-left-color: #ef4444;
+}
+
+.appointment-block.dotted {
+    border: 2px dashed #8a2be2;
+    background-color: rgba(138, 43, 226, 0.1);
+    border-left: 4px solid #8a2be2;
+}
+
+/* Loading indicator */
+.loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(138, 43, 226, 0.3);
+    border-radius: 50%;
+    border-top-color: var(--accent-color);
+    animation: spin 1s ease-in-out infinite;
+    margin-left: 10px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Form element constraints */
+.form-row, 
+.form-group, 
+.form-control, 
+.form-select,
+#visitInfoForm {
+    max-width: 100%;
+    box-sizing: border-box;
+    position: relative;
+}
+
+/* Ensure header and timeline containers don't exceed width */
+.header, 
+.header-actions,
+.timeline-container, 
+.form-card,
+.form-section {
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+/* Add the following constraints to html, body and content-container */
+html, body {
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow-y: auto !important; /* Force vertical scrolling */
+    height: auto !important; /* Allow content to determine height */
+    max-height: none !important; /* Remove any height restrictions */
+}
+
+.content-container {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    box-sizing: border-box;
+    overflow-y: visible !important; /* Allow vertical overflow */
+    height: auto !important;
+    max-height: none !important;
+}
+
+/* Ensure the form card stays within bounds */
+.form-card {
+    max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+/* Ensure the form section stays within bounds */
+.form-section {
+    max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+/* Force the timeline to stay within the parent container width */
+@media (min-width: 768px) {
+    .timeline-content {
+        max-width: calc(100vw - 300px - 4rem); /* Account for sidebar and padding */
+    }
+}
+
+@media (max-width: 767px) {
+    .timeline-content {
+        max-width: calc(100vw - 3rem); /* Account for padding only on mobile */
+    }
+    .doctor-column {
+        width: 100px;
+        min-width: 100px;
+        padding: 0.75rem;
+        font-size: 0.875rem;
+    }
+    
+    .timeline-header h2 {
+        width: 100px;
+        min-width: 100px;
+    }
+    
+    .timeline-time {
+        width: 80px;
+        min-width: 80px;
+    }
+    
+    .timeline-slots::before {
+        background-size: 80px 100%;
+    }
+    
+    .timeline-times {
+        max-width: calc(100% - 100px);
+    }
+    
+    .timeline-slots {
+        max-width: calc(100% - 100px);
+    }
+}
+
+/* Add these additional fixes to the CSS section */
+
+/* Fix header and container width */
+.header, .header-actions {
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+/* Fix for the entire content area */
+main.main-content {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+body, html, .app-container {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+/* Force width constraints on all containers */
+.form-card, .form-section, .content-container, .timeline-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+    box-sizing: border-box !important;
+}
+
+/* Make sure the timeline content is absolutely positioned to prevent layout shifts */
+.timeline-content {
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+/* Keep the confirm button in position */
+.btn-container {
+    display: flex;
+    justify-content: flex-end; /* Align to the rightmost edge */
+    width: 100%;
+    margin-bottom: 2rem;
+}
+
+/* Fix header layout to match screenshot exactly */
+.header {
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 2rem;
+}
+
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 0 1rem;
+    box-sizing: border-box;
+}
+
+.header h1 {
+    font-size: 2rem;
+    font-weight: 600;
+    margin: 0;
+    padding: 0;
+    color: white;
+}
+
+.header-actions {
+    /* Remove absolute positioning */
+    position: static; 
+    top: auto;
+    right: auto;
+    z-index: auto;
+    margin: 0;
+    padding: 0;
+}
+
+.btn-primary {
+    display: inline-flex;
+    align-items: center;
+    background-color: var(--accent-color);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    text-decoration: none;
+    border: none;
+    transition: background-color 0.2s;
+    cursor: pointer;
+}
+
+.btn-primary:hover {
+    background-color: #7b26cd;
+}
+
+.timeline-container {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.timeline-scroll-container {
+    overflow-x: auto;
+    overflow-y: hidden;
+    width: 100%;
+    max-width: 100%;
+}
+
+.timeline-content {
+    width: fit-content;
+    min-width: min(100%, 800px);
+}
+
+@media (min-width: 1200px) {
+    .timeline-scroll-container:not([data-overflow="true"]) {
+        overflow-x: hidden;
+    }
+} 
