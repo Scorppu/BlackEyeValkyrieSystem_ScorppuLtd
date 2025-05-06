@@ -1,57 +1,59 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const dutyToggleBtn = document.getElementById('duty-toggle');
-    const dutyStatusDiv = document.getElementById('duty-status');
-    const userNameSpan = document.querySelector('.user-name');
-    
-    if (dutyToggleBtn && dutyStatusDiv) {
-        // Initial load of duty status
-        updateDutyStatus();
-        
-        // Add click handler for toggle button
-        dutyToggleBtn.addEventListener('click', function() {
-            toggleDutyStatus();
+    // Doctor search functionality
+    const doctorSearch = document.getElementById('doctor-search');
+    if (doctorSearch) {
+        doctorSearch.addEventListener('keyup', function() {
+            filterTable('doctors-table', this.value);
         });
     }
     
-    function updateDutyStatus() {
-        fetch('/api/duty/status')
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {
-                const isOnDuty = data.isOnDuty;
-                
-                // Parse the ISO timestamp string
-                const timestamp = new Date(data.timestamp);
-                
-                // Update button text and style based on current status
-                dutyToggleBtn.textContent = isOnDuty ? 'Off Duty' : 'On Duty';
-                dutyToggleBtn.style.backgroundColor = isOnDuty ? '#ffa500' : '#4CAF50'; // Orange for Off Duty, Green for On Duty
-                
-                // Format the timestamp in user's local timezone
-                const formattedDateTime = formatDateTimeForUser(timestamp);
-                
-                // Update status text
-                dutyStatusDiv.style.display = 'block';
-                dutyStatusDiv.innerHTML = isOnDuty 
-                    ? `On duty since<br>${formattedDateTime}`
-                    : `Last on duty at<br>${formattedDateTime}`;
-                
-                // Log for debugging
-                console.log(`Original timestamp: ${data.timestamp}`);
-                console.log(`Parsed date: ${timestamp}`);
-                console.log(`Formatted local time: ${formattedDateTime}`);
-            })
-            .catch(error => {
-                console.error('Error fetching duty status:', error);
-            });
+    // Nurse search functionality
+    const nurseSearch = document.getElementById('nurse-search');
+    if (nurseSearch) {
+        nurseSearch.addEventListener('keyup', function() {
+            filterTable('nurses-table', this.value);
+        });
     }
     
-    function toggleDutyStatus() {
-        fetch('/api/duty/toggle', {
+    // Add event listeners to all toggle buttons
+    const toggleButtons = document.querySelectorAll('.toggle-duty-btn');
+    toggleButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const staffId = this.getAttribute('data-staff-id');
+            toggleDutyStatus(staffId, this);
+        });
+    });
+    
+    // Filter table function
+    function filterTable(tableId, query) {
+        const table = document.getElementById(tableId);
+        if (!table) return;
+        
+        const rows = table.querySelectorAll('tbody tr');
+        const term = query.toLowerCase();
+        
+        rows.forEach(row => {
+            let found = false;
+            const cells = row.querySelectorAll('td');
+            
+            cells.forEach(cell => {
+                if (cell.textContent.toLowerCase().includes(term)) {
+                    found = true;
+                }
+            });
+            
+            row.style.display = found ? '' : 'none';
+        });
+    }
+    
+    // Function to toggle duty status
+    function toggleDutyStatus(staffId, buttonElement) {
+        // Disable button during the request
+        buttonElement.disabled = true;
+        buttonElement.classList.add('loading');
+        
+        // Make API call to toggle duty status
+        fetch(`/api/duty/toggle/${staffId}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -64,47 +66,60 @@ document.addEventListener('DOMContentLoaded', function() {
             return response.json();
         })
         .then(data => {
-            // Update UI with the new status
-            const isOnDuty = data.isOnDuty;
+            console.log('Duty status toggled:', data);
             
-            // Parse the ISO timestamp string
-            const timestamp = new Date(data.timestamp);
+            // Update UI based on new status
+            const row = buttonElement.closest('tr');
+            const statusCell = row.querySelector('td:nth-child(3)');
+            const statusSpan = statusCell.querySelector('span');
             
-            // Update button text and style
-            dutyToggleBtn.textContent = isOnDuty ? 'Off Duty' : 'On Duty';
-            dutyToggleBtn.style.backgroundColor = isOnDuty ? '#ffa500' : '#4CAF50';
+            // Update status text and class
+            if (data.isOnDuty) {
+                statusSpan.textContent = 'On Duty';
+                statusSpan.classList.remove('status-off');
+                statusSpan.classList.add('status-on');
+                buttonElement.querySelector('span').textContent = 'Mark Off Duty';
+            } else {
+                statusSpan.textContent = 'Off Duty';
+                statusSpan.classList.remove('status-on');
+                statusSpan.classList.add('status-off');
+                buttonElement.querySelector('span').textContent = 'Mark On Duty';
+            }
             
-            // Format the timestamp in user's local timezone
-            const formattedDateTime = formatDateTimeForUser(timestamp);
+            // Update stats
+            updateStats();
             
-            // Update status text
-            dutyStatusDiv.style.display = 'block';
-            dutyStatusDiv.innerHTML = isOnDuty 
-                ? `On duty since<br>${formattedDateTime}`
-                : `Last on duty at<br>${formattedDateTime}`;
-            
-            // Log for debugging
-            console.log(`Original timestamp: ${data.timestamp}`);
-            console.log(`Parsed date: ${timestamp}`);
-            console.log(`Formatted local time: ${formattedDateTime}`);
+            // Re-enable button
+            buttonElement.disabled = false;
+            buttonElement.classList.remove('loading');
         })
         .catch(error => {
             console.error('Error toggling duty status:', error);
+            alert('Error toggling duty status. Please try again.');
+            
+            // Re-enable button
+            buttonElement.disabled = false;
+            buttonElement.classList.remove('loading');
         });
     }
     
-    // Helper function to format date and time in user's local timezone
-    function formatDateTimeForUser(date) {
-        // Format time as HH:MM
-        const hours = date.getHours().toString().padStart(2, '0');
-        const minutes = date.getMinutes().toString().padStart(2, '0');
+    // Function to update stats
+    function updateStats() {
+        // Count doctors on duty
+        const doctorsOnDuty = document.querySelectorAll('#doctors-table .status-on').length;
+        const totalDoctors = document.querySelectorAll('#doctors-table tbody tr:not(.empty-state)').length;
         
-        // Format date as DD MMM YYYY
-        const day = date.getDate();
-        const month = date.toLocaleString('en', { month: 'short' });
-        const year = date.getFullYear();
+        // Count nurses on duty
+        const nursesOnDuty = document.querySelectorAll('#nurses-table .status-on').length;
+        const totalNurses = document.querySelectorAll('#nurses-table tbody tr:not(.empty-state)').length;
         
-        // Return in format "HH:MM DD MMM YYYY"
-        return `${hours}:${minutes}  ${day} ${month} ${year}`;
+        // Update stats in the UI
+        const statCards = document.querySelectorAll('.stat-value');
+        if (statCards.length >= 4) {
+            statCards[0].textContent = totalDoctors;
+            statCards[1].textContent = totalNurses;
+            statCards[2].textContent = doctorsOnDuty;
+            statCards[3].textContent = nursesOnDuty;
+        }
     }
-}); 
+});
