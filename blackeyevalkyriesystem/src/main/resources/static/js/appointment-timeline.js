@@ -394,7 +394,20 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Function to handle appointment editing
     function editAppointment(appointmentId) {
-        window.location.href = `/appointment/edit/${appointmentId}`;
+        try {
+            if (!appointmentId) {
+                console.error('Invalid appointment ID');
+                alert('Error: Invalid appointment ID');
+                return;
+            }
+            
+            // Navigate to the edit page using window.location with proper error handling
+            console.log(`Redirecting to edit page for appointment: ${appointmentId}`);
+            window.location.href = `/appointment/edit/${appointmentId}`;
+        } catch (error) {
+            console.error('Error navigating to edit page:', error);
+            alert('An error occurred while trying to edit the appointment. Please try again.');
+        }
     }
     
     // Function to handle appointment cancellation

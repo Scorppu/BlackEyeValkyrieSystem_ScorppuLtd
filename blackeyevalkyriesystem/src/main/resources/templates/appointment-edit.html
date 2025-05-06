@@ -1,203 +1,166 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Appointment</title>
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <!-- Flatpickr CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <!-- Custom CSS -->
-    <link rel="stylesheet" th:href="@{/css/appointment-edit.css}">
+    <title>Edit Appointment - BlackEyeValkyrieSystem</title>
+    
+    <th:block layout:fragment="head">
+        <!-- Visit Information specific CSS -->
+        <link rel="stylesheet" th:href="@{/css/appointment-timeline.css}">
+        <link rel="stylesheet" th:href="@{/css/appointment-create-visit-info.css}">
+        <link rel="stylesheet" th:href="@{/css/critical.css}">
+    </th:block>
 </head>
 <body>
-    <div th:replace="~{layout/main :: header}"></div>
-    <div class="content-container">
-        <div class="content-header">
-            <h1>
-                <span th:if="${appointment.id}">Edit Appointment</span>
-                <span th:unless="${appointment.id}">New Appointment</span>
-            </h1>
-            <div class="header-buttons">
-                <a href="/appointments" class="btn btn-secondary">Back to Appointments</a>
-            </div>
+    <header class="header" layout:fragment="custom-header">
+        <div class="header-container">
+            <h1>Edit Appointment</h1>
         </div>
-        
-        <div id="alerts"></div>
-        
-        <div class="form-container">
-            <form id="appointmentForm" th:action="@{/appointments/save}" method="post" th:object="${appointment}">
-                <input type="hidden" id="appointmentId" th:field="*{id}">
-                
+    </header>
+    
+    <div layout:fragment="content">
+        <div class="content-container">
+            <div class="form-card">
                 <div class="form-section">
-                    <h3>Patient Information</h3>
-                    <div class="form-group">
-                        <label for="patientSearch">Patient</label>
-                        <div class="search-container">
-                            <input type="text" id="patientSearch" class="form-control" placeholder="Search for patient..." 
-                                   th:value="${appointment.patient != null ? appointment.patient.firstName + ' ' + appointment.patient.lastName : ''}">
-                            <input type="hidden" id="patientId" th:field="*{patientId}">
-                            <div id="patientSearchResults" class="search-results"></div>
-                        </div>
+                    <div class="form-section-header">
+                        <h2>Visit Information</h2>
+                        <p>Please update the patient's appointment information</p>
                     </div>
                     
-                    <div id="patientInfo" class="info-container" th:classappend="${appointment.patient != null ? 'visible' : ''}">
-                        <div th:if="${appointment.patient != null}">
-                            <div class="info-row">
-                                <div class="info-label">Name:</div>
-                                <div th:text="${appointment.patient.firstName + ' ' + appointment.patient.lastName}"></div>
-                            </div>
-                            <div class="info-row">
-                                <div class="info-label">ID:</div>
-                                <div th:text="${appointment.patient.id}"></div>
-                            </div>
-                            <div class="info-row">
-                                <div class="info-label">Date of Birth:</div>
-                                <div th:text="${appointment.patient.dateOfBirth}"></div>
-                            </div>
-                            <div class="info-row">
-                                <div class="info-label">Contact:</div>
-                                <div th:text="${appointment.patient.phone ?: 'N/A'}"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="form-section">
-                    <h3>Doctor Information</h3>
-                    <div class="form-group">
-                        <label for="doctorSearch">Doctor</label>
-                        <div class="search-container">
-                            <input type="text" id="doctorSearch" class="form-control" placeholder="Search for doctor..." 
-                                   th:value="${appointment.doctor != null ? 'Dr. ' + appointment.doctor.firstName + ' ' + appointment.doctor.lastName : ''}">
-                            <input type="hidden" id="doctorId" th:field="*{doctorId}">
-                            <div id="doctorSearchResults" class="search-results"></div>
-                        </div>
-                    </div>
-                    
-                    <div id="doctorInfo" class="info-container" th:classappend="${appointment.doctor != null ? 'visible' : ''}">
-                        <div th:if="${appointment.doctor != null}">
-                            <div class="info-row">
-                                <div class="info-label">Name:</div>
-                                <div th:text="${'Dr. ' + appointment.doctor.firstName + ' ' + appointment.doctor.lastName}"></div>
-                            </div>
-                            <div class="info-row">
-                                <div class="info-label">ID:</div>
-                                <div th:text="${appointment.doctor.id}"></div>
-                            </div>
-                            <div class="info-row">
-                                <div class="info-label">Specialty:</div>
-                                <div th:text="${appointment.doctor.specialty ?: 'N/A'}"></div>
-                            </div>
-                            <div class="info-row">
-                                <div class="info-label">Department:</div>
-                                <div th:text="${appointment.doctor.department ?: 'N/A'}"></div>
+                    <form id="visitInfoForm" th:action="@{/appointment/edit/{id}(id=${appointment.id})}" method="post">
+                        <input type="hidden" name="patientId" th:value="${patient != null ? patient.id : ''}">
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label" for="appointmentType">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M12.6667 3.33334H3.33333C2.59695 3.33334 2 3.93029 2 4.66668V12.6667C2 13.403 2.59695 14 3.33333 14H12.6667C13.403 14 14 13.403 14 12.6667V4.66668C14 3.93029 13.403 3.33334 12.6667 3.33334Z" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M10.6667 2V4.66667" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M5.33334 2V4.66667" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M2 7.33334H14" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M7.33334 10H8.00001" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M8 10V11.3333" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                    Appointment Type
+                                </label>
+                                <select class="form-select" id="appointmentType" name="appointmentType" required>
+                                    <option th:each="type : ${appointmentTypes}" 
+                                            th:value="${type}" 
+                                            th:text="${type}"
+                                            th:selected="${type == appointment.appointmentType}"></option>
+                                </select>
                             </div>
                         </div>
-                    </div>
-                </div>
-                
-                <div class="form-section">
-                    <h3>Appointment Details</h3>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="appointmentDate">Date</label>
-                            <input type="text" id="appointmentDate" class="form-control" th:field="*{appointmentDate}" placeholder="Select date">
-                        </div>
-                        <div class="form-group">
-                            <label for="appointmentTime">Time</label>
-                            <input type="text" id="appointmentTime" class="form-control" th:field="*{appointmentTime}" placeholder="Select time">
-                        </div>
-                        <div class="form-group">
-                            <label for="appointmentDuration">Duration (minutes)</label>
-                            <select id="appointmentDuration" class="form-select" th:field="*{duration}">
-                                <option value="15">15</option>
-                                <option value="30">30</option>
-                                <option value="45">45</option>
-                                <option value="60">60</option>
-                                <option value="90">90</option>
-                                <option value="120">120</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div id="availabilityMessage" class="availability-message" style="display: none;"></div>
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="appointmentType">Appointment Type</label>
-                            <select id="appointmentType" class="form-select" th:field="*{appointmentType}">
-                                <option value="">Select Type</option>
-                                <option value="CONSULTATION">Consultation</option>
-                                <option value="FOLLOW_UP">Follow-up</option>
-                                <option value="CHECKUP">Regular Check-up</option>
-                                <option value="EMERGENCY">Emergency</option>
-                                <option value="PROCEDURE">Procedure</option>
-                                <option value="SURGERY">Surgery</option>
-                                <option value="THERAPY">Therapy</option>
-                                <option value="TEST">Test/Lab</option>
-                                <option value="OTHER">Other</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="status">Status</label>
-                            <select id="status" class="form-select" th:field="*{status}">
-                                <option value="SCHEDULED">Scheduled</option>
-                                <option value="CONFIRMED">Confirmed</option>
-                                <option value="IN_PROGRESS">In Progress</option>
-                                <option value="COMPLETED">Completed</option>
-                                <option value="CANCELLED">Cancelled</option>
-                                <option value="NO_SHOW">No Show</option>
-                                <option value="RESCHEDULED">Rescheduled</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="appointmentReason">Reason</label>
-                        <textarea id="appointmentReason" class="form-control" rows="3" th:field="*{reason}" placeholder="Reason for appointment"></textarea>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="notes">Notes</label>
-                        <textarea id="notes" class="form-control" rows="4" th:field="*{notes}" placeholder="Additional notes"></textarea>
-                    </div>
-                </div>
-                
-                <div th:if="${appointment.id}" class="form-section">
-                    <h3>Status History</h3>
-                    <div id="statusHistory" class="timeline-container">
-                        <div th:if="${#lists.isEmpty(appointment.statusHistory)}" class="no-history">
-                            No status changes recorded
-                        </div>
-                        <div th:unless="${#lists.isEmpty(appointment.statusHistory)}" class="timeline">
-                            <div th:each="statusChange : ${appointment.statusHistory}" class="timeline-item">
-                                <div class="timeline-point"></div>
-                                <div class="timeline-content">
-                                    <h5 th:text="'Status changed to: ' + ${statusChange.status}"></h5>
-                                    <p th:text="'By: ' + ${statusChange.user} + ' on ' + ${#temporals.format(statusChange.timestamp, 'dd/MM/yyyy HH:mm')}"></p>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label" for="requiredTime">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M8 14C11.3137 14 14 11.3137 14 8C14 4.68629 11.3137 2 8 2C4.68629 2 2 4.68629 2 8C2 11.3137 4.68629 14 8 14Z" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M8 4.66667V8.00001L10 10" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                    Required Time
+                                </label>
+                                <div class="input-group">
+                                    <select class="form-select" id="requiredTime" name="requiredTime" required>
+                                        <option value="15" th:selected="${appointment.requiredTime == 15}">15</option>
+                                        <option value="30" th:selected="${appointment.requiredTime == 30}">30</option>
+                                        <option value="45" th:selected="${appointment.requiredTime == 45}">45</option>
+                                        <option value="60" th:selected="${appointment.requiredTime == 60}">60</option>
+                                        <option value="90" th:selected="${appointment.requiredTime == 90}">90</option>
+                                        <option value="120" th:selected="${appointment.requiredTime == 120}">120</option>
+                                    </select>
+                                    <span class="input-group-text">minutes</span>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label" for="appointmentPriority">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M7.33334 13.3333C10.647 13.3333 13.3333 10.647 13.3333 7.33333C13.3333 4.01967 10.647 1.33333 7.33334 1.33333C4.01967 1.33333 1.33334 4.01967 1.33334 7.33333C1.33334 10.647 4.01967 13.3333 7.33334 13.3333Z" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M14 14L11.6667 11.6667" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                    Appointment Priority
+                                </label>
+                                <select class="form-select" id="appointmentPriority" name="appointmentPriority" required>
+                                    <option th:each="priority : ${appointmentPriorities}" 
+                                            th:value="${priority}" 
+                                            th:text="${priority}" 
+                                            th:selected="${priority == appointment.appointmentPriority}"></option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label" for="doctorName">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M8 10C10.2091 10 12 8.20914 12 6C12 3.79086 10.2091 2 8 2C5.79086 2 4 3.79086 4 6C4 8.20914 5.79086 10 8 10Z" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M14 14C12.5164 12.5085 10.3249 11.6667 8.00008 11.6667C5.67523 11.6667 3.48328 12.5097 2 14" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                    Doctor Name
+                                </label>
+                                <div class="select-wrapper">
+                                    <select class="form-select" id="doctorName" name="doctorName">
+                                        <option value="">Select a doctor</option>
+                                        <option th:each="doctor : ${doctors}" 
+                                                th:value="${doctor.firstName + ' ' + doctor.lastName}"
+                                                th:text="${doctor.firstName + ' ' + doctor.lastName}"
+                                                th:selected="${doctor.firstName + ' ' + doctor.lastName == appointment.doctorName}">
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label" for="scheduledTime">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M8 14C11.3137 14 14 11.3137 14 8C14 4.68629 11.3137 2 8 2C4.68629 2 2 4.68629 2 8C2 11.3137 4.68629 14 8 14Z" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M8 4.66667V8.00001L10 10" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                    Scheduled Time
+                                </label>
+                                <input class="form-control" type="datetime-local" id="scheduledTime" name="scheduledTime" th:value="${formattedScheduledTime}">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label" for="notes">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M7.33333 2H2.66667C2.29848 2 2 2.29848 2 2.66667V13.3333C2 13.7015 2.29848 14 2.66667 14H13.3333C13.7015 14 14 13.7015 14 13.3333V8.66667" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M12.6667 2.33333C13.0349 1.96514 13.6334 1.96514 14.0016 2.33333C14.3698 2.70152 14.3698 3.30009 14.0016 3.66828L8.33329 9.33333L6.33331 10L6.99995 8L12.6667 2.33333Z" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                    Notes
+                                </label>
+                                <textarea class="form-control" id="notes" name="notes" rows="3" th:text="${appointment.notes}"></textarea>
+                            </div>
+                        </div>
+                    </form>
                 </div>
-                
-                <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">Save Appointment</button>
-                    <a href="/appointments" class="btn btn-secondary">Cancel</a>
-                </div>
-            </form>
+            </div>
+        </div>
+
+        <div class="btn-container">
+            <button type="submit" form="visitInfoForm" class="btn btn-primary">Save Changes</button>
+            <a href="/appointment/timeline" class="btn btn-secondary">Cancel</a>
         </div>
     </div>
     
-    <div th:replace="~{layout/main :: footer}"></div>
-    
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Flatpickr JS -->
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <!-- Custom JS -->
-    <script th:src="@{/js/appointment-edit.js}"></script>
+    <th:block layout:fragment="scripts">
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                console.log('Edit appointment page loaded');
+                // Add any JavaScript functionality here
+            });
+        </script>
+    </th:block>
 </body>
 </html> 
