@@ -126,7 +126,7 @@
 }
 
 .btn-filter:hover {
-    background-color: #7b26cd;
+    background-color: var(--accent-color-dark);
 }
 
 .btn-reset-filter:hover {
@@ -163,21 +163,12 @@ border-bottom: 1px solid var(--border-color);
 font-weight: 500;
 }
 
-/* Width for actions without copy button */
-.data-table th:nth-child(1) { width: 30%; } /* Key */
+.data-table th:nth-child(1) { width: 29%; } /* Key */
 .data-table th:nth-child(2) { width: 10%; } /* Status */
 .data-table th:nth-child(3) { width: 10%; } /* Role */
-.data-table th:nth-child(4) { width: 21%; } /* User */
-.data-table th:nth-child(5) { width: 17%; } /* Expiry Date */
-.data-table th:nth-child(6) { width: 12%; } /* Action */
-
-/* Following width for actions with copy button */
-/*.data-table th:nth-child(1) { width: 29%; } /* Key */
-/*.data-table th:nth-child(2) { width: 10%; } /* Status */
-/*.data-table th:nth-child(3) { width: 10%; } /* Role */
-/*.data-table th:nth-child(4) { width: 20%; } /* User */
-/*.data-table th:nth-child(5) { width: 15%; } /* Expiry Date */
-/*.data-table th:nth-child(6) { width: 16%; } /* Action */
+.data-table th:nth-child(4) { width: 20%; } /* User */
+.data-table th:nth-child(5) { width: 14%; } /* Expiry Date */
+.data-table th:nth-child(6) { width: 16%; } /* Action */
 .data-table td {
     padding: 12px 10px;
     text-align: left;
@@ -193,19 +184,6 @@ font-weight: 500;
 .data-table tbody tr:hover {
     background-color: rgba(138, 43, 226, 0.05);
 }
-
-/* @media screen and (max-width: 1180px) {
-    .data-table th.id-col,
-    .data-table td:nth-child(5) {
-        display: none;
-    }
-    .data-table th:nth-child(1) { width: 36%; } 
-    .data-table th:nth-child(2) { width: 12%; } 
-    .data-table th:nth-child(3) { width: 12%; } 
-    .data-table th:nth-child(4) { width: 25%; } 
-    .data-table th:nth-child(6) { width: 15%; } 
-} */
-
 
 .license-key-actions .btn {
     padding: 5px 8px;
@@ -324,64 +302,4 @@ font-weight: 500;
     font-family: 'Courier New', Courier, monospace;
     font-size: 1.1em;
     letter-spacing: 0.5px;
-}
-
-/* Alert styles similar to login page */
-.alert {
-    padding: 15px;
-    margin-bottom: 20px;
-    border-radius: 6px;
-    font-weight: 500;
-}
-
-.alert-success {
-    background-color: rgba(46, 204, 113, 0.1);
-    border: 1px solid rgba(46, 204, 113, 0.3);
-    color: #2ecc71;
-}
-
-.alert-danger {
-    background-color: rgba(231, 76, 60, 0.1);
-    border: 1px solid rgba(231, 76, 60, 0.3);
-    color: #e74c3c;
-}
-
-/* Add animation for alerts */
-@keyframes fadeInDown {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.alert {
-    animation: fadeInDown 0.3s ease-out;
-}
-
-/* Role badge styles */
-.role-badge {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 12px;
-    text-transform: capitalize; 
-}
-
-.role-admin {
-    background-color: rgba(138, 43, 226, 0.2);
-    color: #8A2BE2;
-}
-
-.role-doctor {
-    background-color: rgba(35, 178, 126, 0.2);
-    color: #23b27e;
-}
-
-.role-nurse {
-    background-color: rgba(64, 115, 255, 0.2);
-    color: #4073FF;
 }

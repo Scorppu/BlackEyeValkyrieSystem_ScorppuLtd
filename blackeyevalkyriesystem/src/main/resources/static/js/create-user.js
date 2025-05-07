@@ -4,6 +4,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const alertContent = document.querySelector('.alert-danger');
     const isEditMode = document.getElementById('userId') !== null;
     
+    // Add edit-mode class to form container if in edit mode
+    if (isEditMode) {
+        const formContainer = document.querySelector('.user-form-container');
+        if (formContainer) {
+            formContainer.classList.add('edit-mode');
+        }
+    }
+    
     // Define licenseKeyPattern at the top level
     const licenseKeyPattern = /^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/;
     
@@ -20,14 +28,44 @@ document.addEventListener('DOMContentLoaded', function() {
         const licenseKeyGroup = licenseKeyInput.closest('.form-group');
         const roleGroup = roleSelect.closest('.form-group');
         
-        // Hide license key field
-        if (licenseKeyGroup) {
-            licenseKeyGroup.style.display = 'none';
+        // Make license key field read-only instead of hiding it
+        if (licenseKeyInput) {
+            licenseKeyInput.setAttribute('readonly', 'readonly');
+            licenseKeyInput.classList.add('readonly-input');
+            // Hide the generate button in edit mode
+            const generateBtn = document.getElementById('generateLicenseKeyBtn');
+            if (generateBtn) {
+                generateBtn.style.display = 'none';
+            }
+            
+            // Get the role from the license key
+            const licenseKey = licenseKeyInput.value;
+            if (licenseKey) {
+                fetch(`/api/licenses/${licenseKey}`)
+                    .then(response => {
+                        if (response.ok) {
+                            return response.json();
+                        }
+                        throw new Error('Failed to fetch license key data');
+                    })
+                    .then(data => {
+                        if (data && data.role) {
+                            // Set the role in the select element
+                            roleSelect.value = data.role.toLowerCase();
+                            // Store the original role value
+                            roleSelect.setAttribute('data-original-role', data.role.toUpperCase());
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching license key data:', error);
+                    });
+            }
         }
         
-        // Hide role field
-        if (roleGroup) {
-            roleGroup.style.display = 'none';
+        // Make role field read-only instead of hiding it
+        if (roleSelect) {
+            roleSelect.setAttribute('disabled', 'disabled');
+            roleSelect.classList.add('readonly-input');
         }
     }
     
@@ -145,8 +183,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const field = document.getElementById(inputId);
         if (!field) return;
         
+        // Get the parent node safely
+        const parent = field.parentNode;
+        if (!parent) return;
+        
         // Remove any existing error message
-        const existingError = field.parentNode.querySelector('.field-validation-error');
+        const existingError = parent.querySelector('.field-validation-error');
         if (existingError) {
             existingError.remove();
         }
@@ -155,7 +197,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const errorElement = document.createElement('span');
         errorElement.className = 'field-validation-error';
         errorElement.textContent = message;
-        field.parentNode.appendChild(errorElement);
+        parent.appendChild(errorElement);
     }
     
     // Function to generate a random password
@@ -201,6 +243,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 passwordModified = true;
                 passwordInput.classList.add('password-modified');
             }
+            
+            // Clear any validation messages
+            const errorElement = passwordInput.parentNode.querySelector('.field-validation-error');
+            if (errorElement) {
+                errorElement.remove();
+            }
+            passwordInput.classList.remove('invalid-input');
             
             // Show password briefly for better user experience
             passwordInput.type = 'text';
@@ -270,6 +319,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Reset button state
                 generateLicenseKeyBtn.textContent = 'Generate Key';
                 generateLicenseKeyBtn.disabled = false;
+                
+                // Clear any validation errors on the license key field
+                licenseKeyInput.classList.remove('invalid-input');
+                const errorElement = licenseKeyInput.parentNode.querySelector('.field-validation-error');
+                if (errorElement) {
+                    errorElement.remove();
+                }
                 
                 // Trigger the input event to format the license key
                 const inputEvent = new Event('input', { bubbles: true });
@@ -455,6 +511,15 @@ document.addEventListener('DOMContentLoaded', function() {
                             if (input.checked) {
                                 formData[input.name] = input.value === 'true';
                             }
+                        } else if (input.id === 'role') {
+                            // In edit mode, get the role from the license key
+                            if (isEditMode) {
+                                const licenseKey = document.getElementById('licenseKey').value;
+                                // Use the stored original role from the license key
+                                formData[input.name] = input.getAttribute('data-original-role');
+                            } else {
+                                formData[input.name] = input.value.toUpperCase();
+                            }
                         } else {
                             formData[input.name] = input.value;
                         }
@@ -467,6 +532,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Get the endpoint and method
                 const endpoint = isEditMode ? `/api/users/${formData.id}` : '/api/users';
                 const method = isEditMode ? 'PUT' : 'POST';
+                
+                // Log the form data for debugging
+                console.log('Submitting form data:', formData);
                 
                 // Submit the form data via AJAX
                 fetch(endpoint, {
@@ -584,8 +652,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 if (!this.value.trim()) {
                     this.classList.add('invalid-input');
-                    // Add error message
-                    const fieldName = this.previousElementSibling.textContent.replace('*', '').trim();
+                    // Add error message - with safe access to label
+                    const label = this.previousElementSibling;
+                    let fieldName;
+                    
+                    if (label && label.textContent) {
+                        fieldName = label.textContent.replace('*', '').trim();
+                    } else {
+                        // Fallback to formatted ID
+                        fieldName = this.id.charAt(0).toUpperCase() + this.id.slice(1);
+                    }
+                    
                     addValidationMessage(this.id, `${fieldName} is required`);
                 } else {
                     this.classList.remove('invalid-input');
@@ -604,7 +681,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (!this.value.trim()) {
                         this.classList.add('invalid-input');
                         // Add error message
-                        const fieldName = this.previousElementSibling.textContent.replace('*', '').trim();
+                        const label = this.previousElementSibling;
+                        // Safely get the field name, with fallback
+                        const fieldName = label && label.textContent ? 
+                            label.textContent.replace('*', '').trim() : 
+                            this.id.charAt(0).toUpperCase() + this.id.slice(1);
                         addValidationMessage(this.id, `${fieldName} is required`);
                     } else {
                         this.classList.remove('invalid-input');

@@ -17,7 +17,7 @@
             <h1>License Keys Management</h1>
         </div>
         
-        <!-- Alert messages with improved styling -->
+        <!-- Alert messages -->
         <div class="alert alert-success" th:if="${successMessage}" th:text="${successMessage}"></div>
         <div class="alert alert-danger" th:if="${errorMessage}" th:text="${errorMessage}"></div>
         
@@ -37,10 +37,10 @@
                         <label for="statusFilter">Status:</label>
                         <select id="statusFilter" name="statusFilter" class="form-control">
                             <option value="">All Statuses</option>
-                            <option value="Active" th:selected="${param.statusFilter eq 'Active'}">Active</option>
-                            <option value="Used" th:selected="${param.statusFilter eq 'Used'}">Used</option>
-                            <option value="Expired" th:selected="${param.statusFilter eq 'Expired'}">Expired</option>
-                            <option value="Deactivated" th:selected="${param.statusFilter eq 'Deactivated'}">Deactivated</option>
+                            <option value="ACTIVE" th:selected="${param.statusFilter eq 'ACTIVE'}">Active</option>
+                            <option value="USED" th:selected="${param.statusFilter eq 'USED'}">Used</option>
+                            <option value="EXPIRED" th:selected="${param.statusFilter eq 'EXPIRED'}">Expired</option>
+                            <option value="DEACTIVATED" th:selected="${param.statusFilter eq 'DEACTIVATED'}">Deactivated</option>
                         </select>
                     </div>
                     
@@ -92,10 +92,7 @@
                                     <span th:class="${'status-badge status-' + #strings.toLowerCase(licenseKey.status)}" 
                                           th:text="${licenseKey.status}"></span>
                                 </td>
-                                <td>
-                                    <span th:class="${'role-badge role-' + #strings.toLowerCase(licenseKey.role)}" 
-                                          th:text="${licenseKey.role}"></span>
-                                </td>
+                                <td th:text="${licenseKey.role}"></td>
                                 <td>
                                     <span th:if="${licenseKey.user != null and userNames.get(licenseKey.user) != null}" 
                                           th:text="${userNames.get(licenseKey.user)}"></span>
@@ -114,10 +111,20 @@
                                            class="btn btn-sm btn-primary" title="Edit">
                                             <i class="fas fa-edit"></i>
                                         </a>
-                                        <!-- <button type="button" class="btn btn-sm btn-info copy-btn" 
+                                        <a th:if="${licenseKey.status == 'ACTIVE'}" 
+                                           th:href="@{/licenses/deactivate/{id}(id=${licenseKey.id})}" 
+                                           class="btn btn-sm btn-deactivate" title="Deactivate">
+                                            <i class="fas fa-ban"></i>
+                                        </a>
+                                        <a th:if="${licenseKey.status == 'DEACTIVATED'}" 
+                                           th:href="@{/licenses/reactivate/{id}(id=${licenseKey.id})}" 
+                                           class="btn btn-sm btn-reactivate" title="Reactivate">
+                                            <i class="fas fa-check"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-info copy-btn" 
                                                 th:data-key="${licenseKey.key}" title="Copy to Clipboard">
                                             <i class="fas fa-copy"></i>
-                                        </button> -->
+                                        </button>
                                         <form th:action="@{/licenses/delete/{id}(id=${licenseKey.id})}" method="post" style="display:inline;">
                                             <button type="submit" class="btn btn-sm btn-danger" 
                                                    onclick="return confirm('Are you sure you want to delete this license key?')" title="Delete">

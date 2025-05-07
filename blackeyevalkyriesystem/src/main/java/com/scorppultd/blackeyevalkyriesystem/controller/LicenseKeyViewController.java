@@ -258,9 +258,7 @@ public class LicenseKeyViewController {
             // Save the updated license key directly using repository
             licenseKeyRepository.save(licenseKey);
             
-            // Add success message
-            redirectAttributes.addFlashAttribute("successMessage", 
-                "License key " + licenseKey.getKey() + " updated successfully");
+            // Success message removed as requested
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Error updating license key: " + e.getMessage());
         }
