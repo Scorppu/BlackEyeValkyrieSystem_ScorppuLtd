@@ -746,38 +746,38 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Make the confirmPassword required now if it exists
                 if (confirmPasswordInput) {
-                    confirmPasswordInput.setAttribute('required', 'required');
-                    confirmPasswordInput.placeholder = 'Re-enter your password';
+                confirmPasswordInput.setAttribute('required', 'required');
+                confirmPasswordInput.placeholder = 'Re-enter your password';
                 }
             });
         }
         
         // Only add event listeners to confirmPasswordInput if it exists
         if (confirmPasswordInput) {
-            confirmPasswordInput.addEventListener('blur', function() {
-                // Remove existing error message
-                const errorElement = this.parentNode.querySelector('.field-validation-error');
-                if (errorElement) {
-                    errorElement.remove();
-                }
-                
-                // In edit mode, only validate if password field has been modified
-                const shouldValidate = !isEditMode || (isEditMode && passwordModified);
-                
-                if (shouldValidate) {
-                    if (!this.value.trim()) {
-                        this.classList.add('invalid-input');
-                        addValidationMessage('confirmPassword', 'Confirm Password is required');
-                    } else if (this.value !== passwordInput.value) {
-                        this.classList.add('invalid-input');
-                        addValidationMessage('confirmPassword', 'Passwords do not match');
-                    } else {
-                        this.classList.remove('invalid-input');
-                    }
+        confirmPasswordInput.addEventListener('blur', function() {
+            // Remove existing error message
+            const errorElement = this.parentNode.querySelector('.field-validation-error');
+            if (errorElement) {
+                errorElement.remove();
+            }
+            
+            // In edit mode, only validate if password field has been modified
+            const shouldValidate = !isEditMode || (isEditMode && passwordModified);
+            
+            if (shouldValidate) {
+                if (!this.value.trim()) {
+                    this.classList.add('invalid-input');
+                    addValidationMessage('confirmPassword', 'Confirm Password is required');
+                } else if (this.value !== passwordInput.value) {
+                    this.classList.add('invalid-input');
+                    addValidationMessage('confirmPassword', 'Passwords do not match');
                 } else {
                     this.classList.remove('invalid-input');
                 }
-            });
+            } else {
+                this.classList.remove('invalid-input');
+            }
+        });
             
             // Add an event listener to confirmPassword in edit mode
             if (isEditMode) {
@@ -790,44 +790,44 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Also check password match when password field changes
         if (passwordInput && confirmPasswordInput) {
-            passwordInput.addEventListener('input', function() {
-                if (confirmPasswordInput.value) {
-                    // Remove existing error message
+        passwordInput.addEventListener('input', function() {
+            if (confirmPasswordInput.value) {
+                // Remove existing error message
+                const errorElement = confirmPasswordInput.parentNode.querySelector('.field-validation-error');
+                if (errorElement) {
+                    errorElement.remove();
+                }
+                
+                if (this.value !== confirmPasswordInput.value) {
+                    confirmPasswordInput.classList.add('invalid-input');
+                    addValidationMessage('confirmPassword', 'Passwords do not match');
+                } else {
+                    confirmPasswordInput.classList.remove('invalid-input');
+                }
+            }
+            
+            // In edit mode, dynamically set confirmPassword as required when password has a value
+            if (isEditMode) {
+                if (this.value.trim()) {
+                    confirmPasswordInput.setAttribute('required', 'required');
+                } else {
+                    confirmPasswordInput.removeAttribute('required');
+                    // Clear any error when password is empty
+                    confirmPasswordInput.classList.remove('invalid-input');
                     const errorElement = confirmPasswordInput.parentNode.querySelector('.field-validation-error');
                     if (errorElement) {
                         errorElement.remove();
                     }
-                    
-                    if (this.value !== confirmPasswordInput.value) {
-                        confirmPasswordInput.classList.add('invalid-input');
-                        addValidationMessage('confirmPassword', 'Passwords do not match');
-                    } else {
-                        confirmPasswordInput.classList.remove('invalid-input');
-                    }
                 }
-                
-                // In edit mode, dynamically set confirmPassword as required when password has a value
-                if (isEditMode) {
-                    if (this.value.trim()) {
-                        confirmPasswordInput.setAttribute('required', 'required');
-                    } else {
-                        confirmPasswordInput.removeAttribute('required');
-                        // Clear any error when password is empty
-                        confirmPasswordInput.classList.remove('invalid-input');
-                        const errorElement = confirmPasswordInput.parentNode.querySelector('.field-validation-error');
-                        if (errorElement) {
-                            errorElement.remove();
-                        }
-                    }
-                }
-            });
+            }
+        });
         }
     }
     
     // Function to update license key with user information
     function updateLicenseKeyWithUser(licenseKey, userId) {
         console.log(`Attempting to update license key ${licenseKey} for user ${userId}`);
-        
+            
         // First check if the license key exists and is active
         return fetch(`/api/licenses/${licenseKey}`)
             .then(response => {
@@ -857,9 +857,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         licenseKey: licenseKey,
                         userId: userId
                     })
-                })
-                .then(response => {
-                    if (!response.ok) {
+            })
+            .then(response => {
+                if (!response.ok) {
                         return response.text().then(text => {
                             // Try to parse as JSON, but handle case where it's not JSON
                             try {
@@ -885,6 +885,6 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(error => {
                 console.error('Error in updateLicenseKeyWithUser:', error);
                 return Promise.reject(error);
-            });
+        });
     }
 });

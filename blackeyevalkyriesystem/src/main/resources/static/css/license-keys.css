@@ -72,13 +72,15 @@
     flex-wrap: wrap;
     gap: 15px;
     align-items: flex-end;
+    width: 100%;
 }
 
 .filter-group {
     display: flex;
     flex-direction: column;
     gap: 5px;
-    min-width: 170px;
+    flex: 1;
+    min-width: 140px;
 }
 
 .filter-group label {
@@ -95,6 +97,7 @@
     color: var(--primary-text);
     height: 38px;
     box-sizing: border-box;
+    width: 100%;
 }
 
 .btn-filter {
@@ -163,12 +166,12 @@ border-bottom: 1px solid var(--border-color);
 font-weight: 500;
 }
 
-.data-table th:nth-child(1) { width: 29%; } /* Key */
+.data-table th:nth-child(1) { width: 30%; } /* Key */
 .data-table th:nth-child(2) { width: 10%; } /* Status */
 .data-table th:nth-child(3) { width: 10%; } /* Role */
-.data-table th:nth-child(4) { width: 20%; } /* User */
-.data-table th:nth-child(5) { width: 14%; } /* Expiry Date */
-.data-table th:nth-child(6) { width: 16%; } /* Action */
+.data-table th:nth-child(4) { width: 21%; } /* User */
+.data-table th:nth-child(5) { width: 16%; } /* Expiry Date */
+.data-table th:nth-child(6) { width: 12%; } /* Action */
 .data-table td {
     padding: 12px 10px;
     text-align: left;
@@ -302,4 +305,235 @@ font-weight: 500;
     font-family: 'Courier New', Courier, monospace;
     font-size: 1.1em;
     letter-spacing: 0.5px;
+}
+
+/* Role badge styles */
+.role-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.role-badge.admin {
+    background-color: rgba(138, 43, 226, 0.2);
+    color: #8A2BE2;
+}
+
+.role-badge.doctor {
+    background-color: rgba(35, 178, 126, 0.2);
+    color: #23b27e;
+}
+
+.role-badge.nurse {
+    background-color: rgba(64, 115, 255, 0.2);
+    color: #4073FF;
+}
+
+/* Alert styling */
+.alert {
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.alert-success {
+    background-color: rgba(35, 178, 126, 0.15);
+    color: #23b27e;
+    border: 1px solid rgba(35, 178, 126, 0.3);
+}
+
+.alert-danger {
+    background-color: rgba(220, 53, 69, 0.15);
+    color: #dc3545;
+    border: 1px solid rgba(220, 53, 69, 0.3);
+}
+
+.alert .monospace-font {
+    display: inline;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: 600;
+    padding: 0.1rem 0.3rem;
+    background-color: rgba(0, 0, 0, 0.05);
+    border-radius: 0.25rem;
+}
+
+/* Delete Confirmation Modal styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-header {
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.modal-content {
+    background-color: var(--primary-bg);
+    margin: 15% auto;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    width: 450px;
+    max-width: 90%;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.modal-title {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 1.5rem;
+}
+
+.modal-title.error {
+    color: #ff4d4d;
+}
+
+.modal-body {
+    margin-bottom: 20px;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+    margin-top: 1rem;
+}
+
+.text-danger {
+    color: #dc3545;
+    font-size: 0.9rem;
+    margin-top: 8px;
+}
+
+/* Modal button styles */
+.modal-footer .btn {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 0.5rem;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.2s;
+}
+
+.modal-footer .btn:active {
+    transform: translateY(1px);
+}
+
+.modal-footer .btn-secondary {
+    background-color: var(--secondary-bg);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+}
+
+.modal-footer .btn-secondary:hover {
+    background-color: #e0e0e0;
+}
+
+.modal-footer .btn-danger {
+    background-color: #ff4d4d;
+    color: white;
+}
+
+.modal-footer .btn-danger:hover {
+    background-color: #e63939;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1080px) {
+    .btn-filter, 
+    .btn-reset-filter {
+        margin-top: 10px;
+        flex: 1;
+        justify-content: center;
+    }
+    
+    .filter-group {
+        flex-basis: 30%;
+    }
+}
+
+/* Hide role column on smaller screens */
+@media (max-width: 1050px) {
+    /* Hide role column */
+    .data-table th:nth-child(3),
+    .data-table td:nth-child(3) {
+        display: none;
+    }
+    
+    /* Adjust column widths for the remaining columns */
+    .data-table th:nth-child(1) { width: 45%; } /* Key */
+    .data-table th:nth-child(2) { width: 15%; } /* Status */
+    .data-table th:nth-child(4) { width: 27%; } /* User */
+    .data-table th:nth-child(6) { width: 13%; } /* Action */
+    
+    /* Add tooltip capability to license key column to show role */
+    .data-table td.monospace-font:hover::after {
+        content: "Role: " attr(data-role) " | Expires: " attr(data-expiry);
+        position: absolute;
+        bottom: 100%;
+        left: 0;
+        background-color: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-family: sans-serif;
+        font-size: 12px;
+        white-space: nowrap;
+        z-index: 10;
+    }
+}
+
+/* Responsive table */
+@media (max-width: 1200px) {
+    /* Hide expiry date column */
+    .data-table th:nth-child(5),
+    .data-table td:nth-child(5) {
+        display: none;
+    }
+    
+    /* Adjust column widths for the remaining columns */
+    .data-table th:nth-child(1) { width: 40%; } /* Key */
+    .data-table th:nth-child(2) { width: 11%; } /* Status */
+    .data-table th:nth-child(3) { width: 10%; } /* Role */
+    .data-table th:nth-child(4) { width: 26%; } /* User */
+    .data-table th:nth-child(6) { width: 13%; } /* Action */
+    
+    /* Add tooltip capability to license key column */
+    .data-table td.monospace-font {
+        position: relative;
+        cursor: help;
+    }
+    
+    /* For screen sizes between 1050px and 1200px, only show expiry date in tooltip */
+    .data-table td.monospace-font:hover::after {
+        content: "Expires: " attr(data-expiry);
+        position: absolute;
+        bottom: 100%;
+        left: 0;
+        background-color: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-family: sans-serif;
+        font-size: 12px;
+        white-space: nowrap;
+        z-index: 10;
+    }
 }

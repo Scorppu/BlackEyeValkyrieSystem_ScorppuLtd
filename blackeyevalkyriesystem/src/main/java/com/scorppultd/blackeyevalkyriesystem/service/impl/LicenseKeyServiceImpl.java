@@ -263,12 +263,12 @@ public class LicenseKeyServiceImpl implements LicenseKeyService {
         LocalDate todayUtc = LocalDate.now();
         logger.info("Starting manual check for all expired license keys");
         
-        // Get all license keys that aren't already expired
+        // Get all ACTIVE license keys only - exclude USED, EXPIRED, and DEACTIVATED
         List<LicenseKey> licenses = licenseKeyRepository.findAll().stream()
-            .filter(license -> !LicenseKey.Status.EXPIRED.equals(license.getStatus()))
+            .filter(license -> LicenseKey.Status.ACTIVE.equals(license.getStatus()))
             .toList();
         
-        logger.info("Found {} non-expired license keys to check", licenses.size());
+        logger.info("Found {} active license keys to check", licenses.size());
         
         int expiredCount = 0;
         for (LicenseKey license : licenses) {
@@ -288,8 +288,8 @@ public class LicenseKeyServiceImpl implements LicenseKeyService {
      */
     @Override
     public boolean checkAndUpdateLicenseKeyExpiration(LicenseKey licenseKey) {
-        // No need to check already expired licenses
-        if (LicenseKey.Status.EXPIRED.equals(licenseKey.getStatus())) {
+        // Only check ACTIVE licenses
+        if (!LicenseKey.Status.ACTIVE.equals(licenseKey.getStatus())) {
             return false;
         }
         

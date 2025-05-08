@@ -258,7 +258,10 @@ public class LicenseKeyViewController {
             // Save the updated license key directly using repository
             licenseKeyRepository.save(licenseKey);
             
-            // Success message removed as requested
+            // Add success message
+            redirectAttributes.addFlashAttribute("successMessage", 
+                "License key <span class='monospace-font'>" + licenseKey.getKey() + "</span> has been updated");
+            
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Error updating license key: " + e.getMessage());
         }
@@ -294,18 +297,25 @@ public class LicenseKeyViewController {
      * @return Redirect to license key list
      */
     @PostMapping("/generate")
-    public String generateLicenseKey(
-            String role, 
-            String expiryOption, 
-            String customDate, 
+    public String generateLicenseKeySubmit(
+            @RequestParam String role,
+            @RequestParam String expiryOption,
+            @RequestParam(required = false) String customDate,
             RedirectAttributes redirectAttributes) {
         
-        // Convert role to lowercase
-        String normalizedRole = role != null ? role.toLowerCase() : role;
+        // Normalize role to lowercase (for case-insensitive comparison)
+        String normalizedRole = role.toLowerCase();
         
+        // Validate role
+        if (!normalizedRole.equals("admin") && !normalizedRole.equals("doctor") && !normalizedRole.equals("nurse")) {
+            redirectAttributes.addFlashAttribute("errorMessage", 
+                    "Invalid role. Must be admin, doctor, or nurse.");
+            return "redirect:/licenses/generate";
+        }
+        
+        // Determine expiry date
         LocalDate expiresOn = null;
         
-        // Set expiry date based on option
         switch (expiryOption) {
             case "7days":
                 expiresOn = LocalDate.now().plusDays(7);
@@ -323,18 +333,27 @@ public class LicenseKeyViewController {
                 expiresOn = LocalDate.now().plusDays(365);
                 break;
             case "noexpiry":
-                expiresOn = LocalDate.of(2099, 12, 31);
+                // No expiry date
                 break;
             case "custom":
-                if (customDate != null && !customDate.isEmpty()) {
-                    try {
-                        expiresOn = LocalDate.parse(customDate, DateTimeFormatter.ISO_LOCAL_DATE);
-                    } catch (Exception e) {
-                        redirectAttributes.addFlashAttribute("errorMessage", "Invalid date format");
+                try {
+                    expiresOn = LocalDate.parse(customDate);
+                    // Check if the date is in the past
+                    if (expiresOn.isBefore(LocalDate.now())) {
+                        redirectAttributes.addFlashAttribute("errorMessage", 
+                                "Expiry date cannot be in the past.");
                         return "redirect:/licenses/generate";
                     }
+                } catch (Exception e) {
+                    redirectAttributes.addFlashAttribute("errorMessage", 
+                            "Invalid custom date format. Please use YYYY-MM-DD format.");
+                    return "redirect:/licenses/generate";
                 }
                 break;
+            default:
+                redirectAttributes.addFlashAttribute("errorMessage", 
+                        "Invalid expiry option.");
+                return "redirect:/licenses/generate";
         }
         
         try {
@@ -353,7 +372,7 @@ public class LicenseKeyViewController {
             LicenseKey savedKey = licenseKeyService.createLicenseKey(licenseKey);
             
             redirectAttributes.addFlashAttribute("successMessage", 
-                    "License key generated successfully: " + savedKey.getKey());
+                    "License key <span class='monospace-font'>" + savedKey.getKey() + "</span> has been generated");
             
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", 

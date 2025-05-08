@@ -4,6 +4,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Convert UTC dates to local timezone
     convertDatesToLocalTimezone();
     
+    // Preserve filter selections
+    preserveFilterSettings();
+    
     // Create notification element
     const notification = document.createElement('div');
     notification.className = 'copy-notification';
@@ -149,5 +152,53 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }, 300);
         }, 1500);
+    }
+
+    // Function to preserve filter settings and handle responsive filters
+    function preserveFilterSettings() {
+        // Get current URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        // Get filter elements
+        const statusFilter = document.getElementById('statusFilter');
+        const roleFilter = document.getElementById('roleFilter');
+        const sortOrder = document.getElementById('sortOrder');
+        
+        // Set values from URL parameters if present
+        if (statusFilter && urlParams.has('statusFilter')) {
+            statusFilter.value = urlParams.get('statusFilter');
+        }
+        
+        if (roleFilter && urlParams.has('roleFilter')) {
+            roleFilter.value = urlParams.get('roleFilter');
+        }
+        
+        if (sortOrder && urlParams.has('sortOrder')) {
+            sortOrder.value = urlParams.get('sortOrder');
+        }
+
+        // When filter form is submitted, ensure hidden filter values are preserved
+        const filterForm = document.querySelector('.filter-form');
+        if (filterForm) {
+            filterForm.addEventListener('submit', function(e) {
+                // Store filter values in localStorage before submission
+                if (statusFilter) localStorage.setItem('licenseKeyStatusFilter', statusFilter.value);
+                if (roleFilter) localStorage.setItem('licenseKeyRoleFilter', roleFilter.value);
+                if (sortOrder) localStorage.setItem('licenseKeySortOrder', sortOrder.value);
+            });
+        }
+        
+        // Also restore values from localStorage when page loads if URL params are empty
+        if (statusFilter && !urlParams.has('statusFilter') && localStorage.getItem('licenseKeyStatusFilter')) {
+            statusFilter.value = localStorage.getItem('licenseKeyStatusFilter');
+        }
+        
+        if (roleFilter && !urlParams.has('roleFilter') && localStorage.getItem('licenseKeyRoleFilter')) {
+            roleFilter.value = localStorage.getItem('licenseKeyRoleFilter');
+        }
+        
+        if (sortOrder && !urlParams.has('sortOrder') && localStorage.getItem('licenseKeySortOrder')) {
+            sortOrder.value = localStorage.getItem('licenseKeySortOrder');
+        }
     }
 });
