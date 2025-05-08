@@ -4,11 +4,78 @@ document.addEventListener('DOMContentLoaded', function() {
     const alertContent = document.querySelector('.alert-danger');
     const isEditMode = document.getElementById('userId') !== null;
     
+    // Add edit-mode class to form container if in edit mode
+    if (isEditMode) {
+        const formContainer = document.querySelector('.user-form-container');
+        if (formContainer) {
+            formContainer.classList.add('edit-mode');
+        }
+    }
+    
     // Define licenseKeyPattern at the top level
     const licenseKeyPattern = /^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/;
     
     // Track if the password has been modified in edit mode
     let passwordModified = false;
+    
+    // License key generation
+    const generateLicenseKeyBtn = document.getElementById('generateLicenseKeyBtn');
+    const roleSelect = document.getElementById('role');
+    const licenseKeyInput = document.getElementById('licenseKey');
+    
+    // Hide license key and role fields in edit mode
+    if (isEditMode) {
+        const licenseKeyGroup = licenseKeyInput.closest('.form-group');
+        const roleGroup = roleSelect.closest('.form-group');
+        
+        // Make license key field read-only instead of hiding it
+        if (licenseKeyInput) {
+            licenseKeyInput.setAttribute('readonly', 'readonly');
+            licenseKeyInput.classList.add('readonly-input');
+            // Hide the generate button in edit mode
+            const generateBtn = document.getElementById('generateLicenseKeyBtn');
+            if (generateBtn) {
+                generateBtn.style.display = 'none';
+            }
+            
+            // Get the role from the license key
+            const licenseKey = licenseKeyInput.value;
+            if (licenseKey) {
+                fetch(`/api/licenses/${licenseKey}`)
+                    .then(response => {
+                        if (response.ok) {
+                            return response.json();
+                        }
+                        throw new Error('Failed to fetch license key data');
+                    })
+                    .then(data => {
+                        if (data && data.role) {
+                            // Set the role in the select element
+                            roleSelect.value = data.role.toLowerCase();
+                            // Store the original role value
+                            roleSelect.setAttribute('data-original-role', data.role.toUpperCase());
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching license key data:', error);
+                    });
+            }
+        }
+        
+        // Make role field read-only instead of hiding it
+        if (roleSelect) {
+            roleSelect.setAttribute('disabled', 'disabled');
+            roleSelect.classList.add('readonly-input');
+        }
+    }
+    
+    // Password generation and toggle
+    const generatePasswordBtn = document.getElementById('generatePasswordBtn');
+    const togglePasswordBtn = document.getElementById('togglePasswordBtn');
+    const passwordInput = document.getElementById('password');
+    
+    // Get confirmPasswordInput (may not exist)
+    const confirmPasswordInput = document.getElementById('confirmPassword');
     
     // Success modal elements
     const successModal = document.getElementById('successModal');
@@ -116,8 +183,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const field = document.getElementById(inputId);
         if (!field) return;
         
+        // Get the parent node safely
+        const parent = field.parentNode;
+        if (!parent) return;
+        
         // Remove any existing error message
-        const existingError = field.parentNode.querySelector('.field-validation-error');
+        const existingError = parent.querySelector('.field-validation-error');
         if (existingError) {
             existingError.remove();
         }
@@ -126,7 +197,159 @@ document.addEventListener('DOMContentLoaded', function() {
         const errorElement = document.createElement('span');
         errorElement.className = 'field-validation-error';
         errorElement.textContent = message;
-        field.parentNode.appendChild(errorElement);
+        parent.appendChild(errorElement);
+    }
+    
+    // Function to generate a random password
+    function generateRandomPassword(length = 8) {
+        const uppercaseChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const lowercaseChars = 'abcdefghijklmnopqrstuvwxyz';
+        const numberChars = '0123456789';
+        
+        // Ensure at least one of each character type
+        let password = '';
+        password += uppercaseChars.charAt(Math.floor(Math.random() * uppercaseChars.length));
+        password += lowercaseChars.charAt(Math.floor(Math.random() * lowercaseChars.length));
+        password += numberChars.charAt(Math.floor(Math.random() * numberChars.length));
+        
+        // Complete the rest of the password
+        const allChars = uppercaseChars + lowercaseChars + numberChars;
+        for (let i = 3; i < length; i++) {
+            password += allChars.charAt(Math.floor(Math.random() * allChars.length));
+        }
+        
+        // Shuffle the password characters
+        return shuffleString(password);
+    }
+    
+    // Function to shuffle a string (Fisher-Yates algorithm)
+    function shuffleString(string) {
+        const array = string.split('');
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array.join('');
+    }
+    
+    // Add event listener for the generate password button
+    if (generatePasswordBtn) {
+        generatePasswordBtn.addEventListener('click', function() {
+            const randomPassword = generateRandomPassword(8);
+            passwordInput.value = randomPassword;
+            
+            // Mark the password as modified in edit mode
+            if (isEditMode) {
+                passwordModified = true;
+                passwordInput.classList.add('password-modified');
+            }
+            
+            // Clear any validation messages
+            const errorElement = passwordInput.parentNode.querySelector('.field-validation-error');
+            if (errorElement) {
+                errorElement.remove();
+            }
+            passwordInput.classList.remove('invalid-input');
+            
+            // Show password briefly for better user experience
+            passwordInput.type = 'text';
+            setTimeout(() => {
+                passwordInput.type = 'password';
+            }, 1500);
+        });
+    }
+    
+    // Add event listener for the toggle password button
+    if (togglePasswordBtn) {
+        togglePasswordBtn.addEventListener('click', function() {
+            const type = passwordInput.type === 'password' ? 'text' : 'password';
+            passwordInput.type = type;
+            
+            // Toggle the eye icon
+            const icon = this.querySelector('i');
+            if (type === 'password') {
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            } else {
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            }
+        });
+    }
+    
+    // Function to generate a license key
+    if (generateLicenseKeyBtn) {
+        generateLicenseKeyBtn.addEventListener('click', function() {
+            const selectedRole = roleSelect.value.toLowerCase(); // Convert to lowercase
+            
+            if (!selectedRole) {
+                showErrorModal('Please select a role first');
+                return;
+            }
+            
+            // Show generating state
+            generateLicenseKeyBtn.textContent = 'Generating...';
+            generateLicenseKeyBtn.disabled = true;
+            
+            // Call the API to generate a license key
+            fetch('/api/licenses/generate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    role: selectedRole,
+                    expiryOption: 'custom',
+                    customDate: getTwoDaysLaterDate() // Function to get date 2 days later
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to generate license key');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Set the license key in the input field
+                licenseKeyInput.value = data.licenseKey;
+                
+                // Format the expiry date for display in a tooltip or message
+                const expiryDate = data.expiresOn ? new Date(data.expiresOn).toLocaleDateString() : 'No expiry';
+                
+                // Reset button state
+                generateLicenseKeyBtn.textContent = 'Generate Key';
+                generateLicenseKeyBtn.disabled = false;
+                
+                // Clear any validation errors on the license key field
+                licenseKeyInput.classList.remove('invalid-input');
+                const errorElement = licenseKeyInput.parentNode.querySelector('.field-validation-error');
+                if (errorElement) {
+                    errorElement.remove();
+                }
+                
+                // Trigger the input event to format the license key
+                const inputEvent = new Event('input', { bubbles: true });
+                licenseKeyInput.dispatchEvent(inputEvent);
+                
+                // Show success notification if needed
+                console.log('License key generated successfully:', data.licenseKey);
+            })
+            .catch(error => {
+                console.error('Error generating license key:', error);
+                showErrorModal('Failed to generate license key: ' + error.message);
+                
+                // Reset button state
+                generateLicenseKeyBtn.textContent = 'Generate Key';
+                generateLicenseKeyBtn.disabled = false;
+            });
+        });
+    }
+    
+    // Function to get date 2 days later in YYYY-MM-DD format
+    function getTwoDaysLaterDate() {
+        const date = new Date();
+        date.setDate(date.getDate() + 2);
+        return date.toISOString().split('T')[0]; // Returns YYYY-MM-DD
     }
     
     // Function to validate the form
@@ -139,22 +362,18 @@ document.addEventListener('DOMContentLoaded', function() {
             { id: 'username', name: 'Username' },
             { id: 'firstName', name: 'First Name' },
             { id: 'lastName', name: 'Last Name' },
-            { id: 'email', name: 'Email' },
-            { id: 'licenseKey', name: 'License Key' },
-            { id: 'role', name: 'Role' }
+            { id: 'email', name: 'Email' }
         ];
         
-        // Add password and confirmPassword to required fields if not in edit mode
-        // or if password field has been modified in edit mode
-        const passwordInput = document.getElementById('password');
-        const confirmPasswordInput = document.getElementById('confirmPassword');
+        // Add role and license key to required fields if not in edit mode
+        if (!isEditMode) {
+            requiredFields.push({ id: 'role', name: 'Role' });
+            requiredFields.push({ id: 'licenseKey', name: 'License Key' });
+        }
         
+        // Add password to required fields if not in edit mode
         if (!isEditMode) {
             requiredFields.push({ id: 'password', name: 'Password' });
-            requiredFields.push({ id: 'confirmPassword', name: 'Confirm Password' });
-        } else if (passwordModified) {
-            // In edit mode, confirmPassword is required only if password has been modified
-            requiredFields.push({ id: 'confirmPassword', name: 'Confirm Password' });
         }
         
         // Clear all existing validation messages first
@@ -176,17 +395,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 addValidationMessage(field.id, errorMessage);
             }
         });
-        
-        // Check if passwords match when not in edit mode or if password field has a value in edit mode
-        if (!isEditMode || (isEditMode && passwordInput.value.trim())) {
-            if (passwordInput.value && confirmPasswordInput.value && 
-                passwordInput.value !== confirmPasswordInput.value) {
-                const errorMessage = 'Passwords do not match';
-                errors.push(errorMessage);
-                invalidFields.push('confirmPassword');
-                addValidationMessage('confirmPassword', errorMessage);
-            }
-        }
         
         // Validate email format
         const emailInput = document.getElementById('email');
@@ -213,6 +421,159 @@ document.addEventListener('DOMContentLoaded', function() {
             isValid: errors.length === 0,
             errors: errors
         };
+    }
+    
+    // Add validation to check if license key role matches selected role
+    function validateLicenseKeyRole() {
+        const licenseKey = licenseKeyInput.value.trim();
+        const selectedRole = roleSelect.value.toLowerCase(); // Convert to lowercase
+        
+        if (!licenseKey || !selectedRole) {
+            return Promise.resolve({ valid: false, message: 'License key and role are required' });
+        }
+        
+        return fetch(`/api/licenses/${licenseKey}`)
+            .then(response => {
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        return { valid: false, message: 'License key not found' };
+                    }
+                    throw new Error('Error validating license key');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Check license key status
+                if (data.status !== 'Active') {
+                    return { 
+                        valid: false, 
+                        message: `License key is ${data.status.toLowerCase()}. Only active license keys can be used.` 
+                    };
+                }
+                
+                // Check role match - convert both to lowercase for comparison
+                if (data.role.toLowerCase() !== selectedRole) {
+                    return { 
+                        valid: false, 
+                        message: `License key is for role ${data.role.toLowerCase()}, but you selected ${selectedRole}` 
+                    };
+                }
+                
+                return { valid: true, licenseKeyData: data };
+            })
+            .catch(error => {
+                console.error('Error checking license key:', error);
+                return { valid: false, message: 'Error validating license key' };
+            });
+    }
+    
+    // Submit form handler - add validation for license key role
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // First validate the form fields
+            const validation = validateForm();
+            
+            if (!validation.isValid) {
+                showValidationPopup(validation.errors);
+                return;
+            }
+            
+            // Skip license key validation in edit mode
+            if (!isEditMode) {
+                // Then validate license key role
+                validateLicenseKeyRole().then(result => {
+                    if (!result.valid) {
+                        showErrorModal(result.message);
+                        return;
+                    }
+                    submitFormData();
+                });
+            } else {
+                // In edit mode, skip license key validation
+                submitFormData();
+            }
+            
+            // Function to submit form data
+            function submitFormData() {
+                // Get form data
+                const formData = {};
+                const formInputs = form.querySelectorAll('input, select');
+                formInputs.forEach(input => {
+                    // Skip empty password in edit mode
+                    if (isEditMode && input.id === 'password' && !input.value) {
+                        return;
+                    }
+                    
+                    if (input.name) {
+                        if (input.type === 'radio') {
+                            if (input.checked) {
+                                formData[input.name] = input.value === 'true';
+                            }
+                        } else if (input.id === 'role') {
+                            // In edit mode, get the role from the license key
+                            if (isEditMode) {
+                                const licenseKey = document.getElementById('licenseKey').value;
+                                // Use the stored original role from the license key
+                                formData[input.name] = input.getAttribute('data-original-role');
+                            } else {
+                                formData[input.name] = input.value.toUpperCase();
+                            }
+                        } else {
+                            formData[input.name] = input.value;
+                        }
+                    }
+                });
+                
+                // Always set active to true
+                formData.active = true;
+                
+                // Get the endpoint and method
+                const endpoint = isEditMode ? `/api/users/${formData.id}` : '/api/users';
+                const method = isEditMode ? 'PUT' : 'POST';
+                
+                // Log the form data for debugging
+                console.log('Submitting form data:', formData);
+                
+                // Submit the form data via AJAX
+                fetch(endpoint, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(data => {
+                            throw new Error(data.message || 'An error occurred');
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Now update the license key to associate it with the new user
+                    if (!isEditMode) {
+                        const licenseKey = document.getElementById('licenseKey').value;
+                        updateLicenseKeyWithUser(licenseKey, data.id)
+                            .then(() => {
+                                showSuccessModal(`User ${isEditMode ? 'updated' : 'created'} successfully`);
+                            })
+                            .catch(error => {
+                                console.error('Error updating license key:', error);
+                                showErrorModal(`User created but failed to update license key: ${error.message}`);
+                            });
+                    } else {
+                        showSuccessModal(`User ${isEditMode ? 'updated' : 'created'} successfully`);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showErrorModal(error.message || 'An error occurred');
+                });
+            }
+        });
     }
     
     // Helper function to validate email
@@ -291,8 +652,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 if (!this.value.trim()) {
                     this.classList.add('invalid-input');
-                    // Add error message
-                    const fieldName = this.previousElementSibling.textContent.replace('*', '').trim();
+                    // Add error message - with safe access to label
+                    const label = this.previousElementSibling;
+                    let fieldName;
+                    
+                    if (label && label.textContent) {
+                        fieldName = label.textContent.replace('*', '').trim();
+                    } else {
+                        // Fallback to formatted ID
+                        fieldName = this.id.charAt(0).toUpperCase() + this.id.slice(1);
+                    }
+                    
                     addValidationMessage(this.id, `${fieldName} is required`);
                 } else {
                     this.classList.remove('invalid-input');
@@ -311,7 +681,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (!this.value.trim()) {
                         this.classList.add('invalid-input');
                         // Add error message
-                        const fieldName = this.previousElementSibling.textContent.replace('*', '').trim();
+                        const label = this.previousElementSibling;
+                        // Safely get the field name, with fallback
+                        const fieldName = label && label.textContent ? 
+                            label.textContent.replace('*', '').trim() : 
+                            this.id.charAt(0).toUpperCase() + this.id.slice(1);
                         addValidationMessage(this.id, `${fieldName} is required`);
                     } else {
                         this.classList.remove('invalid-input');
@@ -360,12 +734,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        // Add validation for confirm password
-        const passwordInput = document.getElementById('password');
-        const confirmPasswordInput = document.getElementById('confirmPassword');
-        
+        // Add validation for confirm password if it exists in the form
         // In edit mode, track if password has been modified
-        if (isEditMode) {
+        if (isEditMode && passwordInput) {
             passwordInput.addEventListener('input', function() {
                 passwordModified = true;
                 this.classList.add('password-modified');
@@ -373,12 +744,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Set the placeholder back to normal now that the user is typing
                 this.placeholder = 'Please do not enter a simple password';
                 
-                // Make the confirmPassword required now
+                // Make the confirmPassword required now if it exists
+                if (confirmPasswordInput) {
                 confirmPasswordInput.setAttribute('required', 'required');
                 confirmPasswordInput.placeholder = 'Re-enter your password';
+                }
             });
         }
         
+        // Only add event listeners to confirmPasswordInput if it exists
+        if (confirmPasswordInput) {
         confirmPasswordInput.addEventListener('blur', function() {
             // Remove existing error message
             const errorElement = this.parentNode.querySelector('.field-validation-error');
@@ -403,8 +778,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 this.classList.remove('invalid-input');
             }
         });
+            
+            // Add an event listener to confirmPassword in edit mode
+            if (isEditMode) {
+                confirmPasswordInput.addEventListener('input', function() {
+                    // Set the placeholder back to normal now that the user is typing
+                    this.placeholder = 'Re-enter your password';
+                });
+            }
+        }
         
         // Also check password match when password field changes
+        if (passwordInput && confirmPasswordInput) {
         passwordInput.addEventListener('input', function() {
             if (confirmPasswordInput.value) {
                 // Remove existing error message
@@ -436,172 +821,70 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         });
-        
-        // Add an event listener to confirmPassword in edit mode
-        if (isEditMode) {
-            confirmPasswordInput.addEventListener('input', function() {
-                // Set the placeholder back to normal now that the user is typing
-                this.placeholder = 'Re-enter your password';
-            });
         }
-        
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
+    }
+    
+    // Function to update license key with user information
+    function updateLicenseKeyWithUser(licenseKey, userId) {
+        console.log(`Attempting to update license key ${licenseKey} for user ${userId}`);
             
-            // Validate form before submission
-            const validation = validateForm();
-            if (!validation.isValid) {
-                // Display the validation errors inline AND in the popup
-                const requiredFields = [
-                    { id: 'username', name: 'Username' },
-                    { id: 'firstName', name: 'First Name' },
-                    { id: 'lastName', name: 'Last Name' },
-                    { id: 'email', name: 'Email' },
-                    { id: 'licenseKey', name: 'License Key' },
-                    { id: 'role', name: 'Role' }
-                ];
-                
-                if (!isEditMode) {
-                    requiredFields.push({ id: 'password', name: 'Password' });
-                    requiredFields.push({ id: 'confirmPassword', name: 'Confirm Password' });
-                    
-                    // Check password match
-                    const passwordInput = document.getElementById('password');
-                    const confirmPasswordInput = document.getElementById('confirmPassword');
-                    if (passwordInput.value && confirmPasswordInput.value && 
-                        passwordInput.value !== confirmPasswordInput.value) {
-                        addValidationMessage('confirmPassword', 'Passwords do not match');
-                    }
-                } else if (passwordModified) {
-                    // In edit mode, confirm password is required if password is changed
-                    requiredFields.push({ id: 'confirmPassword', name: 'Confirm Password' });
-                    
-                    // Check password match
-                    if (passwordInput.value && confirmPasswordInput.value && 
-                        passwordInput.value !== confirmPasswordInput.value) {
-                        addValidationMessage('confirmPassword', 'Passwords do not match');
-                    }
-                }
-                
-                requiredFields.forEach(field => {
-                    const input = document.getElementById(field.id);
-                    if (!input.value.trim()) {
-                        addValidationMessage(field.id, `${field.name} is required`);
-                    }
-                });
-                
-                // Check email format again
-                if (emailInput.value.trim() && !isValidEmail(emailInput.value)) {
-                    addValidationMessage('email', 'Invalid email address');
-                }
-                
-                // Check license key format again
-                if (licenseKeyInput.value.trim() && !licenseKeyPattern.test(licenseKeyInput.value)) {
-                    addValidationMessage('licenseKey', 'License Key must be in the format AAAA-BBBB-CCCC-DDDD');
-                }
-                
-                // Show the popup with all errors
-                showValidationPopup(validation.errors);
-                return;
-            }
-            
-            // Hide any previous alerts
-            alertBox.style.display = 'none';
-            
-            // Get form data
-            const formData = new FormData(form);
-            const userData = {};
-            
-            formData.forEach((value, key) => {
-                // Convert string "true"/"false" to boolean for active field
-                if (key === 'active') {
-                    userData[key] = value === 'true';
-                } else if (key !== 'confirmPassword') {  // Exclude confirmPassword field
-                    userData[key] = value;
-                }
-            });
-            
-            // Determine endpoint and method based on if we're in edit mode
-            const endpoint = isEditMode 
-                ? `/api/users/${userData.id}`
-                : '/api/users';
-                
-            const method = isEditMode ? 'PUT' : 'POST';
-            
-            // Remove empty password if in edit mode
-            if (isEditMode && !userData.password) {
-                delete userData.password;
-            }
-            
-            // First validate the license key
-            fetch('/api/licenses/validate', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ licenseKey: userData.licenseKey })
-            })
+        // First check if the license key exists and is active
+        return fetch(`/api/licenses/${licenseKey}`)
             .then(response => {
                 if (!response.ok) {
-                    return response.json().then(data => {
-                        throw new Error(data.error || 'Invalid license key');
-                    });
+                    if (response.status === 404) {
+                        throw new Error('License key not found');
+                    }
+                    throw new Error('Error checking license key');
                 }
                 return response.json();
             })
-            .then(data => {
-                if (!data.valid) {
-                    throw new Error(data.message || 'Invalid license key');
+            .then(licenseKeyData => {
+                // Only allow if license key is active
+                if (licenseKeyData.status !== 'Active') {
+                    throw new Error(`License key is ${licenseKeyData.status.toLowerCase()}. Only active license keys can be used.`);
                 }
                 
-                // If license is valid, proceed with user creation/update
-                return fetch(endpoint, {
-                    method: method,
+                console.log(`License key found with status: ${licenseKeyData.status} and role: ${licenseKeyData.role}`);
+                
+                // Use the assignLicenseKeyToUser endpoint available in the backend service
+                return fetch(`/api/licenses/assign-to-user`, {
+                    method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
+                        'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify(userData)
-                });
+                    body: JSON.stringify({
+                        licenseKey: licenseKey,
+                        userId: userId
+                    })
             })
             .then(response => {
                 if (!response.ok) {
-                    // Get more detailed error information
-                    return response.text().then(text => {
-                        console.error('Server error response:', text);
-                        
-                        // Try to parse the error response as JSON
-                        let errorMessage = `Server responded with status: ${response.status} ${response.statusText}`;
-                        try {
-                            const errorData = JSON.parse(text);
-                            if (errorData.error) {
-                                // Use the specific error message from the server
-                                errorMessage = errorData.error;
+                        return response.text().then(text => {
+                            // Try to parse as JSON, but handle case where it's not JSON
+                            try {
+                                const errorData = JSON.parse(text);
+                                console.error('License key assignment error response:', errorData);
+                                throw new Error(errorData.message || 'Failed to assign license key to user');
+                            } catch (e) {
+                                console.error('License key assignment error (non-JSON):', text);
+                                throw new Error(`Failed to assign license key: ${text || 'Unknown error'}`);
                             }
-                        } catch (e) {
-                            // If the response is not valid JSON, try to extract a meaningful message from the text
-                            if (text && text.includes('error')) {
-                                const matches = text.match(/"error"\s*:\s*"([^"]+)"/);
-                                if (matches && matches.length > 1) {
-                                    errorMessage = matches[1];
-                                }
-                            }
-                        }
-                        
-                        throw new Error(errorMessage);
-                    });
-                }
-                return response.json();
+                        });
+                    }
+                    
+                    console.log('License key assigned successfully');
+                    
+                    // Just return a success object since the endpoint might not return data
+                    return {
+                        success: true,
+                        message: 'License key assigned successfully'
+                    };
+                });
             })
-            .then(data => {
-                const action = isEditMode ? 'updated' : 'created';
-                
-                // Show success modal instead of alert
-                showSuccessModal(`User ${action} successfully!`);
-            })
-            .catch((error) => {
-                console.error('Error:', error);
-                showErrorModal(`Error ${isEditMode ? 'updating' : 'creating'} user: ${error.message}`);
-            });
+            .catch(error => {
+                console.error('Error in updateLicenseKeyWithUser:', error);
+                return Promise.reject(error);
         });
     }
 });

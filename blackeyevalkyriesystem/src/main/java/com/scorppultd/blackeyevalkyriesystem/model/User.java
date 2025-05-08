@@ -56,7 +56,27 @@ public class User {
     public enum UserRole {
         ADMIN,
         DOCTOR,
-        NURSE
+        NURSE;
+        
+        /**
+         * Convert a string role to the corresponding UserRole enum
+         * @param role String role (case insensitive)
+         * @return UserRole enum value
+         */
+        public static UserRole fromString(String role) {
+            if (role == null) {
+                throw new IllegalArgumentException("Role cannot be null");
+            }
+            
+            // Always convert to uppercase for enum
+            String normalizedRole = role.toUpperCase();
+            
+            try {
+                return UserRole.valueOf(normalizedRole);
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Invalid role: " + role + ". Valid roles are: admin, doctor, nurse");
+            }
+        }
     }
     
     // Get the full name by combining first name and last name

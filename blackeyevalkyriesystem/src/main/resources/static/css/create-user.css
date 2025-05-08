@@ -20,6 +20,7 @@
 
 .form-group {
     margin-bottom: 1.5rem;
+    width: 100%;
 }
 
 .form-group label {
@@ -280,6 +281,8 @@ body, html {
     font-size: 0.875rem;
     margin-top: 0.25rem;
     display: block;
+    width: 100%;
+    order: 3;
 }
 
 /* Custom validation popup */
@@ -330,4 +333,103 @@ body, html {
 .validation-popup-footer {
     display: flex;
     justify-content: flex-end;
+}
+
+/* License key input group */
+.license-key-input-group {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.license-key-input-group .form-control {
+    flex: 1;
+    min-width: 200px;
+}
+
+.license-key-input-group .btn {
+    white-space: nowrap;
+}
+
+/* Password input group */
+.password-input-group {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.password-input-group .form-control {
+    flex: 1;
+    min-width: 200px;
+}
+
+.password-input-group .btn {
+    white-space: nowrap;
+}
+
+/* Generate buttons styling */
+.btn-generate {
+    background-color: #4682b4;
+    color: white;
+}
+
+.btn-generate:hover {
+    background-color: #3a6d96;
+}
+
+.btn-icon {
+    background-color: transparent;
+    color: var(--accent-color);
+    padding: 0.75rem;
+    margin-right: 5px;
+    border-radius: 0.25rem;
+}
+
+.btn-icon:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.btn-icon i {
+    font-size: 1rem;
+}
+
+/* Update generate license key button */
+#generateLicenseKeyBtn {
+    background-color: #4682b4;
+    color: white;
+}
+
+#generateLicenseKeyBtn:hover {
+    background-color: #3a6d96;
+}
+
+.readonly-input {
+    background-color: #f5f5f5;
+    cursor: not-allowed;
+    opacity: 0.8;
+}
+
+.readonly-input:disabled {
+    background-color: #f5f5f5;
+    cursor: not-allowed;
+    opacity: 0.8;
+}
+
+/* Add a visual indicator that the field is read-only - only in edit mode */
+.edit-mode .form-group label[for="role"]::after,
+.edit-mode .form-group label[for="licenseKey"]::after {
+    content: " (Read-only)";
+    color: #666;
+    font-size: 0.8em;
+    font-style: italic;
+}
+
+/* Hide the generate button only in edit mode */
+.edit-mode #generateLicenseKeyBtn {
+    display: none;
+}
+
+/* Show the generate button by default */
+#generateLicenseKeyBtn {
+    display: inline-block;
 }

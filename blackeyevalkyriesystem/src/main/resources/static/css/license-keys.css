@@ -1,0 +1,539 @@
+.license-key-actions {
+    display: flex;
+    gap: 5px;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    color: white;
+}
+
+.status-active {
+    background-color: #28a745;
+}
+
+.status-used {
+    background-color: #17a2b8;
+}
+
+.status-expired {
+    background-color: #dc3545;
+}
+
+.status-deactivated {
+    background-color: #6c757d;
+}
+
+.generate-button {
+    margin-bottom: 20px;
+}
+
+.card {
+    background-color: var(--secondary-bg);
+    border-radius: 5px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+.card-header {
+    padding: 15px 20px;
+    /* border-bottom: 1px solid var(--border-color); */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--secondary-bg);
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+}
+
+.card-body {
+    padding: 20px;
+}
+
+.card-title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+/* Filter controls */
+.filter-controls {
+    padding: 15px 20px;
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--secondary-bg);
+}
+
+.filter-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: flex-end;
+    width: 100%;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    flex: 1;
+    min-width: 140px;
+}
+
+.filter-group label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--secondary-text);
+}
+
+.filter-group select {
+    padding: 6px 10px;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    background-color: var(--input-bg);
+    color: var(--primary-text);
+    height: 38px;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.btn-filter {
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    padding: 6px 15px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    height: 38px;
+    box-sizing: border-box;
+    cursor: pointer;
+}
+
+.btn-reset-filter {
+    background-color: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--primary-text);
+    padding: 6px 15px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    height: 38px;
+    box-sizing: border-box;
+    text-decoration: none;
+}
+
+.btn-filter:hover {
+    background-color: var(--accent-color-dark);
+}
+
+.btn-reset-filter:hover {
+    background-color: var(--quaternary-bg);
+}
+
+/* Sort icons */
+.sort-icon {
+    color: var(--secondary-text);
+    margin-left: 4px;
+    text-decoration: none;
+    opacity: 0.5;
+}
+
+.sort-icon.active {
+    color: var(--accent-color);
+    opacity: 1;
+}
+
+.sort-icon:hover {
+    opacity: 0.8;
+}
+
+/* Table styles */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.data-table th {
+padding: 12px 10px;
+text-align: left;
+border-bottom: 1px solid var(--border-color);
+font-weight: 500;
+}
+
+.data-table th:nth-child(1) { width: 30%; } /* Key */
+.data-table th:nth-child(2) { width: 10%; } /* Status */
+.data-table th:nth-child(3) { width: 10%; } /* Role */
+.data-table th:nth-child(4) { width: 21%; } /* User */
+.data-table th:nth-child(5) { width: 16%; } /* Expiry Date */
+.data-table th:nth-child(6) { width: 12%; } /* Action */
+.data-table td {
+    padding: 12px 10px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.data-table thead th {
+    font-weight: 600;
+    color: var(--primary-text);
+    position: relative;
+}
+
+.data-table tbody tr:hover {
+    background-color: rgba(138, 43, 226, 0.05);
+}
+
+.license-key-actions .btn {
+    padding: 5px 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    background-color: transparent;
+    border: none;
+}
+
+.license-key-actions .btn-primary {
+    color: var(--accent-color);
+    background-color: transparent;
+}
+
+.license-key-actions .btn-info {
+    color: var(--teal-color, #17a2b8);
+    background-color: transparent;
+}
+
+.license-key-actions .btn-danger {
+    color: var(--danger-color, #dc3545);
+    background-color: transparent;
+}
+
+.license-key-actions .btn i {
+    color: inherit;
+}
+
+/* Tooltip styles */
+.tooltip {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #333;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s;
+}
+
+.tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #333 transparent transparent transparent;
+}
+
+.tooltip.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Popup notification styles */
+.copy-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 4px;
+    z-index: 1000;
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: opacity 0.3s, transform 0.3s;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.copy-notification.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.copy-notification i {
+    color: #4cd964;
+}
+
+/* Timezone indicator styling */
+.fa-globe-americas {
+    font-size: 0.85em;
+    margin-left: 5px;
+    color: var(--accent-color);
+    cursor: help;
+}
+
+/* Timezone display styling */
+.timezone-display {
+    font-weight: normal;
+    font-size: 0.8em;
+    color: var(--secondary-text);
+    white-space: nowrap;
+    margin-left: 5px;
+    cursor: help;
+}
+
+.expires-date {
+    white-space: nowrap;
+}
+
+.monospace-font {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1.1em;
+    letter-spacing: 0.5px;
+}
+
+/* Role badge styles */
+.role-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.role-badge.admin {
+    background-color: rgba(138, 43, 226, 0.2);
+    color: #8A2BE2;
+}
+
+.role-badge.doctor {
+    background-color: rgba(35, 178, 126, 0.2);
+    color: #23b27e;
+}
+
+.role-badge.nurse {
+    background-color: rgba(64, 115, 255, 0.2);
+    color: #4073FF;
+}
+
+/* Alert styling */
+.alert {
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.alert-success {
+    background-color: rgba(35, 178, 126, 0.15);
+    color: #23b27e;
+    border: 1px solid rgba(35, 178, 126, 0.3);
+}
+
+.alert-danger {
+    background-color: rgba(220, 53, 69, 0.15);
+    color: #dc3545;
+    border: 1px solid rgba(220, 53, 69, 0.3);
+}
+
+.alert .monospace-font {
+    display: inline;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: 600;
+    padding: 0.1rem 0.3rem;
+    background-color: rgba(0, 0, 0, 0.05);
+    border-radius: 0.25rem;
+}
+
+/* Delete Confirmation Modal styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-header {
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.modal-content {
+    background-color: var(--primary-bg);
+    margin: 15% auto;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    width: 450px;
+    max-width: 90%;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.modal-title {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 1.5rem;
+}
+
+.modal-title.error {
+    color: #ff4d4d;
+}
+
+.modal-body {
+    margin-bottom: 20px;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+    margin-top: 1rem;
+}
+
+.text-danger {
+    color: #dc3545;
+    font-size: 0.9rem;
+    margin-top: 8px;
+}
+
+/* Modal button styles */
+.modal-footer .btn {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 0.5rem;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.2s;
+}
+
+.modal-footer .btn:active {
+    transform: translateY(1px);
+}
+
+.modal-footer .btn-secondary {
+    background-color: var(--secondary-bg);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+}
+
+.modal-footer .btn-secondary:hover {
+    background-color: #e0e0e0;
+}
+
+.modal-footer .btn-danger {
+    background-color: #ff4d4d;
+    color: white;
+}
+
+.modal-footer .btn-danger:hover {
+    background-color: #e63939;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1080px) {
+    .btn-filter, 
+    .btn-reset-filter {
+        margin-top: 10px;
+        flex: 1;
+        justify-content: center;
+    }
+    
+    .filter-group {
+        flex-basis: 30%;
+    }
+}
+
+/* Hide role column on smaller screens */
+@media (max-width: 1050px) {
+    /* Hide role column */
+    .data-table th:nth-child(3),
+    .data-table td:nth-child(3) {
+        display: none;
+    }
+    
+    /* Adjust column widths for the remaining columns */
+    .data-table th:nth-child(1) { width: 45%; } /* Key */
+    .data-table th:nth-child(2) { width: 15%; } /* Status */
+    .data-table th:nth-child(4) { width: 27%; } /* User */
+    .data-table th:nth-child(6) { width: 13%; } /* Action */
+    
+    /* Add tooltip capability to license key column to show role */
+    .data-table td.monospace-font:hover::after {
+        content: "Role: " attr(data-role) " | Expires: " attr(data-expiry);
+        position: absolute;
+        bottom: 100%;
+        left: 0;
+        background-color: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-family: sans-serif;
+        font-size: 12px;
+        white-space: nowrap;
+        z-index: 10;
+    }
+}
+
+/* Responsive table */
+@media (max-width: 1200px) {
+    /* Hide expiry date column */
+    .data-table th:nth-child(5),
+    .data-table td:nth-child(5) {
+        display: none;
+    }
+    
+    /* Adjust column widths for the remaining columns */
+    .data-table th:nth-child(1) { width: 40%; } /* Key */
+    .data-table th:nth-child(2) { width: 11%; } /* Status */
+    .data-table th:nth-child(3) { width: 10%; } /* Role */
+    .data-table th:nth-child(4) { width: 26%; } /* User */
+    .data-table th:nth-child(6) { width: 13%; } /* Action */
+    
+    /* Add tooltip capability to license key column */
+    .data-table td.monospace-font {
+        position: relative;
+        cursor: help;
+    }
+    
+    /* For screen sizes between 1050px and 1200px, only show expiry date in tooltip */
+    .data-table td.monospace-font:hover::after {
+        content: "Expires: " attr(data-expiry);
+        position: absolute;
+        bottom: 100%;
+        left: 0;
+        background-color: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-family: sans-serif;
+        font-size: 12px;
+        white-space: nowrap;
+        z-index: 10;
+    }
+}

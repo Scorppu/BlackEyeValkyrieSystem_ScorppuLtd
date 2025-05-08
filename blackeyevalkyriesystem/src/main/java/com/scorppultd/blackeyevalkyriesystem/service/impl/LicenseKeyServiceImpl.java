@@ -8,6 +8,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
@@ -23,6 +24,8 @@ public class LicenseKeyServiceImpl implements LicenseKeyService {
     private static final Pattern LICENSE_KEY_PATTERN = Pattern.compile("^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$");
     private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     private final Random random = new Random();
+    
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(LicenseKeyServiceImpl.class);
 
     @Autowired
     public LicenseKeyServiceImpl(LicenseKeyRepository licenseKeyRepository) {
@@ -46,14 +49,14 @@ public class LicenseKeyServiceImpl implements LicenseKeyService {
         
         // Check if the license is expired and update its status if necessary
         if (isLicenseExpired(license)) {
-            // If the license is expired, deactivate it automatically
-            license.setActive(false);
+            // If the license is expired, update status to Expired
+            license.setStatus(LicenseKey.Status.EXPIRED);
             licenseKeyRepository.save(license);
             return false;
         }
         
         // Finally check if the license is active
-        return license.isActive();
+        return LicenseKey.Status.ACTIVE.equals(license.getStatus());
     }
     
     /**
@@ -69,8 +72,11 @@ public class LicenseKeyServiceImpl implements LicenseKeyService {
             return false;
         }
         
-        // Check if the expiration date is in the past
-        return licenseKey.getExpiresOn().isBefore(LocalDate.now());
+        // Get current date in UTC
+        LocalDate todayUtc = LocalDate.now();
+        
+        // Check if the expiration date is today or in the past
+        return licenseKey.getExpiresOn().equals(todayUtc) || licenseKey.getExpiresOn().isBefore(todayUtc);
     }
     
     /**
@@ -101,13 +107,33 @@ public class LicenseKeyServiceImpl implements LicenseKeyService {
             licenseKey.setIssuedOn(LocalDate.now());
         }
         
+        // Set status to Active if not set
+        if (licenseKey.getStatus() == null) {
+            licenseKey.setStatus(LicenseKey.Status.ACTIVE);
+        }
+        
         // Save and return the license key
         return licenseKeyRepository.save(licenseKey);
     }
 
     @Override
     public Optional<LicenseKey> findByKey(String key) {
-        return licenseKeyRepository.findByKey(key);
+        Optional<LicenseKey> licenseKeyOpt = licenseKeyRepository.findByKey(key);
+        
+        // If license is found, check if it's expired and update if needed
+        licenseKeyOpt.ifPresent(this::checkAndUpdateLicenseKeyExpiration);
+        
+        return licenseKeyOpt;
+    }
+
+    @Override
+    public Optional<LicenseKey> findById(String id) {
+        Optional<LicenseKey> licenseKeyOpt = licenseKeyRepository.findById(id);
+        
+        // If license is found, check if it's expired and update if needed
+        licenseKeyOpt.ifPresent(this::checkAndUpdateLicenseKeyExpiration);
+        
+        return licenseKeyOpt;
     }
 
     @Override
@@ -157,6 +183,8 @@ public class LicenseKeyServiceImpl implements LicenseKeyService {
         }
         
         license.setIssuedTo(userId);
+        license.setUser(userId);
+        license.setStatus(LicenseKey.Status.USED);
         licenseKeyRepository.save(license);
         
         return true;
@@ -170,33 +198,103 @@ public class LicenseKeyServiceImpl implements LicenseKeyService {
         }
         
         LicenseKey license = licenseKeyOpt.get();
-        license.setActive(false);
+        license.setStatus(LicenseKey.Status.DEACTIVATED);
         licenseKeyRepository.save(license);
         
         return true;
     }
     
+    @Override
+    public void deleteLicenseKey(LicenseKey licenseKey) {
+        licenseKeyRepository.delete(licenseKey);
+    }
+    
     /**
      * Scheduled task to check for and deactivate expired license keys
-     * Runs daily at midnight
+     * Runs daily at 00:00 HKT (16:00 UTC)
      */
-    @Scheduled(cron = "0 0 0 * * ?")
+    @Scheduled(cron = "0 0 16 * * ?", zone = "UTC")
     public void checkAndDeactivateExpiredLicenses() {
-        LocalDate today = LocalDate.now();
-        List<LicenseKey> allLicenses = licenseKeyRepository.findAll();
+        // Get current date in UTC
+        LocalDate todayUtc = LocalDate.now();
         
-        for (LicenseKey license : allLicenses) {
-            // Skip already inactive licenses
-            if (!license.isActive()) {
-                continue;
-            }
-            
-            // Check if this license has expired
-            if (license.getExpiresOn() != null && license.getExpiresOn().isBefore(today)) {
-                license.setActive(false);
-                licenseKeyRepository.save(license);
-                System.out.println("Deactivated expired license key: " + license.getKey());
+        logger.info("Starting scheduled task to check for expired license keys");
+        
+        // Only fetch active license keys from the database
+        List<LicenseKey> activeLicenses = licenseKeyRepository.findByStatus(LicenseKey.Status.ACTIVE);
+        logger.info("Found {} active license keys to check", activeLicenses.size());
+        
+        int expiredCount = 0;
+        for (LicenseKey license : activeLicenses) {
+            if (checkAndUpdateExpiredLicense(license, todayUtc)) {
+                expiredCount++;
             }
         }
+        
+        logger.info("Completed expired license key check. Found and updated {} expired licenses", expiredCount);
+    }
+
+    /**
+     * Helper method to check and update an individual license key
+     * 
+     * @param license The license key to check
+     * @param todayUtc The current date in UTC
+     * @return true if the license was expired and updated, false otherwise
+     */
+    private boolean checkAndUpdateExpiredLicense(LicenseKey license, LocalDate todayUtc) {
+        // Check if this license has expired
+        if (license.getExpiresOn() != null && 
+            (license.getExpiresOn().equals(todayUtc) || license.getExpiresOn().isBefore(todayUtc))) {
+            license.setStatus(LicenseKey.Status.EXPIRED);
+            licenseKeyRepository.save(license);
+            logger.info("Marked license key as expired: {} (Key: {})", license.getId(), license.getKey());
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Check all license keys (regardless of status) for expiration and update the database
+     * @return The number of license keys that were updated
+     */
+    @Override
+    public int checkAllLicenseKeysForExpiration() {
+        // Get current date in UTC
+        LocalDate todayUtc = LocalDate.now();
+        logger.info("Starting manual check for all expired license keys");
+        
+        // Get all ACTIVE license keys only - exclude USED, EXPIRED, and DEACTIVATED
+        List<LicenseKey> licenses = licenseKeyRepository.findAll().stream()
+            .filter(license -> LicenseKey.Status.ACTIVE.equals(license.getStatus()))
+            .toList();
+        
+        logger.info("Found {} active license keys to check", licenses.size());
+        
+        int expiredCount = 0;
+        for (LicenseKey license : licenses) {
+            if (checkAndUpdateExpiredLicense(license, todayUtc)) {
+                expiredCount++;
+            }
+        }
+        
+        logger.info("Completed checking all license keys. Found and updated {} expired licenses", expiredCount);
+        return expiredCount;
+    }
+
+    /**
+     * Check a specific license key for expiration and update its status if needed
+     * @param licenseKey The license key to check
+     * @return true if the license key was expired and updated, false otherwise
+     */
+    @Override
+    public boolean checkAndUpdateLicenseKeyExpiration(LicenseKey licenseKey) {
+        // Only check ACTIVE licenses
+        if (!LicenseKey.Status.ACTIVE.equals(licenseKey.getStatus())) {
+            return false;
+        }
+        
+        // Get current date in UTC
+        LocalDate todayUtc = LocalDate.now();
+        return checkAndUpdateExpiredLicense(licenseKey, todayUtc);
     }
 } 

@@ -102,3 +102,48 @@
     border: 1px solid rgba(0, 255, 0, 0.3);
     color: #2ecc71;
 } 
+
+.login-links {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 15px;
+}
+
+.forgot-password-link, .signup-link {
+    color: var(--secondary-text);
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: color 0.2s;
+}
+
+.forgot-password-link:hover, .signup-link:hover {
+    color: var(--accent-color);
+}
+
+.forgot-password-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--primary-text);
+    margin-top: 0;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.forgot-password-message {
+    color: var(--secondary-text);
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.forgot-password-message p {
+    margin: 8px 0;
+}
+
+.contact-info {
+    background-color: rgba(138, 43, 226, 0.1);
+    padding: 12px;
+    border-radius: 6px;
+    text-align: center;
+    margin-top: 15px;
+    color: var(--primary-text);
+} 

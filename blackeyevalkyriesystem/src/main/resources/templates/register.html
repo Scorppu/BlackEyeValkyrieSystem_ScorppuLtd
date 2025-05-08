@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark light">
+    <title>Register - Black Eye Valkyrie System</title>
+    
+    <!-- Critical CSS for preventing theme flash -->
+    <link rel="stylesheet" th:href="@{/css/critical.css}">
+    
+    <!-- Immediate theme detection script - must run before any rendering -->
+    <script th:src="@{/js/theme-detection.js}"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <link rel="stylesheet" th:href="@{/css/login.css}">
+    <link rel="stylesheet" th:href="@{/css/register.css}">
+    
+    <style>
+        /* Additional styles for multi-step registration */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+        
+        .modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal-content {
+            background-color: var(--secondary-bg);
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+            width: 400px;
+            position: relative;
+            transform: translateY(-20px);
+            transition: transform 0.3s;
+        }
+        
+        .modal.active .modal-content {
+            transform: translateY(0);
+        }
+        
+        /* Overriding login container width for part 2 */
+        .login-container.wide-form, 
+        .login-container {
+            max-width: 800px !important;
+            width: 100% !important;
+            margin: 80px auto !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+        }
+        
+        .login-form.wide-form,
+        .login-form {
+            max-width: 100% !important;
+            width: 100% !important;
+        }
+        
+        /* Make all registration steps have consistent width */
+        #license-key-verification.step,
+        #registration-form-part1.step,
+        #registration-form-part2.step {
+            max-width: 800px;
+            width: 100%;
+            margin: 0 auto;
+        }
+        
+        .register-form-part2 {
+            max-width: 800px !important;
+            width: 100% !important;
+            margin: 0 auto !important;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .step {
+            max-width: 100%;
+            opacity: 0;
+            display: none;
+            transition: opacity 0.4s ease;
+        }
+        
+        .step.active {
+            opacity: 1;
+            display: block;
+            animation: fadeIn 0.4s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        #registration-form {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 15px;
+            width: 100%;
+        }
+        
+        .form-row .form-group {
+            flex: 1;
+        }
+        
+        .error-message {
+            color: var(--danger-color, #dc3545);
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        
+        .step-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: var(--border-color);
+            margin: 0 5px;
+            transition: background-color 0.3s ease;
+        }
+        
+        .step-dot.active {
+            background-color: var(--accent-color);
+        }
+        
+        /* Status indicators for validation */
+        .validation-pending {
+            color: var(--warning-color, #ffc107);
+            display: inline-block;
+            margin-left: 5px;
+        }
+        
+        .validation-success {
+            color: var(--success-color, #28a745);
+            display: inline-block;
+            margin-left: 5px;
+        }
+        
+        .validation-error {
+            color: var(--danger-color, #dc3545);
+            display: inline-block;
+            margin-left: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container register-container" id="mainContainer">
+        <div class="login-logo">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="10" fill="#8A2BE2"/>
+                <path d="M12 7V17M7 12H17" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <h1 style="color: var(--primary-text);">Black Eye Valkyrie System</h1>
+        </div>
+        
+        <div class="login-form" id="mainForm">
+            <h2 class="register-title">User Registration</h2>
+            
+            <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+            
+            <!-- License Key Verification Step -->
+            <div id="license-key-verification" class="step active">
+                <div class="form-group">
+                    <label for="licenseKey">License Key</label>
+                    <input type="text" id="licenseKey" name="licenseKey" class="form-control" required autofocus placeholder="Enter your license key">
+                </div>
+                
+                <div class="form-group">
+                    <button type="button" id="verifyLicenseButton" class="btn btn-primary" style="width: 100%">Verify License Key</button>
+                </div>
+                
+                <div class="login-links" style="justify-content: center;">
+                    <a href="/login">Already have an account? Sign in</a>
+                </div>
+            </div>
+            
+            <!-- Registration Form Step 1: Username & Password -->
+            <div id="registration-form-part1" class="step">
+                <div class="step-indicator">
+                    <div class="step-dot active"></div>
+                    <div class="step-dot"></div>
+                </div>
+                
+                <input type="hidden" id="verifiedLicenseKey" name="licenseKey">
+                
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <div style="display: flex; align-items: center;">
+                        <input type="text" id="username" name="username" class="form-control" required>
+                        <span id="username-status" style="min-width: 120px; display: inline-block;"></span>
+                    </div>
+                    <div id="username-error" class="error-message"></div>
+                </div>
+                
+                <div class="form-group password-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" class="form-control" required>
+                    <button type="button" class="password-toggle" tabindex="-1">
+                        <i class="fa fa-eye"></i>
+                    </button>
+                    <div id="password-error" class="error-message"></div>
+                </div>
+                
+                <div class="form-group password-group">
+                    <label for="confirmPassword">Confirm Password</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" class="form-control" required>
+                    <button type="button" class="password-toggle" tabindex="-1">
+                        <i class="fa fa-eye"></i>
+                    </button>
+                    <div id="confirmPassword-error" class="error-message"></div>
+                </div>
+                
+                <div class="form-group">
+                    <button type="button" id="continueToStep2Button" class="btn btn-primary" style="width: 100%">Continue</button>
+                </div>
+                
+                <div class="login-links" style="justify-content: center;">
+                    <a href="/login">Already have an account? Sign in</a>
+                </div>
+            </div>
+            
+            <!-- Registration Form Step 2: Personal Information -->
+            <div id="registration-form-part2" class="step register-form-part2">
+                <div class="step-indicator">
+                    <div class="step-dot"></div>
+                    <div class="step-dot active"></div>
+                </div>
+                
+                <form action="/register" method="post" id="registration-form">
+                    <input type="hidden" id="final-licenseKey" name="licenseKey">
+                    <input type="hidden" id="final-username" name="username">
+                    <input type="hidden" id="final-password" name="password">
+                    <input type="hidden" id="final-confirmPassword" name="confirmPassword">
+                    
+                    <div class="form-group">
+                        <label for="firstName">First Name</label>
+                        <input type="text" id="firstName" class="form-control" required>
+                        <div id="firstName-error" class="error-message"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="lastName">Last Name</label>
+                        <input type="text" id="lastName" class="form-control" required>
+                        <div id="lastName-error" class="error-message"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" class="form-control" required>
+                        <div id="email-error" class="error-message"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="phone">Phone Number</label>
+                        <input type="tel" id="phone" name="phone" class="form-control">
+                        <div id="phone-error" class="error-message"></div>
+                    </div>
+                    
+                    <input type="hidden" id="fullName" name="fullName">
+                    
+                    <div class="form-group">
+                        <div class="form-row">
+                            <button type="button" id="backToStep1Button" class="btn btn-secondary" style="width: 100%">Back</button>
+                            <button type="submit" class="btn btn-primary" style="width: 100%">Create Account</button>
+                        </div>
+                    </div>
+                </form>
+                
+                <div class="login-links" style="justify-content: center;">
+                    <a href="/login">Already have an account? Sign in</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- License Key Verification Modal -->
+    <div id="verificationModal" class="modal">
+        <div class="modal-content">
+            <h3 id="modalTitle">License Key Verification</h3>
+            <p id="modalMessage">You are about to create a <span id="roleType">USER</span> account.</p>
+            <div class="modal-buttons">
+                <button id="proceedButton" class="btn btn-primary">Proceed</button>
+                <button id="cancelButton" class="btn btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add font awesome for the eye icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- JavaScript for License Key Verification and UI Logic -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elements for license key verification
+            const licenseKeyInput = document.getElementById('licenseKey');
+            const verifyButton = document.getElementById('verifyLicenseButton');
+            const verificationStep = document.getElementById('license-key-verification');
+            const registrationFormPart1 = document.getElementById('registration-form-part1');
+            const registrationFormPart2 = document.getElementById('registration-form-part2');
+            const verifiedLicenseKeyInput = document.getElementById('verifiedLicenseKey');
+            const finalLicenseKeyInput = document.getElementById('final-licenseKey');
+            const modal = document.getElementById('verificationModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalMessage = document.getElementById('modalMessage');
+            const roleTypeSpan = document.getElementById('roleType');
+            const proceedButton = document.getElementById('proceedButton');
+            const cancelButton = document.getElementById('cancelButton');
+            
+            // Container elements for width control
+            const mainContainer = document.getElementById('mainContainer');
+            const mainForm = document.getElementById('mainForm');
+            
+            // Elements for form navigation
+            const continueToStep2Button = document.getElementById('continueToStep2Button');
+            const backToStep1Button = document.getElementById('backToStep1Button');
+            const registrationForm = document.getElementById('registration-form');
+            
+            // Form fields
+            const usernameInput = document.getElementById('username');
+            const usernameStatus = document.getElementById('username-status');
+            const passwordInput = document.getElementById('password');
+            const confirmPasswordInput = document.getElementById('confirmPassword');
+            const firstNameInput = document.getElementById('firstName');
+            const lastNameInput = document.getElementById('lastName');
+            const emailInput = document.getElementById('email');
+            const phoneInput = document.getElementById('phone');
+            const fullNameInput = document.getElementById('fullName');
+            
+            // Final form values
+            const finalUsernameInput = document.getElementById('final-username');
+            const finalPasswordInput = document.getElementById('final-password');
+            const finalConfirmPasswordInput = document.getElementById('final-confirmPassword');
+            
+            // Username check debounce timer
+            let usernameCheckTimer = null;
+            let usernameIsAvailable = false;
+            
+            // Toggle password visibility
+            document.querySelectorAll('.password-toggle').forEach(function(toggle) {
+                toggle.addEventListener('click', function() {
+                    const passwordInput = this.previousElementSibling;
+                    const icon = this.querySelector('i');
+                    
+                    if (passwordInput.type === 'password') {
+                        passwordInput.type = 'text';
+                        icon.classList.remove('fa-eye');
+                        icon.classList.add('fa-eye-slash');
+                    } else {
+                        passwordInput.type = 'password';
+                        icon.classList.remove('fa-eye-slash');
+                        icon.classList.add('fa-eye');
+                    }
+                });
+            });
+            
+            // Check if username exists
+            usernameInput.addEventListener('input', function() {
+                const username = this.value.trim();
+                
+                // Clear any existing timer
+                if (usernameCheckTimer) {
+                    clearTimeout(usernameCheckTimer);
+                }
+                
+                // Reset status
+                usernameStatus.className = '';
+                usernameStatus.innerHTML = '';
+                usernameIsAvailable = false;
+                
+                if (username.length < 3) {
+                    return;
+                }
+                
+                // Show pending status
+                usernameStatus.className = 'validation-pending';
+                usernameStatus.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                
+                // Set timer to check username after user stops typing
+                usernameCheckTimer = setTimeout(function() {
+                    checkUsernameAvailability(username);
+                }, 500);
+            });
+            
+            // Function to check username availability
+            function checkUsernameAvailability(username) {
+                fetch('/api/users/check-username?username=' + encodeURIComponent(username))
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Server error: ' + response.status);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.available) {
+                            usernameStatus.className = 'validation-success';
+                            usernameStatus.innerHTML = '<i class="fas fa-check-circle"></i> Available';
+                            usernameIsAvailable = true;
+                        } else {
+                            usernameStatus.className = 'validation-error';
+                            // Check if there's a specific message about reserved username
+                            if (data.message) {
+                                usernameStatus.innerHTML = '<i class="fas fa-times-circle"></i> Reserved';
+                                document.getElementById('username-error').textContent = data.message;
+                            } else {
+                                usernameStatus.innerHTML = '<i class="fas fa-times-circle"></i> Already taken';
+                            }
+                            usernameIsAvailable = false;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error checking username:', error);
+                        usernameStatus.className = 'validation-error';
+                        usernameStatus.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error checking';
+                    });
+            }
+            
+            // Normalize license key format
+            licenseKeyInput.addEventListener('blur', function() {
+                // Format as uppercase with dashes
+                let key = this.value.trim().toUpperCase();
+                
+                // Remove existing dashes
+                key = key.replace(/-/g, '');
+                
+                // Add dashes if we have at least 16 characters
+                if (key.length >= 16) {
+                    key = key.substring(0, 4) + '-' + key.substring(4, 8) + '-' + 
+                          key.substring(8, 12) + '-' + key.substring(12, 16);
+                    this.value = key;
+                }
+            });
+            
+            // Verify license key
+            verifyButton.addEventListener('click', function() {
+                const licenseKey = licenseKeyInput.value.trim();
+                
+                if (!licenseKey) {
+                    alert('Please enter a license key.');
+                    return;
+                }
+                
+                console.log('Verifying license key:', licenseKey);
+                
+                // Send license key to server for verification
+                fetch('/api/verify-license-key', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ licenseKey: licenseKey })
+                })
+                .then(response => {
+                    console.log('License key verification response status:', response.status);
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('License key verification response:', data);
+                    if (data.valid) {
+                        // Format role display for user (capitalize first letter)
+                        let displayRole = data.role;
+                        if (displayRole) {
+                            displayRole = displayRole.charAt(0).toUpperCase() + displayRole.slice(1).toLowerCase();
+                            roleTypeSpan.textContent = displayRole;
+                        } else {
+                            roleTypeSpan.textContent = "User";
+                        }
+                        
+                        // Show confirmation modal
+                        modal.style.display = 'flex';
+                        setTimeout(() => {
+                            modal.classList.add('active');
+                        }, 10);
+                    } else {
+                        alert('Invalid or expired license key. Please try again with a valid key.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error verifying license key:', error);
+                    alert('Error verifying license key. Please try again.');
+                });
+            });
+            
+            // Modal proceed button
+            proceedButton.addEventListener('click', function() {
+                // Hide modal
+                modal.classList.remove('active');
+                setTimeout(() => {
+                    modal.style.display = 'none';
+                }, 300);
+                
+                // Set the verified license key in the hidden input
+                verifiedLicenseKeyInput.value = licenseKeyInput.value.trim();
+                finalLicenseKeyInput.value = licenseKeyInput.value.trim();
+                
+                // Switch to registration form part 1
+                verificationStep.classList.remove('active');
+                registrationFormPart1.classList.add('active');
+            });
+            
+            // Modal cancel button
+            cancelButton.addEventListener('click', function() {
+                modal.classList.remove('active');
+                setTimeout(() => {
+                    modal.style.display = 'none';
+                }, 300);
+            });
+            
+            // Close modal when clicking outside
+            window.addEventListener('click', function(event) {
+                if (event.target === modal) {
+                    modal.classList.remove('active');
+                    setTimeout(() => {
+                        modal.style.display = 'none';
+                    }, 300);
+                }
+            });
+            
+            // Validate first part of registration form
+            continueToStep2Button.addEventListener('click', function() {
+                let isValid = true;
+                
+                // Clear previous errors
+                document.querySelectorAll('.error-message').forEach(el => {
+                    el.textContent = '';
+                });
+                
+                // Validate username
+                if (!usernameInput.value.trim()) {
+                    document.getElementById('username-error').textContent = 'Username is required';
+                    isValid = false;
+                } else if (usernameInput.value.trim().length < 3) {
+                    document.getElementById('username-error').textContent = 'Username must be at least 3 characters';
+                    isValid = false;
+                } else if (!usernameIsAvailable) {
+                    document.getElementById('username-error').textContent = 'This username is not available. Please choose another one.';
+                    isValid = false;
+                }
+                
+                // Validate password
+                if (!passwordInput.value) {
+                    document.getElementById('password-error').textContent = 'Password is required';
+                    isValid = false;
+                } else if (passwordInput.value.length < 6) {
+                    document.getElementById('password-error').textContent = 'Password must be at least 6 characters';
+                    isValid = false;
+                }
+                
+                // Validate password confirmation
+                if (passwordInput.value !== confirmPasswordInput.value) {
+                    document.getElementById('confirmPassword-error').textContent = 'Passwords do not match';
+                    isValid = false;
+                }
+                
+                if (isValid) {
+                    // Set values for the final form submission
+                    finalUsernameInput.value = usernameInput.value;
+                    finalPasswordInput.value = passwordInput.value;
+                    finalConfirmPasswordInput.value = confirmPasswordInput.value;
+                    
+                    // Transition to step 2 with animation
+                    registrationFormPart1.classList.remove('active');
+                    
+                    // No need to expand width since it's already 800px
+                    
+                    // Show step 2
+                    setTimeout(() => {
+                        registrationFormPart2.classList.add('active');
+                        
+                        // Update step indicators
+                        document.querySelectorAll('.step-indicator .step-dot').forEach((dot, index) => {
+                            if (index === 0) dot.classList.remove('active');
+                            if (index === 1) dot.classList.add('active');
+                        });
+                    }, 100);
+                }
+            });
+            
+            // Back button to return to step 1
+            backToStep1Button.addEventListener('click', function() {
+                // Transition back to step 1 with animation
+                registrationFormPart2.classList.remove('active');
+                
+                // Update step indicators
+                document.querySelectorAll('.step-indicator .step-dot').forEach((dot, index) => {
+                    if (index === 0) dot.classList.add('active');
+                    if (index === 1) dot.classList.remove('active');
+                });
+                
+                // Show step 1 after a short delay
+                setTimeout(() => {
+                    registrationFormPart1.classList.add('active');
+                }, 100);
+            });
+            
+            // Handle form submission
+            registrationForm.addEventListener('submit', function(e) {
+                // Combine first and last name
+                fullNameInput.value = firstNameInput.value + ' ' + lastNameInput.value;
+                
+                // Form validation for part 2
+                let isValid = true;
+                
+                if (!firstNameInput.value.trim()) {
+                    document.getElementById('firstName-error').textContent = 'First name is required';
+                    isValid = false;
+                }
+                
+                if (!lastNameInput.value.trim()) {
+                    document.getElementById('lastName-error').textContent = 'Last name is required';
+                    isValid = false;
+                }
+                
+                if (!emailInput.value.trim()) {
+                    document.getElementById('email-error').textContent = 'Email is required';
+                    isValid = false;
+                } else if (!isValidEmail(emailInput.value.trim())) {
+                    document.getElementById('email-error').textContent = 'Please enter a valid email address';
+                    isValid = false;
+                }
+                
+                if (!isValid) {
+                    e.preventDefault();
+                }
+            });
+            
+            // Email validation function
+            function isValidEmail(email) {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                return emailRegex.test(email);
+            }
+        });
+    </script>
+    
+    <!-- Add theme-toggle.js to ensure theme consistency -->
+    <script th:src="@{/js/theme-toggle.js}"></script>
+</body>
+</html> 

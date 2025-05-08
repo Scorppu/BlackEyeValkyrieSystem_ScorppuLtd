@@ -40,7 +40,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(authorize -> authorize
                 // Static resources and login page are publicly accessible
                 .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
-                .requestMatchers("/login").permitAll()
+                .requestMatchers("/login", "/register", "/forgot-password", "/api/verify-license-key", "/api/users/check-username").permitAll()
                 // Admin-only pages
                 .requestMatchers("/drugs/**").hasRole("ADMIN")
                 // Require authentication for API endpoints

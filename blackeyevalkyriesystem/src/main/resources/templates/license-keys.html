@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main}"
+      lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>License Keys Management</title>
+    <link rel="stylesheet" th:href="@{/css/license-keys.css}">
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="content-header">
+            <h1>License Keys Management</h1>
+        </div>
+        
+        <!-- Alert messages -->
+        <div class="alert alert-success" th:if="${successMessage}" th:utext="${successMessage}"></div>
+        <div class="alert alert-danger" th:if="${errorMessage}" th:utext="${errorMessage}"></div>
+        
+        <!-- License Keys Card -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">License Keys</h3>
+                <a th:href="@{/licenses/generate}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Generate New License Key
+                </a>
+            </div>
+            
+            <!-- Filter and sorting controls -->
+            <div class="filter-controls">
+                <form th:action="@{/licenses}" method="get" class="filter-form">
+                    <div class="filter-group">
+                        <label for="statusFilter">Status:</label>
+                        <select id="statusFilter" name="statusFilter" class="form-control">
+                            <option value="">All Statuses</option>
+                            <option value="Active" th:selected="${param.statusFilter eq 'Active'}">Active</option>
+                            <option value="Used" th:selected="${param.statusFilter eq 'Used'}">Used</option>
+                            <option value="Expired" th:selected="${param.statusFilter eq 'Expired'}">Expired</option>
+                            <option value="Deactivated" th:selected="${param.statusFilter eq 'Deactivated'}">Deactivated</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="roleFilter">Role:</label>
+                        <select id="roleFilter" name="roleFilter" class="form-control">
+                            <option value="">All Roles</option>
+                            <option value="Admin" th:selected="${param.roleFilter eq 'Admin'}">Admin</option>
+                            <option value="Doctor" th:selected="${param.roleFilter eq 'Doctor'}">Doctor</option>
+                            <option value="Nurse" th:selected="${param.roleFilter eq 'Nurse'}">Nurse</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="sortOrder">Sort By Expiry:</label>
+                        <select id="sortOrder" name="sortOrder" class="form-control">
+                            <option value="asc" th:selected="${param.sortOrder eq 'asc' or param.sortOrder == null}">Ascending</option>
+                            <option value="desc" th:selected="${param.sortOrder eq 'desc'}">Descending</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-filter">
+                        <i class="fas fa-filter"></i> Apply Filters
+                    </button>
+                    
+                    <a th:href="@{/licenses}" class="btn btn-reset-filter">
+                        <i class="fas fa-times"></i> Reset
+                    </a>
+                </form>
+            </div>
+            
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Key</th>
+                                <th>Status</th>
+                                <th>Role</th>
+                                <th>User</th>
+                                <th>Expire at</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="licenseKey : ${licenseKeys}">
+                                <td class="monospace-font" th:text="${licenseKey.key}" 
+                                   th:attr="data-expiry=${licenseKey.expiresOn != null ? #temporals.format(licenseKey.expiresOn, 'yyyy-MM-dd') : 'No Expiry'},
+                                           data-role=${licenseKey.role}"></td>
+                                <td>
+                                    <span th:class="${'status-badge status-' + #strings.toLowerCase(licenseKey.status)}" 
+                                          th:text="${licenseKey.status}"></span>
+                                </td>
+                                <td>
+                                    <span class="role-badge" 
+                                          th:classappend="${#strings.toLowerCase(licenseKey.role) == 'admin' ? 'admin' : 
+                                                          (#strings.toLowerCase(licenseKey.role) == 'doctor' ? 'doctor' : 'nurse')}" 
+                                          th:text="${licenseKey.role}"></span>
+                                </td>
+                                <td>
+                                    <span th:if="${licenseKey.user != null and userNames.get(licenseKey.user) != null}" 
+                                          th:text="${userNames.get(licenseKey.user)}"></span>
+                                    <span th:unless="${licenseKey.user != null and userNames.get(licenseKey.user) != null}">
+                                        No assigned user
+                                    </span>
+                                </td>
+                                <td>
+                                    <span th:if="${licenseKey.expiresOn != null}" 
+                                          th:text="${#temporals.format(licenseKey.expiresOn, 'yyyy-MM-dd')}"></span>
+                                    <span th:unless="${licenseKey.expiresOn != null}">No Expiry</span>
+                                </td>
+                                <td>
+                                    <div class="license-key-actions">
+                                        <a th:href="@{/licenses/edit/{id}(id=${licenseKey.id})}" 
+                                           class="btn btn-sm btn-primary" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-danger" 
+                                               title="Delete" th:data-key="${licenseKey.key}" th:data-id="${licenseKey.id}"
+                                               onclick="openDeleteModal(this.getAttribute('data-id'), this.getAttribute('data-key'))">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:if="${licenseKeys.empty}">
+                                <td colspan="6" class="text-center">No license keys found</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Delete Confirmation Modal -->
+        <div id="deleteModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title error">Confirm Delete</h3>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete license key <span id="licenseKeyToDelete" class="monospace-font"></span>?</p>
+                    <p class="text-danger"><i class="fas fa-exclamation-triangle"></i> This action cannot be undone.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="cancelDelete" class="btn btn-secondary">Cancel</button>
+                    <form id="deleteForm" method="post" style="display: inline;">
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <th:block layout:fragment="scripts">
+        <script th:src="@{/js/license-keys.js}"></script>
+        <script>
+            function openDeleteModal(id, key) {
+                const modal = document.getElementById('deleteModal');
+                const licenseKeySpan = document.getElementById('licenseKeyToDelete');
+                const deleteForm = document.getElementById('deleteForm');
+                
+                // Set the license key text
+                licenseKeySpan.textContent = key;
+                
+                // Set the form action
+                deleteForm.action = `/licenses/delete/${id}`;
+                
+                // Show the modal
+                modal.style.display = 'block';
+                
+                // Close modal when clicking cancel
+                document.getElementById('cancelDelete').onclick = function() {
+                    modal.style.display = 'none';
+                };
+                
+                // Close modal when clicking outside
+                window.onclick = function(event) {
+                    if (event.target == modal) {
+                        modal.style.display = 'none';
+                    }
+                };
+            }
+        </script>
+    </th:block>
+</body>
+</html> 

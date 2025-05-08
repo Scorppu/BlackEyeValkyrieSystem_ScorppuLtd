@@ -10,6 +10,7 @@
     
     <th:block layout:fragment="head">
         <link rel="stylesheet" th:href="@{/css/create-user.css}">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     </th:block>
 </head>
 <body>
@@ -47,17 +48,16 @@
                             
                             <div class="form-group">
                                 <label for="password">Password <span class="required" th:if="${isEdit == null || !isEdit}">*</span></label>
-                                <input type="password" id="password" name="password" class="form-control" th:field="*{password}" 
-                                       th:placeholder="${isEdit != null && isEdit ? '••••••••' : 'Please do not enter a simple password'}" 
-                                       th:required="${isEdit == null || !isEdit}">
+                                <div class="password-input-group">
+                                    <input type="password" id="password" name="password" class="form-control" th:field="*{password}" 
+                                           th:placeholder="${isEdit != null && isEdit ? '••••••••' : 'Please do not enter a simple password'}" 
+                                           th:required="${isEdit == null || !isEdit}">
+                                    <button type="button" id="togglePasswordBtn" class="btn btn-icon" title="Show/Hide Password">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button type="button" id="generatePasswordBtn" class="btn btn-generate">Generate Password</button>
+                                </div>
                                 <small class="text-muted" th:if="${isEdit != null && isEdit}">Leave unchanged to keep current password</small>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="confirmPassword">Confirm Password <span class="required" th:if="${isEdit == null || !isEdit}">*</span></label>
-                                <input type="password" id="confirmPassword" name="confirmPassword" class="form-control" 
-                                       th:placeholder="${isEdit != null && isEdit ? '••••••••' : 'Re-enter your password'}">
-                                <small class="text-muted" th:if="${isEdit != null && isEdit}">Only required if changing password</small>
                             </div>
                             
                             <div class="form-group">
@@ -81,33 +81,26 @@
                             </div>
                             
                             <div class="form-group">
-                                <label for="licenseKey">License Key <span class="required">*</span></label>
-                                <input type="text" id="licenseKey" name="licenseKey" class="form-control" th:field="*{licenseKey}" placeholder="ABCD-1234-EFGH-5678" required>
-                            </div>
-                            
-                            <div class="form-group">
                                 <label for="role">Role <span class="required">*</span></label>
                                 <select id="role" name="role" class="form-control" th:field="*{role}" required>
                                     <option value="">Select a role</option>
-                                    <option value="ADMIN">Administrator</option>
-                                    <option value="DOCTOR">Doctor</option>
-                                    <option value="NURSE">Nurse</option>
+                                    <option value="admin">Administrator</option>
+                                    <option value="doctor">Doctor</option>
+                                    <option value="nurse">Nurse</option>
                                 </select>
                             </div>
-                            
+
                             <div class="form-group">
-                                <label>Status</label>
-                                <div class="radio-group">
-                                    <div class="radio-option">
-                                        <input type="radio" id="active-true" name="active" value="true" th:field="*{active}">
-                                        <label for="active-true">Active</label>
-                                    </div>
-                                    <div class="radio-option">
-                                        <input type="radio" id="active-false" name="active" value="false" th:field="*{active}">
-                                        <label for="active-false">Inactive</label>
-                                    </div>
+                                <label for="licenseKey">License Key <span class="required">*</span></label>
+                                <div class="license-key-input-group">
+                                    <input type="text" id="licenseKey" name="licenseKey" class="form-control" th:field="*{licenseKey}" placeholder="ABCD-1234-EFGH-5678" required>
+                                    <button type="button" id="generateLicenseKeyBtn" class="btn btn-secondary">Generate Key</button>
                                 </div>
+                                <small class="text-muted">Generate a new license key based on the selected role, or enter an existing one</small>
                             </div>
+                            
+                            <!-- Hidden input for active status, always set to true -->
+                            <input type="hidden" id="active" name="active" value="true" th:field="*{active}">
                             
                             <div class="form-actions">
                                 <button type="submit" class="btn btn-primary" th:text="${isEdit != null && isEdit ? 'Update User' : 'Create User'}">Create User</button>

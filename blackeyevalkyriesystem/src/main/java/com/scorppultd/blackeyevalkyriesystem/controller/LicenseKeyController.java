@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -64,8 +65,9 @@ public class LicenseKeyController {
         
         // Check if the license key is expired
         if (licenseKeyService.isLicenseExpired(license)) {
-            // Update the license to inactive
-            licenseKeyService.deactivateLicenseKey(licenseKey);
+            // Update the license to Expired
+            license.setStatus(LicenseKey.Status.EXPIRED);
+            licenseKeyService.createLicenseKey(license);
             return ResponseEntity.ok(Map.of(
                 "valid", false,
                 "message", "License key has expired"
@@ -73,17 +75,19 @@ public class LicenseKeyController {
         }
         
         // Check if the license key is active
-        if (!license.isActive()) {
+        if (!LicenseKey.Status.ACTIVE.equals(license.getStatus())) {
+            String statusMessage = "License key is " + license.getStatus().toLowerCase();
             return ResponseEntity.ok(Map.of(
                 "valid", false,
-                "message", "License key is inactive"
+                "message", statusMessage
             ));
         }
         
         // License key is valid
         return ResponseEntity.ok(Map.of(
             "valid", true,
-            "message", "License key is valid"
+            "message", "License key is valid",
+            "role", license.getRole() != null ? license.getRole() : ""
         ));
     }
 
@@ -122,13 +126,57 @@ public class LicenseKeyController {
     public ResponseEntity<Map<String, Object>> generateLicenseKey(@RequestBody(required = false) Map<String, Object> request) {
         // Default values
         LocalDate expiresOn = null;
+        String role = null;
         
         // Parse request parameters if provided
         if (request != null) {
-            // Parse expiration date
-            if (request.containsKey("expiresInDays")) {
+            // Parse expiration date option
+            if (request.containsKey("expiryOption")) {
+                String expiryOption = (String) request.get("expiryOption");
+                switch (expiryOption) {
+                    case "7days":
+                        expiresOn = LocalDate.now().plusDays(7);
+                        break;
+                    case "30days":
+                        expiresOn = LocalDate.now().plusDays(30);
+                        break;
+                    case "90days":
+                        expiresOn = LocalDate.now().plusDays(90);
+                        break;
+                    case "180days":
+                        expiresOn = LocalDate.now().plusDays(180);
+                        break;
+                    case "365days":
+                        expiresOn = LocalDate.now().plusDays(365);
+                        break;
+                    case "noexpiry":
+                        expiresOn = LocalDate.of(2099, 12, 31);
+                        break;
+                    case "custom":
+                        if (request.containsKey("customDate")) {
+                            String dateStr = (String) request.get("customDate");
+                            try {
+                                expiresOn = LocalDate.parse(dateStr);
+                            } catch (Exception e) {
+                                // If parsing fails, set to null
+                                expiresOn = null;
+                            }
+                        }
+                        break;
+                }
+            } else if (request.containsKey("expiresInDays")) {
+                // For backward compatibility
                 int expiresInDays = (int) request.get("expiresInDays");
                 expiresOn = LocalDate.now().plusDays(expiresInDays);
+            }
+            
+            // Get role
+            if (request.containsKey("role")) {
+                role = (String) request.get("role");
+                // Convert role to lowercase
+                if (role != null) {
+                    role = role.toLowerCase();
+                }
             }
         }
         
@@ -140,14 +188,17 @@ public class LicenseKeyController {
                 .key(key)
                 .issuedOn(LocalDate.now())
                 .expiresOn(expiresOn)
-                .isActive(true)
+                .status(LicenseKey.Status.ACTIVE)
+                .role(role)
                 .build();
         
         LicenseKey savedLicenseKey = licenseKeyService.createLicenseKey(licenseKey);
         
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
             "licenseKey", savedLicenseKey.getKey(),
-            "expiresOn", savedLicenseKey.getExpiresOn()
+            "expiresOn", savedLicenseKey.getExpiresOn(),
+            "role", savedLicenseKey.getRole() != null ? savedLicenseKey.getRole() : "",
+            "status", savedLicenseKey.getStatus()
         ));
     }
 
@@ -193,5 +244,121 @@ public class LicenseKeyController {
     public ResponseEntity<LicenseKey> getLicenseKey(@PathVariable String key) {
         Optional<LicenseKey> licenseKey = licenseKeyService.findByKey(key);
         return licenseKey.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+    
+    /**
+     * Update license key status
+     * 
+     * @param key The license key
+     * @param request The update request containing new status and user ID
+     * @return The updated license key
+     */
+    @PostMapping("/{key}/update-status")
+    public ResponseEntity<?> updateLicenseKeyStatusByKey(
+            @PathVariable String key, 
+            @RequestBody Map<String, String> request) {
+        
+        String newStatus = request.get("status");
+        String userId = request.get("user");
+        
+        if (newStatus == null) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", "No status provided"
+            ));
+        }
+        
+        Optional<LicenseKey> licenseKeyOpt = licenseKeyService.findByKey(key);
+        if (licenseKeyOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        
+        try {
+            LicenseKey licenseKey = licenseKeyOpt.get();
+            licenseKey.setStatus(newStatus);
+            
+            // Set the user if provided
+            if (userId != null && !userId.isEmpty()) {
+                licenseKey.setUser(userId);
+            }
+            
+            // Save the updated license key
+            LicenseKey updatedKey = licenseKeyService.createLicenseKey(licenseKey);
+            return ResponseEntity.ok(updatedKey);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", e.getMessage()
+            ));
+        }
+    }
+
+    /**
+     * Assign a license key to a user
+     * 
+     * @param request The request containing the license key and user ID
+     * @return Response entity with assignment result
+     */
+    @PostMapping("/assign-to-user")
+    public ResponseEntity<Map<String, Object>> assignLicenseKeyToUser(@RequestBody Map<String, String> request) {
+        String licenseKey = request.get("licenseKey");
+        String userId = request.get("userId");
+        
+        if (licenseKey == null || userId == null) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", "License key and user ID are required"
+            ));
+        }
+        
+        // Validate the license key format
+        if (!licenseKeyService.validateLicenseKeyFormat(licenseKey)) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", "Invalid license key format"
+            ));
+        }
+        
+        // First check if the license key exists
+        Optional<LicenseKey> licenseKeyOpt = licenseKeyService.findByKey(licenseKey);
+        if (licenseKeyOpt.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", "License key not found"
+            ));
+        }
+        
+        LicenseKey license = licenseKeyOpt.get();
+        
+        // Check if the license key is already in use
+        if (license.getUser() != null) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", "License key is already assigned to a user"
+            ));
+        }
+        
+        // Check if the license key is not active
+        if (!LicenseKey.Status.ACTIVE.equals(license.getStatus())) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", "License key is not active"
+            ));
+        }
+        
+        // Assign the license key to the user
+        boolean success = licenseKeyService.assignLicenseKeyToUser(licenseKey, userId);
+        
+        if (success) {
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "License key assigned successfully"
+            ));
+        } else {
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", "Failed to assign license key to user"
+            ));
+        }
     }
 } 
