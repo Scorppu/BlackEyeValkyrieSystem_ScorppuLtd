@@ -50,17 +50,25 @@ public class DutyStatusController {
             return ResponseEntity.badRequest().body("User not found");
         }
 
-        DutyStatus newStatus = dutyStatusService.toggleDutyStatus(user);
-        logger.info("Toggled duty status for user {}: {}", user.getUsername(), newStatus.isOnDuty());
-        
-        Map<String, Object> response = new HashMap<>();
-        response.put("isOnDuty", newStatus.isOnDuty());
-        
-        // Convert LocalDateTime to Date and format as ISO string for proper timezone handling in JavaScript
-        Date timestamp = Date.from(newStatus.getTimestamp().atZone(ZoneId.systemDefault()).toInstant());
-        response.put("timestamp", timestamp.toInstant().toString());
-        
-        return ResponseEntity.ok(response);
+        try {
+            DutyStatus newStatus = dutyStatusService.toggleDutyStatus(user);
+            logger.info("Toggled duty status for user {}: {}", user.getUsername(), newStatus.isOnDuty());
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("isOnDuty", newStatus.isOnDuty());
+            response.put("lastDutyDuration", newStatus.getLastDutyDuration());
+            
+            // Convert LocalDateTime to Date and format as ISO string for proper timezone handling in JavaScript
+            Date timestamp = Date.from(newStatus.getTimestamp().atZone(ZoneId.systemDefault()).toInstant());
+            response.put("timestamp", timestamp.toInstant().toString());
+            
+            return ResponseEntity.ok(response);
+        } catch (IllegalStateException e) {
+            logger.error("Error toggling duty status: {}", e.getMessage());
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+        }
     }
 
     @GetMapping("/status")
@@ -74,13 +82,21 @@ public class DutyStatusController {
             return ResponseEntity.badRequest().body("User not found");
         }
 
-        DutyStatus status = dutyStatusService.getLatestDutyStatus(user)
-            .orElse(new DutyStatus(user, false));
+        Optional<DutyStatus> statusOpt = dutyStatusService.getLatestDutyStatus(user);
+        
+        if (statusOpt.isEmpty()) {
+            logger.warn("No duty status found for user: {}", user.getUsername());
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", "No duty status document exists for user: " + user.getUsername());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+        }
             
+        DutyStatus status = statusOpt.get();
         logger.info("Current duty status for user {}: {}", user.getUsername(), status.isOnDuty());
         
         Map<String, Object> response = new HashMap<>();
         response.put("isOnDuty", status.isOnDuty());
+        response.put("lastDutyDuration", status.getLastDutyDuration());
         
         // Convert LocalDateTime to Date and format as ISO string for proper timezone handling in JavaScript
         Date timestamp = Date.from(status.getTimestamp().atZone(ZoneId.systemDefault()).toInstant());
@@ -120,12 +136,18 @@ public class DutyStatusController {
             Map<String, Object> response = new HashMap<>();
             response.put("isOnDuty", newStatus.isOnDuty());
             response.put("userId", user.getId());
+            response.put("lastDutyDuration", newStatus.getLastDutyDuration());
             
             // Convert LocalDateTime to Date and format as ISO string
             Date timestamp = Date.from(newStatus.getTimestamp().atZone(ZoneId.systemDefault()).toInstant());
             response.put("timestamp", timestamp.toInstant().toString());
             
             return ResponseEntity.ok(response);
+        } catch (IllegalStateException e) {
+            logger.error("Error toggling duty status: {}", e.getMessage());
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
         } catch (Exception e) {
             logger.error("Error toggling duty status: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

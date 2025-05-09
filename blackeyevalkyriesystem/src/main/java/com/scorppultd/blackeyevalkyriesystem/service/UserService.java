@@ -5,15 +5,21 @@ import com.scorppultd.blackeyevalkyriesystem.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class UserService {
+    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
     @Autowired
     private UserRepository userRepository;
+    
+    @Autowired
+    private DutyStatusService dutyStatusService;
 
     public List<User> getAllUsersSorted(String sortBy, String direction) {
         Sort.Direction sortDirection = direction.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
@@ -41,7 +47,28 @@ public class UserService {
         if ("admin".equalsIgnoreCase(user.getUsername())) {
             throw new IllegalArgumentException("Cannot modify the default admin user");
         }
-        return userRepository.save(user);
+        
+        // Save the user
+        User savedUser = userRepository.save(user);
+        
+        // Check if this user should have a duty status record (doctors and nurses)
+        if (savedUser.getRole() == User.UserRole.DOCTOR || savedUser.getRole() == User.UserRole.NURSE) {
+            try {
+                // Check if duty status already exists
+                Optional<com.scorppultd.blackeyevalkyriesystem.model.DutyStatus> existingStatus = 
+                    dutyStatusService.getLatestDutyStatus(savedUser);
+                
+                if (existingStatus.isEmpty()) {
+                    // Create a duty status record with isOnDuty=false
+                    dutyStatusService.createInitialDutyStatus(savedUser);
+                    logger.info("Created initial duty status record for user: {}", savedUser.getUsername());
+                }
+            } catch (Exception e) {
+                logger.error("Failed to create duty status record for user {}: {}", savedUser.getUsername(), e.getMessage());
+            }
+        }
+        
+        return savedUser;
     }
     
     public Optional<User> findUserById(String id) {
