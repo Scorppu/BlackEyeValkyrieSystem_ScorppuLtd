@@ -184,28 +184,22 @@ function initializeDrugAllergies() {
     
     // Function to add a drug allergy
     function addDrugAllergy() {
-        const drugName = drugAllergyInput.value;
-        if (!drugName) return;
+        const drugInput = document.getElementById('drugAllergyInput');
+        const drugId = drugInput.dataset.drugId;
+        const drugName = drugInput.dataset.drugName;
         
-        // Get the drug ID from the input attribute
-        const drugId = drugAllergyInput.getAttribute('data-selected-id');
-        
-        if (!drugId) {
-            alert('Please select a valid drug from the list');
+        if (!drugId || !drugName) {
+            showValidationPopup(['Please select a valid drug from the list']);
             return;
         }
         
-        // Check if drugAllergiesInput exists
-        if (!drugAllergiesInput) {
-            console.error('drugAllergies input element not found');
-            return;
-        }
-        
-        // Check if already selected
-        if (selectedAllergies.has(drugId)) {
-            alert('This drug is already in the allergies list');
-            drugAllergyInput.value = '';
-            return;
+        // Check if this drug is already in the list
+        const existingAllergies = document.querySelectorAll('#allergiesList .allergyItem');
+        for (let i = 0; i < existingAllergies.length; i++) {
+            if (existingAllergies[i].dataset.drugId === drugId) {
+                showValidationPopup(['This drug is already in the allergies list']);
+                return;
+            }
         }
         
         // Remove empty row if it exists
@@ -343,13 +337,10 @@ function setupTabNavigation() {
     // Next button handling
     if (nextButton) {
         nextButton.addEventListener('click', function() {
-            // Validate personal information fields
-            const firstName = document.getElementById('firstName').value;
-            const lastName = document.getElementById('lastName').value;
-            const dateOfBirth = document.getElementById('dateOfBirth').value;
-            
-            if (!firstName || !lastName || !dateOfBirth) {
-                alert('Please fill in all required fields.');
+            // Validate personal information fields using the validatePatientForm function
+            const validation = validatePatientForm();
+            if (!validation.isValid) {
+                showValidationPopup(validation.errors);
                 return;
             }
             
@@ -467,7 +458,8 @@ function setupFormSubmission() {
             
             // Add additional validation
             if (!firstName || !lastName || !dateOfBirth) {
-                alert('Required fields missing: First Name, Last Name, and Date of Birth are required');
+                // Use validation popup instead of notification for validation errors
+                showValidationPopup(['First Name, Last Name, and Date of Birth are required']);
                 return;
             }
             
@@ -492,14 +484,19 @@ function setupFormSubmission() {
             })
             .then(data => {
                 console.log('Success:', data);
-                alert('Patient profile created successfully!');
+                // Replace alert with sessionStorage
+                sessionStorage.setItem('patientNotification', JSON.stringify({
+                    type: 'success',
+                    message: 'Patient profile created successfully!'
+                }));
                 
                 // Redirect to patient list
                 window.location.href = '/patient/list';
             })
             .catch((error) => {
                 console.error('Error:', error);
-                alert('Error creating patient profile: ' + error.message);
+                // Use validation popup instead of notification
+                showValidationPopup(['Error creating patient profile: ' + error.message]);
             });
         });
     }
@@ -570,139 +567,21 @@ function addValidationModals() {
 }
 
 function addValidationStyles() {
-    // Check if styles already exist
-    if (document.getElementById('validation-styles')) {
-        return;
-    }
-    
-    // Create style element
+    // Add CSS styles for validation
     const styleElement = document.createElement('style');
-    styleElement.id = 'validation-styles';
-    
-    // Define styles
-    const styles = `
-        /* Required field asterisk styling */
-        .required {
-            color: #ff4d4d;
-            margin-left: 2px;
-        }
-        
-        /* Invalid input styling */
+    styleElement.innerHTML = `
         .invalid-input {
             border-color: #ff4d4d !important;
-            box-shadow: 0 0 0 1px #ff4d4d !important;
+            box-shadow: 0 0 0 0.2rem rgba(255, 77, 77, 0.25) !important;
         }
         
-        /* Field validation message */
         .field-validation-error {
             color: #ff4d4d;
             font-size: 0.875rem;
             margin-top: 0.25rem;
             display: block;
         }
-        
-        /* Modal styles */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-        }
-        
-        .modal-content {
-            background-color: var(--primary-bg, #ffffff);
-            margin: 15% auto;
-            padding: 20px;
-            border-radius: 8px;
-            width: 400px;
-            max-width: 90%;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-        
-        .modal-title {
-            margin-top: 0;
-            margin-bottom: 15px;
-            font-size: 1.5rem;
-        }
-        
-        .modal-title.success {
-            color: #23b27e;
-        }
-        
-        .modal-title.error {
-            color: #ff4d4d;
-        }
-        
-        .modal-footer {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-        }
-        
-        .btn-success {
-            background-color: #23b27e;
-            color: white;
-        }
-        
-        .btn-error {
-            background-color: #ff4d4d;
-            color: white;
-        }
-        
-        /* Validation popup */
-        .validation-popup {
-            position: fixed;
-            z-index: 1100;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        .validation-popup-content {
-            background-color: var(--primary-bg, #ffffff);
-            padding: 20px;
-            border-radius: 8px;
-            width: 400px;
-            max-width: 90%;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            margin: 0;
-        }
-        
-        .validation-popup-title {
-            color: #ff4d4d;
-            margin-top: 0;
-            margin-bottom: 15px;
-            font-size: 1.5rem;
-        }
-        
-        .validation-error-list {
-            margin-bottom: 20px;
-            padding-left: 20px;
-        }
-        
-        .validation-error-item {
-            margin-bottom: 5px;
-            color: #333;
-        }
     `;
-    
-    // Add styles to the style element
-    styleElement.textContent = styles;
-    
-    // Add style element to document head
     document.head.appendChild(styleElement);
 }
 
@@ -725,6 +604,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Setup validation form
     setupValidationForm();
+    
+    // Setup unsaved changes tracking
+    setupUnsavedChangesTracking();
 });
 
 // Setup validation form
@@ -798,19 +680,74 @@ function setupValidationForm() {
     
     // Function to show validation errors popup
     function showValidationPopup(errors) {
-        // Clear previous errors
-        validationErrorList.innerHTML = '';
+        // Remove any existing popup
+        const existingPopup = document.querySelector('.validation-popup');
+        if (existingPopup) {
+            existingPopup.remove();
+        }
         
-        // Add each error to the list
-        errors.forEach(error => {
-            const li = document.createElement('li');
-            li.className = 'validation-error-item';
-            li.textContent = error;
-            validationErrorList.appendChild(li);
-        });
+        const existingOverlay = document.querySelector('.validation-popup-overlay');
+        if (existingOverlay) {
+            existingOverlay.remove();
+        }
         
-        // Show the popup
-        validationPopup.style.display = 'block';
+        // Create overlay
+        const overlay = document.createElement('div');
+        overlay.className = 'validation-popup-overlay';
+        document.body.appendChild(overlay);
+        
+        // Create popup
+        const popup = document.createElement('div');
+        popup.className = 'validation-popup';
+        
+        // Create popup content
+        popup.innerHTML = `
+            <div class="validation-popup-content">
+                <div class="validation-popup-header">
+                    Form Validation Error
+                    <button class="validation-popup-close">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+                <div class="validation-popup-body">
+                    <p class="validation-popup-title">Please fix the following errors:</p>
+                    <ul class="validation-error-list">
+                        ${errors.map(error => `
+                            <li class="validation-error-item">
+                                <div class="validation-error-icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                    </svg>
+                                </div>
+                                <div class="validation-error-text">${error}</div>
+                            </li>
+                        `).join('')}
+                    </ul>
+                </div>
+                <div class="validation-popup-footer">
+                    <button class="validation-popup-button">OK</button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(popup);
+        
+        // Add event listeners
+        const closeButton = popup.querySelector('.validation-popup-close');
+        const okButton = popup.querySelector('.validation-popup-button');
+        const closePopup = () => {
+            popup.remove();
+            overlay.remove();
+        };
+        
+        closeButton.addEventListener('click', closePopup);
+        okButton.addEventListener('click', closePopup);
+        overlay.addEventListener('click', closePopup);
     }
     
     // Function to mark invalid fields
@@ -866,7 +803,8 @@ function setupValidationForm() {
             { id: 'firstName', name: 'First Name' },
             { id: 'lastName', name: 'Last Name' },
             { id: 'sex', name: 'Sex' },
-            { id: 'dateOfBirth', name: 'Date of Birth' }
+            { id: 'dateOfBirth', name: 'Date of Birth' },
+            { id: 'bloodType', name: 'Blood Type' }
         ];
         
         // Check each required field
@@ -894,11 +832,8 @@ function setupValidationForm() {
         const errors = [];
         const invalidFields = [];
         
-        // Define required fields for contact form
-        const requiredFields = [
-            { id: 'contactNumber', name: 'Phone / Mobile' },
-            { id: 'country', name: 'Country' }
-        ];
+        // Define required fields for contact form - removed phone and country
+        const requiredFields = [];
         
         // Check each required field
         requiredFields.forEach(field => {
@@ -931,7 +866,7 @@ function setupValidationForm() {
     
     // Add validation to required fields on blur for patient form
     if (patientForm) {
-        const requiredInputs = ['firstName', 'lastName', 'sex', 'dateOfBirth'];
+        const requiredInputs = ['firstName', 'lastName', 'sex', 'dateOfBirth', 'bloodType'];
         
         requiredInputs.forEach(fieldId => {
             const input = document.getElementById(fieldId);
@@ -998,7 +933,7 @@ function setupValidationForm() {
     
     // Add validation to required fields on blur for contact form
     if (contactForm) {
-        const requiredInputs = ['contactNumber', 'country'];
+        const requiredInputs = [];
         
         requiredInputs.forEach(fieldId => {
             const input = document.getElementById(fieldId);
@@ -1058,4 +993,201 @@ function setupValidationForm() {
             // This will hit the other submit handler to actually submit the form
         });
     }
+}
+
+// Track form changes and handle navigation
+function setupUnsavedChangesTracking() {
+    let formChanged = false;
+    const formInputs = document.querySelectorAll('input, select, textarea');
+    const cancelButton = document.getElementById('cancel-btn');
+    const initialFormState = captureFormState();
+    
+    // Capture the initial state of the form
+    function captureFormState() {
+        const state = {};
+        formInputs.forEach(input => {
+            if (input.type === 'checkbox' || input.type === 'radio') {
+                state[input.id] = input.checked;
+            } else {
+                state[input.id] = input.value;
+            }
+        });
+        return state;
+    }
+    
+    // Check if the form state has changed
+    function hasFormChanged() {
+        const currentState = captureFormState();
+        for (const key in currentState) {
+            if (initialFormState[key] !== currentState[key]) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    // Track changes to form inputs
+    formInputs.forEach(input => {
+        input.addEventListener('change', function() {
+            formChanged = hasFormChanged();
+        });
+        
+        input.addEventListener('input', function() {
+            formChanged = hasFormChanged();
+        });
+    });
+    
+    // Handle cancel button click
+    if (cancelButton) {
+        cancelButton.addEventListener('click', function(e) {
+            if (formChanged) {
+                e.preventDefault();
+                showUnsavedChangesPopup();
+            } else {
+                window.location.href = '/patient/list';
+            }
+        });
+    }
+    
+    // Handle clicks on sidebar links or other navigation
+    document.addEventListener('click', function(e) {
+        const link = e.target.closest('a');
+        
+        // Ignore submission buttons and same-page links
+        if (link && 
+            !link.classList.contains('btn-success') && 
+            !link.getAttribute('href').startsWith('#')) {
+            
+            if (formChanged) {
+                e.preventDefault();
+                const targetUrl = link.getAttribute('href');
+                showUnsavedChangesPopup(targetUrl);
+            }
+        }
+    });
+    
+    // Show the unsaved changes popup
+    function showUnsavedChangesPopup(targetUrl = '/patient/list') {
+        // Remove any existing popup
+        const existingPopup = document.querySelector('.unsaved-changes-popup');
+        if (existingPopup) {
+            existingPopup.remove();
+        }
+        
+        // Create the popup
+        const popup = document.createElement('div');
+        popup.className = 'unsaved-changes-popup';
+        
+        popup.innerHTML = `
+            <div class="unsaved-changes-content">
+                <div class="unsaved-changes-header">
+                    Unsaved Changes
+                </div>
+                <div class="unsaved-changes-body">
+                    <div class="unsaved-changes-message">
+                        You have unsaved changes that will be lost if you leave this page. 
+                        Do you want to discard these changes?
+                    </div>
+                    <div class="unsaved-changes-actions">
+                        <button class="unsaved-changes-action unsaved-changes-cancel">Cancel</button>
+                        <button class="unsaved-changes-action unsaved-changes-discard">Discard Changes</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(popup);
+        
+        // Add event listeners
+        const cancelButton = popup.querySelector('.unsaved-changes-cancel');
+        const discardButton = popup.querySelector('.unsaved-changes-discard');
+        
+        cancelButton.addEventListener('click', function() {
+            popup.remove();
+        });
+        
+        discardButton.addEventListener('click', function() {
+            // Redirect to the target URL
+            window.location.href = targetUrl;
+        });
+    }
+}
+
+// Add displayNotification function to the file
+function displayNotification(type, message) {
+    // Create notification container if it doesn't exist
+    let notificationContainer = document.querySelector('.notification-container');
+    
+    if (!notificationContainer) {
+        notificationContainer = document.createElement('div');
+        notificationContainer.className = 'notification-container';
+        
+        // Insert at the top of the content section
+        const contentSection = document.querySelector('[layout\\:fragment="content"]');
+        if (contentSection) {
+            contentSection.insertBefore(notificationContainer, contentSection.firstChild);
+        } else {
+            document.body.insertBefore(notificationContainer, document.body.firstChild);
+        }
+    }
+    
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    
+    // Add icon based on type
+    let icon = '';
+    if (type === 'success') {
+        icon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>';
+    } else if (type === 'error') {
+        icon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>';
+    }
+    
+    // Set notification content
+    notification.innerHTML = `
+        <div class="notification-icon">${icon}</div>
+        <div class="notification-content">
+            <p>${message}</p>
+        </div>
+        <button class="notification-close">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+        </button>
+    `;
+    
+    // Add to container
+    notificationContainer.appendChild(notification);
+    
+    // Add close button functionality
+    const closeButton = notification.querySelector('.notification-close');
+    if (closeButton) {
+        closeButton.addEventListener('click', function() {
+            notification.classList.add('closing');
+            setTimeout(() => {
+                notification.remove();
+                
+                // Remove container if empty
+                if (notificationContainer.children.length === 0) {
+                    notificationContainer.remove();
+                }
+            }, 300);
+        });
+    }
+    
+    // Auto-remove after 6 seconds
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.classList.add('closing');
+            setTimeout(() => {
+                notification.remove();
+                
+                // Remove container if empty
+                if (notificationContainer && notificationContainer.children.length === 0) {
+                    notificationContainer.remove();
+                }
+            }, 300);
+        }
+    }, 6000);
 } 
