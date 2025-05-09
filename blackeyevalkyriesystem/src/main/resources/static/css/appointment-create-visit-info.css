@@ -122,7 +122,7 @@ input[type="date"]::-webkit-clear-button {
 .form-control:focus, .form-select:focus {
     outline: none;
     border-color: var(--accent-color);
-    box-shadow: 0 0 0 2px rgba(138, 43, 226, 0.3);
+    box-shadow: 0 0 0 2px rgba(138, 43, 226, 0.2);
 }
 
 .form-control:disabled, .form-select:disabled {
@@ -635,4 +635,15 @@ body, html, .app-container {
     .timeline-scroll-container:not([data-overflow="true"]) {
         overflow-x: hidden;
     }
+}
+
+/* Invalid time input styling */
+.invalid-time {
+    border-color: #ef4444 !important;
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2) !important;
+}
+
+.invalid-time:focus {
+    border-color: #ef4444 !important;
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2) !important;
 } 

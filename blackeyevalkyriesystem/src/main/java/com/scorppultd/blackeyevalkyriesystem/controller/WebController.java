@@ -614,6 +614,38 @@ public class WebController {
         
         Patient patient = patientOpt.get();
         
+        // Validate appointment time restrictions
+        if (scheduledTime != null && !scheduledTime.isEmpty()) {
+            LocalDateTime appointmentTime = LocalDateTime.parse(scheduledTime);
+            
+            // Check if appointment starts before 9:00 AM
+            if (appointmentTime.getHour() < 9) {
+                return "redirect:/appointment/create?error=timeBeforeWorkHours&patientId=" + patientId;
+            }
+            
+            // Check if appointment starts after 17:30 (5:30 PM)
+            if (appointmentTime.getHour() > 17 || 
+                (appointmentTime.getHour() == 17 && appointmentTime.getMinute() > 30)) {
+                return "redirect:/appointment/create?error=timeAfterWorkHours&patientId=" + patientId;
+            }
+            
+            // Calculate end time
+            int durationMinutes = 30; // Default
+            try {
+                durationMinutes = Integer.parseInt(requiredTime.trim().split(" ")[0]);
+            } catch (NumberFormatException e) {
+                // Use default if parsing fails
+            }
+            
+            LocalDateTime endTime = appointmentTime.plusMinutes(durationMinutes);
+            
+            // Check if appointment ends after 17:30 (5:30 PM)
+            if (endTime.getHour() > 17 || 
+                (endTime.getHour() == 17 && endTime.getMinute() > 30)) {
+                return "redirect:/appointment/create?error=endTimeAfterWorkHours&patientId=" + patientId;
+            }
+        }
+        
         Appointment appointment = new Appointment();
         appointment.setPatient(patient);
         appointment.setAppointmentType(appointmentType);

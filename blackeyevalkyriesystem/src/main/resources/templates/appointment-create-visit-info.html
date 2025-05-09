@@ -30,6 +30,19 @@
                         <p>Please insert patient's Visit information</p>
                     </div>
                     
+                    <!-- Error messages -->
+                    <div th:if="${param.error != null}" class="alert alert-danger mb-4">
+                        <div th:if="${param.error[0] == 'timeBeforeWorkHours'}">
+                            <strong>Error:</strong> Appointments can only be scheduled after 9:00 AM.
+                        </div>
+                        <div th:if="${param.error[0] == 'timeAfterWorkHours'}">
+                            <strong>Error:</strong> Appointments cannot be scheduled after 5:30 PM.
+                        </div>
+                        <div th:if="${param.error[0] == 'endTimeAfterWorkHours'}">
+                            <strong>Error:</strong> Appointments cannot end after 5:30 PM. Please adjust the start time or duration.
+                        </div>
+                    </div>
+                    
                     <form id="visitInfoForm" th:action="@{/appointment/create/visit-info}" method="post">
                         <input type="hidden" name="patientId" th:value="${patient.id}">
                         
