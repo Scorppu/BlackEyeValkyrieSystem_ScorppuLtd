@@ -110,7 +110,7 @@
                                         <option value="">Select a doctor</option>
                                         <option th:each="doctor : ${doctors}" 
                                                 th:value="${doctor.firstName + ' ' + doctor.lastName}"
-                                                th:text="${doctor.firstName + ' ' + doctor.lastName + ' - ' + doctor.specialization}">
+                                                th:text="${doctor.firstName + ' ' + doctor.lastName}">
                                         </option>
                                     </select>
                                     <input type="text" class="form-control doctor-search" placeholder="Search doctor...">
