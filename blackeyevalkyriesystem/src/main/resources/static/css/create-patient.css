@@ -153,12 +153,12 @@ select.form-control {
 }
 
 .btn-secondary {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: var(--secondary-bg);
     color: var(--primary-text);
 }
 
 .btn-secondary:hover {
-    background-color: rgba(255, 255, 255, 0.15);
+    background-color: rgba(0, 0, 0, 0.1);
 }
 
 .btn-success {
@@ -287,8 +287,14 @@ select.form-control {
 }
 
 .no-results {
-    padding: 0.75rem 1rem;
-    color: var(--secondary-text);
+    padding: 0.5rem;
     font-style: italic;
     text-align: center;
+    color: var(--secondary-text);
+}
+
+/* Required field indicator */
+.required {
+    color: #dc3545;
+    margin-left: 2px;
 }

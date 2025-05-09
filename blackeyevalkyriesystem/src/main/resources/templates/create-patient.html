@@ -10,9 +10,24 @@
     <th:block layout:fragment="head">
         <!-- Create Patient specific CSS -->
         <link rel="stylesheet" th:href="@{/css/create-patient.css}">
+        <link rel="stylesheet" th:href="@{/css/notifications.css}">
     </th:block>
 </head>
 <body>
+    <!-- Header with title and back button -->
+    <header class="header" layout:fragment="custom-header">
+        <div class="header-container">
+            <h1>Create Patient</h1>
+            
+            <a href="/patient/list" class="btn btn-secondary" id="cancel-btn">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M10 12.6667L5.33333 8.00001L10 3.33334" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Back to Patients
+            </a>
+        </div>
+    </header>
+    
     <div layout:fragment="content">
         <div class="main-container">
             <!-- Left Column - Credentials -->
@@ -69,7 +84,6 @@
                                 <option value="">Gender of Patient...</option>
                                 <option value="Male">Male</option>
                                 <option value="Female">Female</option>
-                                <option value="Other">Other</option>
                             </select>
                         </div>
                         
@@ -100,7 +114,7 @@
                         </div>
                         
                         <div class="form-group">
-                            <label for="bloodType">Blood Type</label>
+                            <label for="bloodType">Blood Type <span class="required">*</span></label>
                             <select id="bloodType" name="bloodType" class="form-control">
                                 <option value="">Select Blood Type of Patient...</option>
                                 <option value="A+">A+</option>
@@ -443,6 +457,20 @@
     
     <th:block layout:fragment="scripts">
         <script th:src="@{/js/create-patient.js}"></script>
+        <style>
+            .required-asterisk {
+                color: red;
+                font-weight: bold;
+                margin-left: 2px;
+            }
+            
+            .tab-content {
+                margin-top: 15px;
+                padding-left: 15px;
+                font-size: 0.85em;
+                color: #666;
+            }
+        </style>
     </th:block>
 </body>
 </html> 

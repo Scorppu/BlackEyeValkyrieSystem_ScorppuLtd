@@ -153,12 +153,12 @@ select.form-control {
 }
 
 .btn-secondary {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: var(--secondary-bg);
     color: var(--primary-text);
 }
 
 .btn-secondary:hover {
-    background-color: rgba(255, 255, 255, 0.15);
+    background-color: rgba(0, 0, 0, 0.1);
 }
 
 .btn-success {
@@ -236,4 +236,10 @@ select.form-control {
 
 .mt-3 {
     margin-top: 1rem;
+}
+
+/* Required field indicator */
+.required-asterisk {
+    color: #dc3545;
+    margin-left: 2px;
 } 

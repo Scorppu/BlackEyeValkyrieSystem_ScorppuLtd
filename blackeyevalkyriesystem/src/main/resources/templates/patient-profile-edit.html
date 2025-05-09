@@ -9,9 +9,24 @@
     
     <th:block layout:fragment="head">
         <link rel="stylesheet" th:href="@{/css/patient-profile-edit.css}">
+        <link rel="stylesheet" th:href="@{/css/notifications.css}">
     </th:block>
 </head>
 <body>
+    <!-- Header with title and back button -->
+    <header class="header" layout:fragment="custom-header">
+        <div class="header-container">
+            <h1>Edit Patient</h1>
+            
+            <a href="/patient/list" class="btn btn-secondary" id="cancel-btn">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M10 12.6667L5.33333 8.00001L10 3.33334" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Back to Patients
+            </a>
+        </div>
+    </header>
+    
     <div layout:fragment="content">
         <div class="main-container">
             <!-- Left Column - Credentials -->
@@ -34,6 +49,14 @@
                         Contact Information
                     </div>
                 </div>
+                
+                <div id="personal-info-tab" class="tab-content active">
+                    <p>Please edit the personal information form on the right.</p>
+                </div>
+                
+                <div id="contact-info-tab" class="tab-content">
+                    <p>Please edit the contact information form on the right.</p>
+                </div>
             </div>
             
             <!-- Right Column - Form Content -->
@@ -47,17 +70,17 @@
                         <input type="hidden" id="patientId" name="patientId" th:value="${patient != null ? patient.id : ''}">
                         
                         <div class="form-group">
-                            <label for="firstName">First name</label>
+                            <label for="firstName">First name <span class="required-asterisk">*</span></label>
                             <input type="text" id="firstName" name="firstName" class="form-control" th:value="${patient != null ? patient.firstName : ''}">
                         </div>
                         
                         <div class="form-group">
-                            <label for="lastName">Last name</label>
+                            <label for="lastName">Last name <span class="required-asterisk">*</span></label>
                             <input type="text" id="lastName" name="lastName" class="form-control" th:value="${patient != null ? patient.lastName : ''}">
                         </div>
                         
                         <div class="form-group">
-                            <label for="sex">Sex</label>
+                            <label for="sex">Sex <span class="required-asterisk">*</span></label>
                             <select id="sex" name="sex" class="form-control">
                                 <option value="Male" th:selected="${patient != null && patient.sex == true}">Male</option>
                                 <option value="Female" th:selected="${patient != null && patient.sex == false}">Female</option>
@@ -70,7 +93,7 @@
                         </div>
                         
                         <div class="form-group">
-                            <label for="dateOfBirth">Date Of Birth</label>
+                            <label for="dateOfBirth">Date Of Birth <span class="required-asterisk">*</span></label>
                             <input type="date" id="dateOfBirth" name="dateOfBirth" class="form-control" th:value="${patient != null ? patient.dateOfBirth : ''}">
                         </div>
                         
@@ -82,6 +105,7 @@
                         <div class="form-group">
                             <label for="maritalStatus">Marital Status</label>
                             <select id="maritalStatus" name="maritalStatus" class="form-control">
+                                <option value="" th:selected="${patient != null && patient.maritalStatus == ''}">Select Marital Status</option>
                                 <option value="Single" th:selected="${patient != null && patient.maritalStatus == 'Single'}">Single</option>
                                 <option value="Married" th:selected="${patient != null && patient.maritalStatus == 'Married'}">Married</option>
                                 <option value="Divorced" th:selected="${patient != null && patient.maritalStatus == 'Divorced'}">Divorced</option>
@@ -90,8 +114,9 @@
                         </div>
                         
                         <div class="form-group">
-                            <label for="bloodType">Blood Type</label>
+                            <label for="bloodType">Blood Type <span class="required-asterisk">*</span></label>
                             <select id="bloodType" name="bloodType" class="form-control">
+                                <option value="" th:selected="${patient != null && patient.bloodType == ''}">Select Blood Type</option>
                                 <option value="A+" th:selected="${patient != null && patient.bloodType == 'A+'}">A+</option>
                                 <option value="A-" th:selected="${patient != null && patient.bloodType == 'A-'}">A-</option>
                                 <option value="B+" th:selected="${patient != null && patient.bloodType == 'B+'}">B+</option>
@@ -203,5 +228,9 @@
             </div>
         </div>
     </div>
+    
+    <th:block layout:fragment="scripts">
+        <script th:src="@{/js/patient-profile-edit.js}"></script>
+    </th:block>
 </body>
 </html>
