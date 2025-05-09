@@ -54,11 +54,63 @@ function filterDrugs() {
     }
 }
 
-// Initialize search on page load
+// Delete confirmation modal functionality
+function setupDeleteConfirmation() {
+    const modal = document.getElementById('deleteConfirmModal');
+    const closeBtn = document.querySelector('.close-modal');
+    const cancelBtn = document.getElementById('cancelDelete');
+    const confirmBtn = document.getElementById('confirmDelete');
+    let drugIdToDelete = null;
+
+    // Get all delete buttons
+    const deleteButtons = document.querySelectorAll('.delete-drug-btn');
+    
+    // Add click event to each delete button
+    deleteButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            drugIdToDelete = this.getAttribute('data-id');
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden'; // Prevent scrolling while modal is open
+        });
+    });
+    
+    // Close modal when clicking the X button
+    closeBtn.addEventListener('click', function() {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+    });
+    
+    // Close modal when clicking cancel button
+    cancelBtn.addEventListener('click', function() {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+    });
+    
+    // Handle delete confirmation
+    confirmBtn.addEventListener('click', function() {
+        if (drugIdToDelete) {
+            window.location.href = `/drugs/delete/${drugIdToDelete}`;
+        }
+    });
+    
+    // Close modal when clicking outside the modal content
+    window.addEventListener('click', function(event) {
+        if (event.target === modal) {
+            modal.style.display = 'none';
+            document.body.style.overflow = '';
+        }
+    });
+}
+
+// Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
     // Add event listener to search input
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
         searchInput.addEventListener('keyup', filterDrugs);
     }
+    
+    // Setup delete confirmation modal
+    setupDeleteConfirmation();
 }); 

@@ -433,3 +433,55 @@ body, html {
 #generateLicenseKeyBtn {
     display: inline-block;
 }
+
+/* Status toggle styling */
+.status-toggle-container {
+    margin-top: 5px;
+}
+
+.status-toggle-container select {
+    width: 200px;
+    padding: 8px 12px;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    background-color: var(--background-color);
+    color: var(--text-color);
+    font-size: 14px;
+}
+
+.status-toggle-container select option[value="true"] {
+    background-color: rgba(0, 128, 0, 0.1);
+    color: green;
+}
+
+.status-toggle-container select option[value="false"] {
+    background-color: rgba(255, 0, 0, 0.1);
+    color: #d93025;
+}
+
+.status-toggle-container small {
+    display: block;
+    margin-top: 5px;
+    color: var(--muted-text-color);
+}
+
+/* Inactive user styling */
+.user-form-container.inactive-user {
+    position: relative;
+}
+
+.user-form-container.inactive-user::before {
+    content: "INACTIVE USER";
+    position: absolute;
+    top: 20px;
+    right: -10px;
+    background-color: rgba(255, 77, 77, 0.1);
+    color: #ff4d4d;
+    padding: 5px 10px;
+    font-size: 12px;
+    font-weight: bold;
+    border-radius: 4px;
+    transform: rotate(45deg);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+}
