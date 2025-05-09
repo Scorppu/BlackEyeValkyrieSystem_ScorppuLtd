@@ -38,21 +38,44 @@ body {
 }
 
 .sidebar {
-    width: 250px;
+    width: 275px;
+    min-width: 275px;
     background-color: var(--secondary-bg);
     border-right: 1px solid var(--border-color);
-    padding: 1rem 1rem 2rem 0.5rem;
+    padding: 0;
     display: flex;
     flex-direction: column;
     position: fixed;
-    height: calc(100vh - 1rem);
+    height: 100vh;
+    overflow: hidden;
+}
+
+.sidebar-header {
+    padding: 1rem 1rem 0.5rem;
+    position: sticky;
+    top: 0;
+    background-color: var(--secondary-bg);
+    z-index: 10;
+}
+
+.sidebar-content {
+    flex: 1;
     overflow-y: auto;
+    padding: 0.5rem 1rem;
+}
+
+.sidebar-footer {
+    padding: 0.5rem 1rem 1rem;
+    position: sticky;
+    bottom: 0;
+    background-color: var(--secondary-bg);
+    z-index: 10;
 }
 
 .main-content {
     flex-grow: 1;
     padding: 0 2rem 1.5rem;
-    margin-left: 270px;
+    margin-left: 275px;
 }
 
 .header {
@@ -97,12 +120,13 @@ body {
 .logo {
     display: flex;
     align-items: center;
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
     color: var(--primary-text);
     text-decoration: none;
     font-weight: bold;
     font-size: 1.1rem;
     padding-left: 0.5rem;
+    white-space: nowrap;
 }
 
 .logo svg {
@@ -119,6 +143,7 @@ body {
     border: 1px solid var(--border-color);
     border-radius: 6px;
     overflow: hidden;
+    min-height: 42px;
 }
 
 .search-bar svg {
@@ -267,9 +292,6 @@ nav {
 /* User Profile */
 .user-profile-container {
     position: relative;
-    margin-top: auto;
-    margin-left: 0.5rem;
-    margin-right: 0.5rem;
     margin-bottom: 1rem;
     transition: all 0.3s ease;
 }
@@ -577,11 +599,18 @@ select.form-control {
     
     .sidebar {
         width: 100%;
+        min-width: 100%;
         border-right: none;
         border-bottom: 1px solid var(--border-color);
         position: relative;
         height: auto;
         overflow-y: visible;
+    }
+    
+    .sidebar-header,
+    .sidebar-content,
+    .sidebar-footer {
+        position: relative;
     }
     
     .main-content {
@@ -604,10 +633,10 @@ select.form-control {
 
 /* Theme Toggle */
 .theme-toggle {
-    margin-top: 1rem;
-    padding: 0 0.5rem 1rem 0.5rem;
+    margin-top: 0.5rem;
+    padding: 0 0.5rem 0.5rem;
     border-top: 1px solid var(--border-color);
-    padding-top: 1rem;
+    padding-top: 0.5rem;
 }
 
 .theme-toggle button {
