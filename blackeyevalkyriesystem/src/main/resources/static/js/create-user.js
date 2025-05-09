@@ -520,14 +520,17 @@ document.addEventListener('DOMContentLoaded', function() {
                             } else {
                                 formData[input.name] = input.value.toUpperCase();
                             }
+                        } else if (input.id === 'active' || input.id === 'activeHidden') {
+                            // Convert string 'true'/'false' to actual boolean
+                            formData[input.name] = input.value === 'true';
                         } else {
                             formData[input.name] = input.value;
                         }
                     }
                 });
                 
-                // Always set active to true
-                formData.active = true;
+                // Explicitly set the active status based on our helper function
+                formData.active = getActiveStatus();
                 
                 // Get the endpoint and method
                 const endpoint = isEditMode ? `/api/users/${formData.id}` : '/api/users';
@@ -535,6 +538,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Log the form data for debugging
                 console.log('Submitting form data:', formData);
+                console.log('User active status:', formData.active);
                 
                 // Submit the form data via AJAX
                 fetch(endpoint, {
@@ -886,5 +890,66 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.error('Error in updateLicenseKeyWithUser:', error);
                 return Promise.reject(error);
         });
+    }
+    
+    // Hidden field conflict prevention for active status
+    const activeSelect = document.getElementById('active');
+    const activeHidden = document.getElementById('activeHidden');
+
+    // If both the select and hidden field exist, ensure they don't conflict
+    if (activeSelect && activeHidden) {
+        // Initially set the hidden value to match the select
+        activeHidden.value = activeSelect.value;
+        
+        // Update hidden input when select changes
+        activeSelect.addEventListener('change', function() {
+            activeHidden.value = activeSelect.value;
+        });
+        
+        // Optional: Add visual indication for inactive status
+        if (activeSelect.value === 'false') {
+            const formContainer = document.querySelector('.user-form-container');
+            if (formContainer) {
+                formContainer.classList.add('inactive-user');
+            }
+        }
+        
+        // Update visual status when changed
+        activeSelect.addEventListener('change', function() {
+            const formContainer = document.querySelector('.user-form-container');
+            if (formContainer) {
+                if (this.value === 'false') {
+                    formContainer.classList.add('inactive-user');
+                } else {
+                    formContainer.classList.remove('inactive-user');
+                }
+            }
+        });
+    }
+
+    // Make sure we use the correct active status in form submission
+    function getActiveStatus() {
+        // If admin toggle exists, use its value
+        if (activeSelect) {
+            return activeSelect.value === 'true';
+        }
+        // Otherwise, use the hidden input
+        else if (activeHidden) {
+            return activeHidden.value === 'true';
+        }
+        // Default fallback
+        return true;
+    }
+
+    // Set default active status for new users
+    if (!isEditMode && activeSelect) {
+        // Set to "true" (active) by default for new users
+        activeSelect.value = "true";
+        
+        // Trigger change event to ensure any listeners respond
+        const changeEvent = new Event('change', { bubbles: true });
+        activeSelect.dispatchEvent(changeEvent);
+        
+        console.log('New user: Setting default active status to true');
     }
 });

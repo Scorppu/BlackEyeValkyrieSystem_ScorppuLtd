@@ -99,8 +99,24 @@
                                 <small class="text-muted">Generate a new license key based on the selected role, or enter an existing one</small>
                             </div>
                             
-                            <!-- Hidden input for active status, always set to true -->
-                            <input type="hidden" id="active" name="active" value="true" th:field="*{active}">
+                            <!-- Replace hidden input with visible status toggle for admins -->
+                            <div class="form-group" sec:authorize="hasRole('ADMIN')">
+                                <label for="active">User Status</label>
+                                <div class="status-toggle-container">
+                                    <select id="active" name="active" class="form-control" th:field="*{active}">
+                                        <!-- For new users, set active to true by default -->
+                                        <option value="true" th:selected="${isEdit == null || user.active}">Active</option>
+                                        <option value="false" th:selected="${isEdit != null && !user.active}">Inactive</option>
+                                    </select>
+                                    <small class="text-muted" th:if="${isEdit != null && isEdit}">
+                                        Inactive users cannot log in to the system
+                                    </small>
+                                </div>
+                            </div>
+                            
+                            <!-- Keep hidden input for non-admin users or when creating a new user -->
+                            <input type="hidden" id="activeHidden" name="activeHidden" value="true" th:field="*{active}" 
+                                   sec:authorize="!hasRole('ADMIN')">
                             
                             <div class="form-actions">
                                 <button type="submit" class="btn btn-primary" th:text="${isEdit != null && isEdit ? 'Update User' : 'Create User'}">Create User</button>
