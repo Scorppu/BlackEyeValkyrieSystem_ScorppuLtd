@@ -17,7 +17,13 @@
         <header class="header">
             <div class="header-container">
                 <h1>Create Appointment</h1>
-                <a href="#" class="btn btn-primary" id="nextButton">Confirm</a>
+                
+                <a href="/appointment/timeline" class="btn btn-secondary" id="back-to-list-btn">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M10 12.6667L5.33333 8.00001L10 3.33334" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Back to Appointments
+                </a>
             </div>
         </header>
     </div>
@@ -138,6 +144,10 @@
                         </button>
                     </div>
                 </div>
+            </div>
+            <!-- Moved confirm button here, above the table footer -->
+            <div style="display: flex; justify-content: flex-end; padding: 1rem; border-top: 1px solid var(--border-color);">
+                <a href="#" class="btn btn-primary" id="nextButton">Confirm</a>
             </div>
         </div>
     </div>

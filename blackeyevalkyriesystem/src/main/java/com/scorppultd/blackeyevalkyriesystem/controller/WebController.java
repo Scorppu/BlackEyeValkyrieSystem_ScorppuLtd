@@ -651,7 +651,7 @@ public class WebController {
         appointment.setAppointmentType(appointmentType);
         
         try {
-            Integer time = Integer.parseInt(requiredTime.trim().split(" ")[0]);
+            Integer time = Integer.parseInt(requiredTime);
             appointment.setRequiredTime(time);
         } catch (NumberFormatException e) {
             appointment.setRequiredTime(30);
@@ -828,7 +828,7 @@ public class WebController {
         
         appointmentService.updateAppointment(appointment);
         
-        return "redirect:/appointment/timeline?success=appointmentUpdated";
+        return "redirect:/appointment/timeline?success=appointmentUpdated&appointmentId=" + id;
     }
 
     /**
