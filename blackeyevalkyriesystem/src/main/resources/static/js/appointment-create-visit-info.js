@@ -50,6 +50,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const now = new Date();
     const defaultDate = formatDateForInput(now).split('T')[0];
     if (!scheduledTimeInput.value) {
+        // Set default time to 9:00 AM
         scheduledTimeInput.value = defaultDate + 'T09:00';
     }
     
@@ -129,9 +130,51 @@ document.addEventListener('DOMContentLoaded', function() {
     scheduledTimeInput.addEventListener('input', function() {
         // Check if the input has a valid date component
         if (this.value && this.value.includes('T')) {
+            const selectedDate = new Date(this.value);
+            const hours = selectedDate.getHours();
+            const minutes = selectedDate.getMinutes();
+            const requiredTimeMinutes = parseInt(requiredTimeInput.value, 10);
+            
+            // Calculate end time based on required time
+            const endTime = new Date(selectedDate.getTime() + requiredTimeMinutes * 60000);
+            const endHours = endTime.getHours();
+            const endMinutes = endTime.getMinutes();
+            
+            // Check time restrictions without alerts
+            let isValid = true;
+            let validationMessage = '';
+            
+            // Check if appointment starts before 9:00 AM
+            if (hours < 9) {
+                isValid = false;
+                validationMessage = 'Appointments can only be scheduled after 9:00 AM';
+            }
+            // Check if appointment starts after 17:30 (5:30 PM)
+            else if (hours > 17 || (hours === 17 && minutes > 30)) {
+                isValid = false;
+                validationMessage = 'Appointments cannot be scheduled after 5:30 PM';
+            }
+            // Check if appointment ends after 17:30 (5:30 PM)
+            else if (endHours > 17 || (endHours === 17 && endMinutes > 30)) {
+                isValid = false;
+                validationMessage = 'With the current duration, the appointment would end after 5:30 PM';
+            }
+            
+            // Update UI based on validation
+            if (isValid) {
+                // Valid time - remove error styling
+                this.classList.remove('invalid-time');
+                scheduledTimeHelp.textContent = 'Selected time is valid';
+                scheduledTimeHelp.style.color = 'var(--secondary-text)';
+            } else {
+                // Invalid time - add error styling but don't prevent typing
+                this.classList.add('invalid-time');
+                scheduledTimeHelp.textContent = validationMessage;
+                scheduledTimeHelp.style.color = '#ef4444';
+            }
+            
             const doctorName = doctorSelect.value;
             if (doctorName) {
-                const selectedDate = new Date(this.value);
                 // Only fetch new schedule if date has changed
                 const currentDate = new Date(doctorAppointments.length > 0 ? 
                     doctorAppointments[0]?.scheduledTime : null);
@@ -338,12 +381,12 @@ document.addEventListener('DOMContentLoaded', function() {
         // Now show the timeline
         timelineContainer.style.display = 'block';
         
-        // Appointment working hours: 9 AM to 5 PM
+        // Appointment working hours: 9 AM to 5:30 PM
         const workStartHour = 9;
-        const workEndHour = 17;
+        const workEndHour = 17.5; // Changed from 17 to 17.5 (5:30 PM)
         
         // Calculate time slots for layout
-        const timeSlots = (workEndHour - workStartHour) * 2 + 1; // 30-minute slots
+        const timeSlots = Math.ceil((workEndHour - workStartHour) * 2) + 1; // 30-minute slots
         const slotWidth = 100; // Width in pixels of each time slot
         
         // Set min-width for the timeline content based on time slots
@@ -473,27 +516,101 @@ document.addEventListener('DOMContentLoaded', function() {
     const visitInfoForm = document.getElementById('visitInfoForm');
     if (visitInfoForm) {
         visitInfoForm.addEventListener('submit', function(event) {
+            // Clear previous error messages
+            document.querySelectorAll('.error-message').forEach(el => el.remove());
+            document.querySelectorAll('.form-control, .form-select').forEach(el => el.classList.remove('invalid-time'));
+            
             const doctorValue = doctorSelect.value;
             const scheduledTimeValue = scheduledTimeInput.value;
+            let hasErrors = false;
             
-            // Validate that doctor is selected and scheduled time is set
+            // Validate that doctor is selected
             if (!doctorValue) {
                 event.preventDefault();
-                alert('Please select a doctor');
-                return;
+                hasErrors = true;
+                doctorSelect.classList.add('invalid-time');
+                const errorMessage = document.createElement('div');
+                errorMessage.className = 'error-message';
+                errorMessage.textContent = 'Please select a doctor';
+                errorMessage.style.color = '#ef4444';
+                errorMessage.style.fontSize = '0.8rem';
+                errorMessage.style.marginTop = '0.5rem';
+                doctorSelect.parentNode.appendChild(errorMessage);
             }
             
+            // Validate that scheduled time is set
             if (!scheduledTimeValue) {
                 event.preventDefault();
-                alert('Please select a scheduled time');
-                return;
+                hasErrors = true;
+                scheduledTimeInput.classList.add('invalid-time');
+                const errorMessage = document.createElement('div');
+                errorMessage.className = 'error-message';
+                errorMessage.textContent = 'Please select a scheduled time';
+                errorMessage.style.color = '#ef4444';
+                errorMessage.style.fontSize = '0.8rem';
+                errorMessage.style.marginTop = '0.5rem';
+                scheduledTimeInput.parentNode.appendChild(errorMessage);
+            } else {
+                // Parse the scheduled time
+                const scheduledTime = new Date(scheduledTimeValue);
+                const hours = scheduledTime.getHours();
+                const minutes = scheduledTime.getMinutes();
+                const requiredTimeMinutes = parseInt(requiredTimeInput.value, 10);
+                
+                // Calculate end time based on required time
+                const endTime = new Date(scheduledTime.getTime() + requiredTimeMinutes * 60000);
+                const endHours = endTime.getHours();
+                const endMinutes = endTime.getMinutes();
+                
+                // Validate time restrictions
+                let isValid = true;
+                let validationMessage = '';
+                
+                // Check if appointment starts before 9:00 AM
+                if (hours < 9) {
+                    isValid = false;
+                    validationMessage = 'Appointments can only be scheduled after 9:00 AM';
+                }
+                // Check if appointment starts after 17:30 (5:30 PM)
+                else if (hours > 17 || (hours === 17 && minutes > 30)) {
+                    isValid = false;
+                    validationMessage = 'Appointments cannot be scheduled after 5:30 PM';
+                }
+                // Check if appointment ends after 17:30 (5:30 PM)
+                else if (endHours > 17 || (endHours === 17 && endMinutes > 30)) {
+                    isValid = false;
+                    validationMessage = 'With the current duration, the appointment would end after 5:30 PM';
+                }
+                
+                // Prevent submission if time is invalid
+                if (!isValid) {
+                    event.preventDefault();
+                    hasErrors = true;
+                    scheduledTimeInput.classList.add('invalid-time');
+                    
+                    // Add error message if it doesn't exist yet
+                    if (!scheduledTimeHelp.classList.contains('error-message')) {
+                        scheduledTimeHelp.textContent = validationMessage;
+                        scheduledTimeHelp.style.color = '#ef4444';
+                        scheduledTimeHelp.classList.add('error-message');
+                    }
+                }
             }
             
             // Check for conflicts before submitting
-            if (checkAppointmentConflict(new Date(scheduledTimeValue))) {
+            if (!hasErrors && checkAppointmentConflict(new Date(scheduledTimeValue))) {
                 event.preventDefault();
                 if (!confirm('The selected time conflicts with another appointment. Do you still want to proceed?')) {
                     return;
+                }
+            }
+            
+            // If there are errors, scroll to the first error
+            if (hasErrors) {
+                const firstError = document.querySelector('.invalid-time');
+                if (firstError) {
+                    firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    firstError.focus();
                 }
             }
         });
