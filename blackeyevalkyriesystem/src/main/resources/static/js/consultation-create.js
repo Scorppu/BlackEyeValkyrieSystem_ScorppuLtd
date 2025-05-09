@@ -679,7 +679,7 @@ let prescriptionItemIndex = 0;
             checkoutMessage.style.display = 'none';
         } else {
             // One or both are not confirmed, disable checkout
-            checkoutButton.disabled = true;
+            checkoutButton.disabled = false; // Allow button to be clicked but we'll show validation on click
             checkoutMessage.style.display = 'block';
             
             // Update message with specific details
@@ -694,6 +694,82 @@ let prescriptionItemIndex = 0;
             message += ' before checkout';
             checkoutMessage.textContent = message;
         }
+    }
+    
+    // Function to validate checkout
+    function validateCheckout(event) {
+        const vitalsConfirmed = document.getElementById('confirmVitals').getAttribute('data-locked') === 'true';
+        const diagnosisConfirmed = document.getElementById('confirmDiagnosis').getAttribute('data-locked') === 'true';
+        const diagnosis = document.querySelector('input[name="diagnosis"]').value.trim();
+        const vitalsFields = document.querySelectorAll('.editable-vital');
+        
+        // Check if vitals and diagnosis are filled
+        let missingFields = [];
+        let vitalsComplete = true;
+        
+        // Check if diagnosis is filled
+        if (!diagnosis) {
+            missingFields.push('Diagnosis field is empty');
+        }
+        
+        // Check vital fields
+        let emptyVitalsFields = [];
+        vitalsFields.forEach(field => {
+            if (!field.value.trim()) {
+                vitalsComplete = false;
+                emptyVitalsFields.push(field.id);
+            }
+        });
+        
+        if (!vitalsComplete) {
+            missingFields.push('One or more vital signs are not recorded');
+        }
+        
+        // If fields are missing, show validation modal
+        if (missingFields.length > 0) {
+            showValidationModal(missingFields);
+            event.preventDefault(); // Prevent form submission
+            return false;
+        }
+        
+        // If fields are complete but not confirmed, show a different validation message
+        if (!vitalsConfirmed || !diagnosisConfirmed) {
+            let unconfirmedFields = [];
+            if (!vitalsConfirmed) unconfirmedFields.push('Vitals need to be confirmed');
+            if (!diagnosisConfirmed) unconfirmedFields.push('Diagnosis needs to be confirmed');
+            
+            showValidationModal(unconfirmedFields, 'Confirmation Required');
+            event.preventDefault();
+            return false;
+        }
+        
+        return true; // All good, allow submission
+    }
+    
+    // Function to show validation modal
+    function showValidationModal(missingFields, title = 'Required Fields') {
+        const modal = document.getElementById('validationModal');
+        const modalTitle = modal.querySelector('.modal-header h3');
+        const validationDetails = document.getElementById('validationDetails');
+        
+        // Set modal title
+        modalTitle.textContent = title;
+        
+        // Create list of missing fields
+        validationDetails.innerHTML = `
+            <ul>
+                ${missingFields.map(field => `<li>${field}</li>`).join('')}
+            </ul>
+        `;
+        
+        // Show modal
+        modal.style.display = 'block';
+    }
+    
+    // Function to close validation modal
+    function closeValidationModal() {
+        const modal = document.getElementById('validationModal');
+        modal.style.display = 'none';
     }
     
     // Function to confirm vital signs (locks the input fields)
@@ -1184,3 +1260,34 @@ function initializeDrugCart() {
         cartElement.appendChild(emptyMessage);
     }
 }
+
+// Initialize event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    // Add validation to form submission
+    const form = document.querySelector('form[action*="/consultation/save"]');
+    if (form) {
+        form.addEventListener('submit', validateCheckout);
+    }
+    
+    // Add click event to checkout button
+    const checkoutButton = document.getElementById('checkoutButton');
+    if (checkoutButton) {
+        checkoutButton.removeAttribute('type'); // Remove type="submit" to prevent automatic submission
+        checkoutButton.setAttribute('type', 'button'); // Change to button
+        checkoutButton.addEventListener('click', function(e) {
+            if (validateCheckout(e)) {
+                // If validation passes, submit the form
+                form.submit();
+            }
+        });
+    }
+    
+    // Initialize BP fields
+    initializeBloodPressureFields();
+    
+    // Initialize drug cart
+    initializeDrugCart();
+    
+    // Initialize checkout button state
+    updateCheckoutState();
+});
