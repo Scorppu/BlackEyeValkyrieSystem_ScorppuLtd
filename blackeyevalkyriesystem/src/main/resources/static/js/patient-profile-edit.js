@@ -448,9 +448,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Get drug allergies if available
                 const drugAllergiesInput = document.getElementById('drugAllergies');
-                const drugAllergies = drugAllergiesInput && drugAllergiesInput.value 
-                    ? drugAllergiesInput.value.split(',').filter(Boolean)
-                    : [];
+                let drugAllergies = [];
+                
+                if (drugAllergiesInput && drugAllergiesInput.value) {
+                    // Get the array of drug ids
+                    drugAllergies = drugAllergiesInput.value.split(',').filter(Boolean);
+                    console.log("Drug allergy IDs to submit:", drugAllergies);
+                }
+                
+                console.log("Formatted drug allergies for submission:", drugAllergies);
                 
                 // Get contact information
                 const contactNumber = document.getElementById('contactNumber').value;
@@ -564,43 +570,139 @@ document.addEventListener('DOMContentLoaded', function() {
         const selectedAllergies = new Set();
         const drugMap = {};
         
-        // Populate existing allergies from patient data
-        const patient = document.getElementById('patientId').dataset.allergies;
-        if (patient && patient.drugAllergies && Array.isArray(patient.drugAllergies)) {
-            patient.drugAllergies.forEach(allergy => {
-                if (allergy.id) {
-                    selectedAllergies.add(allergy.id);
-                }
-            });
-        }
+        // Get patient ID
+        const patientIdElement = document.getElementById('patientId');
+        const patientId = patientIdElement ? patientIdElement.value : null;
         
-        // Fetch drug data
-        fetch('/api/drugs')
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Failed to fetch drugs data');
-                }
-                return response.json();
-            })
-            .then(data => {
-                allDrugsData = data;
-                
-                // Create map of drug IDs to names
-                allDrugsData.forEach(drug => {
-                    drugMap[drug.id] = drug.name;
+        // Fetch patient-specific drug allergies
+        if (patientId) {
+            console.log("Fetching allergies for patient ID:", patientId);
+            fetch(`/api/patients/${patientId}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch patient data');
+                    }
+                    return response.json();
+                })
+                .then(patient => {
+                    console.log("Full patient data:", patient);
+                    
+                    // Check for drug allergies which should be a List<String> (array of strings) in the Patient model
+                    if (patient && patient.drugAllergies && Array.isArray(patient.drugAllergies)) {
+                        console.log("Found drug allergies:", patient.drugAllergies);
+                        
+                        // Process each drug ID
+                        patient.drugAllergies.forEach(allergyId => {
+                            console.log("Processing allergy ID:", allergyId);
+                            selectedAllergies.add(allergyId);
+                        });
+                    } else {
+                        console.log("No drug allergies found in patient data or format is unexpected");
+                    }
+                    
+                    // Now fetch all drugs to have complete data
+                    return fetch('/api/drugs');
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch drugs data');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("Fetched drugs data:", data);
+                    allDrugsData = data;
+                    
+                    // Update drug map with all drugs
+                    allDrugsData.forEach(drug => {
+                        drugMap[drug.id] = drug.name || drug.drugName || drug.genericName || "Unknown Drug";
+                    });
+                    
+                    // Update the hidden input with selected allergies
+                    updateDrugAllergiesInput();
+                    
+                    // Populate existing allergies list
+                    populateExistingAllergies();
+                })
+                .catch(error => {
+                    console.error('Error fetching patient data or drugs:', error);
                 });
-                
-                // Populate existing allergies list
-                populateExistingAllergies();
-            })
-            .catch(error => {
-                console.error('Error fetching drugs:', error);
-            });
+        } else {
+            // If no patient ID, just fetch general drug data
+            fetch('/api/drugs')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch drugs data');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    allDrugsData = data;
+                    
+                    // Create map of drug IDs to names
+                    allDrugsData.forEach(drug => {
+                        drugMap[drug.id] = drug.name || drug.drugName || drug.genericName || "Unknown Drug";
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching drugs:', error);
+                });
+        }
             
-        // Function to populate existing allergies
+        // Function to populate existing allergies in the UI
         function populateExistingAllergies() {
-            // Implementation left out as it would require additional data structure
-            // which isn't clear from the current context
+            console.log("Populating existing allergies, selected allergies:", selectedAllergies);
+            // Clear the list first
+            while (allergiesList.firstChild) {
+                allergiesList.removeChild(allergiesList.firstChild);
+            }
+            
+            if (selectedAllergies.size === 0) {
+                // If no allergies, show empty row
+                const emptyRow = document.createElement('tr');
+                emptyRow.className = 'empty-allergies-row';
+                emptyRow.innerHTML = '<td colspan="2">No drug allergies selected</td>';
+                allergiesList.appendChild(emptyRow);
+            } else {
+                // Add each allergy to the list
+                selectedAllergies.forEach(drugId => {
+                    const drugName = drugMap[drugId] || "Unknown Drug";
+                    
+                    const row = document.createElement('tr');
+                    row.className = 'allergyItem';
+                    row.setAttribute('data-drug-id', drugId);
+                    row.innerHTML = `
+                        <td>${drugName}</td>
+                        <td>
+                            <button type="button" class="remove-allergy-btn">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M2 4H3.33333H14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M5.33334 4V2.66667C5.33334 2.31305 5.47382 1.97391 5.72387 1.72386C5.97392 1.47381 6.31305 1.33334 6.66668 1.33334H9.33334C9.68697 1.33334 10.0261 1.47381 10.2762 1.72386C10.5262 1.97391 10.6667 2.31305 10.6667 2.66667V4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M12.6667 4V13.3333C12.6667 13.687 12.5262 14.0261 12.2762 14.2761C12.0261 14.5262 11.687 14.6667 11.3333 14.6667H4.66668C4.31305 14.6667 3.97392 14.5262 3.72387 14.2761C3.47382 14.0261 3.33334 13.687 3.33334 13.3333V4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                Remove
+                            </button>
+                        </td>
+                    `;
+                    
+                    // Add remove button event listener
+                    row.querySelector('.remove-allergy-btn').addEventListener('click', function() {
+                        row.remove();
+                        selectedAllergies.delete(drugId);
+                        updateDrugAllergiesInput();
+                        
+                        // If no allergies left, add empty row back
+                        if (selectedAllergies.size === 0) {
+                            const emptyRow = document.createElement('tr');
+                            emptyRow.className = 'empty-allergies-row';
+                            emptyRow.innerHTML = '<td colspan="2">No drug allergies selected</td>';
+                            allergiesList.appendChild(emptyRow);
+                        }
+                    });
+                    
+                    allergiesList.appendChild(row);
+                });
+            }
         }
         
         // Setup drug search functionality
@@ -620,17 +722,24 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Filter drugs based on search text
             const searchLower = searchText.toLowerCase();
-            const filteredDrugs = allDrugsData.filter(drug => 
-                drug.name && drug.name.toLowerCase().includes(searchLower));
+            const filteredDrugs = allDrugsData.filter(drug => {
+                const drugName = drug.name || drug.drugName || drug.genericName || '';
+                return drugName.toLowerCase().includes(searchLower);
+            });
+            
+            console.log('Filtered drugs:', filteredDrugs);
             
             // Display filtered drugs
             if (filteredDrugs.length > 0) {
                 filteredDrugs.forEach(drug => {
+                    const drugId = drug.id || '';
+                    const drugName = drug.name || drug.drugName || drug.genericName || '';
+                    
                     const drugItem = document.createElement('div');
                     drugItem.className = 'drug-item';
-                    drugItem.setAttribute('data-id', drug.id);
-                    drugItem.setAttribute('data-name', drug.name);
-                    drugItem.innerHTML = `<div class="drug-name">${drug.name}</div>`;
+                    drugItem.setAttribute('data-id', drugId);
+                    drugItem.setAttribute('data-name', drugName);
+                    drugItem.innerHTML = `<div class="drug-name">${drugName}</div>`;
                     
                     // Add click event to select the drug
                     drugItem.addEventListener('click', function() {
@@ -661,8 +770,10 @@ document.addEventListener('DOMContentLoaded', function() {
         // Function to add a drug allergy
         function addDrugAllergy() {
             const drugInput = document.getElementById('drugAllergyInput');
-            const selectedDrugId = drugInput.dataset.drugId;
-            const selectedDrugName = drugInput.dataset.drugName;
+            // Fix: Use getAttribute to get the selected ID
+            const selectedDrugId = drugInput.getAttribute('data-selected-id');
+            // Fix: Use input value for the drug name
+            const selectedDrugName = drugInput.value;
             
             if (!selectedDrugId || !selectedDrugName) {
                 showValidationPopup(['Please select a valid drug from the list']);
@@ -670,12 +781,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             // Check if this drug is already in the list
-            const existingAllergies = document.querySelectorAll('#allergiesList .allergyItem');
-            for (let i = 0; i < existingAllergies.length; i++) {
-                if (existingAllergies[i].dataset.drugId === selectedDrugId) {
-                    showValidationPopup(['This drug is already in the allergies list']);
-                    return;
-                }
+            if (selectedAllergies.has(selectedDrugId)) {
+                showValidationPopup(['This drug is already in the allergies list']);
+                return;
             }
             
             // Remove empty row if it exists
@@ -686,12 +794,18 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Create new row for the allergy
             const row = document.createElement('tr');
+            row.className = 'allergyItem';
             row.setAttribute('data-drug-id', selectedDrugId);
             row.innerHTML = `
                 <td>${selectedDrugName}</td>
                 <td>
-                    <button type="button" class="remove-allergy-btn btn btn-sm btn-danger">
-                        <i class="fas fa-trash"></i> Remove
+                    <button type="button" class="remove-allergy-btn">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M2 4H3.33333H14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M5.33334 4V2.66667C5.33334 2.31305 5.47382 1.97391 5.72387 1.72386C5.97392 1.47381 6.31305 1.33334 6.66668 1.33334H9.33334C9.68697 1.33334 10.0261 1.47381 10.2762 1.72386C10.5262 1.97391 10.6667 2.31305 10.6667 2.66667V4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M12.6667 4V13.3333C12.6667 13.687 12.5262 14.0261 12.2762 14.2761C12.0261 14.5262 11.687 14.6667 11.3333 14.6667H4.66668C4.31305 14.6667 3.97392 14.5262 3.72387 14.2761C3.47382 14.0261 3.33334 13.687 3.33334 13.3333V4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Remove
                     </button>
                 </td>
             `;
@@ -724,6 +838,7 @@ document.addEventListener('DOMContentLoaded', function() {
         function updateDrugAllergiesInput() {
             if (drugAllergiesInput) {
                 drugAllergiesInput.value = Array.from(selectedAllergies).join(',');
+                console.log("Updated drugAllergies input value:", drugAllergiesInput.value);
             }
         }
         

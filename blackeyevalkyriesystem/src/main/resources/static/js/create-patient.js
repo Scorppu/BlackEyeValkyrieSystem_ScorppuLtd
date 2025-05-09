@@ -1,6 +1,160 @@
 // Global variable for drugs data
 let allDrugsData = [];
 
+// Function to validate the patient form - moved to global scope
+function validatePatientForm() {
+    const requiredFields = ['firstName', 'lastName', 'sex', 'dateOfBirth', 'bloodType'];
+    const errors = [];
+    const invalidFields = [];
+    
+    // Check each required field
+    requiredFields.forEach(field => {
+        const input = document.getElementById(field);
+        if (!input || !input.value.trim()) {
+            errors.push(`${field.replace(/([A-Z])/g, ' $1').toLowerCase()} is required`);
+            invalidFields.push(field);
+        }
+    });
+    
+    // Mark invalid fields with red border
+    if (invalidFields.length > 0) {
+        markInvalidFields(invalidFields);
+    }
+    
+    return {
+        isValid: errors.length === 0,
+        errors: errors
+    };
+}
+
+// Function to switch between form sections - moved to global scope
+function switchFormSection(targetTabId) {
+    // Hide all form sections
+    document.querySelectorAll('.form-section').forEach(section => {
+        section.classList.remove('active');
+    });
+    
+    // Show the target section
+    const targetSection = targetTabId === 'personal-info-tab' ? 
+        document.getElementById('personal-info-form') : 
+        document.getElementById('contact-info-form');
+    
+    if (targetSection) {
+        targetSection.classList.add('active');
+    }
+    
+    // Update active tab
+    document.querySelectorAll('.tab-item').forEach(tab => {
+        if (tab.getAttribute('data-target') === targetTabId) {
+            tab.classList.add('active');
+        } else {
+            tab.classList.remove('active');
+        }
+    });
+}
+
+// Function to mark invalid fields with red border
+function markInvalidFields(invalidFields) {
+    // Clear previous validation styling
+    document.querySelectorAll('.form-control').forEach(field => {
+        field.classList.remove('invalid-field');
+        const existingMsg = field.parentNode.querySelector('.validation-message');
+        if (existingMsg) {
+            existingMsg.remove();
+        }
+    });
+    
+    // Add validation styling to invalid fields
+    invalidFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.classList.add('invalid-field');
+            addValidationMessage(fieldId, `${fieldId.replace(/([A-Z])/g, ' $1').toLowerCase()} is required`);
+        }
+    });
+}
+
+// Function to add validation message below the field
+function addValidationMessage(inputId, message) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    
+    // Check if message already exists
+    const existingMsg = input.parentNode.querySelector('.validation-message');
+    if (existingMsg) {
+        existingMsg.textContent = message;
+        return;
+    }
+    
+    // Create new message
+    const msgElement = document.createElement('div');
+    msgElement.className = 'validation-message';
+    msgElement.textContent = message;
+    msgElement.style.color = '#ef4444';
+    msgElement.style.fontSize = '0.8rem';
+    msgElement.style.marginTop = '0.25rem';
+    
+    // Insert after the input field
+    input.parentNode.insertBefore(msgElement, input.nextSibling);
+}
+
+// Function to show validation popup with errors
+function showValidationPopup(errors) {
+    // Ensure errors is an array
+    errors = Array.isArray(errors) ? errors : [];
+    
+    // Remove any existing popups
+    const existingPopup = document.querySelector('.validation-popup');
+    if (existingPopup) {
+        existingPopup.remove();
+    }
+    
+    // Create popup
+    const popup = document.createElement('div');
+    popup.className = 'validation-popup';
+    
+    popup.innerHTML = `
+        <div class="validation-popup-content">
+            <div class="validation-popup-header">
+                <h3>Please Fix These Errors</h3>
+                <button class="validation-popup-close">&times;</button>
+            </div>
+            <div class="validation-popup-body">
+                <ul class="validation-errors-list">
+                    ${errors.length > 0 ? 
+                      errors.map(error => `<li>${error}</li>`).join('') : 
+                      '<li>Please fill in all required fields</li>'}
+                </ul>
+            </div>
+            <div class="validation-popup-footer">
+                <button class="validation-popup-button">OK</button>
+            </div>
+        </div>
+    `;
+    
+    // Add to the body
+    document.body.appendChild(popup);
+    
+    // Add event listeners
+    const closeButton = popup.querySelector('.validation-popup-close');
+    const okButton = popup.querySelector('.validation-popup-button');
+    
+    const closePopup = () => {
+        popup.classList.add('closing');
+        setTimeout(() => {
+            popup.remove();
+        }, 300);
+    };
+    
+    closeButton.addEventListener('click', closePopup);
+    okButton.addEventListener('click', closePopup);
+    
+    // Add animation class after a small delay
+    setTimeout(() => {
+        popup.classList.add('show');
+    }, 10);
+}
+
 // Function to fetch drugs data
 function fetchDrugsData() {
     return fetch('/api/drugs')
@@ -185,8 +339,8 @@ function initializeDrugAllergies() {
     // Function to add a drug allergy
     function addDrugAllergy() {
         const drugInput = document.getElementById('drugAllergyInput');
-        const drugId = drugInput.dataset.drugId;
-        const drugName = drugInput.dataset.drugName;
+        const drugId = drugInput.getAttribute('data-selected-id');
+        const drugName = drugInput.value;
         
         if (!drugId || !drugName) {
             showValidationPopup(['Please select a valid drug from the list']);
@@ -194,9 +348,9 @@ function initializeDrugAllergies() {
         }
         
         // Check if this drug is already in the list
-        const existingAllergies = document.querySelectorAll('#allergiesList .allergyItem');
+        const existingAllergies = document.querySelectorAll('#allergiesList tr[data-drug-id]');
         for (let i = 0; i < existingAllergies.length; i++) {
-            if (existingAllergies[i].dataset.drugId === drugId) {
+            if (existingAllergies[i].getAttribute('data-drug-id') === drugId) {
                 showValidationPopup(['This drug is already in the allergies list']);
                 return;
             }
@@ -211,6 +365,7 @@ function initializeDrugAllergies() {
         // Create new row for the allergy
         const row = document.createElement('tr');
         row.setAttribute('data-drug-id', drugId);
+        row.className = 'allergyItem'; // Add allergyItem class for consistent selection
         row.innerHTML = `
             <td>${drugName}</td>
             <td>
@@ -871,11 +1026,18 @@ function setupValidationForm() {
         requiredInputs.forEach(fieldId => {
             const input = document.getElementById(fieldId);
             if (input) {
-                input.addEventListener('blur', function() {
+                // Function to check and update input validation
+                const validateInput = function() {
                     // Remove existing error message
                     const errorElement = this.parentNode.querySelector('.field-validation-error');
                     if (errorElement) {
                         errorElement.remove();
+                    }
+                    
+                    // Also remove any validation-message elements (from global functions)
+                    const validationMsg = this.parentNode.querySelector('.validation-message');
+                    if (validationMsg) {
+                        validationMsg.remove();
                     }
                     
                     if (!this.value.trim()) {
@@ -887,29 +1049,20 @@ function setupValidationForm() {
                         addValidationMessage(this.id, `${fieldName} is required`);
                     } else {
                         this.classList.remove('invalid-input');
+                        // Clear any error message for this field
+                        this.parentNode.querySelectorAll('.field-validation-error, .validation-message').forEach(el => {
+                            el.remove();
+                        });
                     }
-                });
+                };
+                
+                // Add event listeners for validation
+                input.addEventListener('blur', validateInput);
+                input.addEventListener('input', validateInput);
                 
                 // Also check on change for selects
                 if (input.tagName === 'SELECT') {
-                    input.addEventListener('change', function() {
-                        // Remove existing error message
-                        const errorElement = this.parentNode.querySelector('.field-validation-error');
-                        if (errorElement) {
-                            errorElement.remove();
-                        }
-                        
-                        if (!this.value.trim()) {
-                            this.classList.add('invalid-input');
-                            // Add error message - clean label text to remove asterisk
-                            const fieldName = this.previousElementSibling.textContent
-                                .replace('*', '')  // Remove the asterisk
-                                .trim();           // Trim any whitespace
-                            addValidationMessage(this.id, `${fieldName} is required`);
-                        } else {
-                            this.classList.remove('invalid-input');
-                        }
-                    });
+                    input.addEventListener('change', validateInput);
                 }
             }
         });
