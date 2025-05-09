@@ -35,7 +35,7 @@
                             <td th:text="${appointment.patient.firstName + ' ' + appointment.patient.lastName}">Sophie Moore</td>
                             <td th:text="${appointment.patient.id}">123412434</td>
                             <td th:text="${appointment.patient.age}">18</td>
-                            <td th:text="${appointment.patient.sex ? 'Female' : 'Male'}">Female</td>
+                            <td th:text="${appointment.patient.sex ? 'Male' : 'Female'}">Male</td>
                             <td th:with="lastVisit=${@consultationViewController.getLastVisitDate(appointment.patient)}" 
                                 th:text="${lastVisit != null ? #temporals.format(lastVisit, 'dd MMM yyyy') : 'No visits'}">IP0001</td>
                             <td th:text="${appointment.scheduledTime != null ? #temporals.format(appointment.scheduledTime, 'dd MMM yyyy HH:mm') : 'Not scheduled'}">10:00 AM</td>
@@ -76,7 +76,7 @@
                             <td th:text="${appointment.patient.firstName + ' ' + appointment.patient.lastName}">Sophie Moore</td>
                             <td th:text="${appointment.patient.id}">123412434</td>
                             <td th:text="${appointment.patient.age}">18</td>
-                            <td th:text="${appointment.patient.sex ? 'Female' : 'Male'}">Female</td>
+                            <td th:text="${appointment.patient.sex ? 'Male' : 'Female'}">Male</td>
                             <td th:with="lastVisit=${@consultationViewController.getLastVisitDate(appointment.patient)}" 
                                 th:text="${lastVisit != null ? #temporals.format(lastVisit, 'dd MMM yyyy') : 'No visits'}">IP0001</td>
                             <td th:text="${appointment.scheduledTime != null ? #temporals.format(appointment.scheduledTime, 'dd MMM yyyy HH:mm') : 'Not scheduled'}">10:00 AM</td>

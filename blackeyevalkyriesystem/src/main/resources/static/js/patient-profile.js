@@ -431,6 +431,7 @@ function displayVitalsHistory(data, vitalType) {
     
     if (!data || data.length === 0) {
         tableBody.innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 20px;">No history data available</td></tr>';
+        chartDiv.innerHTML = '<p style="text-align: center; padding: 20px;">No history data available</p>';
         return;
     }
     
@@ -442,10 +443,11 @@ function displayVitalsHistory(data, vitalType) {
     
     if (filteredData.length === 0) {
         tableBody.innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 20px;">No history data available</td></tr>';
+        chartDiv.innerHTML = '<p style="text-align: center; padding: 20px;">No history data available</p>';
         return;
     }
     
-    // Sort data by date (oldest first for table)
+    // Sort data by date (newest first) - reversed order for the chart
     filteredData.sort((a, b) => new Date(a.date) - new Date(b.date));
     
     // Add table rows
@@ -458,6 +460,77 @@ function displayVitalsHistory(data, vitalType) {
             <td style="padding: 10px; border-bottom: 1px solid var(--border-color);">${item.doctor || 'Unknown'}</td>
         `;
         tableBody.appendChild(row);
+    });
+    
+    // Create chart visualization
+    createVitalsChart(chartDiv, filteredData, vitalType);
+}
+
+// Function to create a chart for vitals history
+function createVitalsChart(container, data, vitalType) {
+    // Clear previous chart
+    container.innerHTML = '';
+    
+    // Create canvas for the chart
+    const canvas = document.createElement('canvas');
+    container.appendChild(canvas);
+    
+    // Prepare data for chart
+    const chartData = {
+        labels: [],
+        values: []
+    };
+    
+    // Collect data for the chart (chronological order)
+    data.forEach(item => {
+        const value = vitalType === 'height' ? item.height : item.weight;
+        // Extract numeric value from strings like "170 cm" or "70 kg"
+        const numericValue = parseFloat(value.replace(/[^0-9.]/g, ''));
+        chartData.labels.push(item.date);
+        chartData.values.push(numericValue);
+    });
+    
+    // Create a line chart using Chart.js
+    const ctx = canvas.getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: chartData.labels,
+            datasets: [{
+                label: vitalType === 'height' ? 'Height (cm)' : 'Weight (kg)',
+                data: chartData.values,
+                borderColor: 'rgb(138, 43, 226)',
+                backgroundColor: 'rgba(138, 43, 226, 0.1)',
+                borderWidth: 2,
+                tension: 0.1,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: false,
+                    title: {
+                        display: true,
+                        text: vitalType === 'height' ? 'Height (cm)' : 'Weight (kg)'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Date'
+                    }
+                }
+            },
+            plugins: {
+                title: {
+                    display: true,
+                    text: vitalType === 'height' ? 'Height History' : 'Weight History'
+                }
+            }
+        }
     });
 }
 

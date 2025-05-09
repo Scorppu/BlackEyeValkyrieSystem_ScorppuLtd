@@ -1,4 +1,4 @@
-let prescriptionItemIndex = 0;
+ let prescriptionItemIndex = 0;
     let selectedTemplate = ''; // No default template selected - show all drugs by default
     let allDrugs = []; // Will store all drugs
     let selectedDrugs = []; // Will store selected drug elements
@@ -1096,10 +1096,10 @@ let prescriptionItemIndex = 0;
             chartDiv.innerHTML = `<p style="text-align: center; padding: 20px;">No ${vitalType} history data available</p>`;
         }
         
-        // Sort data for the table (newest first)
-        const tableData = [...filteredData].sort((a, b) => new Date(b.date) - new Date(a.date));
+        // Sort data for the table (oldest first)
+        const tableData = [...filteredData].sort((a, b) => new Date(a.date) - new Date(b.date));
         
-        // Populate table with newest records first
+        // Populate table with oldest records first
         tableData.forEach(item => {
             const value = vitalType === 'height' ? item.height : item.weight;
             
