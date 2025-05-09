@@ -65,7 +65,12 @@ public class UserController {
     public String createUserForm(Model model, HttpServletRequest request) {
         // Add request to model for sidebar navigation
         model.addAttribute("request", request);
-        model.addAttribute("user", new User());
+        
+        // Create new user with active=true by default
+        User newUser = new User();
+        newUser.setActive(true);
+        
+        model.addAttribute("user", newUser);
         return "create-user";
     }
     
