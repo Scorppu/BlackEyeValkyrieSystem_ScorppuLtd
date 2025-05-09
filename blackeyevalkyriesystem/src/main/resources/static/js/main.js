@@ -369,19 +369,107 @@ document.addEventListener('DOMContentLoaded', function() {
     const dutyStatusText = document.getElementById('duty-status');
     
     if (dutyToggleBtn && dutyStatusText) {
+        // Initially use localStorage values as defaults until we get data from the server
         let isOnDuty = localStorage.getItem('dutyStatus') === 'on';
         let dutyTime = localStorage.getItem('dutyTime') || getCurrentTime();
+        let dutyDate = localStorage.getItem('dutyDate') || getCurrentDate();
         
-        updateDutyStatus(isOnDuty, dutyTime);
+        // First check if the user has a duty status in the database
+        fetchCurrentDutyStatus();
         
         dutyToggleBtn.addEventListener('click', function() {
-            isOnDuty = !isOnDuty;
-            dutyTime = getCurrentTime();
+            // Show loading state
+            dutyToggleBtn.disabled = true;
+            dutyToggleBtn.textContent = 'Loading...';
             
+            // Make API call to toggle duty status in the database
+            fetch('/api/duty/toggle', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Update the UI based on server response
+                isOnDuty = data.isOnDuty;
+                
+                // Format the timestamp from the server
+                const timestamp = new Date(data.timestamp);
+                dutyTime = formatTime(timestamp);
+                dutyDate = formatDate(timestamp);
+                
+                // Store in localStorage as fallback
+                localStorage.setItem('dutyStatus', isOnDuty ? 'on' : 'off');
+                localStorage.setItem('dutyTime', dutyTime);
+                localStorage.setItem('dutyDate', dutyDate);
+                
+                updateDutyStatus(isOnDuty, dutyTime, dutyDate);
+                dutyToggleBtn.disabled = false;
+            })
+            .catch(error => {
+                console.error('Error toggling duty status:', error);
+                
+                // Fallback to client-side toggle if the API call fails
+                isOnDuty = !isOnDuty;
+                dutyTime = getCurrentTime();
+                dutyDate = getCurrentDate();
+                
+                localStorage.setItem('dutyStatus', isOnDuty ? 'on' : 'off');
+                localStorage.setItem('dutyTime', dutyTime);
+                localStorage.setItem('dutyDate', dutyDate);
+                
+                updateDutyStatus(isOnDuty, dutyTime, dutyDate);
+                dutyToggleBtn.disabled = false;
+            });
+        });
+    }
+    
+    /**
+     * Fetches current duty status from the server
+     */
+    function fetchCurrentDutyStatus() {
+        fetch('/api/duty/status', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Update the UI based on server response
+            const isOnDuty = data.isOnDuty;
+            
+            // Format the timestamp from the server
+            const timestamp = new Date(data.timestamp);
+            const dutyTime = formatTime(timestamp);
+            const dutyDate = formatDate(timestamp);
+            
+            // Store in localStorage as fallback
             localStorage.setItem('dutyStatus', isOnDuty ? 'on' : 'off');
             localStorage.setItem('dutyTime', dutyTime);
+            localStorage.setItem('dutyDate', dutyDate);
             
-            updateDutyStatus(isOnDuty, dutyTime);
+            updateDutyStatus(isOnDuty, dutyTime, dutyDate);
+        })
+        .catch(error => {
+            console.error('Error fetching duty status:', error);
+            // Use localStorage values as fallback
+            const isOnDuty = localStorage.getItem('dutyStatus') === 'on';
+            const dutyTime = localStorage.getItem('dutyTime') || getCurrentTime();
+            const dutyDate = localStorage.getItem('dutyDate') || getCurrentDate();
+            
+            updateDutyStatus(isOnDuty, dutyTime, dutyDate);
         });
     }
     
@@ -389,15 +477,17 @@ document.addEventListener('DOMContentLoaded', function() {
      * Updates the duty status text and button based on current state
      * @param {boolean} isOnDuty - Whether the user is currently on duty
      * @param {string} time - The time to display in the status text
+     * @param {string} date - The date to display in the status text (optional)
      */
-    function updateDutyStatus(isOnDuty, time) {
+    function updateDutyStatus(isOnDuty, time, date) {
         if (dutyToggleBtn && dutyStatusText) {
+            const displayDate = date || getCurrentDate();
             if (isOnDuty) {
-                dutyStatusText.textContent = `On Duty Since ${time}`;
+                dutyStatusText.textContent = `On Duty Since ${displayDate}, ${time}`;
                 dutyToggleBtn.textContent = 'Off Duty';
                 dutyToggleBtn.classList.remove('off');
             } else {
-                dutyStatusText.textContent = `Last On Duty ${time}`;
+                dutyStatusText.textContent = `Last On Duty ${displayDate}, ${time}`;
                 dutyToggleBtn.textContent = 'On Duty';
                 dutyToggleBtn.classList.add('off');
             }
@@ -410,9 +500,39 @@ document.addEventListener('DOMContentLoaded', function() {
      */
     function getCurrentTime() {
         const now = new Date();
-        const hours = String(now.getHours()).padStart(2, '0');
-        const minutes = String(now.getMinutes()).padStart(2, '0');
+        return formatTime(now);
+    }
+    
+    /**
+     * Formats a Date object to HH:MM time format
+     * @param {Date} date - The date to format
+     * @returns {string} The formatted time
+     */
+    function formatTime(date) {
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
         return `${hours}:${minutes}`;
+    }
+    
+    /**
+     * Returns the current date formatted as MMM DD
+     * @returns {string} The current date in MMM DD format
+     */
+    function getCurrentDate() {
+        const now = new Date();
+        return formatDate(now);
+    }
+    
+    /**
+     * Formats a Date object to MMM DD date format
+     * @param {Date} date - The date to format
+     * @returns {string} The formatted date
+     */
+    function formatDate(date) {
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const month = months[date.getMonth()];
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${month} ${day}`;
     }
     
     // Initialize sidebar navigation

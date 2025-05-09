@@ -269,7 +269,13 @@ public class WebController {
                         if (isOnDuty) {
                             doctorsOnDuty++;
                         }
+                        
+                        // Add lastDutyDuration to the map if available
+                        if (dutyStatus.isPresent()) {
+                            doctorMap.put("lastDutyDuration", dutyStatus.get().getLastDutyDuration());
+                        }
                     } catch (Exception e) {
+                        logger.error("Error fetching duty status for doctor {}: {}", doctor.getId(), e.getMessage());
                     }
                     
                     doctorMap.put("dutyStatus", isOnDuty);
@@ -314,7 +320,13 @@ public class WebController {
                         if (isOnDuty) {
                             nursesOnDuty++;
                         }
+                        
+                        // Add lastDutyDuration to the map if available
+                        if (dutyStatus.isPresent()) {
+                            nurseMap.put("lastDutyDuration", dutyStatus.get().getLastDutyDuration());
+                        }
                     } catch (Exception e) {
+                        logger.error("Error fetching duty status for nurse {}: {}", nurse.getId(), e.getMessage());
                     }
                     
                     nurseMap.put("dutyStatus", isOnDuty);

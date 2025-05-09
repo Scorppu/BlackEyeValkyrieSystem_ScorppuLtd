@@ -16,6 +16,7 @@ public class DutyStatus {
     
     private boolean isOnDuty;
     private LocalDateTime timestamp;
+    private Integer lastDutyDuration;
 
     public DutyStatus() {
         this.timestamp = LocalDateTime.now();
@@ -58,5 +59,13 @@ public class DutyStatus {
 
     public void setTimestamp(LocalDateTime timestamp) {
         this.timestamp = timestamp;
+    }
+    
+    public Integer getLastDutyDuration() {
+        return lastDutyDuration;
+    }
+    
+    public void setLastDutyDuration(Integer lastDutyDuration) {
+        this.lastDutyDuration = lastDutyDuration;
     }
 } 
