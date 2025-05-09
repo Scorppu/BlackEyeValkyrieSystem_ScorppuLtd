@@ -1,8 +1,20 @@
+/* Target the main layout element that could be causing excessive space */
+[layout\:fragment="content"] {
+    min-height: unset !important; /* Override any min-height settings */
+    height: auto !important;
+    padding-bottom: 0 !important;
+    margin-bottom: 2rem !important;
+}
+
+/* Ensure main container doesn't stretch */
 .main-container {
     display: flex;
     gap: 2rem;
     max-width: 1200px;
     margin: 0 auto;
+    min-height: auto;
+    height: auto;
+    margin-bottom: 2rem;
 }
 
 .credentials-sidebar {
@@ -57,19 +69,28 @@
     display: block;
 }
 
+/* Make sure form container doesn't add extra space */
 .form-container {
     background-color: var(--secondary-bg);
     border-radius: 0.5rem;
     padding: 2rem;
     flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    min-height: unset;
 }
 
 .form-section {
     display: none;
 }
 
+/* Ensure active form sections don't add extra space */
 .form-section.active {
     display: block;
+    margin-bottom: 0;
+    padding-bottom: 0;
+    height: auto;
 }
 
 .form-section h2 {
@@ -297,4 +318,36 @@ select.form-control {
 .required {
     color: #dc3545;
     margin-left: 2px;
+}
+
+/* Fix any potential layout issues in the content area */
+body, html, .content-area, main, .container, .content-container {
+    min-height: unset !important;
+    height: auto !important;
+}
+
+/* Fix any extra space in the forms */
+#patient-form, #contact-form {
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+/* Override any layout styles that might be adding space */
+body > div:last-child,
+main > div:last-child,
+.content > div:last-child {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+/* Target elements that might have fixed heights */
+.content, .content-wrapper, .page-content {
+    height: auto !important;
+    min-height: unset !important;
+    max-height: none !important;
+}
+
+/* Add more compact spacing for the contact section */
+#contact-info-form.form-section.active {
+    padding-bottom: 0;
 }
