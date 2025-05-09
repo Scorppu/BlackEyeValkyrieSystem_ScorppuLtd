@@ -244,3 +244,52 @@ select.info-value option {
 .btn-secondary:hover {
     background-color: rgba(0, 0, 0, 0.05);
 }
+/* Add styles for validation modal */
+.validation-message {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.validation-message svg {
+    margin-right: 15px;
+    flex-shrink: 0;
+}
+
+.validation-message p {
+    margin: 0;
+    font-size: 16px;
+    color: var(--primary-text);
+}
+
+.validation-details {
+    background-color: rgba(255, 92, 92, 0.1);
+    border: 1px solid rgba(255, 92, 92, 0.3);
+    border-radius: 4px;
+    padding: 12px 15px;
+}
+
+.validation-details ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.validation-details li {
+    margin-bottom: 5px;
+}
+
+.validation-details li:last-child {
+    margin-bottom: 0;
+}
+
+.required-field {
+    position: relative;
+}
+
+.required-field::after {
+    content: "*";
+    color: #ff5c5c;
+    position: absolute;
+    right: -10px;
+    top: 0;
+}
