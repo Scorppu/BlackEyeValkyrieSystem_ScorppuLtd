@@ -294,6 +294,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 passwordInput.classList.add('password-modified');
             }
             
+            // Dispatch input event to trigger unsaved changes tracking
+            const inputEvent = new Event('input', { bubbles: true });
+            passwordInput.dispatchEvent(inputEvent);
+            
             // Clear any validation messages
             const errorElement = passwordInput.parentNode.querySelector('.field-validation-error');
             if (errorElement) {
