@@ -1,39 +1,34 @@
+/**
+ * Initializes the appointment creation page with event listeners and form handling
+ * Sets up patient selection, pagination, sorting, search functionality, and unsaved changes tracking
+ */
 document.addEventListener('DOMContentLoaded', function() {              
-    // Handle select all checkbox
     const selectAllCheckbox = document.getElementById('selectAll');
     const patientCheckboxes = document.querySelectorAll('.patient-select');
     const backButton = document.getElementById('back-to-list-btn');
     const appointmentForm = document.getElementById('appointmentForm');
     
-    // Setup unsaved changes tracking
     setupUnsavedChangesTracking();
     
-    // check if exist
     if (selectAllCheckbox) {
-        // Remove the select all functionality since we only want one checkbox checked at a time
         selectAllCheckbox.addEventListener('change', function() {
             if (this.checked) {
-                // Uncheck all patient checkboxes first
                 patientCheckboxes.forEach(checkbox => {
                     checkbox.checked = false;
                 });
                 
-                // Check only the first patient checkbox if any exist
                 if (patientCheckboxes.length > 0) {
                     patientCheckboxes[0].checked = true;
                 }
                 
-                // Uncheck the select all box (it's just used as a trigger now)
                 this.checked = false;
             }
         });
     }
     
-    // Add event listeners to patient checkboxes for radio-button-like behavior
     patientCheckboxes.forEach(checkbox => {
         checkbox.addEventListener('change', function() {
             if (this.checked) {
-                // If this checkbox is checked, uncheck all other patient checkboxes
                 patientCheckboxes.forEach(otherCheckbox => {
                     if (otherCheckbox !== this) {
                         otherCheckbox.checked = false;
@@ -43,18 +38,16 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Handle rows per page change
     const rowsPerPageSelect = document.getElementById('rowsPerPage');
     if (rowsPerPageSelect) {
         rowsPerPageSelect.addEventListener('change', function() {
             const url = new URL(window.location);
             url.searchParams.set('rowsPerPage', this.value);
-            url.searchParams.set('page', '1'); // Reset to first page
+            url.searchParams.set('page', '1');
             window.location.href = url.toString();
         });
     }
     
-    // Handle pagination buttons
     const prevPageButton = document.querySelector('.prev-page');
     const nextPageButton = document.querySelector('.next-page');
     
@@ -77,7 +70,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Handle sorting
     const sortLinks = document.querySelectorAll('.sort-link');
     sortLinks.forEach(link => {
         link.addEventListener('click', function(e) {
@@ -93,13 +85,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Handle next button
     const nextButton = document.getElementById('nextButton');
     if (nextButton) {
         nextButton.addEventListener('click', function(e) {
             e.preventDefault();
             
-            // Check if at least one patient is selected
             const selectedPatients = document.querySelectorAll('.patient-select:checked');
             if (selectedPatients.length === 0) {
                 alert('Please select at least one patient to continue.');
@@ -109,12 +99,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            // Submit the form
             document.getElementById('appointmentForm').submit();
         });
     }
     
-    // Handle search
     const searchInput = document.getElementById('patientSearch');
     if (searchInput) {
         searchInput.addEventListener('input', function() {
@@ -122,7 +110,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const rows = document.querySelectorAll('#patientTableBody tr');
             
             rows.forEach(row => {
-                if (row.cells.length > 1) { // Skip empty state row
+                if (row.cells.length > 1) {
                     const name = row.cells[1].textContent.toLowerCase();
                     const id = row.cells[2].textContent.toLowerCase();
                     const visible = name.includes(searchTerm) || id.includes(searchTerm);
@@ -132,13 +120,18 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Track form changes and handle navigation
+    /**
+     * Sets up tracking of form changes and handles navigation to prevent data loss
+     */
     function setupUnsavedChangesTracking() {
         let formChanged = false;
         const formInputs = document.querySelectorAll('input, select, textarea');
         const initialFormState = captureFormState();
         
-        // Capture the initial state of the form
+        /**
+         * Captures the initial state of all form inputs
+         * @returns {Object} State of all form inputs
+         */
         function captureFormState() {
             const state = {};
             formInputs.forEach(input => {
@@ -151,7 +144,10 @@ document.addEventListener('DOMContentLoaded', function() {
             return state;
         }
         
-        // Check if the form state has changed
+        /**
+         * Checks if the form state has changed since initial load
+         * @returns {boolean} Whether the form has changed
+         */
         function hasFormChanged() {
             const currentState = captureFormState();
             for (const key in currentState) {
@@ -160,14 +156,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
             
-            // Also check if any patient has been selected (special handling for checkboxes without IDs)
             const initialSelectedCount = Object.values(initialFormState).filter(value => value === true).length;
             const currentSelectedCount = document.querySelectorAll('.patient-select:checked').length;
             
             return initialSelectedCount !== currentSelectedCount;
         }
         
-        // Track changes to form inputs
         formInputs.forEach(input => {
             input.addEventListener('change', function() {
                 formChanged = hasFormChanged();
@@ -178,14 +172,12 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
         
-        // Special handling for patient checkboxes that might not have IDs
         patientCheckboxes.forEach(checkbox => {
             checkbox.addEventListener('change', function() {
                 formChanged = true;
             });
         });
         
-        // Handle back button click
         if (backButton) {
             backButton.addEventListener('click', function(e) {
                 if (formChanged) {
@@ -195,11 +187,9 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
         
-        // Handle clicks on sidebar links or other navigation
         document.addEventListener('click', function(e) {
             const link = e.target.closest('a');
             
-            // Ignore next button, same-page links, and form elements
             if (link && 
                 link.id !== 'nextButton' &&
                 !link.getAttribute('href').startsWith('#') &&
@@ -213,15 +203,16 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        // Show the unsaved changes popup
+        /**
+         * Displays a confirmation popup when unsaved changes are detected
+         * @param {string} targetUrl - URL to navigate to if changes are discarded
+         */
         function showUnsavedChangesPopup(targetUrl = '/appointment/timeline') {
-            // Remove any existing popup
             const existingPopup = document.querySelector('.unsaved-changes-popup');
             if (existingPopup) {
                 existingPopup.remove();
             }
             
-            // Create the popup
             const popup = document.createElement('div');
             popup.className = 'unsaved-changes-popup';
             
@@ -245,7 +236,6 @@ document.addEventListener('DOMContentLoaded', function() {
             
             document.body.appendChild(popup);
             
-            // Add event listeners
             const cancelButton = popup.querySelector('.unsaved-changes-cancel');
             const discardButton = popup.querySelector('.unsaved-changes-discard');
             
@@ -254,7 +244,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             
             discardButton.addEventListener('click', function() {
-                // Redirect to the target URL
                 window.location.href = targetUrl;
             });
         }

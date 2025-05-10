@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // File input enhancement
     const fileInput = document.getElementById('csvFile');
     const fileLabel = document.getElementById('file-selected');
     
@@ -11,7 +10,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Handle alert close buttons
     const closeButtons = document.querySelectorAll('.btn-close');
     closeButtons.forEach(button => {
         button.addEventListener('click', function() {
@@ -20,6 +18,10 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+/**
+ * Updates the displayed filename when files are selected in the input
+ * @param {HTMLInputElement} input - The file input element that triggered the change
+ */
 function updateFileList(input) {
     const fileLabel = document.getElementById('file-selected');
     if (input.files.length > 0) {

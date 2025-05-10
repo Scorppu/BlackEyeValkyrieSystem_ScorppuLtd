@@ -1,3 +1,7 @@
+/**
+ * Filters the drug interaction list based on search input
+ * Shows or hides drug sections based on the search term
+ */
 function filterInteractions() {
     const searchInput = document.getElementById('interactionSearchInput');
     const searchTerm = searchInput.value.toLowerCase();

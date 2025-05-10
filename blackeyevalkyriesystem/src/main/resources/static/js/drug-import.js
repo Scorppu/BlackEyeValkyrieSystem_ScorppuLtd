@@ -1,5 +1,8 @@
+/**
+ * Initializes file input enhancement for CSV file uploads
+ * Sets up event listeners for file input changes
+ */
 document.addEventListener('DOMContentLoaded', function() {
-    // File input enhancement
     const fileInput = document.getElementById('csvFile');
     const fileLabel = document.getElementById('file-selected');
     
@@ -12,6 +15,10 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+/**
+ * Updates the file label text based on selected files
+ * @param {HTMLInputElement} input - The file input element that triggered the change
+ */
 function updateFileList(input) {
     const fileLabel = document.getElementById('file-selected');
     if (input.files.length > 0) {

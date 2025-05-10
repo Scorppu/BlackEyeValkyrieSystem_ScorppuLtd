@@ -1,13 +1,17 @@
-// Global variable for drugs data
+/** Global variable for drugs data */
 let allDrugsData = [];
 
-// Function to validate the patient form - moved to global scope
+/**
+ * Validates the patient form
+ * @returns {Object} Object containing validation result and errors
+ * @returns {boolean} isValid - Whether the form is valid
+ * @returns {string[]} errors - Array of error messages
+ */
 function validatePatientForm() {
     const requiredFields = ['firstName', 'lastName', 'sex', 'dateOfBirth', 'bloodType'];
     const errors = [];
     const invalidFields = [];
     
-    // Check each required field
     requiredFields.forEach(field => {
         const input = document.getElementById(field);
         if (!input || !input.value.trim()) {
@@ -16,7 +20,6 @@ function validatePatientForm() {
         }
     });
     
-    // Mark invalid fields with red border
     if (invalidFields.length > 0) {
         markInvalidFields(invalidFields);
     }
@@ -27,14 +30,15 @@ function validatePatientForm() {
     };
 }
 
-// Function to switch between form sections - moved to global scope
+/**
+ * Switches between form sections
+ * @param {string} targetTabId - ID of the tab to switch to
+ */
 function switchFormSection(targetTabId) {
-    // Hide all form sections
     document.querySelectorAll('.form-section').forEach(section => {
         section.classList.remove('active');
     });
     
-    // Show the target section
     const targetSection = targetTabId === 'personal-info-tab' ? 
         document.getElementById('personal-info-form') : 
         document.getElementById('contact-info-form');
@@ -43,7 +47,6 @@ function switchFormSection(targetTabId) {
         targetSection.classList.add('active');
     }
     
-    // Update active tab
     document.querySelectorAll('.tab-item').forEach(tab => {
         if (tab.getAttribute('data-target') === targetTabId) {
             tab.classList.add('active');
@@ -53,9 +56,11 @@ function switchFormSection(targetTabId) {
     });
 }
 
-// Function to mark invalid fields with red border
+/**
+ * Marks form fields as invalid with red border
+ * @param {string[]} invalidFields - Array of field IDs to mark as invalid
+ */
 function markInvalidFields(invalidFields) {
-    // Clear previous validation styling
     document.querySelectorAll('.form-control').forEach(field => {
         field.classList.remove('invalid-field');
         const existingMsg = field.parentNode.querySelector('.validation-message');
@@ -64,7 +69,6 @@ function markInvalidFields(invalidFields) {
         }
     });
     
-    // Add validation styling to invalid fields
     invalidFields.forEach(fieldId => {
         const field = document.getElementById(fieldId);
         if (field) {
@@ -74,19 +78,21 @@ function markInvalidFields(invalidFields) {
     });
 }
 
-// Function to add validation message below the field
+/**
+ * Adds validation message below the input field
+ * @param {string} inputId - ID of the input field
+ * @param {string} message - Validation message to display
+ */
 function addValidationMessage(inputId, message) {
     const input = document.getElementById(inputId);
     if (!input) return;
     
-    // Check if message already exists
     const existingMsg = input.parentNode.querySelector('.validation-message');
     if (existingMsg) {
         existingMsg.textContent = message;
         return;
     }
     
-    // Create new message
     const msgElement = document.createElement('div');
     msgElement.className = 'validation-message';
     msgElement.textContent = message;
@@ -94,22 +100,21 @@ function addValidationMessage(inputId, message) {
     msgElement.style.fontSize = '0.8rem';
     msgElement.style.marginTop = '0.25rem';
     
-    // Insert after the input field
     input.parentNode.insertBefore(msgElement, input.nextSibling);
 }
 
-// Function to show validation popup with errors
+/**
+ * Shows validation popup with errors
+ * @param {string[]} errors - Array of error messages
+ */
 function showValidationPopup(errors) {
-    // Ensure errors is an array
     errors = Array.isArray(errors) ? errors : [];
     
-    // Remove any existing popups
     const existingPopup = document.querySelector('.validation-popup');
     if (existingPopup) {
         existingPopup.remove();
     }
     
-    // Create popup
     const popup = document.createElement('div');
     popup.className = 'validation-popup';
     
@@ -132,10 +137,8 @@ function showValidationPopup(errors) {
         </div>
     `;
     
-    // Add to the body
     document.body.appendChild(popup);
     
-    // Add event listeners
     const closeButton = popup.querySelector('.validation-popup-close');
     const okButton = popup.querySelector('.validation-popup-button');
     
@@ -149,7 +152,6 @@ function showValidationPopup(errors) {
     closeButton.addEventListener('click', closePopup);
     okButton.addEventListener('click', closePopup);
     
-    // Add animation class after a small delay
     setTimeout(() => {
         popup.classList.add('show');
     }, 10);

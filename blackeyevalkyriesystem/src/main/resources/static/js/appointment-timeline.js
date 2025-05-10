@@ -1,16 +1,13 @@
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Appointment Timeline page loaded');
     
-    // Check for notification in URL parameters
     displayNotificationFromUrlParams();
     
-    // Constants for timeline calculations
-    const slotWidth = 100; // Width in pixels of each time slot
-    const workStartHour = 9; // 9 AM
-    const workEndHour = 17; // 5 PM
-    const timeSlots = (workEndHour - workStartHour) * 2 + 1; // 30-minute slots
+    const slotWidth = 100;
+    const workStartHour = 9;
+    const workEndHour = 17;
+    const timeSlots = (workEndHour - workStartHour) * 2 + 1;
     
-    // DOM Elements
     const timelineContent = document.getElementById('timelineContent');
     const timelineGrid = document.getElementById('timelineGrid');
     const timelineHeader = document.getElementById('timelineHeader');
@@ -19,7 +16,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const startDateInput = document.getElementById('startDate');
     const endDateInput = document.getElementById('endDate');
     
-    // Get today's date formatted as YYYY-MM-DD
+    /**
+     * Returns today's date formatted as YYYY-MM-DD
+     * @returns {string} Formatted date string
+     */
     function getTodayFormatted() {
         const today = new Date();
         const year = today.getFullYear();
@@ -28,18 +28,17 @@ document.addEventListener('DOMContentLoaded', function() {
         return `${year}-${month}-${day}`;
     }
     
-    // Initialize date inputs
+    /**
+     * Initializes date inputs and sets up event handlers
+     */
     function initializeDateInputs() {
         const today = getTodayFormatted();
         
-        // Set timeline date
         if (timelineDateInput) {
             timelineDateInput.value = today;
             
-            // Initial load of timeline
             updateTimeline(timelineDateInput.value);
             
-            // Handle date change events
             timelineDateInput.addEventListener('blur', function() {
                 if (timelineDateInput.value) {
                     updateTimeline(timelineDateInput.value);
@@ -55,15 +54,12 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
         
-        // Set date range for pending appointments
         if (startDateInput && endDateInput) {
             startDateInput.value = today;
             endDateInput.value = today;
             
-            // Initial load of pending appointments
             renderPendingAppointmentsTable(startDateInput.value, endDateInput.value);
             
-            // Handle date range changes
             startDateInput.addEventListener('blur', function() {
                 if (startDateInput.value && endDateInput.value) {
                     if (new Date(endDateInput.value) < new Date(startDateInput.value)) {
@@ -108,51 +104,51 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Set the timeline content width based on time slots
+    /**
+     * Sets the timeline content width based on time slots
+     */
     function setupTimelineWidth() {
         if (timelineContent) {
-            const totalWidth = (timeSlots * slotWidth) + 120; // Add doctor column width
+            const totalWidth = (timeSlots * slotWidth) + 120;
             timelineContent.style.width = totalWidth + 'px';
             timelineContent.style.minWidth = Math.min(800, totalWidth) + 'px';
             
-            // Check if timeline needs scrollbar
             checkTimelineOverflow();
         }
     }
     
-    // Check if timeline needs scrollbar
+    /**
+     * Checks if timeline needs scrollbar and adjusts container accordingly
+     */
     function checkTimelineOverflow() {
         const scrollContainer = document.querySelector('.timeline-scroll-container');
         
         if (timelineContent && scrollContainer) {
-            // Check if content width exceeds container width
             const needsScroll = timelineContent.scrollWidth > scrollContainer.clientWidth;
             scrollContainer.setAttribute('data-overflow', needsScroll.toString());
             
-            // Adjust appearance based on need for scrollbar
             scrollContainer.style.overflowX = needsScroll ? 'auto' : 'hidden';
         }
     }
     
-    // Fetch appointments for timeline by date
+    /**
+     * Fetches appointments for timeline by date
+     * @param {string} date - The date to fetch appointments for, in YYYY-MM-DD format
+     * @returns {Promise<Object>} Promise resolving to appointment data
+     */
     async function fetchAppointmentsForTimeline(date) {
         try {
-            // Show loading state
             if (timelineGrid) {
                 timelineGrid.innerHTML = '<div class="timeline-loading"><p>Loading appointments...</p></div>';
             }
             
-            // Create API URL with date parameter
             const apiUrl = `/api/appointments/timeline?date=${date}`;
             
-            // Fetch appointments from the database
             const response = await fetch(apiUrl);
             
-            // Check if the request was successful
             if (!response.ok) {
                 console.warn(`API endpoint not available (${response.status}). Using fallback data.`);
                 
-                // Return hardcoded data as fallback
                 return {
                     doctors: [
                         {
@@ -169,7 +165,6 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (error) {
             console.error('Error fetching appointments:', error);
             
-            // Return hardcoded data as fallback in case of errors
             return {
                 doctors: [
                     {
@@ -182,18 +177,23 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Function to calculate position based on time
+    /**
+     * Calculates position based on time
+     * @param {string} time - Time string in ISO format
+     * @returns {number} Position in pixels from left edge
+     */
     function calculatePosition(time) {
-        // Extract hours and minutes from datetime string
         const timePart = time.split('T')[1];
         const [hours, minutes] = timePart.split(':').map(Number);
         
-        // Calculate slot position based on time
-        // Each slot is 100px wide, position is calculated from left edge
         return ((hours - workStartHour) * 2 + (minutes >= 30 ? 1 : 0)) * slotWidth;
     }
     
-    // Function to determine appointment color
+    /**
+     * Determines CSS class based on appointment type
+     * @param {string} type - Appointment type
+     * @returns {string} CSS class name
+     */
     function getAppointmentClass(type) {
         switch(type) {
             case 'Emergency':
@@ -205,17 +205,17 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Position appointments on timeline
+    /**
+     * Updates the timeline with appointments for the specified date
+     * @param {string} date - Date in YYYY-MM-DD format
+     */
     async function updateTimeline(date) {
-        // Get data
         const data = await fetchAppointmentsForTimeline(date);
         
-        // Get timeline grid and empty it
         if (!timelineGrid) return;
         
         timelineGrid.innerHTML = '';
         
-        // If no doctors or appointments, show message
         if (!data.doctors || data.doctors.length === 0) {
             const noDataMessage = document.createElement('div');
             noDataMessage.className = 'no-data-message';
@@ -224,28 +224,21 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        // For each doctor
         data.doctors.forEach(doctor => {
-            // Create doctor row
             const doctorRow = document.createElement('div');
             doctorRow.className = 'doctor-row';
             
-            // Create doctor column
             const doctorColumn = document.createElement('div');
             doctorColumn.className = 'doctor-column';
             doctorColumn.textContent = doctor.name;
             
-            // Create timeline slots
             const timelineSlots = document.createElement('div');
             timelineSlots.className = 'timeline-slots';
             
-            // Add appointments
             if (doctor.appointments && doctor.appointments.length > 0) {
                 doctor.appointments.forEach(appointment => {
                     const leftPosition = calculatePosition(appointment.startTime);
                     
-                    // Calculate width: duration in minutes / 30 minutes per slot * slot width
-                    // Subtract 2px to ensure gaps between adjacent appointments
                     const width = (appointment.duration / 30) * slotWidth - 2;
                     
                     const appointmentBlock = document.createElement('div');
@@ -255,12 +248,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     appointmentBlock.textContent = appointment.patientName;
                     appointmentBlock.dataset.appointmentId = appointment.id;
                     
-                    // Add title for overflow text
                     appointmentBlock.title = `${appointment.patientName} - ${appointment.type}`;
                     
-                    // Add click event
                     appointmentBlock.addEventListener('click', function() {
-                        // This would be replaced with a proper detail view
                         alert(`Appointment details for ${appointment.patientName}\nType: ${appointment.type}\nTime: ${appointment.startTime.split('T')[1].substring(0, 5)}\nDuration: ${appointment.duration} mins`);
                     });
                     
@@ -268,32 +258,30 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             }
             
-            // Assemble row
             doctorRow.appendChild(doctorColumn);
             doctorRow.appendChild(timelineSlots);
             
-            // Add to grid
             timelineGrid.appendChild(doctorRow);
         });
         
-        // After adding all appointments, check for overflow again
         checkTimelineOverflow();
     }
     
-    // Fetch pending appointments for date range
+    /**
+     * Fetches pending appointments for date range
+     * @param {string} startDate - Start date in YYYY-MM-DD format
+     * @param {string} endDate - End date in YYYY-MM-DD format
+     * @returns {Promise<Array>} Promise resolving to appointment data array
+     */
     async function fetchPendingAppointments(startDate, endDate) {
         try {
-            // Create formatted date strings for API
             const formattedStartDate = startDate + 'T00:00:00';
             const formattedEndDate = endDate + 'T23:59:59';
             
-            // Create API URL with date range parameters
             const apiUrl = `/api/appointments/pending?startDate=${formattedStartDate}&endDate=${formattedEndDate}`;
             
-            // Fetch pending appointments from the database
             const response = await fetch(apiUrl);
             
-            // Check if the request was successful
             if (!response.ok) {
                 console.warn(`API endpoint not available (${response.status}). Using fallback data.`);
                 return [];
@@ -307,27 +295,32 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Format date for display with localized time
+    /**
+     * Formats a date string for display with localized time
+     * @param {string} dateString - ISO date string
+     * @returns {string} Formatted date string
+     */
     function formatDate(dateString) {
         const date = new Date(dateString);
         
-        // Format year, month, day
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const day = String(date.getDate()).padStart(2, '0');
         
-        // Format hours and minutes in 24-hour format
         const hours = String(date.getHours()).padStart(2, '0');
         const minutes = String(date.getMinutes()).padStart(2, '0');
         
         return `${year}-${month}-${day} ${hours}:${minutes}`;
     }
     
-    // Render pending appointments table
+    /**
+     * Renders the pending appointments table for a date range
+     * @param {string} startDate - Start date in YYYY-MM-DD format
+     * @param {string} endDate - End date in YYYY-MM-DD format
+     */
     async function renderPendingAppointmentsTable(startDate, endDate) {
         if (!pendingAppointmentsList) return;
         
-        // Show loading message
         pendingAppointmentsList.innerHTML = `
             <tr>
                 <td colspan="7" class="text-center py-4">
@@ -336,7 +329,6 @@ document.addEventListener('DOMContentLoaded', function() {
             </tr>
         `;
         
-        // Fetch appointments
         const appointments = await fetchPendingAppointments(startDate, endDate);
         
         if (appointments.length === 0) {
@@ -350,10 +342,8 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        // Build table rows
         let html = '';
         appointments.forEach(appointment => {
-            // Create priority badge class
             let priorityClass = 'status-badge';
             if (appointment.priority === 'urgent') {
                 priorityClass += ' red';
@@ -395,7 +385,10 @@ document.addEventListener('DOMContentLoaded', function() {
         pendingAppointmentsList.innerHTML = html;
     }
     
-    // Function to handle appointment editing
+    /**
+     * Navigates to the appointment edit page
+     * @param {string} appointmentId - ID of the appointment to edit
+     */
     function editAppointment(appointmentId) {
         try {
             if (!appointmentId) {
@@ -404,7 +397,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            // Navigate to the edit page using window.location with proper error handling
             console.log(`Redirecting to edit page for appointment: ${appointmentId}`);
             window.location.href = `/appointment/edit/${appointmentId}`;
         } catch (error) {
@@ -413,7 +405,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Function to handle appointment cancellation
+    /**
+     * Cancels an appointment after confirmation
+     * @param {string} appointmentId - ID of the appointment to cancel
+     */
     function cancelAppointment(appointmentId) {
         if (confirm('Are you sure you want to cancel this appointment?')) {
             fetch(`/api/appointments/${appointmentId}`, {
@@ -424,13 +419,10 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .then(response => {
                 if (response.ok) {
-                    // Successfully cancelled
                     alert('Appointment cancelled successfully');
-                    // Refresh the pending appointments list
                     if (startDateInput && endDateInput) {
                         renderPendingAppointmentsTable(startDateInput.value, endDateInput.value);
                     }
-                    // Also refresh the timeline
                     if (timelineDateInput) {
                         updateTimeline(timelineDateInput.value);
                     }
@@ -445,9 +437,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Add event listeners for appointment action buttons
+    /**
+     * Sets up event listeners for appointment action buttons
+     */
     function addAppointmentActionEventListeners() {
-        // Event delegation for edit and cancel buttons
         document.addEventListener('click', function(e) {
             if (e.target && e.target.closest('.edit-appointment')) {
                 const appointmentId = e.target.closest('.edit-appointment').dataset.id;
@@ -463,7 +456,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Initialize tooltip container
+    /**
+     * Initializes tooltip container for appointment details
+     */
     function initializeTooltip() {
         const tooltipDiv = document.createElement('div');
         tooltipDiv.className = 'appointment-tooltip';
@@ -471,7 +466,10 @@ document.addEventListener('DOMContentLoaded', function() {
         document.body.appendChild(tooltipDiv);
     }
     
-    // Show appointment tooltip
+    /**
+     * Shows tooltip with appointment details
+     * @param {Event} event - The mouse event that triggered the tooltip
+     */
     function showTooltip(event) {
         const appointment = event.currentTarget;
         const tooltip = document.getElementById('appointmentTooltip');
@@ -500,7 +498,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Hide appointment tooltip
+    /**
+     * Hides the appointment tooltip
+     */
     function hideTooltip() {
         const tooltip = document.getElementById('appointmentTooltip');
         if (tooltip) {
@@ -508,9 +508,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Fix styling issues for proper layout
+    /**
+     * Fixes styling issues for proper layout
+     */
     function fixLayoutStyling() {
-        // Force proper overflow settings on all parent containers
         document.querySelectorAll('html, body, .main-content, .content-container, .timeline-container').forEach(el => {
             if (el) {
                 el.style.overflowX = 'hidden';
@@ -518,13 +519,11 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        // Make sure only the scroll container has horizontal scrolling
         const scrollContainer = document.querySelector('.timeline-scroll-container');
         if (scrollContainer) {
             scrollContainer.style.overflowX = 'auto';
         }
         
-        // Make sure content card for Pending Appointments expands properly
         document.querySelectorAll('.content-card, .pending-appointments-container, .pending-appointments-table').forEach(el => {
             if (el) {
                 el.style.overflow = 'visible';
@@ -536,13 +535,14 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        // Remove any inner scrollbars in the timeline
         if (timelineContent) {
             timelineContent.style.overflow = 'visible';
         }
     }
     
-    // Initialize everything
+    /**
+     * Initializes all timeline components
+     */
     function initialize() {
         initializeTooltip();
         setupTimelineWidth();
@@ -550,24 +550,23 @@ document.addEventListener('DOMContentLoaded', function() {
         addAppointmentActionEventListeners();
         fixLayoutStyling();
         
-        // Handle window resize
         window.addEventListener('resize', function() {
             checkTimelineOverflow();
         });
     }
     
-    // Start it all
     initialize();
 });
 
-// Function to display notification from URL parameters
+/**
+ * Displays notification based on URL parameters
+ */
 function displayNotificationFromUrlParams() {
     const urlParams = new URLSearchParams(window.location.search);
     const success = urlParams.get('success');
     const appointmentId = urlParams.get('appointmentId');
     
     if (success === 'created' && appointmentId) {
-        // Fetch appointment details to get patient name and doctor name
         fetch(`/api/appointments/${appointmentId}`)
             .then(response => {
                 if (!response.ok) {
@@ -612,16 +611,18 @@ function displayNotificationFromUrlParams() {
     }
 }
 
-// Function to display notification
+/**
+ * Creates and displays a notification
+ * @param {string} type - Notification type ('success' or 'error')
+ * @param {string} message - Message to display in the notification
+ */
 function displayNotification(type, message) {
-    // Create notification container if it doesn't exist
     let notificationContainer = document.querySelector('.notification-container');
     
     if (!notificationContainer) {
         notificationContainer = document.createElement('div');
         notificationContainer.className = 'notification-container';
         
-        // Insert at the top of the content section
         const contentSection = document.querySelector('[layout\\:fragment="content"]');
         if (contentSection) {
             contentSection.insertBefore(notificationContainer, contentSection.firstChild);
@@ -630,11 +631,9 @@ function displayNotification(type, message) {
         }
     }
     
-    // Create notification element
     const notification = document.createElement('div');
     notification.className = `notification ${type}`;
     
-    // Add icon based on type
     let icon = '';
     if (type === 'success') {
         icon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>';
@@ -642,7 +641,6 @@ function displayNotification(type, message) {
         icon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>';
     }
     
-    // Set notification content
     notification.innerHTML = `
         <div class="notification-icon">${icon}</div>
         <div class="notification-content">
@@ -656,10 +654,8 @@ function displayNotification(type, message) {
         </button>
     `;
     
-    // Add to container
     notificationContainer.appendChild(notification);
     
-    // Add close button functionality
     const closeButton = notification.querySelector('.notification-close');
     if (closeButton) {
         closeButton.addEventListener('click', function() {
@@ -667,7 +663,6 @@ function displayNotification(type, message) {
             setTimeout(() => {
                 notification.remove();
                 
-                // Remove container if empty
                 if (notificationContainer.children.length === 0) {
                     notificationContainer.remove();
                 }
@@ -675,14 +670,12 @@ function displayNotification(type, message) {
         });
     }
     
-    // Auto-remove after 6 seconds
     setTimeout(() => {
         if (notification.parentNode) {
             notification.classList.add('closing');
             setTimeout(() => {
                 notification.remove();
                 
-                // Remove container if empty
                 if (notificationContainer && notificationContainer.children.length === 0) {
                     notificationContainer.remove();
                 }

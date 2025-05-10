@@ -1,11 +1,12 @@
-// Global variables
 let selectedPatient = null;
 let selectedDoctor = null;
 let statusHistory = [];
 
-// Document ready function
+/**
+ * Initializes the appointment editing interface with date pickers, search fields, and form handling
+ * Sets up event listeners and initializes components for the appointment edit page
+ */
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize flatpickr for date picker
     flatpickr("#appointmentDate", {
         dateFormat: "Y-m-d",
         minDate: "today",
@@ -18,7 +19,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Initialize flatpickr for time picker
     flatpickr("#appointmentTime", {
         enableTime: true,
         noCalendar: true,
@@ -32,7 +32,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Initialize patient search
     initializeSearch('#patientSearch', '/api/patients/search', function(item) {
         return `${item.firstName} ${item.lastName} (${item.idNumber})`;
     }, function(item) {
@@ -41,7 +40,6 @@ document.addEventListener('DOMContentLoaded', function() {
         displayPatientInfo(item);
     });
 
-    // Initialize doctor search
     initializeSearch('#doctorSearch', '/api/doctors/search', function(item) {
         return `Dr. ${item.firstName} ${item.lastName} (${item.specialty})`;
     }, function(item) {
@@ -51,7 +49,6 @@ document.addEventListener('DOMContentLoaded', function() {
         checkAvailability();
     });
 
-    // Handle form submission
     document.getElementById('appointmentForm').addEventListener('submit', function(e) {
         e.preventDefault();
         if (validateForm()) {
@@ -59,22 +56,23 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Handle cancel button
     document.getElementById('cancelButton').addEventListener('click', function() {
         window.location.href = '/appointments';
     });
 
-    // Initialize alert dismiss functionality
     initializeAlerts();
 
-    // Pre-fill values if editing
     if (document.getElementById('appointmentId').value) {
         prefillForm();
     }
 });
 
 /**
- * Generic search initialization function
+ * Initializes search functionality for patient or doctor fields
+ * @param {string} inputSelector - CSS selector for the search input
+ * @param {string} searchUrl - API endpoint for search
+ * @param {Function} formatResult - Function to format display of search results
+ * @param {Function} onSelect - Callback function when an item is selected
  */
 function initializeSearch(inputSelector, searchUrl, formatResult, onSelect) {
     const searchInput = document.querySelector(inputSelector);
@@ -125,14 +123,12 @@ function initializeSearch(inputSelector, searchUrl, formatResult, onSelect) {
         }, 300);
     });
 
-    // Hide results when clicking outside
     document.addEventListener('click', function(e) {
         if (!searchInput.contains(e.target) && !resultsContainer.contains(e.target)) {
             resultsContainer.classList.remove('visible');
         }
     });
 
-    // Show results when focusing on the input
     searchInput.addEventListener('focus', function() {
         if (this.value.trim().length >= 2 && resultsContainer.children.length > 0) {
             resultsContainer.classList.add('visible');
@@ -141,7 +137,8 @@ function initializeSearch(inputSelector, searchUrl, formatResult, onSelect) {
 }
 
 /**
- * Display patient information in the info box
+ * Displays patient information in the info box
+ * @param {Object} patient - Patient data object
  */
 function displayPatientInfo(patient) {
     const infoContainer = document.getElementById('patientInfo');
@@ -167,7 +164,8 @@ function displayPatientInfo(patient) {
 }
 
 /**
- * Display doctor information in the info box
+ * Displays doctor information in the info box
+ * @param {Object} doctor - Doctor data object
  */
 function displayDoctorInfo(doctor) {
     const infoContainer = document.getElementById('doctorInfo');
@@ -189,7 +187,7 @@ function displayDoctorInfo(doctor) {
 }
 
 /**
- * Check availability of the doctor at the selected time
+ * Checks availability of the doctor at the selected date and time
  */
 function checkAvailability() {
     const doctorId = document.getElementById('doctorId').value;
@@ -233,7 +231,8 @@ function checkAvailability() {
 }
 
 /**
- * Validate the form before submission
+ * Validates the form before submission
+ * @returns {boolean} Whether the form is valid
  */
 function validateForm() {
     const patientId = document.getElementById('patientId').value;
@@ -283,7 +282,7 @@ function validateForm() {
 }
 
 /**
- * Submit the form via AJAX
+ * Submits the form data via AJAX
  */
 function submitForm() {
     const form = document.getElementById('appointmentForm');
@@ -321,7 +320,9 @@ function submitForm() {
 }
 
 /**
- * Display an alert message
+ * Displays an alert message
+ * @param {string} message - The message to display
+ * @param {string} type - Alert type ('success', 'danger', etc.)
  */
 function showAlert(message, type) {
     const alertsContainer = document.getElementById('alerts');
@@ -336,14 +337,14 @@ function showAlert(message, type) {
     
     alertsContainer.innerHTML += alertHTML;
     
-    // Auto-dismiss after 5 seconds
     setTimeout(() => {
         dismissAlert(alertId);
     }, 5000);
 }
 
 /**
- * Dismiss an alert
+ * Dismisses an alert by ID
+ * @param {string} alertId - ID of the alert to dismiss
  */
 function dismissAlert(alertId) {
     const alert = document.getElementById(alertId);
@@ -356,14 +357,14 @@ function dismissAlert(alertId) {
 }
 
 /**
- * Initialize alerts
+ * Initializes alert system and exposes dismissAlert to window object
  */
 function initializeAlerts() {
     window.dismissAlert = dismissAlert;
 }
 
 /**
- * Pre-fill the form when editing an existing appointment
+ * Pre-fills the form when editing an existing appointment
  */
 function prefillForm() {
     const appointmentId = document.getElementById('appointmentId').value;
@@ -371,21 +372,18 @@ function prefillForm() {
     fetch(`/api/appointments/${appointmentId}`)
         .then(response => response.json())
         .then(data => {
-            // Pre-fill patient
             if (data.patient) {
                 document.getElementById('patientId').value = data.patient.id;
                 document.getElementById('patientName').value = `${data.patient.firstName} ${data.patient.lastName}`;
                 displayPatientInfo(data.patient);
             }
             
-            // Pre-fill doctor
             if (data.doctor) {
                 document.getElementById('doctorId').value = data.doctor.id;
                 document.getElementById('doctorName').value = `Dr. ${data.doctor.firstName} ${data.doctor.lastName}`;
                 displayDoctorInfo(data.doctor);
             }
             
-            // Pre-fill date and time
             if (data.appointmentDateTime) {
                 const dateTime = new Date(data.appointmentDateTime);
                 const date = dateTime.toISOString().split('T')[0];
@@ -396,7 +394,6 @@ function prefillForm() {
                 document.getElementById('appointmentDate').value = date;
                 document.getElementById('appointmentTime').value = time;
                 
-                // Manually trigger flatpickr update
                 const dateInstance = document.querySelector("#appointmentDate")._flatpickr;
                 const timeInstance = document.querySelector("#appointmentTime")._flatpickr;
                 
@@ -404,17 +401,14 @@ function prefillForm() {
                 if (timeInstance) timeInstance.setDate(time);
             }
             
-            // Pre-fill other fields
             if (data.duration) document.getElementById('duration').value = data.duration;
             if (data.type) document.getElementById('appointmentType').value = data.type;
             if (data.status) document.getElementById('appointmentStatus').value = data.status;
             if (data.reason) document.getElementById('reason').value = data.reason;
             if (data.notes) document.getElementById('notes').value = data.notes;
             
-            // Check availability
             checkAvailability();
             
-            // Load status history
             loadStatusHistory(appointmentId);
         })
         .catch(error => {
@@ -424,7 +418,8 @@ function prefillForm() {
 }
 
 /**
- * Load status history for an appointment
+ * Loads and displays appointment status history
+ * @param {string} appointmentId - ID of the appointment to load history for
  */
 function loadStatusHistory(appointmentId) {
     fetch(`/api/appointments/${appointmentId}/history`)

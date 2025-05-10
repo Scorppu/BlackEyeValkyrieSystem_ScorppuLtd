@@ -7,13 +7,16 @@ document.addEventListener('DOMContentLoaded', function() {
         searchInput.addEventListener('keyup', filterInteractions);
     }
     
+    /**
+     * Filters the drug interactions table based on the search input
+     * Shows only rows that match the search query
+     */
     function filterInteractions() {
         const input = document.getElementById('searchInput');
         const filter = input.value.toUpperCase();
         const table = document.getElementById('interactionTable');
         const tr = table.getElementsByTagName('tr');
         
-        // Loop through all table rows, and hide those that don't match the search query
         for (let i = 1; i < tr.length; i++) {
             const tdDrug = tr[i].getElementsByTagName('td')[0];
             
@@ -29,6 +32,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+    /**
+     * Checks if there are any visible rows in the table
+     * Shows empty state if no rows are visible
+     */
     function checkEmptyState() {
         const visibleRows = document.querySelectorAll('.drug-table tbody tr:not([style*="display: none"])');
         const emptyState = document.querySelector('.empty-state');
@@ -51,10 +58,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Initialize the empty state check
     checkEmptyState();
     
-    // Setup delete confirmation
     const deleteButtons = document.querySelectorAll('.delete-btn');
     
     deleteButtons.forEach(button => {
@@ -65,7 +70,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const drugName = this.getAttribute('data-drug');
             
             if (confirm(`Are you sure you want to delete the interaction with ${drugName}?`)) {
-                // Send delete request
                 fetch(`/api/drug-interactions/${interactionId}`, {
                     method: 'DELETE',
                     headers: {
@@ -74,12 +78,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 })
                 .then(response => {
                     if (response.ok) {
-                        // Remove row from table
                         this.closest('tr').remove();
-                        // Check if table is now empty
                         checkEmptyState();
                         
-                        // Show success message
                         const successMessage = document.createElement('div');
                         successMessage.className = 'alert alert-success';
                         successMessage.textContent = `Interaction with ${drugName} was successfully deleted.`;
@@ -87,7 +88,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         const container = document.querySelector('.drug-list-container');
                         container.insertBefore(successMessage, container.firstChild);
                         
-                        // Remove message after 3 seconds
                         setTimeout(() => {
                             successMessage.remove();
                         }, 3000);
