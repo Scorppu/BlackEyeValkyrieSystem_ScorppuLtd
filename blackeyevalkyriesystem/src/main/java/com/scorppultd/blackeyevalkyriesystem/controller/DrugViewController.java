@@ -199,6 +199,7 @@ public class DrugViewController {
     public ResponseEntity<?> getDrugInteractions(@PathVariable String id) {
         try {
             List<String> interactionIds = drugService.getAllInteractionsForDrug(id);
+            logger.info("Returning {} interactions for drug ID {}", interactionIds.size(), id);
             return ResponseEntity.ok(interactionIds);
         } catch (Exception e) {
             logger.error("Error fetching drug interactions for ID {}: {}", id, e.getMessage());
@@ -629,5 +630,22 @@ public class DrugViewController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=interaction_template.csv")
                 .header(HttpHeaders.CONTENT_TYPE, "text/csv")
                 .body(csvContent);
+    }
+    
+    /**
+     * API endpoint to get a single drug by ID
+     */
+    @GetMapping("/api/drugs/{id}")
+    @ResponseBody
+    public ResponseEntity<?> getDrugById(@PathVariable String id) {
+        try {
+            return drugService.getDrugById(id)
+                .map(drug -> ResponseEntity.ok(drug))
+                .orElseGet(() -> ResponseEntity.notFound().build());
+        } catch (Exception e) {
+            logger.error("Error fetching drug with ID {}: {}", id, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Collections.singletonMap("error", "Failed to load drug: " + e.getMessage()));
+        }
     }
 } 
