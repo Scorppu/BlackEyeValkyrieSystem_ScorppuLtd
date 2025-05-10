@@ -89,11 +89,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const errorMessage = document.getElementById('errorMessage');
     const errorOkButton = document.getElementById('errorOk');
     
-    // Validation popup elements
-    const validationPopup = document.getElementById('validationPopup');
-    const validationErrorList = document.getElementById('validationErrorList');
-    const validationOkButton = document.getElementById('validationOk');
-    
     // Handle success modal
     successOkButton.addEventListener('click', function() {
         successModal.style.display = 'none';
@@ -106,13 +101,6 @@ document.addEventListener('DOMContentLoaded', function() {
         errorModal.style.display = 'none';
     });
     
-    // Handle validation popup
-    if (validationOkButton) {
-        validationOkButton.addEventListener('click', function() {
-            validationPopup.style.display = 'none';
-        });
-    }
-    
     // Close modals when clicking outside
     window.addEventListener('click', function(event) {
         if (event.target === successModal) {
@@ -122,15 +110,18 @@ document.addEventListener('DOMContentLoaded', function() {
         if (event.target === errorModal) {
             errorModal.style.display = 'none';
         }
-        if (event.target === validationPopup) {
-            validationPopup.style.display = 'none';
-        }
     });
     
     // Function to show success modal
     function showSuccessModal(message) {
-        successMessage.textContent = message;
-        successModal.style.display = 'block';
+        // Replace modal with sessionStorage notification
+        sessionStorage.setItem('userNotification', JSON.stringify({
+            type: 'success',
+            message: message
+        }));
+        
+        // Redirect to user list
+        window.location.href = '/user/list';
     }
     
     // Function to show error modal
@@ -141,19 +132,78 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Function to show validation errors popup
     function showValidationPopup(errors) {
-        // Clear previous errors
-        validationErrorList.innerHTML = '';
+        // Remove any existing popup
+        const existingPopup = document.querySelector('.validation-popup');
+        if (existingPopup) {
+            existingPopup.remove();
+        }
         
-        // Add each error to the list
-        errors.forEach(error => {
-            const li = document.createElement('li');
-            li.className = 'validation-error-item';
-            li.textContent = error;
-            validationErrorList.appendChild(li);
-        });
+        const existingOverlay = document.querySelector('.validation-popup-overlay');
+        if (existingOverlay) {
+            existingOverlay.remove();
+        }
         
-        // Show the popup
-        validationPopup.style.display = 'block';
+        // Create overlay
+        const overlay = document.createElement('div');
+        overlay.className = 'validation-popup-overlay';
+        document.body.appendChild(overlay);
+        
+        // Create popup
+        const popup = document.createElement('div');
+        popup.className = 'validation-popup';
+        
+        // Create popup content
+        popup.innerHTML = `
+            <div class="validation-popup-content">
+                <div class="validation-popup-header">
+                    Form Validation Error
+                    <button class="validation-popup-close">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+                <div class="validation-popup-body">
+                    <p class="validation-popup-title">Please fix the following errors:</p>
+                    <ul class="validation-error-list">
+                        ${errors.map(error => `
+                            <li class="validation-error-item">
+                                <div class="validation-error-icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                    </svg>
+                                </div>
+                                <div class="validation-error-text">${error}</div>
+                            </li>
+                        `).join('')}
+                    </ul>
+                </div>
+                <div class="validation-popup-footer">
+                    <button class="validation-popup-button">OK</button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(popup);
+        
+        // Add event listeners
+        const closeButton = popup.querySelector('.validation-popup-close');
+        const okButton = popup.querySelector('.validation-popup-button');
+        const closePopup = () => {
+            popup.remove();
+            overlay.remove();
+            document.body.classList.remove('modal-open');
+        };
+        
+        closeButton.addEventListener('click', closePopup);
+        okButton.addEventListener('click', closePopup);
+        overlay.addEventListener('click', closePopup);
+        
+        // Add modal-open class to prevent scrolling
+        document.body.classList.add('modal-open');
     }
     
     // Function to mark invalid fields
@@ -599,6 +649,9 @@ document.addEventListener('DOMContentLoaded', function() {
     adjustContentCardHeight();
     window.addEventListener('resize', adjustContentCardHeight);
     
+    // Setup unsaved changes tracking
+    setupUnsavedChangesTracking();
+    
     if (form) {
         // Auto-capitalize and format license key input
         const licenseKeyInput = document.getElementById('licenseKey');
@@ -951,5 +1004,121 @@ document.addEventListener('DOMContentLoaded', function() {
         activeSelect.dispatchEvent(changeEvent);
         
         console.log('New user: Setting default active status to true');
+    }
+    
+    // Track form changes and handle navigation
+    function setupUnsavedChangesTracking() {
+        let formChanged = false;
+        const formInputs = form.querySelectorAll('input, select, textarea');
+        const cancelButton = document.querySelector('.form-actions .btn-secondary');
+        const initialFormState = captureFormState();
+        
+        // Capture the initial state of the form
+        function captureFormState() {
+            const state = {};
+            formInputs.forEach(input => {
+                if (input.type === 'checkbox' || input.type === 'radio') {
+                    state[input.id] = input.checked;
+                } else {
+                    state[input.id] = input.value;
+                }
+            });
+            return state;
+        }
+        
+        // Check if the form state has changed
+        function hasFormChanged() {
+            const currentState = captureFormState();
+            for (const key in currentState) {
+                if (initialFormState[key] !== currentState[key]) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        
+        // Track changes to form inputs
+        formInputs.forEach(input => {
+            input.addEventListener('change', function() {
+                formChanged = hasFormChanged();
+            });
+            
+            input.addEventListener('input', function() {
+                formChanged = hasFormChanged();
+            });
+        });
+        
+        // Handle cancel button click
+        if (cancelButton) {
+            cancelButton.addEventListener('click', function(e) {
+                if (formChanged) {
+                    e.preventDefault();
+                    showUnsavedChangesPopup();
+                }
+            });
+        }
+        
+        // Handle clicks on sidebar links or other navigation
+        document.addEventListener('click', function(e) {
+            const link = e.target.closest('a');
+            
+            // Ignore submission buttons and same-page links
+            if (link && 
+                !link.classList.contains('btn-primary') && 
+                !link.getAttribute('href').startsWith('#')) {
+                
+                if (formChanged) {
+                    e.preventDefault();
+                    const targetUrl = link.getAttribute('href');
+                    showUnsavedChangesPopup(targetUrl);
+                }
+            }
+        });
+        
+        // Show the unsaved changes popup
+        function showUnsavedChangesPopup(targetUrl = '/user/list') {
+            // Remove any existing popup
+            const existingPopup = document.querySelector('.unsaved-changes-popup');
+            if (existingPopup) {
+                existingPopup.remove();
+            }
+            
+            // Create the popup
+            const popup = document.createElement('div');
+            popup.className = 'unsaved-changes-popup';
+            
+            popup.innerHTML = `
+                <div class="unsaved-changes-content">
+                    <div class="unsaved-changes-header">
+                        Unsaved Changes
+                    </div>
+                    <div class="unsaved-changes-body">
+                        <div class="unsaved-changes-message">
+                            You have unsaved changes that will be lost if you leave this page. 
+                            Do you want to discard these changes?
+                        </div>
+                        <div class="unsaved-changes-actions">
+                            <button class="unsaved-changes-action unsaved-changes-cancel">Cancel</button>
+                            <button class="unsaved-changes-action unsaved-changes-discard">Discard Changes</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(popup);
+            
+            // Add event listeners
+            const cancelButton = popup.querySelector('.unsaved-changes-cancel');
+            const discardButton = popup.querySelector('.unsaved-changes-discard');
+            
+            cancelButton.addEventListener('click', function() {
+                popup.remove();
+            });
+            
+            discardButton.addEventListener('click', function() {
+                // Redirect to the target URL
+                window.location.href = targetUrl;
+            });
+        }
     }
 });

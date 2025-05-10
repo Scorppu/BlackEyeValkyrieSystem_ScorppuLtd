@@ -10,6 +10,7 @@
     
     <th:block layout:fragment="head">
         <link rel="stylesheet" th:href="@{/css/create-user.css}">
+        <link rel="stylesheet" th:href="@{/css/notifications.css}">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     </th:block>
 </head>
@@ -94,7 +95,7 @@
                                 <label for="licenseKey">License Key <span class="required">*</span></label>
                                 <div class="license-key-input-group">
                                     <input type="text" id="licenseKey" name="licenseKey" class="form-control" th:field="*{licenseKey}" placeholder="ABCD-1234-EFGH-5678" required>
-                                    <button type="button" id="generateLicenseKeyBtn" class="btn btn-secondary">Generate Key</button>
+                                    <button type="button" id="generateLicenseKeyBtn" class="btn btn-generate">Generate Key</button>
                                 </div>
                                 <small class="text-muted">Generate a new license key based on the selected role, or enter an existing one</small>
                             </div>
@@ -149,22 +150,6 @@
                     </div>
                     <div class="modal-footer">
                         <button id="errorOk" class="btn btn-error">OK</button>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Validation Popup -->
-            <div id="validationPopup" class="validation-popup" style="display: none;">
-                <div class="validation-popup-content">
-                    <h3 class="validation-popup-title">Form Validation Error</h3>
-                    <div class="validation-popup-body">
-                        <p>Please fix the following errors:</p>
-                        <ul id="validationErrorList" class="validation-error-list">
-                            <!-- Validation errors will be inserted here dynamically -->
-                        </ul>
-                    </div>
-                    <div class="validation-popup-footer">
-                        <button id="validationOk" class="btn btn-error">OK</button>
                     </div>
                 </div>
             </div>
