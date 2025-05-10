@@ -880,7 +880,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const consultationForm = document.querySelector('form[action*="/consultation/save"]');
     if (consultationForm) {
         consultationForm.addEventListener('submit', function(e) {
+            // Combine BP values before form submission
             combineBPValues();
+            console.log('Form is being submitted, combined BP value is:', document.getElementById('combinedBP').value);
         });
     }
     
@@ -896,11 +898,25 @@ function initializeBloodPressureFields() {
     
     if (combinedBPField && systolicField && diastolicField) {
         const combinedValue = combinedBPField.value;
+        console.log('Initializing BP fields with combined value:', combinedValue);
+        
         if (combinedValue && combinedValue.includes('/')) {
             const [systolic, diastolic] = combinedValue.split('/');
             systolicField.value = systolic.trim();
             diastolicField.value = diastolic.trim();
+            console.log(`Split BP: Systolic=${systolicField.value}, Diastolic=${diastolicField.value}`);
+        } else if (combinedValue) {
+            // If there's only one value and no slash, assume it's systolic
+            systolicField.value = combinedValue.trim();
+            diastolicField.value = '';
+            console.log(`Single value BP: Systolic=${systolicField.value}, Diastolic=empty`);
         }
+        
+        // Add event listeners to update the combined value when either field changes
+        systolicField.addEventListener('input', combineBPValues);
+        diastolicField.addEventListener('input', combineBPValues);
+    } else {
+        console.warn('One or more BP fields not found in the DOM');
     }
 }
 
@@ -914,6 +930,8 @@ function combineBPValues() {
         const systolic = systolicField.value.trim();
         const diastolic = diastolicField.value.trim();
         
+        console.log(`Combining BP values: Systolic=${systolic}, Diastolic=${diastolic}`);
+        
         if (systolic && diastolic) {
             combinedBPField.value = systolic + '/' + diastolic;
         } else if (systolic) {
@@ -923,6 +941,10 @@ function combineBPValues() {
         } else {
             combinedBPField.value = '';
         }
+        
+        console.log('Combined BP value:', combinedBPField.value);
+    } else {
+        console.warn('One or more BP fields not found when combining values');
     }
 }
 
@@ -1057,6 +1079,9 @@ function confirmVitalSigns() {
         confirmBtn.setAttribute('data-locked', 'false');
 
     } else {
+        // Combine BP values before locking
+        combineBPValues();
+        
         // Lock fields - make them readonly
         vitalFields.forEach(field => {
             field.setAttribute('readonly', 'readonly');
@@ -1068,7 +1093,6 @@ function confirmVitalSigns() {
         confirmBtn.textContent = 'Edit Vitals';
         confirmBtn.style.backgroundColor = '#4CAF50';
         confirmBtn.setAttribute('data-locked', 'true');
-        
     }
     
     // Update checkout button state
