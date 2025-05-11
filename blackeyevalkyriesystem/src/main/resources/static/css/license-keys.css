@@ -213,8 +213,13 @@ font-weight: 500;
     background-color: transparent;
 }
 
-.license-key-actions .btn i {
+.license-key-actions .btn i,
+.license-key-actions .btn svg {
     color: inherit;
+}
+
+.license-key-actions .btn svg path {
+    stroke: currentColor;
 }
 
 /* Tooltip styles */

@@ -89,11 +89,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const errorMessage = document.getElementById('errorMessage');
     const errorOkButton = document.getElementById('errorOk');
     
-    // Validation popup elements
-    const validationPopup = document.getElementById('validationPopup');
-    const validationErrorList = document.getElementById('validationErrorList');
-    const validationOkButton = document.getElementById('validationOk');
-    
     // Handle success modal
     successOkButton.addEventListener('click', function() {
         successModal.style.display = 'none';
@@ -106,13 +101,6 @@ document.addEventListener('DOMContentLoaded', function() {
         errorModal.style.display = 'none';
     });
     
-    // Handle validation popup
-    if (validationOkButton) {
-        validationOkButton.addEventListener('click', function() {
-            validationPopup.style.display = 'none';
-        });
-    }
-    
     // Close modals when clicking outside
     window.addEventListener('click', function(event) {
         if (event.target === successModal) {
@@ -122,15 +110,18 @@ document.addEventListener('DOMContentLoaded', function() {
         if (event.target === errorModal) {
             errorModal.style.display = 'none';
         }
-        if (event.target === validationPopup) {
-            validationPopup.style.display = 'none';
-        }
     });
     
     // Function to show success modal
     function showSuccessModal(message) {
-        successMessage.textContent = message;
-        successModal.style.display = 'block';
+        // Replace modal with sessionStorage notification
+        sessionStorage.setItem('userNotification', JSON.stringify({
+            type: 'success',
+            message: message
+        }));
+        
+        // Redirect to user list
+        window.location.href = '/user/list';
     }
     
     // Function to show error modal
@@ -141,19 +132,78 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Function to show validation errors popup
     function showValidationPopup(errors) {
-        // Clear previous errors
-        validationErrorList.innerHTML = '';
+        // Remove any existing popup
+        const existingPopup = document.querySelector('.validation-popup');
+        if (existingPopup) {
+            existingPopup.remove();
+        }
         
-        // Add each error to the list
-        errors.forEach(error => {
-            const li = document.createElement('li');
-            li.className = 'validation-error-item';
-            li.textContent = error;
-            validationErrorList.appendChild(li);
-        });
+        const existingOverlay = document.querySelector('.validation-popup-overlay');
+        if (existingOverlay) {
+            existingOverlay.remove();
+        }
         
-        // Show the popup
-        validationPopup.style.display = 'block';
+        // Create overlay
+        const overlay = document.createElement('div');
+        overlay.className = 'validation-popup-overlay';
+        document.body.appendChild(overlay);
+        
+        // Create popup
+        const popup = document.createElement('div');
+        popup.className = 'validation-popup';
+        
+        // Create popup content
+        popup.innerHTML = `
+            <div class="validation-popup-content">
+                <div class="validation-popup-header">
+                    Form Validation Error
+                    <button class="validation-popup-close">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+                <div class="validation-popup-body">
+                    <p class="validation-popup-title">Please fix the following errors:</p>
+                    <ul class="validation-error-list">
+                        ${errors.map(error => `
+                            <li class="validation-error-item">
+                                <div class="validation-error-icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                    </svg>
+                                </div>
+                                <div class="validation-error-text">${error}</div>
+                            </li>
+                        `).join('')}
+                    </ul>
+                </div>
+                <div class="validation-popup-footer">
+                    <button class="validation-popup-button">OK</button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(popup);
+        
+        // Add event listeners
+        const closeButton = popup.querySelector('.validation-popup-close');
+        const okButton = popup.querySelector('.validation-popup-button');
+        const closePopup = () => {
+            popup.remove();
+            overlay.remove();
+            document.body.classList.remove('modal-open');
+        };
+        
+        closeButton.addEventListener('click', closePopup);
+        okButton.addEventListener('click', closePopup);
+        overlay.addEventListener('click', closePopup);
+        
+        // Add modal-open class to prevent scrolling
+        document.body.classList.add('modal-open');
     }
     
     // Function to mark invalid fields
@@ -244,6 +294,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 passwordInput.classList.add('password-modified');
             }
             
+            // Dispatch input event to trigger unsaved changes tracking
+            const inputEvent = new Event('input', { bubbles: true });
+            passwordInput.dispatchEvent(inputEvent);
+            
             // Clear any validation messages
             const errorElement = passwordInput.parentNode.querySelector('.field-validation-error');
             if (errorElement) {
@@ -256,6 +310,9 @@ document.addEventListener('DOMContentLoaded', function() {
             setTimeout(() => {
                 passwordInput.type = 'password';
             }, 1500);
+            
+            // Show toast notification for password generated
+            displayNotification('success', 'A random password has been generated.');
         });
     }
     
@@ -331,8 +388,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 const inputEvent = new Event('input', { bubbles: true });
                 licenseKeyInput.dispatchEvent(inputEvent);
                 
-                // Show success notification if needed
-                console.log('License key generated successfully:', data.licenseKey);
+                // Show toast notification for license key generated
+                displayNotification('success', `A license key for the role '${selectedRole}' has been generated.`);
             })
             .catch(error => {
                 console.error('Error generating license key:', error);
@@ -598,6 +655,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Adjust height on load and resize
     adjustContentCardHeight();
     window.addEventListener('resize', adjustContentCardHeight);
+    
+    // Setup unsaved changes tracking
+    setupUnsavedChangesTracking();
     
     if (form) {
         // Auto-capitalize and format license key input
@@ -951,5 +1011,200 @@ document.addEventListener('DOMContentLoaded', function() {
         activeSelect.dispatchEvent(changeEvent);
         
         console.log('New user: Setting default active status to true');
+    }
+    
+    // Track form changes and handle navigation
+    function setupUnsavedChangesTracking() {
+        let formChanged = false;
+        const formInputs = form.querySelectorAll('input, select, textarea');
+        const cancelButton = document.querySelector('.form-actions .btn-secondary');
+        const initialFormState = captureFormState();
+        
+        // Capture the initial state of the form
+        function captureFormState() {
+            const state = {};
+            formInputs.forEach(input => {
+                if (input.type === 'checkbox' || input.type === 'radio') {
+                    state[input.id] = input.checked;
+                } else {
+                    state[input.id] = input.value;
+                }
+            });
+            return state;
+        }
+        
+        // Check if the form state has changed
+        function hasFormChanged() {
+            const currentState = captureFormState();
+            for (const key in currentState) {
+                if (initialFormState[key] !== currentState[key]) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        
+        // Track changes to form inputs
+        formInputs.forEach(input => {
+            input.addEventListener('change', function() {
+                formChanged = hasFormChanged();
+            });
+            
+            input.addEventListener('input', function() {
+                formChanged = hasFormChanged();
+            });
+        });
+        
+        // Handle cancel button click
+        if (cancelButton) {
+            cancelButton.addEventListener('click', function(e) {
+                if (formChanged) {
+                    e.preventDefault();
+                    showUnsavedChangesPopup();
+                }
+            });
+        }
+        
+        // Handle clicks on sidebar links or other navigation
+        document.addEventListener('click', function(e) {
+            const link = e.target.closest('a');
+            
+            // Ignore submission buttons and same-page links
+            if (link && 
+                !link.classList.contains('btn-primary') && 
+                !link.getAttribute('href').startsWith('#')) {
+                
+                if (formChanged) {
+                    e.preventDefault();
+                    const targetUrl = link.getAttribute('href');
+                    showUnsavedChangesPopup(targetUrl);
+                }
+            }
+        });
+        
+        // Show the unsaved changes popup
+        function showUnsavedChangesPopup(targetUrl = '/user/list') {
+            // Remove any existing popup
+            const existingPopup = document.querySelector('.unsaved-changes-popup');
+            if (existingPopup) {
+                existingPopup.remove();
+            }
+            
+            // Create the popup
+            const popup = document.createElement('div');
+            popup.className = 'unsaved-changes-popup';
+            
+            popup.innerHTML = `
+                <div class="unsaved-changes-content">
+                    <div class="unsaved-changes-header">
+                        Unsaved Changes
+                    </div>
+                    <div class="unsaved-changes-body">
+                        <div class="unsaved-changes-message">
+                            You have unsaved changes that will be lost if you leave this page. 
+                            Do you want to discard these changes?
+                        </div>
+                        <div class="unsaved-changes-actions">
+                            <button class="unsaved-changes-action unsaved-changes-cancel">Cancel</button>
+                            <button class="unsaved-changes-action unsaved-changes-discard">Discard Changes</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(popup);
+            
+            // Add event listeners
+            const cancelButton = popup.querySelector('.unsaved-changes-cancel');
+            const discardButton = popup.querySelector('.unsaved-changes-discard');
+            
+            cancelButton.addEventListener('click', function() {
+                popup.remove();
+            });
+            
+            discardButton.addEventListener('click', function() {
+                // Redirect to the target URL
+                window.location.href = targetUrl;
+            });
+        }
+    }
+
+    // Add displayNotification function if not present
+    function displayNotification(type, message) {
+        // Create notification container if it doesn't exist
+        let notificationContainer = document.querySelector('.notification-container');
+        
+        if (!notificationContainer) {
+            notificationContainer = document.createElement('div');
+            notificationContainer.className = 'notification-container';
+            
+            // Insert at the top of the content section
+            const contentSection = document.querySelector('[layout\\:fragment="content"]');
+            if (contentSection) {
+                contentSection.insertBefore(notificationContainer, contentSection.firstChild);
+            } else {
+                document.body.insertBefore(notificationContainer, document.body.firstChild);
+            }
+        }
+        
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        
+        // Add icon based on type
+        let icon = '';
+        if (type === 'success') {
+            icon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>';
+        } else if (type === 'error') {
+            icon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>';
+        }
+        
+        // Set notification content
+        notification.innerHTML = `
+            <div class="notification-icon">${icon}</div>
+            <div class="notification-content">
+                <p>${message}</p>
+            </div>
+            <button class="notification-close">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        `;
+        
+        // Add to container
+        notificationContainer.appendChild(notification);
+        
+        // Add close button functionality
+        const closeButton = notification.querySelector('.notification-close');
+        if (closeButton) {
+            closeButton.addEventListener('click', function() {
+                notification.classList.add('closing');
+                setTimeout(() => {
+                    notification.remove();
+                    
+                    // Remove container if empty
+                    if (notificationContainer.children.length === 0) {
+                        notificationContainer.remove();
+                    }
+                }, 300);
+            });
+        }
+        
+        // Auto-remove after 6 seconds
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.classList.add('closing');
+                setTimeout(() => {
+                    notification.remove();
+                    
+                    // Remove container if empty
+                    if (notificationContainer && notificationContainer.children.length === 0) {
+                        notificationContainer.remove();
+                    }
+                }, 300);
+            }
+        }, 6000);
     }
 });

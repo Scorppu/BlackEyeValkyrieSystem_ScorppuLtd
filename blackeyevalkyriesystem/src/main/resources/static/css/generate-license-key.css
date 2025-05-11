@@ -97,3 +97,13 @@
     background-color: rgba(0, 0, 0, 0.05);
     border-radius: 0.25rem;
 }
+
+.required {
+    color: #ef4444;
+    margin-left: 2px;
+}
+
+.invalid-input {
+    border-color: #ef4444 !important;
+    box-shadow: 0 0 0 1px #ef4444 !important;
+}
