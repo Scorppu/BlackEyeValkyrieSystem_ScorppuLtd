@@ -9,6 +9,7 @@
     <title>Edit License Key</title>
     <th:block layout:fragment="head">
         <link rel="stylesheet" th:href="@{/css/edit-license-key.css}">
+        <link rel="stylesheet" th:href="@{/css/notifications.css}">
     </th:block>
 </head>
 <body>
@@ -16,10 +17,6 @@
         <div class="content-header">
             <h1>Edit License Key</h1>
         </div>
-        
-        <!-- Alert messages -->
-        <div class="alert alert-success" th:if="${successMessage}" th:utext="${successMessage}"></div>
-        <div class="alert alert-danger" th:if="${errorMessage}" th:utext="${errorMessage}"></div>
         
         <div class="form-container">
             <div class="card">
@@ -80,5 +77,9 @@
             </div>
         </div>
     </div>
+    
+    <th:block layout:fragment="scripts">
+        <script th:src="@{/js/edit-license-key.js}"></script>
+    </th:block>
 </body>
 </html> 

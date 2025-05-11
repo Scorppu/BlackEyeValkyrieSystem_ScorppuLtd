@@ -7,6 +7,7 @@
     <title>Generate License Key</title>
     <th:block layout:fragment="head">
         <link rel="stylesheet" th:href="@{/css/generate-license-key.css}">
+        <link rel="stylesheet" th:href="@{/css/notifications.css}">
     </th:block>
 </head>
 <body>
@@ -29,8 +30,8 @@
                         <div class="form-section">
                             <!-- Role selection -->
                             <div class="form-group">
-                                <label for="role">Role:</label>
-                                <select id="role" name="role" class="form-control" required>
+                                <label for="role">Role: <span class="required">*</span></label>
+                                <select id="role" name="role" class="form-control">
                                     <option value="">Select a role</option>
                                     <option th:each="roleOption : ${roleOptions}" 
                                             th:value="${roleOption}" 
@@ -40,8 +41,8 @@
                             
                             <!-- Expiry options -->
                             <div class="form-group">
-                                <label for="expiryOption">Expiry Date:</label>
-                                <select id="expiryOption" name="expiryOption" class="form-control" required>
+                                <label for="expiryOption">Expiry Date: <span class="required">*</span></label>
+                                <select id="expiryOption" name="expiryOption" class="form-control">
                                     <option value="">Select expiry option</option>
                                     <option value="7days">7 days</option>
                                     <option value="30days">30 days</option>
