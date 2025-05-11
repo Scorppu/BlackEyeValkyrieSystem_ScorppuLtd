@@ -31,29 +31,73 @@ function validatePatientForm() {
 }
 
 /**
- * Switches between form sections
- * @param {string} targetTabId - ID of the tab to switch to
+ * Sets up the tab navigation between personal and contact info sections
  */
-function switchFormSection(targetTabId) {
-    document.querySelectorAll('.form-section').forEach(section => {
-        section.classList.remove('active');
-    });
+function setupTabNavigation() {
+    const nextButton = document.getElementById('next-btn');
+    const backButton = document.getElementById('back-btn');
+    const tabItems = document.querySelectorAll('.tab-item');
+    const personalInfoForm = document.getElementById('personal-info-form');
+    const contactInfoForm = document.getElementById('contact-info-form');
     
-    const targetSection = targetTabId === 'personal-info-tab' ? 
-        document.getElementById('personal-info-form') : 
-        document.getElementById('contact-info-form');
-    
-    if (targetSection) {
-        targetSection.classList.add('active');
+    /**
+     * Switches between form sections based on tab ID
+     * @param {string} tabId - The ID of the tab to switch to
+     */
+    function switchFormSection(tabId) {
+        document.querySelectorAll('.form-section').forEach(section => {
+            section.classList.remove('active');
+        });
+        
+        if (tabId === 'personal-info-tab') {
+            personalInfoForm.classList.add('active');
+            document.querySelectorAll('.tab-item').forEach(tab => {
+                if (tab.dataset.target === 'personal-info-tab') {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+            document.getElementById('personal-info-tab').classList.add('active');
+            document.getElementById('contact-info-tab').classList.remove('active');
+        } else if (tabId === 'contact-info-tab') {
+            contactInfoForm.classList.add('active');
+            document.querySelectorAll('.tab-item').forEach(tab => {
+                if (tab.dataset.target === 'contact-info-tab') {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+            document.getElementById('contact-info-tab').classList.add('active');
+            document.getElementById('personal-info-tab').classList.remove('active');
+        }
     }
     
-    document.querySelectorAll('.tab-item').forEach(tab => {
-        if (tab.getAttribute('data-target') === targetTabId) {
-            tab.classList.add('active');
-        } else {
-            tab.classList.remove('active');
-        }
+    tabItems.forEach(function(tab) {
+        tab.addEventListener('click', function() {
+            const targetId = this.dataset.target;
+            switchFormSection(targetId);
+        });
     });
+    
+    if (nextButton) {
+        nextButton.addEventListener('click', function() {
+            const validation = validatePatientForm();
+            if (!validation.isValid) {
+                showValidationPopup(validation.errors);
+                return;
+            }
+            
+            switchFormSection('contact-info-tab');
+        });
+    }
+    
+    if (backButton) {
+        backButton.addEventListener('click', function() {
+            switchFormSection('personal-info-tab');
+        });
+    }
 }
 
 /**
@@ -157,7 +201,10 @@ function showValidationPopup(errors) {
     }, 10);
 }
 
-// Function to fetch drugs data
+/**
+ * Fetches drug data from the API
+ * @returns {Promise<Array>} Promise that resolves to an array of drug data
+ */
 function fetchDrugsData() {
     return fetch('/api/drugs')
         .then(response => {
@@ -173,7 +220,6 @@ function fetchDrugsData() {
         })
         .catch(error => {
             console.error('Error fetching drugs data:', error);
-            // Add a visual error message
             const warningDiv = document.createElement('div');
             warningDiv.style.color = '#ff9800';
             warningDiv.style.padding = '0.5rem 0';
@@ -186,7 +232,9 @@ function fetchDrugsData() {
         });
 }
 
-// Initialize and setup drug allergies component
+/**
+ * Initializes and sets up the drug allergies component
+ */
 function initializeDrugAllergies() {
     const drugAllergyInput = document.getElementById('drugAllergyInput');
     const drugsDropdown = document.getElementById('drugsDropdown');
@@ -199,7 +247,6 @@ function initializeDrugAllergies() {
         return;
     }
     
-    // Initialize the hidden input if not set
     if (drugAllergiesInput) {
         drugAllergiesInput.value = drugAllergiesInput.value || '';
     } else {
@@ -209,11 +256,12 @@ function initializeDrugAllergies() {
     const selectedAllergies = new Set();
     const drugMap = {};
     
-    // Create a map of drug IDs to drug names
+    /**
+     * Updates the map of drug IDs to drug names
+     */
     function updateDrugMap() {
         if (Array.isArray(allDrugsData)) {
             allDrugsData.forEach(drug => {
-                // Handle different property structures
                 const drugId = drug.id || '';
                 const drugName = drug.name || drug.drugName || drug.genericName || '';
                 if (drugId) {
@@ -224,28 +272,27 @@ function initializeDrugAllergies() {
         console.log('Drug name mapping:', drugMap);
     }
     
-    // Set up input event listener for drug search
     drugAllergyInput.addEventListener('input', function() {
         filterDrugs(this.value);
     });
     
-    // Hide dropdown when clicking outside
     document.addEventListener('click', function(e) {
         if (!drugAllergyInput.contains(e.target) && !drugsDropdown.contains(e.target)) {
             drugsDropdown.style.display = 'none';
         }
     });
     
-    // Show dropdown when input is focused
     drugAllergyInput.addEventListener('focus', function() {
         if (this.value.length > 0) {
             filterDrugs(this.value);
         }
     });
     
-    // Function to filter and display drugs based on search input
+    /**
+     * Filters and displays drugs based on search input
+     * @param {string} searchText - The search text to filter drugs by
+     */
     function filterDrugs(searchText) {
-        // Clear the dropdown
         drugsDropdown.innerHTML = '';
         
         if (!searchText || searchText.length < 2) {
@@ -253,7 +300,6 @@ function initializeDrugAllergies() {
             return;
         }
         
-        // If drugs data is not loaded yet, fetch it
         if (!allDrugsData || allDrugsData.length === 0) {
             drugsDropdown.innerHTML = '<div class="loading">Loading drugs...</div>';
             drugsDropdown.style.display = 'block';
@@ -267,11 +313,12 @@ function initializeDrugAllergies() {
         }
     }
     
-    // Internal function to filter drugs after data is available
+    /**
+     * Internal function to filter drugs after data is available
+     * @param {string} searchText - The search text to filter drugs by
+     */
     function filterDrugsInternal(searchText) {
-        // Make sure allDrugsData is an array with the expected properties
         if (!Array.isArray(allDrugsData) || allDrugsData.length === 0) {
-            // Show no results message
             const noResults = document.createElement('div');
             noResults.className = 'no-results';
             noResults.textContent = 'No drugs available. Please contact the administrator.';
@@ -281,10 +328,8 @@ function initializeDrugAllergies() {
             return;
         }
         
-        // Filter drugs based on search text
         const searchLower = searchText.toLowerCase();
         const filteredDrugs = allDrugsData.filter(drug => {
-            // Determine the property to use for drug name
             const drugName = drug.name || drug.drugName || drug.genericName || '';
             return drugName.toLowerCase().includes(searchLower);
         });
@@ -292,10 +337,8 @@ function initializeDrugAllergies() {
         console.log('Filtered drugs:', filteredDrugs);
         drugsDropdown.innerHTML = '';
         
-        // Display filtered drugs
         if (filteredDrugs.length > 0) {
             filteredDrugs.forEach(drug => {
-                // Determine the drug ID and name properties
                 const drugId = drug.id || '';
                 const drugName = drug.name || drug.drugName || drug.genericName || '';
                 
@@ -305,7 +348,6 @@ function initializeDrugAllergies() {
                 drugItem.setAttribute('data-name', drugName);
                 drugItem.innerHTML = `<div class="drug-name">${drugName}</div>`;
                 
-                // Add click event to select the drug
                 drugItem.addEventListener('click', function() {
                     selectDrug(this.getAttribute('data-id'), this.getAttribute('data-name'));
                 });
@@ -315,7 +357,6 @@ function initializeDrugAllergies() {
             
             drugsDropdown.style.display = 'block';
         } else {
-            // Show no results message
             const noResults = document.createElement('div');
             noResults.className = 'no-results';
             noResults.textContent = 'No matching drugs found';
@@ -324,21 +365,28 @@ function initializeDrugAllergies() {
         }
     }
     
-    // Function to select a drug from the dropdown
+    /**
+     * Selects a drug from the dropdown
+     * @param {string} drugId - The ID of the selected drug
+     * @param {string} drugName - The name of the selected drug
+     */
     function selectDrug(drugId, drugName) {
         drugAllergyInput.value = drugName;
         drugsDropdown.style.display = 'none';
         
-        // Store selected drug ID to use when adding to allergies
         drugAllergyInput.setAttribute('data-selected-id', drugId);
     }
     
-    // Function to update the hidden input with selected drug IDs
+    /**
+     * Updates the hidden input with selected drug IDs
+     */
     function updateDrugAllergiesInput() {
         drugAllergiesInput.value = Array.from(selectedAllergies).join(',');
     }
     
-    // Function to add a drug allergy
+    /**
+     * Adds a drug allergy to the list
+     */
     function addDrugAllergy() {
         const drugInput = document.getElementById('drugAllergyInput');
         const drugId = drugInput.getAttribute('data-selected-id');
@@ -349,7 +397,6 @@ function initializeDrugAllergies() {
             return;
         }
         
-        // Check if this drug is already in the list
         const existingAllergies = document.querySelectorAll('#allergiesList tr[data-drug-id]');
         for (let i = 0; i < existingAllergies.length; i++) {
             if (existingAllergies[i].getAttribute('data-drug-id') === drugId) {
@@ -358,16 +405,14 @@ function initializeDrugAllergies() {
             }
         }
         
-        // Remove empty row if it exists
         const emptyRow = allergiesList.querySelector('.empty-allergies-row');
         if (emptyRow) {
             emptyRow.remove();
         }
         
-        // Create new row for the allergy
         const row = document.createElement('tr');
         row.setAttribute('data-drug-id', drugId);
-        row.className = 'allergyItem'; // Add allergyItem class for consistent selection
+        row.className = 'allergyItem';
         row.innerHTML = `
             <td>${drugName}</td>
             <td>
@@ -386,23 +431,19 @@ function initializeDrugAllergies() {
         selectedAllergies.add(drugId);
         updateDrugAllergiesInput();
         
-        // Clear input and selected data
         drugAllergyInput.value = '';
         drugAllergyInput.removeAttribute('data-selected-id');
     }
     
-    // Add drug allergy when clicking the add button
     if (addAllergyBtn) {
         addAllergyBtn.addEventListener('click', addDrugAllergy);
     }
     
-    // Add drug allergy when pressing Enter in the input field
     if (drugAllergyInput) {
         drugAllergyInput.addEventListener('keydown', function(e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
                 if (drugsDropdown.style.display === 'block') {
-                    // If dropdown is open and an item is selected, use that
                     const firstItem = drugsDropdown.querySelector('.drug-item');
                     if (firstItem) {
                         selectDrug(firstItem.getAttribute('data-id'), firstItem.getAttribute('data-name'));
@@ -413,7 +454,6 @@ function initializeDrugAllergies() {
         });
     }
     
-    // Remove drug allergy when clicking the remove button
     if (allergiesList) {
         allergiesList.addEventListener('click', function(e) {
             const removeBtn = e.target.closest('.remove-allergy-btn');
@@ -425,7 +465,6 @@ function initializeDrugAllergies() {
                 selectedAllergies.delete(drugId);
                 updateDrugAllergiesInput();
                 
-                // Add empty row if no allergies left
                 if (selectedAllergies.size === 0) {
                     const emptyRow = document.createElement('tr');
                     emptyRow.className = 'empty-allergies-row';
@@ -436,13 +475,16 @@ function initializeDrugAllergies() {
         });
     }
     
-    // Fetch initial drugs data
     fetchDrugsData().then(() => {
         updateDrugMap();
     });
 }
 
-// Tab navigation for personal to contact info
+/**
+ * Sets up tab navigation between personal info and contact info sections
+ * Handles next/back button functionality and validates form when switching tabs
+ * Controls the active states for tabs and form sections
+ */
 function setupTabNavigation() {
     const nextButton = document.getElementById('next-btn');
     const backButton = document.getElementById('back-btn');
@@ -450,14 +492,11 @@ function setupTabNavigation() {
     const personalInfoForm = document.getElementById('personal-info-form');
     const contactInfoForm = document.getElementById('contact-info-form');
     
-    // Switch between form sections based on tab
     function switchFormSection(tabId) {
-        // Hide all form sections
         document.querySelectorAll('.form-section').forEach(section => {
             section.classList.remove('active');
         });
         
-        // Show the correct form section
         if (tabId === 'personal-info-tab') {
             personalInfoForm.classList.add('active');
             document.querySelectorAll('.tab-item').forEach(tab => {
@@ -483,7 +522,6 @@ function setupTabNavigation() {
         }
     }
     
-    // Tab click event handling
     tabItems.forEach(function(tab) {
         tab.addEventListener('click', function() {
             const targetId = this.dataset.target;
@@ -491,31 +529,30 @@ function setupTabNavigation() {
         });
     });
     
-    // Next button handling
     if (nextButton) {
         nextButton.addEventListener('click', function() {
-            // Validate personal information fields using the validatePatientForm function
             const validation = validatePatientForm();
             if (!validation.isValid) {
                 showValidationPopup(validation.errors);
                 return;
             }
             
-            // Switch to contact information tab
             switchFormSection('contact-info-tab');
         });
     }
     
-    // Back button handling
     if (backButton) {
         backButton.addEventListener('click', function() {
-            // Switch back to personal information tab
             switchFormSection('personal-info-tab');
         });
     }
 }
 
-// Calculate age based on date of birth
+/**
+ * Sets up automatic age calculation based on date of birth
+ * Calculates and updates the age field when date of birth changes
+ * Also calculates initial age if date of birth is already set
+ */
 function setupAgeCalculation() {
     const dobField = document.getElementById('dateOfBirth');
     const ageField = document.getElementById('age');
@@ -526,7 +563,6 @@ function setupAgeCalculation() {
             const today = new Date();
             let age = today.getFullYear() - dob.getFullYear();
             
-            // Adjust age if birthday hasn't occurred yet this year
             const monthDiff = today.getMonth() - dob.getMonth();
             if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
                 age--;
@@ -535,7 +571,6 @@ function setupAgeCalculation() {
             ageField.value = age;
         });
         
-        // Calculate initial age
         if (dobField.value) {
             const dob = new Date(dobField.value);
             const today = new Date();
@@ -551,14 +586,15 @@ function setupAgeCalculation() {
     }
 }
 
-// Form submission handling
+/**
+ * Sets up form submission handling including validation and API calls
+ */
 function setupFormSubmission() {
     const contactForm = document.getElementById('contact-form');
     if (contactForm) {
         contactForm.addEventListener('submit', function(e) {
             e.preventDefault();
             
-            // Get personal information
             const firstName = document.getElementById('firstName').value;
             const lastName = document.getElementById('lastName').value;
             const sex = document.getElementById('sex').value === 'Male' ? true : false;
@@ -567,15 +603,13 @@ function setupFormSubmission() {
             const age = document.getElementById('age').value;
             const maritalStatus = document.getElementById('maritalStatus').value;
             const bloodType = document.getElementById('bloodType').value;
-            const status = document.getElementById('status')?.value || "Active"; // Use default if not found
+            const status = document.getElementById('status')?.value || "Active";
             
-            // Get drug allergies - safely access the element
             const drugAllergiesEl = document.getElementById('drugAllergies');
             const drugAllergies = drugAllergiesEl ? 
                 drugAllergiesEl.value.split(',').filter(id => id.trim() !== '') : 
                 [];
             
-            // Get contact information
             const contactNumber = document.getElementById('contactNumber').value;
             const email = document.getElementById('email').value;
             const address1 = document.getElementById('address1').value;
@@ -586,7 +620,6 @@ function setupFormSubmission() {
             const town = document.getElementById('town').value;
             const pinCode = document.getElementById('pinCode').value;
             
-            // Create combined data object
             const patientData = {
                 firstName: firstName,
                 lastName: lastName,
@@ -613,14 +646,11 @@ function setupFormSubmission() {
             
             console.log('Sending patient data:', JSON.stringify(patientData));
             
-            // Add additional validation
             if (!firstName || !lastName || !dateOfBirth) {
-                // Use validation popup instead of notification for validation errors
                 showValidationPopup(['First Name, Last Name, and Date of Birth are required']);
                 return;
             }
             
-            // Send data to server
             fetch('/api/patients', {
                 method: 'POST',
                 headers: {
@@ -630,7 +660,6 @@ function setupFormSubmission() {
             })
             .then(response => {
                 if (!response.ok) {
-                    // Get more detailed error information
                     return response.text().then(text => {
                         console.error('Server error response:', text);
                         console.error('Response status:', response.status, response.statusText);
@@ -641,31 +670,28 @@ function setupFormSubmission() {
             })
             .then(data => {
                 console.log('Success:', data);
-                // Replace alert with sessionStorage
                 sessionStorage.setItem('patientNotification', JSON.stringify({
                     type: 'success',
                     message: 'Patient profile created successfully!'
                 }));
                 
-                // Redirect to patient list
                 window.location.href = '/patient/list';
             })
             .catch((error) => {
                 console.error('Error:', error);
-                // Use validation popup instead of notification
                 showValidationPopup(['Error creating patient profile: ' + error.message]);
             });
         });
     }
 }
 
-// Validation helpers
+/**
+ * Adds validation modals to the document for error and success messages
+ */
 function addValidationModals() {
-    // Create modal container
     const modalsContainer = document.createElement('div');
     modalsContainer.id = 'validation-modals-container';
     
-    // Create success modal
     const successModal = `
         <div id="successModal" class="modal">
             <div class="modal-content">
@@ -680,7 +706,6 @@ function addValidationModals() {
         </div>
     `;
     
-    // Create error modal
     const errorModal = `
         <div id="errorModal" class="modal">
             <div class="modal-content">
@@ -695,7 +720,6 @@ function addValidationModals() {
         </div>
     `;
     
-    // Create validation popup
     const validationPopup = `
         <div id="validationPopup" class="validation-popup" style="display: none;">
             <div class="validation-popup-content">
@@ -703,7 +727,6 @@ function addValidationModals() {
                 <div class="validation-popup-body">
                     <p>Please fix the following errors:</p>
                     <ul id="validationErrorList" class="validation-error-list">
-                        <!-- Validation errors will be inserted here dynamically -->
                     </ul>
                 </div>
                 <div class="validation-popup-footer">
@@ -713,18 +736,17 @@ function addValidationModals() {
         </div>
     `;
     
-    // Add modals to container
     modalsContainer.innerHTML = successModal + errorModal + validationPopup;
     
-    // Add container to document body
     document.body.appendChild(modalsContainer);
     
-    // Add CSS styles for modals if not already present
     addValidationStyles();
 }
 
+/**
+ * Adds CSS styles for validation to the document
+ */
 function addValidationStyles() {
-    // Add CSS styles for validation
     const styleElement = document.createElement('style');
     styleElement.innerHTML = `
         .invalid-input {
@@ -742,74 +764,63 @@ function addValidationStyles() {
     document.head.appendChild(styleElement);
 }
 
-// Main initialization function
+/**
+ * Main initialization function that sets up all components when the DOM is loaded
+ */
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize drug allergies component
     initializeDrugAllergies();
     
-    // Setup tab navigation
     setupTabNavigation();
     
-    // Setup age calculation
     setupAgeCalculation();
     
-    // Setup form submission
     setupFormSubmission();
     
-    // Add validation modals
     addValidationModals();
     
-    // Setup validation form
     setupValidationForm();
     
-    // Setup unsaved changes tracking
     setupUnsavedChangesTracking();
 });
 
-// Setup validation form
+/**
+ * Sets up form validation including modal handling and field validation
+ */
 function setupValidationForm() {
     const patientForm = document.getElementById('patient-form');
     const contactForm = document.getElementById('contact-form');
     
-    // Get modal elements
     const successModal = document.getElementById('successModal');
     const successMessage = document.getElementById('successMessage');
     const successOkButton = document.getElementById('successOk');
     
-    // Error modal elements
     const errorModal = document.getElementById('errorModal');
     const errorMessage = document.getElementById('errorMessage');
     const errorOkButton = document.getElementById('errorOk');
     
-    // Validation popup elements
     const validationPopup = document.getElementById('validationPopup');
     const validationErrorList = document.getElementById('validationErrorList');
     const validationOkButton = document.getElementById('validationOk');
     
-    // Handle success modal
     if (successOkButton) {
         successOkButton.addEventListener('click', function() {
             successModal.style.display = 'none';
-            // Redirect to patient list
             window.location.href = '/patient/list';
         });
     }
     
-    // Handle error modal
     if (errorOkButton) {
         errorOkButton.addEventListener('click', function() {
             errorModal.style.display = 'none';
         });
     }
     
-    // Handle validation popup
     if (validationOkButton) {
         validationOkButton.addEventListener('click', function() {
             validationPopup.style.display = 'none';
         });
     }
     
-    // Close modals when clicking outside
     window.addEventListener('click', function(event) {
         if (event.target === successModal) {
             successModal.style.display = 'none';
@@ -823,21 +834,29 @@ function setupValidationForm() {
         }
     });
     
-    // Function to show success modal
+    /**
+     * Shows success modal with message
+     * @param {string} message - Success message to display
+     */
     function showSuccessModal(message) {
         successMessage.textContent = message;
         successModal.style.display = 'block';
     }
     
-    // Function to show error modal
+    /**
+     * Shows error modal with message
+     * @param {string} message - Error message to display
+     */
     function showErrorModal(message) {
         errorMessage.textContent = message;
         errorModal.style.display = 'block';
     }
     
-    // Function to show validation errors popup
+    /**
+     * Shows validation errors popup
+     * @param {string[]} errors - Array of error messages
+     */
     function showValidationPopup(errors) {
-        // Remove any existing popup
         const existingPopup = document.querySelector('.validation-popup');
         if (existingPopup) {
             existingPopup.remove();
@@ -848,16 +867,13 @@ function setupValidationForm() {
             existingOverlay.remove();
         }
         
-        // Create overlay
         const overlay = document.createElement('div');
         overlay.className = 'validation-popup-overlay';
         document.body.appendChild(overlay);
         
-        // Create popup
         const popup = document.createElement('div');
         popup.className = 'validation-popup';
         
-        // Create popup content
         popup.innerHTML = `
             <div class="validation-popup-content">
                 <div class="validation-popup-header">
@@ -894,7 +910,6 @@ function setupValidationForm() {
         
         document.body.appendChild(popup);
         
-        // Add event listeners
         const closeButton = popup.querySelector('.validation-popup-close');
         const okButton = popup.querySelector('.validation-popup-button');
         const closePopup = () => {
@@ -907,20 +922,20 @@ function setupValidationForm() {
         overlay.addEventListener('click', closePopup);
     }
     
-    // Function to mark invalid fields
+    /**
+     * Marks invalid fields with error styling
+     * @param {string[]} invalidFields - Array of field IDs to mark as invalid
+     */
     function markInvalidFields(invalidFields) {
-        // Reset all fields first
         const allInputs = document.querySelectorAll('input, select');
         allInputs.forEach(input => {
             input.classList.remove('invalid-input');
-            // Remove any existing validation messages
             const errorElement = input.parentNode.querySelector('.field-validation-error');
             if (errorElement) {
                 errorElement.remove();
             }
         });
         
-        // Mark invalid fields
         invalidFields.forEach(fieldId => {
             const field = document.getElementById(fieldId);
             if (field) {
@@ -929,33 +944,36 @@ function setupValidationForm() {
         });
     }
     
-    // Function to add validation message below an input
+    /**
+     * Adds validation message below an input field
+     * @param {string} inputId - ID of the input field
+     * @param {string} message - Validation message to display
+     */
     function addValidationMessage(inputId, message) {
         const field = document.getElementById(inputId);
         if (!field) return;
         
-        // Remove any existing error message
         const existingError = field.parentNode.querySelector('.field-validation-error');
         if (existingError) {
             existingError.remove();
         }
         
-        // Add new error message
         const errorElement = document.createElement('span');
         errorElement.className = 'field-validation-error';
         errorElement.textContent = message;
         field.parentNode.appendChild(errorElement);
     }
     
-    // Define validation patterns
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     
-    // Function to validate patient form fields
+    /**
+     * Validates the patient form fields
+     * @returns {Object} Validation result and errors
+     */
     function validatePatientForm() {
         const errors = [];
         const invalidFields = [];
         
-        // Define required fields for patient form
         const requiredFields = [
             { id: 'firstName', name: 'First Name' },
             { id: 'lastName', name: 'Last Name' },
@@ -964,7 +982,6 @@ function setupValidationForm() {
             { id: 'bloodType', name: 'Blood Type' }
         ];
         
-        // Check each required field
         requiredFields.forEach(field => {
             const input = document.getElementById(field.id);
             if (!input || !input.value.trim()) {
@@ -975,7 +992,6 @@ function setupValidationForm() {
             }
         });
         
-        // Mark invalid fields
         markInvalidFields(invalidFields);
         
         return {
@@ -984,15 +1000,16 @@ function setupValidationForm() {
         };
     }
     
-    // Function to validate contact form fields
+    /**
+     * Validates the contact form fields
+     * @returns {Object} Validation result and errors
+     */
     function validateContactForm() {
         const errors = [];
         const invalidFields = [];
         
-        // Define required fields for contact form - removed phone and country
         const requiredFields = [];
         
-        // Check each required field
         requiredFields.forEach(field => {
             const input = document.getElementById(field.id);
             if (!input || !input.value.trim()) {
@@ -1003,7 +1020,6 @@ function setupValidationForm() {
             }
         });
         
-        // Check email format if provided
         const emailInput = document.getElementById('email');
         if (emailInput && emailInput.value.trim() && !emailPattern.test(emailInput.value)) {
             const errorMessage = 'Invalid email address';
@@ -1012,7 +1028,6 @@ function setupValidationForm() {
             addValidationMessage('email', errorMessage);
         }
         
-        // Mark invalid fields
         markInvalidFields(invalidFields);
         
         return {
@@ -1021,22 +1036,21 @@ function setupValidationForm() {
         };
     }
     
-    // Add validation to required fields on blur for patient form
     if (patientForm) {
         const requiredInputs = ['firstName', 'lastName', 'sex', 'dateOfBirth', 'bloodType'];
         
         requiredInputs.forEach(fieldId => {
             const input = document.getElementById(fieldId);
             if (input) {
-                // Function to check and update input validation
+                /**
+                 * Validates an input field on change or blur
+                 */
                 const validateInput = function() {
-                    // Remove existing error message
                     const errorElement = this.parentNode.querySelector('.field-validation-error');
                     if (errorElement) {
                         errorElement.remove();
                     }
                     
-                    // Also remove any validation-message elements (from global functions)
                     const validationMsg = this.parentNode.querySelector('.validation-message');
                     if (validationMsg) {
                         validationMsg.remove();
@@ -1044,49 +1058,41 @@ function setupValidationForm() {
                     
                     if (!this.value.trim()) {
                         this.classList.add('invalid-input');
-                        // Add error message - clean label text to remove asterisk
                         const fieldName = this.previousElementSibling.textContent
-                            .replace('*', '')  // Remove the asterisk
-                            .trim();           // Trim any whitespace
+                            .replace('*', '')
+                            .trim();
                         addValidationMessage(this.id, `${fieldName} is required`);
                     } else {
                         this.classList.remove('invalid-input');
-                        // Clear any error message for this field
                         this.parentNode.querySelectorAll('.field-validation-error, .validation-message').forEach(el => {
                             el.remove();
                         });
                     }
                 };
                 
-                // Add event listeners for validation
                 input.addEventListener('blur', validateInput);
                 input.addEventListener('input', validateInput);
                 
-                // Also check on change for selects
                 if (input.tagName === 'SELECT') {
                     input.addEventListener('change', validateInput);
                 }
             }
         });
         
-        // Add next button validation
         const nextButton = document.getElementById('next-btn');
         if (nextButton) {
             nextButton.addEventListener('click', function() {
-                // Validate the patient form before proceeding to next step
                 const validation = validatePatientForm();
                 if (!validation.isValid) {
                     showValidationPopup(validation.errors);
                     return;
                 }
                 
-                // If valid, proceed to next step
                 switchFormSection('contact-info-tab');
             });
         }
     }
     
-    // Add validation to required fields on blur for contact form
     if (contactForm) {
         const requiredInputs = [];
         
@@ -1094,7 +1100,6 @@ function setupValidationForm() {
             const input = document.getElementById(fieldId);
             if (input) {
                 input.addEventListener('blur', function() {
-                    // Remove existing error message
                     const errorElement = this.parentNode.querySelector('.field-validation-error');
                     if (errorElement) {
                         errorElement.remove();
@@ -1102,10 +1107,9 @@ function setupValidationForm() {
                     
                     if (!this.value.trim()) {
                         this.classList.add('invalid-input');
-                        // Add error message - clean label text to remove asterisk
                         const fieldName = this.previousElementSibling.textContent
-                            .replace('*', '')  // Remove the asterisk
-                            .trim();           // Trim any whitespace
+                            .replace('*', '')
+                            .trim();
                         addValidationMessage(this.id, `${fieldName} is required`);
                     } else {
                         this.classList.remove('invalid-input');
@@ -1114,11 +1118,9 @@ function setupValidationForm() {
             }
         });
         
-        // Add email validation
         const emailInput = document.getElementById('email');
         if (emailInput) {
             emailInput.addEventListener('blur', function() {
-                // Remove existing error message
                 const errorElement = this.parentNode.querySelector('.field-validation-error');
                 if (errorElement) {
                     errorElement.remove();
@@ -1133,31 +1135,31 @@ function setupValidationForm() {
             });
         }
         
-        // Handle form submission
         contactForm.addEventListener('submit', function(e) {
             e.preventDefault();
             
-            // Validate the contact form
             const validation = validateContactForm();
             if (!validation.isValid) {
                 showValidationPopup(validation.errors);
                 return;
             }
-            
-            // Form is valid, proceed with submission
-            // This will hit the other submit handler to actually submit the form
         });
     }
 }
 
-// Track form changes and handle navigation
+/**
+ * Sets up tracking of unsaved form changes and confirmation before navigation
+ */
 function setupUnsavedChangesTracking() {
     let formChanged = false;
     const formInputs = document.querySelectorAll('input, select, textarea');
     const cancelButton = document.getElementById('cancel-btn');
     const initialFormState = captureFormState();
     
-    // Capture the initial state of the form
+    /**
+     * Captures the current state of all form inputs
+     * @returns {Object} Map of input IDs to their current values
+     */
     function captureFormState() {
         const state = {};
         formInputs.forEach(input => {
@@ -1170,7 +1172,10 @@ function setupUnsavedChangesTracking() {
         return state;
     }
     
-    // Check if the form state has changed
+    /**
+     * Checks if the form has changed from its initial state
+     * @returns {boolean} Whether the form has changed
+     */
     function hasFormChanged() {
         const currentState = captureFormState();
         for (const key in currentState) {
@@ -1181,7 +1186,6 @@ function setupUnsavedChangesTracking() {
         return false;
     }
     
-    // Track changes to form inputs
     formInputs.forEach(input => {
         input.addEventListener('change', function() {
             formChanged = hasFormChanged();
@@ -1192,7 +1196,6 @@ function setupUnsavedChangesTracking() {
         });
     });
     
-    // Handle cancel button click
     if (cancelButton) {
         cancelButton.addEventListener('click', function(e) {
             if (formChanged) {
@@ -1204,11 +1207,9 @@ function setupUnsavedChangesTracking() {
         });
     }
     
-    // Handle clicks on sidebar links or other navigation
     document.addEventListener('click', function(e) {
         const link = e.target.closest('a');
         
-        // Ignore submission buttons and same-page links
         if (link && 
             !link.classList.contains('btn-success') && 
             !link.getAttribute('href').startsWith('#')) {
@@ -1221,15 +1222,16 @@ function setupUnsavedChangesTracking() {
         }
     });
     
-    // Show the unsaved changes popup
+    /**
+     * Shows a popup for confirming navigation when there are unsaved changes
+     * @param {string} targetUrl - URL to navigate to if changes are discarded
+     */
     function showUnsavedChangesPopup(targetUrl = '/patient/list') {
-        // Remove any existing popup
         const existingPopup = document.querySelector('.unsaved-changes-popup');
         if (existingPopup) {
             existingPopup.remove();
         }
         
-        // Create the popup
         const popup = document.createElement('div');
         popup.className = 'unsaved-changes-popup';
         
@@ -1253,7 +1255,6 @@ function setupUnsavedChangesTracking() {
         
         document.body.appendChild(popup);
         
-        // Add event listeners
         const cancelButton = popup.querySelector('.unsaved-changes-cancel');
         const discardButton = popup.querySelector('.unsaved-changes-discard');
         
@@ -1262,22 +1263,23 @@ function setupUnsavedChangesTracking() {
         });
         
         discardButton.addEventListener('click', function() {
-            // Redirect to the target URL
             window.location.href = targetUrl;
         });
     }
 }
 
-// Add displayNotification function to the file
+/**
+ * Displays a notification message with the specified type
+ * @param {string} type - The notification type (success, error)
+ * @param {string} message - The message to display in the notification
+ */
 function displayNotification(type, message) {
-    // Create notification container if it doesn't exist
     let notificationContainer = document.querySelector('.notification-container');
     
     if (!notificationContainer) {
         notificationContainer = document.createElement('div');
         notificationContainer.className = 'notification-container';
         
-        // Insert at the top of the content section
         const contentSection = document.querySelector('[layout\\:fragment="content"]');
         if (contentSection) {
             contentSection.insertBefore(notificationContainer, contentSection.firstChild);
@@ -1286,11 +1288,9 @@ function displayNotification(type, message) {
         }
     }
     
-    // Create notification element
     const notification = document.createElement('div');
     notification.className = `notification ${type}`;
     
-    // Add icon based on type
     let icon = '';
     if (type === 'success') {
         icon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>';
@@ -1298,7 +1298,6 @@ function displayNotification(type, message) {
         icon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>';
     }
     
-    // Set notification content
     notification.innerHTML = `
         <div class="notification-icon">${icon}</div>
         <div class="notification-content">
@@ -1312,10 +1311,8 @@ function displayNotification(type, message) {
         </button>
     `;
     
-    // Add to container
     notificationContainer.appendChild(notification);
     
-    // Add close button functionality
     const closeButton = notification.querySelector('.notification-close');
     if (closeButton) {
         closeButton.addEventListener('click', function() {
@@ -1323,7 +1320,6 @@ function displayNotification(type, message) {
             setTimeout(() => {
                 notification.remove();
                 
-                // Remove container if empty
                 if (notificationContainer.children.length === 0) {
                     notificationContainer.remove();
                 }
@@ -1331,14 +1327,12 @@ function displayNotification(type, message) {
         });
     }
     
-    // Auto-remove after 6 seconds
     setTimeout(() => {
         if (notification.parentNode) {
             notification.classList.add('closing');
             setTimeout(() => {
                 notification.remove();
                 
-                // Remove container if empty
                 if (notificationContainer && notificationContainer.children.length === 0) {
                     notificationContainer.remove();
                 }
