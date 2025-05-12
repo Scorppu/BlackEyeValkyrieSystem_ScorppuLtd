@@ -1,6 +1,7 @@
 /**
- * Main application JavaScript
- * Handles sidebar navigation, search, UI interactions and form processing
+ * @file main.js
+ * @description Main application JavaScript for BlackEyeValkyrie System
+ * @module main
  */
 document.addEventListener('DOMContentLoaded', function() {
     /**
@@ -369,20 +370,16 @@ document.addEventListener('DOMContentLoaded', function() {
     const dutyStatusText = document.getElementById('duty-status');
     
     if (dutyToggleBtn && dutyStatusText) {
-        // Initially use localStorage values as defaults until we get data from the server
         let isOnDuty = localStorage.getItem('dutyStatus') === 'on';
         let dutyTime = localStorage.getItem('dutyTime') || getCurrentTime();
         let dutyDate = localStorage.getItem('dutyDate') || getCurrentDate();
         
-        // First check if the user has a duty status in the database
         fetchCurrentDutyStatus();
         
         dutyToggleBtn.addEventListener('click', function() {
-            // Show loading state
             dutyToggleBtn.disabled = true;
             dutyToggleBtn.textContent = 'Loading...';
             
-            // Make API call to toggle duty status in the database
             fetch('/api/duty/toggle', {
                 method: 'POST',
                 headers: {
@@ -396,15 +393,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 return response.json();
             })
             .then(data => {
-                // Update the UI based on server response
                 isOnDuty = data.isOnDuty;
                 
-                // Format the timestamp from the server
                 const timestamp = new Date(data.timestamp);
                 dutyTime = formatTime(timestamp);
                 dutyDate = formatDate(timestamp);
                 
-                // Store in localStorage as fallback
                 localStorage.setItem('dutyStatus', isOnDuty ? 'on' : 'off');
                 localStorage.setItem('dutyTime', dutyTime);
                 localStorage.setItem('dutyDate', dutyDate);
@@ -415,7 +409,6 @@ document.addEventListener('DOMContentLoaded', function() {
             .catch(error => {
                 console.error('Error toggling duty status:', error);
                 
-                // Fallback to client-side toggle if the API call fails
                 isOnDuty = !isOnDuty;
                 dutyTime = getCurrentTime();
                 dutyDate = getCurrentDate();
@@ -447,15 +440,12 @@ document.addEventListener('DOMContentLoaded', function() {
             return response.json();
         })
         .then(data => {
-            // Update the UI based on server response
             const isOnDuty = data.isOnDuty;
             
-            // Format the timestamp from the server
             const timestamp = new Date(data.timestamp);
             const dutyTime = formatTime(timestamp);
             const dutyDate = formatDate(timestamp);
             
-            // Store in localStorage as fallback
             localStorage.setItem('dutyStatus', isOnDuty ? 'on' : 'off');
             localStorage.setItem('dutyTime', dutyTime);
             localStorage.setItem('dutyDate', dutyDate);
@@ -464,7 +454,6 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .catch(error => {
             console.error('Error fetching duty status:', error);
-            // Use localStorage values as fallback
             const isOnDuty = localStorage.getItem('dutyStatus') === 'on';
             const dutyTime = localStorage.getItem('dutyTime') || getCurrentTime();
             const dutyDate = localStorage.getItem('dutyDate') || getCurrentDate();
@@ -535,15 +524,12 @@ document.addEventListener('DOMContentLoaded', function() {
         return `${month} ${day}`;
     }
     
-    // Initialize sidebar navigation
     setTimeout(fixSidebarNavigation, 100);
     applySpecialMenuFixes();
     
-    // Add event listeners for navigation changes
     window.addEventListener('resize', fixSidebarNavigation);
     window.addEventListener('popstate', fixSidebarNavigation);
     
-    // Add additional listener for clicks on special links
     document.addEventListener('click', function(e) {
         if (e.target && (e.target.closest('a[href="/consultation"]') || e.target.closest('a[href="/dispensary"]'))) {
             setTimeout(fixSidebarNavigation, 300);

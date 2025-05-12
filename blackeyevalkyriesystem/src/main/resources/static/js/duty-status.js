@@ -1,5 +1,10 @@
+/**
+ * Duty status management module.
+ * Provides functionality for filtering staff tables, toggling duty status,
+ * and updating the statistics display.
+ */
+
 document.addEventListener('DOMContentLoaded', function() {
-    // Doctor search functionality
     const doctorSearch = document.getElementById('doctor-search');
     if (doctorSearch) {
         doctorSearch.addEventListener('keyup', function() {
@@ -7,7 +12,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Nurse search functionality
     const nurseSearch = document.getElementById('nurse-search');
     if (nurseSearch) {
         nurseSearch.addEventListener('keyup', function() {
@@ -15,10 +19,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Add event listeners to all toggle buttons
     const toggleButtons = document.querySelectorAll('.toggle-duty-btn');
     toggleButtons.forEach(button => {
-        // Initialize button classes based on duty status
         const row = button.closest('tr');
         const statusCell = row.querySelector('td:nth-child(3)');
         const statusSpan = statusCell.querySelector('span');
@@ -35,7 +37,13 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Filter table function
+    /**
+     * Filters a table based on search query.
+     * Shows rows that match the query and hides those that don't.
+     * 
+     * @param {string} tableId - The ID of the table to filter
+     * @param {string} query - The search query to filter by
+     */
     function filterTable(tableId, query) {
         const table = document.getElementById(tableId);
         if (!table) return;
@@ -57,7 +65,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Format duration in minutes to a readable string
+    /**
+     * Formats a duration in minutes to a human-readable string.
+     * 
+     * @param {number} minutes - The duration in minutes to format
+     * @returns {string} The formatted duration string
+     */
     function formatDuration(minutes) {
         if (minutes <= 0) {
             return 'Never on Duty';
@@ -79,13 +92,17 @@ document.addEventListener('DOMContentLoaded', function() {
         return result;
     }
     
-    // Function to toggle duty status
+    /**
+     * Toggles the duty status of a staff member.
+     * Makes an API call to update the status and updates the UI accordingly.
+     * 
+     * @param {string} staffId - The ID of the staff member
+     * @param {HTMLElement} buttonElement - The button element that was clicked
+     */
     function toggleDutyStatus(staffId, buttonElement) {
-        // Disable button during the request
         buttonElement.disabled = true;
         buttonElement.classList.add('loading');
         
-        // Make API call to toggle duty status
         fetch(`/api/duty/toggle/${staffId}`, {
             method: 'POST',
             headers: {
@@ -94,14 +111,12 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(response => {
             if (!response.ok) {
-                // Check the content type to avoid trying to parse HTML as JSON
                 const contentType = response.headers.get('content-type');
                 if (contentType && contentType.includes('application/json')) {
                     return response.json().then(data => {
                         throw new Error(data.error || 'Server error: ' + response.status);
                     });
                 } else {
-                    // For non-JSON responses (like HTML error pages)
                     throw new Error('Server error: ' + response.status + '. Your session may have expired. Please refresh the page and try again.');
                 }
             }
@@ -110,19 +125,16 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(data => {
             console.log('Duty status toggled:', data);
             
-            // Update UI based on new status
             const row = buttonElement.closest('tr');
             const statusCell = row.querySelector('td:nth-child(3)');
             const statusSpan = statusCell.querySelector('span');
             
-            // Update previous on duty duration column if switching from on to off duty
             if (!data.isOnDuty && data.lastDutyDuration !== null) {
                 const durationCell = row.querySelector('td:nth-child(2)');
                 const formattedDuration = formatDuration(data.lastDutyDuration);
                 durationCell.innerHTML = `<span>${formattedDuration}</span>`;
             }
             
-            // Update status text and class
             if (data.isOnDuty) {
                 statusSpan.textContent = 'On Duty';
                 statusSpan.classList.remove('status-off');
@@ -139,42 +151,36 @@ document.addEventListener('DOMContentLoaded', function() {
                 buttonElement.classList.add('btn-off-duty');
             }
             
-            // Update stats
             updateStats();
             
-            // Re-enable button
             buttonElement.disabled = false;
             buttonElement.classList.remove('loading');
         })
         .catch(error => {
             console.error('Error toggling duty status:', error.message);
             
-            // Check if the error is about no duty status document
             if (error.message && error.message.includes('No duty status document exists')) {
-                // Show a more specific error message about missing duty status
                 alert('Error: No duty status document exists for this user. Contact your administrator.');
             } else {
-                // For other errors
                 alert('Error toggling duty status: ' + error.message);
             }
             
-            // Re-enable button
             buttonElement.disabled = false;
             buttonElement.classList.remove('loading');
         });
     }
     
-    // Function to update stats
+    /**
+     * Updates the statistics display on the page.
+     * Calculates the number of staff members on duty and updates the UI elements.
+     */
     function updateStats() {
-        // Count doctors on duty
         const doctorsOnDuty = document.querySelectorAll('#doctors-table .status-on').length;
         const totalDoctors = document.querySelectorAll('#doctors-table tbody tr:not(.empty-state)').length;
         
-        // Count nurses on duty
         const nursesOnDuty = document.querySelectorAll('#nurses-table .status-on').length;
         const totalNurses = document.querySelectorAll('#nurses-table tbody tr:not(.empty-state)').length;
         
-        // Update stats in the UI
         const statCards = document.querySelectorAll('.stat-value');
         if (statCards.length >= 4) {
             statCards[0].textContent = totalDoctors;

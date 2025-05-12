@@ -1,21 +1,27 @@
+/**
+ * Patient Profile Edit Form Handler
+ * 
+ * This script manages the patient profile edit functionality, including form validation,
+ * form submission, tab navigation, age calculation, drug allergies management,
+ * and unsaved changes tracking.
+ */
 document.addEventListener('DOMContentLoaded', function() {
-    // Variables for form elements
     const patientForm = document.getElementById('patient-form');
     const contactForm = document.getElementById('contact-form');
     const backButton = document.getElementById('back-btn');
     const patientId = document.getElementById('patientId').value;
 
-    // Initialize key components
     setupTabNavigation();
     setupAgeCalculation();
     setupFormValidation();
     setupFormSubmission();
     initializeDrugAllergies();
     
-    // Setup unsaved changes tracking
     setupUnsavedChangesTracking();
 
-    // Tab navigation setup
+    /**
+     * Sets up tab navigation between form sections
+     */
     function setupTabNavigation() {
         const tabItems = document.querySelectorAll('.tab-item');
         
@@ -26,22 +32,21 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 
-        // Function to switch form sections
+        /**
+         * Switches between form sections based on the selected tab
+         * @param {string} tabId - The ID of the tab to switch to
+         */
         function switchFormSection(tabId) {
-            // Remove active class from all tabs
             document.querySelectorAll('.tab-item').forEach(tab => {
                 tab.classList.remove('active');
             });
             
-            // Add active class to the clicked tab
             document.querySelector(`[data-target="${tabId}"]`).classList.add('active');
             
-            // Hide all form sections
             document.querySelectorAll('.form-section').forEach(section => {
                 section.classList.remove('active');
             });
             
-            // Show the corresponding form section based on the tab
             if (tabId === 'personal-info-tab') {
                 document.getElementById('personal-info-form').classList.add('active');
             } else if (tabId === 'contact-info-tab') {
@@ -50,26 +55,28 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Calculate age from date of birth
+    /**
+     * Sets up automatic age calculation based on date of birth
+     */
     function setupAgeCalculation() {
         const dobField = document.getElementById('dateOfBirth');
         const ageField = document.getElementById('age');
         
         if (dobField && ageField) {
-            // Calculate age on load if DOB is set
             if (dobField.value) {
                 calculateAge();
             }
             
-            // Update age when DOB changes
             dobField.addEventListener('change', calculateAge);
             
+            /**
+             * Calculates age based on date of birth
+             */
             function calculateAge() {
                 const dob = new Date(dobField.value);
                 const today = new Date();
                 let age = today.getFullYear() - dob.getFullYear();
                 
-                // Adjust age if birthday hasn't occurred yet this year
                 const monthDiff = today.getMonth() - dob.getMonth();
                 if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
                     age--;
@@ -80,35 +87,40 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Form validation setup
+    /**
+     * Sets up form validation for patient and contact information
+     * @returns {Object} Validation functions for patient and contact forms
+     */
     function setupFormValidation() {
-        // Define validation patterns
         const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-        // Add validation styles
         addValidationStyles();
 
-        // Function to add validation message below an input
+        /**
+         * Adds validation error message below an input field
+         * @param {string} inputId - ID of the input field
+         * @param {string} message - Error message to display
+         */
         function addValidationMessage(inputId, message) {
             const field = document.getElementById(inputId);
             if (!field) return;
             
-            // Remove any existing error message
             const existingError = field.parentNode.querySelector('.field-validation-error');
             if (existingError) {
                 existingError.remove();
             }
             
-            // Add new error message
             const errorElement = document.createElement('span');
             errorElement.className = 'field-validation-error';
             errorElement.textContent = message;
             field.parentNode.appendChild(errorElement);
         }
 
-        // Function to mark invalid fields
+        /**
+         * Marks fields as invalid in the UI
+         * @param {Array} invalidFields - Array of field IDs to mark as invalid
+         */
         function markInvalidFields(invalidFields) {
-            // First, clear all invalid markings
             document.querySelectorAll('.invalid-input').forEach(field => {
                 field.classList.remove('invalid-input');
             });
@@ -117,7 +129,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 errorElement.remove();
             });
             
-            // Mark invalid fields
             invalidFields.forEach(fieldId => {
                 const field = document.getElementById(fieldId);
                 if (field) {
@@ -126,12 +137,14 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
-        // Function to validate patient form fields
+        /**
+         * Validates patient form fields
+         * @returns {Object} Validation result with isValid flag and errors array
+         */
         function validatePatientForm() {
             const errors = [];
             const invalidFields = [];
             
-            // Define required fields for patient form
             const requiredFields = [
                 { id: 'firstName', name: 'First Name' },
                 { id: 'lastName', name: 'Last Name' },
@@ -140,7 +153,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 { id: 'bloodType', name: 'Blood Type' }
             ];
             
-            // Check each required field
             requiredFields.forEach(field => {
                 const input = document.getElementById(field.id);
                 if (!input || !input.value.trim()) {
@@ -151,7 +163,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
             
-            // Mark invalid fields
             markInvalidFields(invalidFields);
             
             return {
@@ -160,15 +171,16 @@ document.addEventListener('DOMContentLoaded', function() {
             };
         }
 
-        // Function to validate contact form fields
+        /**
+         * Validates contact form fields
+         * @returns {Object} Validation result with isValid flag and errors array
+         */
         function validateContactForm() {
             const errors = [];
             const invalidFields = [];
             
-            // Define required fields for contact form - removed phone and country
             const requiredFields = [];
             
-            // Check each required field
             requiredFields.forEach(field => {
                 const input = document.getElementById(field.id);
                 if (!input || !input.value.trim()) {
@@ -179,7 +191,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
             
-            // Check email format if provided
             const emailInput = document.getElementById('email');
             if (emailInput && emailInput.value.trim() && !emailPattern.test(emailInput.value)) {
                 const errorMessage = 'Invalid email address';
@@ -188,7 +199,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 addValidationMessage('email', errorMessage);
             }
             
-            // Mark invalid fields
             markInvalidFields(invalidFields);
             
             return {
@@ -197,7 +207,6 @@ document.addEventListener('DOMContentLoaded', function() {
             };
         }
 
-        // Add validation to required fields on blur for patient form
         if (patientForm) {
             const requiredInputs = ['firstName', 'lastName', 'sex', 'dateOfBirth', 'bloodType'];
             
@@ -205,7 +214,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 const input = document.getElementById(fieldId);
                 if (input) {
                     input.addEventListener('blur', function() {
-                        // Remove existing error message
                         const errorElement = this.parentNode.querySelector('.field-validation-error');
                         if (errorElement) {
                             errorElement.remove();
@@ -213,20 +221,17 @@ document.addEventListener('DOMContentLoaded', function() {
                         
                         if (!this.value.trim()) {
                             this.classList.add('invalid-input');
-                            // Add error message - clean label text to remove asterisk
                             const fieldName = this.previousElementSibling ? this.previousElementSibling.textContent
-                                .replace('*', '')  // Remove the asterisk
-                                .trim() : this.id; // Fallback to id if label not found
+                                .replace('*', '')
+                                .trim() : this.id;
                             addValidationMessage(this.id, `${fieldName} is required`);
                         } else {
                             this.classList.remove('invalid-input');
                         }
                     });
                     
-                    // Also check on change for selects
                     if (input.tagName === 'SELECT') {
                         input.addEventListener('change', function() {
-                            // Remove existing error message
                             const errorElement = this.parentNode.querySelector('.field-validation-error');
                             if (errorElement) {
                                 errorElement.remove();
@@ -234,10 +239,9 @@ document.addEventListener('DOMContentLoaded', function() {
                             
                             if (!this.value.trim()) {
                                 this.classList.add('invalid-input');
-                                // Add error message - clean label text to remove asterisk
                                 const fieldName = this.previousElementSibling ? this.previousElementSibling.textContent
-                                    .replace('*', '')  // Remove the asterisk
-                                    .trim() : this.id; // Fallback to id if label not found
+                                    .replace('*', '')
+                                    .trim() : this.id;
                                 addValidationMessage(this.id, `${fieldName} is required`);
                             } else {
                                 this.classList.remove('invalid-input');
@@ -248,7 +252,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
-        // Add validation to required fields on blur for contact form
         if (contactForm) {
             const requiredInputs = ['contactNumber', 'country'];
             
@@ -256,7 +259,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 const input = document.getElementById(fieldId);
                 if (input) {
                     input.addEventListener('blur', function() {
-                        // Remove existing error message
                         const errorElement = this.parentNode.querySelector('.field-validation-error');
                         if (errorElement) {
                             errorElement.remove();
@@ -264,10 +266,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         
                         if (!this.value.trim()) {
                             this.classList.add('invalid-input');
-                            // Add error message - clean label text to remove asterisk
                             const fieldName = this.previousElementSibling ? this.previousElementSibling.textContent
-                                .replace('*', '')  // Remove the asterisk
-                                .trim() : this.id; // Fallback to id if label not found
+                                .replace('*', '')
+                                .trim() : this.id;
                             addValidationMessage(this.id, `${fieldName} is required`);
                         } else {
                             this.classList.remove('invalid-input');
@@ -276,17 +277,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
             
-            // Add email validation on blur
             const emailInput = document.getElementById('email');
             if (emailInput) {
                 emailInput.addEventListener('blur', function() {
-                    // Remove existing error message
                     const errorElement = this.parentNode.querySelector('.field-validation-error');
                     if (errorElement) {
                         errorElement.remove();
                     }
                     
-                    // Validate email format if provided
                     if (this.value.trim() && !emailPattern.test(this.value)) {
                         this.classList.add('invalid-input');
                         addValidationMessage(this.id, 'Invalid email address');
@@ -297,32 +295,30 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
-        // Add next button validation
         const nextButton = document.getElementById('next-btn');
         if (nextButton) {
             nextButton.addEventListener('click', function() {
-                // Validate the patient form before proceeding to next step
                 const validation = validatePatientForm();
                 if (!validation.isValid) {
                     showValidationPopup(validation.errors);
                     return;
                 }
                 
-                // If valid, proceed to next step
                 document.querySelector('[data-target="contact-info-tab"]').click();
             });
         }
 
-        // Add back button functionality
         if (backButton) {
             backButton.addEventListener('click', function() {
                 document.querySelector('[data-target="personal-info-tab"]').click();
             });
         }
 
-        // Function to show validation popup
+        /**
+         * Displays a popup with validation errors
+         * @param {Array} errors - Array of error messages to display
+         */
         function showValidationPopup(errors) {
-            // Remove any existing popup
             const existingPopup = document.querySelector('.validation-popup');
             if (existingPopup) {
                 existingPopup.remove();
@@ -333,16 +329,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 existingOverlay.remove();
             }
             
-            // Create overlay
             const overlay = document.createElement('div');
             overlay.className = 'validation-popup-overlay';
             document.body.appendChild(overlay);
             
-            // Create popup
             const popup = document.createElement('div');
             popup.className = 'validation-popup';
             
-            // Create popup content
             popup.innerHTML = `
                 <div class="validation-popup-content">
                     <div class="validation-popup-header">
@@ -379,7 +372,6 @@ document.addEventListener('DOMContentLoaded', function() {
             
             document.body.appendChild(popup);
             
-            // Add event listeners
             const closeButton = popup.querySelector('.validation-popup-close');
             const okButton = popup.querySelector('.validation-popup-button');
             const closePopup = () => {
@@ -398,9 +390,10 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
 
-    // Add styles for form validation
+    /**
+     * Adds CSS styles for form validation to the document
+     */
     function addValidationStyles() {
-        // Add CSS styles for validation
         const styleElement = document.createElement('style');
         styleElement.innerHTML = `
             .invalid-input {
@@ -418,7 +411,9 @@ document.addEventListener('DOMContentLoaded', function() {
         document.head.appendChild(styleElement);
     }
 
-    // Form submission setup
+    /**
+     * Sets up form submission handling
+     */
     function setupFormSubmission() {
         const validation = setupFormValidation();
         
@@ -426,17 +421,14 @@ document.addEventListener('DOMContentLoaded', function() {
             contactForm.addEventListener('submit', function(e) {
                 e.preventDefault();
                 
-                // Validate the contact form before submission
                 const contactValidation = validation.validateContactForm();
                 if (!contactValidation.isValid) {
                     showValidationPopup(contactValidation.errors);
                     return;
                 }
                 
-                // Get patient ID
                 const patientId = document.getElementById('patientId').value;
                 
-                // Get personal information
                 const firstName = document.getElementById('firstName').value;
                 const lastName = document.getElementById('lastName').value;
                 const sex = document.getElementById('sex').value === 'Male' ? true : false;
@@ -446,19 +438,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 const maritalStatus = document.getElementById('maritalStatus').value;
                 const bloodType = document.getElementById('bloodType').value;
                 
-                // Get drug allergies if available
                 const drugAllergiesInput = document.getElementById('drugAllergies');
                 let drugAllergies = [];
                 
                 if (drugAllergiesInput && drugAllergiesInput.value) {
-                    // Get the array of drug ids
                     drugAllergies = drugAllergiesInput.value.split(',').filter(Boolean);
                     console.log("Drug allergy IDs to submit:", drugAllergies);
                 }
                 
                 console.log("Formatted drug allergies for submission:", drugAllergies);
                 
-                // Get contact information
                 const contactNumber = document.getElementById('contactNumber').value;
                 const email = document.getElementById('email').value;
                 const address1 = document.getElementById('address1').value;
@@ -469,7 +458,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 const town = document.getElementById('town').value;
                 const pinCode = document.getElementById('pinCode').value;
                 
-                // Create combined data object
                 const patientData = {
                     firstName: firstName,
                     lastName: lastName,
@@ -495,7 +483,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 console.log('Sending updated patient data:', JSON.stringify(patientData));
                 
-                // Send data to server using PUT request for update
                 fetch('/api/patients/' + patientId, {
                     method: 'PUT',
                     headers: {
@@ -505,7 +492,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 })
                 .then(response => {
                     if (!response.ok) {
-                        // Get more detailed error information
                         return response.text().then(text => {
                             console.error('Server error response:', text);
                             throw new Error(`Server responded with status: ${response.status} ${response.statusText}`);
@@ -515,39 +501,39 @@ document.addEventListener('DOMContentLoaded', function() {
                 })
                 .then(data => {
                     console.log('Success:', data);
-                    // Replace alert with sessionStorage
                     sessionStorage.setItem('patientNotification', JSON.stringify({
                         type: 'success',
                         message: 'Patient profile updated successfully!'
                     }));
                     
-                    // Redirect to patient list
                     window.location.href = '/patient/list';
                 })
                 .catch((error) => {
                     console.error('Error:', error);
-                    // Use validation popup instead of notification for errors
                     showValidationPopup(['Error updating patient profile: ' + error.message]);
                 });
             });
         }
 
-        // Function to show validation popup
+        /**
+         * Displays validation popup with error messages
+         * @param {Array} errors - Array of error messages to display
+         */
         function showValidationPopup(errors) {
             if (errors.length === 0) return;
             
-            // Create a single error message for the notification
             const errorMessage = 'Please fix the following errors:\n• ' + errors.join('\n• ');
             
-            // Display as an error notification instead of an alert
             displayNotification('error', errorMessage);
         }
     }
 
-    // Global variable for drugs data
     let allDrugsData = [];
 
-    // Function to initialize drug allergies component
+    /**
+     * Initializes the drug allergies component
+     * Handles adding, removing, and displaying drug allergies
+     */
     function initializeDrugAllergies() {
         const drugAllergyInput = document.getElementById('drugAllergyInput');
         const drugsDropdown = document.getElementById('drugsDropdown');
@@ -560,7 +546,6 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        // Initialize the hidden input if not set
         if (drugAllergiesInput) {
             drugAllergiesInput.value = drugAllergiesInput.value || '';
         } else {
@@ -570,11 +555,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const selectedAllergies = new Set();
         const drugMap = {};
         
-        // Get patient ID
         const patientIdElement = document.getElementById('patientId');
         const patientId = patientIdElement ? patientIdElement.value : null;
         
-        // Fetch patient-specific drug allergies
         if (patientId) {
             console.log("Fetching allergies for patient ID:", patientId);
             fetch(`/api/patients/${patientId}`)
@@ -587,11 +570,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 .then(patient => {
                     console.log("Full patient data:", patient);
                     
-                    // Check for drug allergies which should be a List<String> (array of strings) in the Patient model
                     if (patient && patient.drugAllergies && Array.isArray(patient.drugAllergies)) {
                         console.log("Found drug allergies:", patient.drugAllergies);
                         
-                        // Process each drug ID
                         patient.drugAllergies.forEach(allergyId => {
                             console.log("Processing allergy ID:", allergyId);
                             selectedAllergies.add(allergyId);
@@ -600,7 +581,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         console.log("No drug allergies found in patient data or format is unexpected");
                     }
                     
-                    // Now fetch all drugs to have complete data
                     return fetch('/api/drugs');
                 })
                 .then(response => {
@@ -613,22 +593,18 @@ document.addEventListener('DOMContentLoaded', function() {
                     console.log("Fetched drugs data:", data);
                     allDrugsData = data;
                     
-                    // Update drug map with all drugs
                     allDrugsData.forEach(drug => {
                         drugMap[drug.id] = drug.name || drug.drugName || drug.genericName || "Unknown Drug";
                     });
                     
-                    // Update the hidden input with selected allergies
                     updateDrugAllergiesInput();
                     
-                    // Populate existing allergies list
                     populateExistingAllergies();
                 })
                 .catch(error => {
                     console.error('Error fetching patient data or drugs:', error);
                 });
         } else {
-            // If no patient ID, just fetch general drug data
             fetch('/api/drugs')
                 .then(response => {
                     if (!response.ok) {
@@ -639,7 +615,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 .then(data => {
                     allDrugsData = data;
                     
-                    // Create map of drug IDs to names
                     allDrugsData.forEach(drug => {
                         drugMap[drug.id] = drug.name || drug.drugName || drug.genericName || "Unknown Drug";
                     });
@@ -649,22 +624,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
         }
             
-        // Function to populate existing allergies in the UI
+        /**
+         * Populates the existing drug allergies in the UI
+         */
         function populateExistingAllergies() {
             console.log("Populating existing allergies, selected allergies:", selectedAllergies);
-            // Clear the list first
             while (allergiesList.firstChild) {
                 allergiesList.removeChild(allergiesList.firstChild);
             }
             
             if (selectedAllergies.size === 0) {
-                // If no allergies, show empty row
                 const emptyRow = document.createElement('tr');
                 emptyRow.className = 'empty-allergies-row';
                 emptyRow.innerHTML = '<td colspan="2">No drug allergies selected</td>';
                 allergiesList.appendChild(emptyRow);
             } else {
-                // Add each allergy to the list
                 selectedAllergies.forEach(drugId => {
                     const drugName = drugMap[drugId] || "Unknown Drug";
                     
@@ -685,13 +659,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         </td>
                     `;
                     
-                    // Add remove button event listener
                     row.querySelector('.remove-allergy-btn').addEventListener('click', function() {
                         row.remove();
                         selectedAllergies.delete(drugId);
                         updateDrugAllergiesInput();
                         
-                        // If no allergies left, add empty row back
                         if (selectedAllergies.size === 0) {
                             const emptyRow = document.createElement('tr');
                             emptyRow.className = 'empty-allergies-row';
@@ -705,14 +677,15 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         
-        // Setup drug search functionality
         drugAllergyInput.addEventListener('input', function() {
             filterDrugs(this.value);
         });
         
-        // Function to filter drugs based on search input
+        /**
+         * Filters drugs based on search text and displays matches in dropdown
+         * @param {string} searchText - Text to search for in drug names
+         */
         function filterDrugs(searchText) {
-            // Clear the dropdown
             drugsDropdown.innerHTML = '';
             
             if (!searchText || searchText.length < 2) {
@@ -720,7 +693,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            // Filter drugs based on search text
             const searchLower = searchText.toLowerCase();
             const filteredDrugs = allDrugsData.filter(drug => {
                 const drugName = drug.name || drug.drugName || drug.genericName || '';
@@ -729,7 +701,6 @@ document.addEventListener('DOMContentLoaded', function() {
             
             console.log('Filtered drugs:', filteredDrugs);
             
-            // Display filtered drugs
             if (filteredDrugs.length > 0) {
                 filteredDrugs.forEach(drug => {
                     const drugId = drug.id || '';
@@ -741,7 +712,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     drugItem.setAttribute('data-name', drugName);
                     drugItem.innerHTML = `<div class="drug-name">${drugName}</div>`;
                     
-                    // Add click event to select the drug
                     drugItem.addEventListener('click', function() {
                         selectDrug(this.getAttribute('data-id'), this.getAttribute('data-name'));
                     });
@@ -751,7 +721,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 drugsDropdown.style.display = 'block';
             } else {
-                // Show no results message
                 const noResults = document.createElement('div');
                 noResults.className = 'no-results';
                 noResults.textContent = 'No matching drugs found';
@@ -760,19 +729,23 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         
-        // Function to select a drug from dropdown
+        /**
+         * Selects a drug from the dropdown
+         * @param {string} drugId - ID of the selected drug
+         * @param {string} drugName - Name of the selected drug
+         */
         function selectDrug(drugId, drugName) {
             drugAllergyInput.value = drugName;
             drugsDropdown.style.display = 'none';
             drugAllergyInput.setAttribute('data-selected-id', drugId);
         }
         
-        // Function to add a drug allergy
+        /**
+         * Adds a drug allergy to the list
+         */
         function addDrugAllergy() {
             const drugInput = document.getElementById('drugAllergyInput');
-            // Fix: Use getAttribute to get the selected ID
             const selectedDrugId = drugInput.getAttribute('data-selected-id');
-            // Fix: Use input value for the drug name
             const selectedDrugName = drugInput.value;
             
             if (!selectedDrugId || !selectedDrugName) {
@@ -780,19 +753,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            // Check if this drug is already in the list
             if (selectedAllergies.has(selectedDrugId)) {
                 showValidationPopup(['This drug is already in the allergies list']);
                 return;
             }
             
-            // Remove empty row if it exists
             const emptyRow = allergiesList.querySelector('.empty-allergies-row');
             if (emptyRow) {
                 emptyRow.remove();
             }
             
-            // Create new row for the allergy
             const row = document.createElement('tr');
             row.className = 'allergyItem';
             row.setAttribute('data-drug-id', selectedDrugId);
@@ -810,13 +780,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 </td>
             `;
             
-            // Add remove button event listener
             row.querySelector('.remove-allergy-btn').addEventListener('click', function() {
                 row.remove();
                 selectedAllergies.delete(selectedDrugId);
                 updateDrugAllergiesInput();
                 
-                // If no allergies left, add empty row back
                 if (selectedAllergies.size === 0) {
                     const emptyRow = document.createElement('tr');
                     emptyRow.className = 'empty-allergies-row';
@@ -829,12 +797,13 @@ document.addEventListener('DOMContentLoaded', function() {
             selectedAllergies.add(selectedDrugId);
             updateDrugAllergiesInput();
             
-            // Clear input and selected data
             drugInput.value = '';
             drugInput.removeAttribute('data-selected-id');
         }
         
-        // Function to update the hidden input with selected drug IDs
+        /**
+         * Updates the hidden input with selected drug allergies
+         */
         function updateDrugAllergiesInput() {
             if (drugAllergiesInput) {
                 drugAllergiesInput.value = Array.from(selectedAllergies).join(',');
@@ -842,10 +811,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         
-        // Add drug allergy when clicking the add button
         addAllergyBtn.addEventListener('click', addDrugAllergy);
         
-        // Hide dropdown when clicking outside
         document.addEventListener('click', function(e) {
             if (!drugAllergyInput.contains(e.target) && !drugsDropdown.contains(e.target)) {
                 drugsDropdown.style.display = 'none';
@@ -853,16 +820,18 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Add displayNotification function to the file
+    /**
+     * Displays a notification message to the user
+     * @param {string} type - Type of notification ('success' or 'error')
+     * @param {string} message - Message to display
+     */
     function displayNotification(type, message) {
-        // Create notification container if it doesn't exist
         let notificationContainer = document.querySelector('.notification-container');
         
         if (!notificationContainer) {
             notificationContainer = document.createElement('div');
             notificationContainer.className = 'notification-container';
             
-            // Insert at the top of the content section
             const contentSection = document.querySelector('[layout\\:fragment="content"]');
             if (contentSection) {
                 contentSection.insertBefore(notificationContainer, contentSection.firstChild);
@@ -871,11 +840,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         
-        // Create notification element
         const notification = document.createElement('div');
         notification.className = `notification ${type}`;
         
-        // Add icon based on type
         let icon = '';
         if (type === 'success') {
             icon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>';
@@ -883,7 +850,6 @@ document.addEventListener('DOMContentLoaded', function() {
             icon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>';
         }
         
-        // Set notification content
         notification.innerHTML = `
             <div class="notification-icon">${icon}</div>
             <div class="notification-content">
@@ -897,10 +863,8 @@ document.addEventListener('DOMContentLoaded', function() {
             </button>
         `;
         
-        // Add to container
         notificationContainer.appendChild(notification);
         
-        // Add close button functionality
         const closeButton = notification.querySelector('.notification-close');
         if (closeButton) {
             closeButton.addEventListener('click', function() {
@@ -908,7 +872,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 setTimeout(() => {
                     notification.remove();
                     
-                    // Remove container if empty
                     if (notificationContainer.children.length === 0) {
                         notificationContainer.remove();
                     }
@@ -916,14 +879,12 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
         
-        // Auto-remove after 6 seconds
         setTimeout(() => {
             if (notification.parentNode) {
                 notification.classList.add('closing');
                 setTimeout(() => {
                     notification.remove();
                     
-                    // Remove container if empty
                     if (notificationContainer && notificationContainer.children.length === 0) {
                         notificationContainer.remove();
                     }
@@ -932,14 +893,20 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 6000);
     }
 
-    // Track form changes and handle navigation
+    /**
+     * Sets up tracking of unsaved form changes
+     * Warns users before leaving the page if changes have not been saved
+     */
     function setupUnsavedChangesTracking() {
         let formChanged = false;
         const formInputs = document.querySelectorAll('input, select, textarea');
         const cancelButton = document.getElementById('cancel-btn');
         const initialFormState = captureFormState();
         
-        // Capture the initial state of the form
+        /**
+         * Captures the initial state of all form inputs
+         * @returns {Object} Form state with input IDs as keys and their values
+         */
         function captureFormState() {
             const state = {};
             formInputs.forEach(input => {
@@ -952,7 +919,10 @@ document.addEventListener('DOMContentLoaded', function() {
             return state;
         }
         
-        // Check if the form state has changed
+        /**
+         * Checks if the form state has changed from the initial state
+         * @returns {boolean} True if the form has changed, false otherwise
+         */
         function hasFormChanged() {
             const currentState = captureFormState();
             for (const key in currentState) {
@@ -963,7 +933,6 @@ document.addEventListener('DOMContentLoaded', function() {
             return false;
         }
         
-        // Track changes to form inputs
         formInputs.forEach(input => {
             input.addEventListener('change', function() {
                 formChanged = hasFormChanged();
@@ -974,7 +943,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
         
-        // Handle cancel button click
         if (cancelButton) {
             cancelButton.addEventListener('click', function(e) {
                 if (formChanged) {
@@ -986,11 +954,9 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
         
-        // Handle clicks on sidebar links or other navigation
         document.addEventListener('click', function(e) {
             const link = e.target.closest('a');
             
-            // Ignore submission buttons and same-page links
             if (link && 
                 !link.classList.contains('btn-success') && 
                 !link.getAttribute('href').startsWith('#')) {
@@ -1003,15 +969,16 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        // Show the unsaved changes popup
+        /**
+         * Shows a popup warning about unsaved changes
+         * @param {string} targetUrl - URL to navigate to if changes are discarded
+         */
         function showUnsavedChangesPopup(targetUrl = '/patient/list') {
-            // Remove any existing popup
             const existingPopup = document.querySelector('.unsaved-changes-popup');
             if (existingPopup) {
                 existingPopup.remove();
             }
             
-            // Create the popup
             const popup = document.createElement('div');
             popup.className = 'unsaved-changes-popup';
             
@@ -1035,7 +1002,6 @@ document.addEventListener('DOMContentLoaded', function() {
             
             document.body.appendChild(popup);
             
-            // Add event listeners
             const cancelButton = popup.querySelector('.unsaved-changes-cancel');
             const discardButton = popup.querySelector('.unsaved-changes-discard');
             
@@ -1044,7 +1010,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             
             discardButton.addEventListener('click', function() {
-                // Redirect to the target URL
                 window.location.href = targetUrl;
             });
         }

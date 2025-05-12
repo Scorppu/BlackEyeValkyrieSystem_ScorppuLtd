@@ -1,25 +1,19 @@
 /**
- * Global error handler to prevent uncaught exceptions from causing page crashes
- * @param {ErrorEvent} event - The error event object
- * @returns {boolean} - Always returns true to prevent default error handling
+ * Theme handling module for managing site appearance
+ * Provides functionality for toggling between light and dark themes
+ * and persisting user preferences across sessions
  */
+
 window.addEventListener('error', function(event) {
     console.error('JavaScript Error:', event.error);
     event.preventDefault();
     return true;
 });
 
-/**
- * Initializes and handles theme toggle functionality
- * Sets up theme toggle buttons, applies saved theme preferences,
- * and handles theme switching interactions
- */
 document.addEventListener('DOMContentLoaded', function() {
-    // Get the theme toggle button
     const themeToggleBtn = document.getElementById('theme-toggle-button');
     if (!themeToggleBtn) return;
     
-    // Get theme elements
     const moonIcon = themeToggleBtn.querySelector('.moon-icon');
     const sunIcon = themeToggleBtn.querySelector('.sun-icon');
     const themeLabel = themeToggleBtn.querySelector('.theme-label');
@@ -29,7 +23,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
     
-    // Apply saved theme preference
     const savedTheme = localStorage.getItem('theme');
     
     if (savedTheme === 'dark') {
@@ -48,7 +41,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Theme toggle button click handler
     themeToggleBtn.addEventListener('click', function() {
         document.documentElement.classList.toggle('light-mode');
         
@@ -68,4 +60,4 @@ document.addEventListener('DOMContentLoaded', function() {
         
         console.log('Theme toggled:', isLightMode ? 'light' : 'dark');
     });
-}); 
+});

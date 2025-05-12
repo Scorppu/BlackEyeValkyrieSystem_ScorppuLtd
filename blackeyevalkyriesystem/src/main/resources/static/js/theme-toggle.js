@@ -1,34 +1,37 @@
-// Theme toggling functionality
+/**
+ * Theme toggling functionality module
+ * This module handles the creation and functionality of the theme toggle button
+ * that allows users to switch between light and dark modes.
+ */
+
 document.addEventListener('DOMContentLoaded', function() {
-    // Ensure visibility when DOM is fully loaded
     document.documentElement.classList.add('theme-initialized');
     
-    // Check if a theme toggle button exists before creating one
     if (!document.getElementById('theme-toggle-button')) {
         console.log('No theme toggle button found, creating one');
         createThemeToggleButton();
     }
 });
 
-// Function to create and append the theme toggle button
+/**
+ * Creates and appends the theme toggle button to the sidebar
+ * The button includes both sun and moon icons for light/dark modes
+ * and a text label indicating the action that will be taken on click.
+ */
 function createThemeToggleButton() {
-    // Create the container
     const themeToggle = document.createElement('div');
     themeToggle.className = 'theme-toggle';
     
-    // Create the button
     const button = document.createElement('button');
     button.id = 'theme-toggle-button';
     button.setAttribute('aria-label', 'Toggle Light/Dark Mode');
     
-    // Create moon icon
     const moonIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     moonIcon.setAttribute('width', '16');
     moonIcon.setAttribute('height', '16');
     moonIcon.setAttribute('viewBox', '0 0 16 16');
     moonIcon.setAttribute('fill', 'none');
     
-    // Add moon group
     const moonGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     moonGroup.setAttribute('class', 'moon-icon');
     
@@ -41,19 +44,16 @@ function createThemeToggleButton() {
     moonGroup.appendChild(moonPath);
     moonIcon.appendChild(moonGroup);
     
-    // Create sun icon
     const sunIcon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     sunIcon.setAttribute('width', '16');
     sunIcon.setAttribute('height', '16');
     sunIcon.setAttribute('viewBox', '0 0 16 16');
     sunIcon.setAttribute('fill', 'none');
     
-    // Add sun group
     const sunGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     sunGroup.setAttribute('class', 'sun-icon');
     sunGroup.style.display = 'none';
     
-    // Add paths for sun icon
     const sunPaths = [
         'M8 11.5C9.933 11.5 11.5 9.933 11.5 8C11.5 6.067 9.933 4.5 8 4.5C6.067 4.5 4.5 6.067 4.5 8C4.5 9.933 6.067 11.5 8 11.5Z',
         'M8 1.5V2.5',
@@ -77,20 +77,16 @@ function createThemeToggleButton() {
     
     sunIcon.appendChild(sunGroup);
     
-    // Create label
     const label = document.createElement('span');
     label.className = 'theme-label';
     label.textContent = 'Switch to Light Mode';
     
-    // Append elements to button
     button.appendChild(moonIcon);
     button.appendChild(sunIcon);
     button.appendChild(label);
     
-    // Append button to container
     themeToggle.appendChild(button);
     
-    // Find the sidebar and append the theme toggle
     const sidebar = document.querySelector('.sidebar');
     if (sidebar) {
         sidebar.appendChild(themeToggle);
@@ -98,4 +94,4 @@ function createThemeToggleButton() {
     } else {
         console.error('Sidebar not found, cannot add theme toggle button');
     }
-} 
+}
