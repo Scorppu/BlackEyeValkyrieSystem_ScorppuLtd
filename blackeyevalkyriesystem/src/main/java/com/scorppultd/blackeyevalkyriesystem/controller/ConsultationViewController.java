@@ -37,6 +37,12 @@ import com.scorppultd.blackeyevalkyriesystem.service.PrescriptionService;
 import com.scorppultd.blackeyevalkyriesystem.model.Appointment;
 import com.scorppultd.blackeyevalkyriesystem.service.AppointmentService;
 
+/**
+ * Controller for managing consultation views in the system.
+ * Provides web pages for viewing consultation queue, creating consultations, 
+ * and saving consultation data with prescriptions.
+ * Access is restricted to users with DOCTOR or ADMIN roles.
+ */
 @Controller
 @RequestMapping("/consultation")
 @PreAuthorize("hasAnyRole('DOCTOR', 'ADMIN')")
@@ -49,6 +55,16 @@ public class ConsultationViewController {
     private final DrugService drugService;
     private final AppointmentService appointmentService;
 
+    /**
+     * Constructor for ConsultationViewController.
+     * 
+     * @param consultationService The service that handles consultation business logic
+     * @param patientService The service that handles patient business logic
+     * @param doctorService The service that handles doctor business logic
+     * @param prescriptionService The service that handles prescription business logic
+     * @param drugService The service that handles drug business logic
+     * @param appointmentService The service that handles appointment business logic
+     */
     @Autowired
     public ConsultationViewController(
             ConsultationService consultationService,
@@ -66,7 +82,10 @@ public class ConsultationViewController {
     }
 
     /**
-     * Helper method to get the last visit date from a patient's visits list
+     * Helper method to get the last visit date from a patient's visits list.
+     * 
+     * @param patient The patient whose last visit date is being retrieved
+     * @return The date of the patient's most recent visit, or null if no visits exist
      */
     public LocalDate getLastVisitDate(Patient patient) {
         if (patient.getVisits() != null && !patient.getVisits().isEmpty()) {
@@ -77,7 +96,11 @@ public class ConsultationViewController {
     }
 
     /**
-     * Display the consultation queue page
+     * Displays the consultation queue page showing overdue and upcoming appointments.
+     * For doctors, only shows their own appointments. For admins, shows all appointments.
+     * 
+     * @param model The Spring MVC model for passing data to the view
+     * @return The name of the view template to render
      */
     @GetMapping
     public String showConsultationQueue(Model model) {
@@ -263,7 +286,14 @@ public class ConsultationViewController {
     }
 
     /**
-     * Display the consultation create page for a specific patient
+     * Displays the consultation creation page for a specific patient.
+     * If appointmentId is provided, tries to find an existing consultation for that appointment.
+     * If not found, creates a new consultation based on the appointment or from scratch.
+     * 
+     * @param patientId The ID of the patient for whom to create a consultation
+     * @param appointmentId Optional ID of an appointment to associate with the consultation
+     * @param model The Spring MVC model for passing data to the view
+     * @return The name of the view template to render, or a redirect URL if patient not found
      */
     @GetMapping("/create/{patientId}")
     public String showConsultationCreate(@PathVariable String patientId, 
@@ -351,7 +381,11 @@ public class ConsultationViewController {
     }
     
     /**
-     * Helper method to add drug-related information to the model
+     * Helper method to add drug-related information to the model for the consultation view.
+     * Adds drug templates, all drugs from the database, and diagnostic information 
+     * about drug counts.
+     * 
+     * @param model The Spring MVC model to which the drug information will be added
      */
     private void addDrugInfoToModel(Model model) {
         // Add drug templates
@@ -384,7 +418,11 @@ public class ConsultationViewController {
     }
 
     /**
-     * Helper method to create a new consultation
+     * Helper method to create a new consultation with default values.
+     * Sets basic consultation properties including default vital signs.
+     * 
+     * @param patient The patient for whom to create the consultation
+     * @return A newly created and persisted Consultation object
      */
     private Consultation createNewConsultation(Patient patient) {
         Consultation consultation = new Consultation();
@@ -417,7 +455,16 @@ public class ConsultationViewController {
     }
 
     /**
-     * Save a consultation
+     * Handles the submission of a consultation form, saving the consultation and any associated prescriptions.
+     * Updates the consultation's clinical notes, diagnosis, and vital signs.
+     * If prescription data is provided, creates a new prescription and links it to the consultation.
+     * 
+     * @param consultation The consultation object from the form submission
+     * @param drugIds Array of drug IDs for the prescription
+     * @param drugDosages Array of dosages for each drug
+     * @param drugDurations Array of durations for each drug
+     * @param drugQuantities Array of quantities for each drug
+     * @return A redirect URL to the consultation queue page with success or error parameters
      */
     @PostMapping("/save")
     public String saveConsultation(

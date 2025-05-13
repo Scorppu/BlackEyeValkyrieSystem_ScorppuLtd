@@ -22,7 +22,11 @@ import com.scorppultd.blackeyevalkyriesystem.service.PatientService;
 import com.scorppultd.blackeyevalkyriesystem.service.ConsultationService;
 
 /**
- * Controller for handling patient-related views and operations
+ * Controller for handling patient-related views and operations in the web interface.
+ * This controller manages the UI for creating, viewing, editing, and deleting patients,
+ * as well as displaying patient lists with sorting and pagination capabilities.
+ * It interacts with PatientService, DrugService, and ConsultationService to retrieve
+ * and manipulate the necessary data.
  */
 @Controller
 @RequestMapping("/patient")
@@ -40,7 +44,12 @@ public class PatientViewController {
     }
 
     /**
-     * Display patient creation form
+     * Displays the patient creation form.
+     * Fetches all drugs for the allergies dropdown and creates a map
+     * of drug IDs to drug names for displaying in the UI.
+     * 
+     * @param model The Spring MVC model to add attributes to
+     * @return The view name for creating a patient
      */
     @GetMapping("/create")
     public String createPatient(Model model) {
@@ -63,7 +72,15 @@ public class PatientViewController {
     }
 
     /**
-     * Display patient list with sorting options
+     * Displays the patient list with sorting and pagination options.
+     * Calculates statistics about admitted and discharged patients.
+     * 
+     * @param sortBy The field to sort by (defaults to "lastName")
+     * @param direction The sort direction, either "asc" or "desc" (defaults to "asc")
+     * @param page The current page number (1-based, defaults to 1)
+     * @param rowsPerPage The number of rows per page (defaults to 10)
+     * @param model The Spring MVC model to add attributes to
+     * @return The view name for patient list
      */
     @GetMapping("/list")
     public String listPatients(
@@ -118,7 +135,12 @@ public class PatientViewController {
     }
 
     /**
-     * Display patient edit form
+     * Displays the patient edit form for an existing patient.
+     * Fetches the patient by ID and prepares drug data for allergies.
+     * 
+     * @param id The unique identifier of the patient to edit
+     * @param model The Spring MVC model to add attributes to
+     * @return The view name for editing a patient or redirects to patient list if not found
      */
     @GetMapping("/edit/{id}")
     public String editPatient(@PathVariable String id, Model model) {
@@ -148,7 +170,13 @@ public class PatientViewController {
     }
 
     /**
-     * Display patient details
+     * Displays detailed patient information including past consultations.
+     * Fetches the patient by ID, prepares drug data for allergies display,
+     * and retrieves the 10 most recent completed consultations sorted by date.
+     * 
+     * @param id The unique identifier of the patient to view
+     * @param model The Spring MVC model to add attributes to
+     * @return The view name for patient profile or redirects to patient list if not found
      */
     @GetMapping("/view/{id}")
     public String viewPatient(@PathVariable("id") String id, Model model) {
@@ -196,7 +224,10 @@ public class PatientViewController {
     }
 
     /**
-     * Delete a patient
+     * Deletes a patient by ID.
+     * 
+     * @param id The unique identifier of the patient to delete
+     * @return Redirects to the patient list view
      */
     @GetMapping("/delete/{id}")
     public String deletePatient(@PathVariable String id) {

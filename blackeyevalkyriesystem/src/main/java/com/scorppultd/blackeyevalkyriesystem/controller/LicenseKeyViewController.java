@@ -30,7 +30,13 @@ import java.util.stream.Collectors;
 import jakarta.servlet.http.HttpServletRequest;
 
 /**
- * Controller for license key management views (admin only)
+ * Controller for license key management views.
+ *
+ * This controller handles all administrator operations related to license key management including:
+ * viewing, filtering, and sorting license keys; editing existing license keys (status, role, expiration);
+ * generating new license keys with specified roles and expiration; and deleting license keys.
+ *
+ * Access to all endpoints is restricted to users with ADMIN role via Spring Security.
  */
 @Controller
 @RequestMapping("/licenses")
@@ -41,6 +47,13 @@ public class LicenseKeyViewController {
     private final UserService userService;
     private final LicenseKeyRepository licenseKeyRepository;
 
+    /**
+     * Creates a new instance of the LicenseKeyViewController.
+     * 
+     * @param licenseKeyService Service for license key operations
+     * @param userService Service for user operations
+     * @param licenseKeyRepository Repository for direct license key database access
+     */
     @Autowired
     public LicenseKeyViewController(LicenseKeyService licenseKeyService, UserService userService, LicenseKeyRepository licenseKeyRepository) {
         this.licenseKeyService = licenseKeyService;
@@ -49,16 +62,20 @@ public class LicenseKeyViewController {
     }
 
     /**
-     * View all license keys with optional sorting and filtering
+     * Displays the license keys management page with sorting, filtering, and pagination.
+     *
+     * This method first checks for and deactivates expired license keys, then retrieves
+     * all license keys applying any filters and sorting as specified. It also handles pagination
+     * and retrieves user information for assigned license keys.
      * 
-     * @param model The model
-     * @param sortOrder The sort order (asc or desc)
-     * @param statusFilter Filter by status
-     * @param roleFilter Filter by role
-     * @param request The HTTP request
-     * @param currentPage Current page for pagination
-     * @param rowsPerPage Number of items per page
-     * @return The license keys view
+     * @param model The Spring MVC model to add attributes to
+     * @param sortOrder The sort order for the license keys (asc or desc) by expiration date
+     * @param statusFilter Optional filter to show only license keys with a specific status
+     * @param roleFilter Optional filter to show only license keys with a specific role
+     * @param request The HTTP request for sidebar navigation
+     * @param currentPage Current page number for pagination
+     * @param rowsPerPage Number of license keys to display per page
+     * @return The name of the template to render (license-keys.html)
      */
     @GetMapping
     public String viewLicenseKeys(
@@ -191,11 +208,16 @@ public class LicenseKeyViewController {
     }
 
     /**
-     * View for editing a license key
+     * Displays the form for editing a specific license key.
+     *
+     * Retrieves the license key by ID and populates the edit form with its current values.
+     * Also retrieves and displays the user information if the license key is assigned to a user.
+     * Provides status and role options for the form.
      * 
-     * @param id The license key ID
-     * @param model The model
-     * @return The edit license key view
+     * @param id The license key ID to edit
+     * @param model The Spring MVC model to add attributes to
+     * @param redirectAttributes For passing flash messages on redirect
+     * @return The edit-license-key template or redirect to licenses list if key not found
      */
     @GetMapping("/edit/{id}")
     public String editLicenseKey(@PathVariable String id, Model model, RedirectAttributes redirectAttributes) {
@@ -234,14 +256,17 @@ public class LicenseKeyViewController {
     }
 
     /**
-     * Process license key edit form
+     * Processes the license key edit form submission.
+     *
+     * Updates the specified license key with new values for status, role, and expiration date.
+     * Performs validation on the expiration date format if provided.
      * 
-     * @param id The license key ID
-     * @param status The new status
-     * @param role The new role
-     * @param expiresOn The new expiry date 
-     * @param redirectAttributes For flash messages
-     * @return Redirect to the license keys list
+     * @param id The ID of the license key to update
+     * @param status The new status value for the license key
+     * @param role The new role value for the license key
+     * @param expiresOn The new expiration date (optional, in ISO format YYYY-MM-DD)
+     * @param redirectAttributes For passing flash messages on redirect
+     * @return Redirect to the licenses list or back to edit form on error
      */
     @PostMapping("/edit/{id}")
     public String updateLicenseKey(
@@ -294,10 +319,12 @@ public class LicenseKeyViewController {
     }
 
     /**
-     * View for generating new license keys
+     * Displays the form for generating new license keys.
+     *
+     * Provides role options for the form.
      * 
-     * @param model The model
-     * @return The generate license key view
+     * @param model The Spring MVC model to add attributes to
+     * @return The generate-license-key template
      */
     @GetMapping("/generate")
     public String generateLicenseKeyView(Model model) {
@@ -312,13 +339,16 @@ public class LicenseKeyViewController {
     }
     
     /**
-     * Create new license key
+     * Processes the license key generation form submission.
+     *
+     * Creates a new license key with the specified role and expiration settings.
+     * Validates the role and handles various expiration options including custom dates.
      * 
-     * @param role The role for the license key
-     * @param expiryOption The expiry option
-     * @param customDate The custom expiry date (if applicable)
-     * @param redirectAttributes Redirect attributes
-     * @return Redirect to license key list
+     * @param role The role for the new license key (admin, doctor, or nurse)
+     * @param expiryOption The expiration option (7days, 30days, 90days, 180days, 365days, noexpiry, or custom)
+     * @param customDate The custom expiration date if expiryOption is "custom" (in ISO format YYYY-MM-DD)
+     * @param redirectAttributes For passing flash messages on redirect
+     * @return Redirect to the licenses list or back to generation form on error
      */
     @PostMapping("/generate")
     public String generateLicenseKeySubmit(
@@ -407,11 +437,13 @@ public class LicenseKeyViewController {
     }
 
     /**
-     * Delete a license key
+     * Processes a request to delete a license key.
+     *
+     * Finds the license key by ID and deletes it if found.
      * 
-     * @param id The license key ID
-     * @param redirectAttributes For flash messages
-     * @return Redirect to the license keys list
+     * @param id The ID of the license key to delete
+     * @param redirectAttributes For passing flash messages on redirect
+     * @return Redirect to the licenses list
      */
     @PostMapping("/delete/{id}")
     public String deleteLicenseKey(@PathVariable String id, RedirectAttributes redirectAttributes) {
@@ -435,9 +467,12 @@ public class LicenseKeyViewController {
     }
 
     /**
-     * Safely formats a date for display
+     * Utility method to safely format a date for display.
+     *
+     * Handles null dates and formatting exceptions.
+     *
      * @param date The date to format
-     * @return Formatted date string or empty string if date is null
+     * @return Formatted date string in YYYY-MM-DD format or empty string if date is null or formatting fails
      */
     private String safeFormatDate(LocalDate date) {
         if (date == null) {

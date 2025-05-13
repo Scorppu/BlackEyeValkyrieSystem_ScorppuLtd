@@ -18,19 +18,36 @@ import com.scorppultd.blackeyevalkyriesystem.model.Prescription;
 import com.scorppultd.blackeyevalkyriesystem.service.ConsultationService;
 import com.scorppultd.blackeyevalkyriesystem.service.PrescriptionService;
 
+/**
+ * REST controller for managing consultations in the system.
+ * Provides endpoints for creating, retrieving, updating, and deleting consultations,
+ * as well as more specialized operations like adding prescriptions and managing vital signs.
+ */
 @RestController
 @RequestMapping("/api/consultations")
 public class ConsultationController {
 
     private final ConsultationService consultationService;
 
+    /**
+     * Constructor for ConsultationController.
+     * 
+     * @param consultationService The service that handles consultation business logic
+     * @param prescriptionService The service that handles prescription business logic
+     */
     @Autowired
     public ConsultationController(ConsultationService consultationService, 
                                  PrescriptionService prescriptionService) {
         this.consultationService = consultationService;
     }
 
-    // Create a new consultation
+    /**
+     * Creates a new consultation.
+     * Access restricted to DOCTOR and ADMIN roles.
+     * 
+     * @param consultation The consultation object to create
+     * @return ResponseEntity containing the created consultation
+     */
     @PostMapping
     @PreAuthorize("hasAnyRole('DOCTOR', 'ADMIN')")
     public ResponseEntity<Consultation> createConsultation(@RequestBody Consultation consultation) {
@@ -38,7 +55,13 @@ public class ConsultationController {
         return new ResponseEntity<>(createdConsultation, HttpStatus.CREATED);
     }
 
-    // Get consultation by ID
+    /**
+     * Retrieves a consultation by its ID.
+     * Access restricted to DOCTOR, NURSE, and ADMIN roles.
+     * 
+     * @param id The ID of the consultation to retrieve
+     * @return ResponseEntity containing the consultation if found, or NOT_FOUND status
+     */
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('DOCTOR', 'NURSE', 'ADMIN')")
     public ResponseEntity<Consultation> getConsultationById(@PathVariable String id) {
@@ -47,7 +70,12 @@ public class ConsultationController {
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
-    // Get all consultations
+    /**
+     * Retrieves all consultations.
+     * Access restricted to ADMIN role only.
+     * 
+     * @return ResponseEntity containing a list of all consultations
+     */
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<Consultation>> getAllConsultations() {
@@ -55,7 +83,14 @@ public class ConsultationController {
         return new ResponseEntity<>(consultations, HttpStatus.OK);
     }
 
-    // Update a consultation
+    /**
+     * Updates an existing consultation.
+     * Access restricted to DOCTOR and ADMIN roles.
+     * 
+     * @param id The ID of the consultation to update
+     * @param consultation The updated consultation object
+     * @return ResponseEntity containing the updated consultation, or BAD_REQUEST if IDs don't match
+     */
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('DOCTOR', 'ADMIN')")
     public ResponseEntity<Consultation> updateConsultation(@PathVariable String id, 
@@ -69,7 +104,13 @@ public class ConsultationController {
         return new ResponseEntity<>(updatedConsultation, HttpStatus.OK);
     }
 
-    // Delete a consultation
+    /**
+     * Deletes a consultation by its ID.
+     * Access restricted to ADMIN role only.
+     * 
+     * @param id The ID of the consultation to delete
+     * @return ResponseEntity with NO_CONTENT status if successful
+     */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteConsultation(@PathVariable String id) {
@@ -77,7 +118,13 @@ public class ConsultationController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    // Get consultations by doctor ID
+    /**
+     * Retrieves all consultations for a specific doctor.
+     * Access restricted to DOCTOR and ADMIN roles.
+     * 
+     * @param doctorId The ID of the doctor
+     * @return ResponseEntity containing a list of the doctor's consultations
+     */
     @GetMapping("/doctor/{doctorId}")
     @PreAuthorize("hasAnyRole('DOCTOR', 'ADMIN')")
     public ResponseEntity<List<Consultation>> getConsultationsByDoctor(@PathVariable String doctorId) {
@@ -85,7 +132,13 @@ public class ConsultationController {
         return new ResponseEntity<>(consultations, HttpStatus.OK);
     }
 
-    // Get consultations by patient ID
+    /**
+     * Retrieves all consultations for a specific patient.
+     * Access restricted to DOCTOR, NURSE, and ADMIN roles.
+     * 
+     * @param patientId The ID of the patient
+     * @return ResponseEntity containing a list of the patient's consultations
+     */
     @GetMapping("/patient/{patientId}")
     @PreAuthorize("hasAnyRole('DOCTOR', 'NURSE', 'ADMIN')")
     public ResponseEntity<List<Consultation>> getConsultationsByPatient(@PathVariable String patientId) {
@@ -93,7 +146,14 @@ public class ConsultationController {
         return new ResponseEntity<>(consultations, HttpStatus.OK);
     }
 
-    // Get consultations by date range
+    /**
+     * Retrieves all consultations within a specified date range.
+     * Access restricted to DOCTOR and ADMIN roles.
+     * 
+     * @param start The start date and time of the range
+     * @param end The end date and time of the range
+     * @return ResponseEntity containing a list of consultations within the date range
+     */
     @GetMapping("/date-range")
     @PreAuthorize("hasAnyRole('DOCTOR', 'ADMIN')")
     public ResponseEntity<List<Consultation>> getConsultationsInDateRange(
@@ -103,7 +163,13 @@ public class ConsultationController {
         return new ResponseEntity<>(consultations, HttpStatus.OK);
     }
 
-    // Get consultations by status
+    /**
+     * Retrieves all consultations with a specific status.
+     * Access restricted to DOCTOR, NURSE, and ADMIN roles.
+     * 
+     * @param status The status to filter consultations by
+     * @return ResponseEntity containing a list of consultations with the specified status
+     */
     @GetMapping("/status/{status}")
     @PreAuthorize("hasAnyRole('DOCTOR', 'NURSE', 'ADMIN')")
     public ResponseEntity<List<Consultation>> getConsultationsByStatus(@PathVariable String status) {
@@ -111,7 +177,14 @@ public class ConsultationController {
         return new ResponseEntity<>(consultations, HttpStatus.OK);
     }
 
-    // Update consultation status
+    /**
+     * Updates the status of an existing consultation.
+     * Access restricted to DOCTOR and ADMIN roles.
+     * 
+     * @param id The ID of the consultation to update
+     * @param status The new status to set
+     * @return ResponseEntity containing the updated consultation
+     */
     @PatchMapping("/{id}/status")
     @PreAuthorize("hasAnyRole('DOCTOR', 'ADMIN')")
     public ResponseEntity<Consultation> updateConsultationStatus(@PathVariable String id, 
@@ -120,7 +193,14 @@ public class ConsultationController {
         return new ResponseEntity<>(updatedConsultation, HttpStatus.OK);
     }
 
-    // Add diagnosis to consultation
+    /**
+     * Adds or updates the diagnosis for a consultation.
+     * Access restricted to DOCTOR role only.
+     * 
+     * @param id The ID of the consultation to update
+     * @param diagnosis The diagnosis to add
+     * @return ResponseEntity with CREATED status if successful
+     */
     @PostMapping("/{id}/diagnosis")
     @PreAuthorize("hasRole('DOCTOR')")
     public ResponseEntity<Void> updateDiagnosis(@PathVariable String id, 
@@ -129,7 +209,13 @@ public class ConsultationController {
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
-    // Get consultations by diagnosis
+    /**
+     * Retrieves all consultations with a specific diagnosis.
+     * Access restricted to DOCTOR and ADMIN roles.
+     * 
+     * @param diagnosis The diagnosis to filter consultations by
+     * @return ResponseEntity containing a list of consultations with the specified diagnosis
+     */
     @GetMapping("/diagnosis/{diagnosis}")
     @PreAuthorize("hasAnyRole('DOCTOR', 'ADMIN')")
     public ResponseEntity<List<Consultation>> getConsultationsByDiagnosis(@PathVariable String diagnosis) {
@@ -137,7 +223,14 @@ public class ConsultationController {
         return new ResponseEntity<>(consultations, HttpStatus.OK);
     }
 
-    // Add prescription to consultation
+    /**
+     * Adds a prescription to an existing consultation.
+     * Access restricted to DOCTOR role only.
+     * 
+     * @param id The ID of the consultation to update
+     * @param prescription The prescription to add
+     * @return ResponseEntity containing the updated consultation
+     */
     @PostMapping("/{id}/prescription")
     @PreAuthorize("hasRole('DOCTOR')")
     public ResponseEntity<Consultation> addPrescriptionToConsultation(@PathVariable String id, 
@@ -146,7 +239,12 @@ public class ConsultationController {
         return new ResponseEntity<>(updatedConsultation, HttpStatus.CREATED);
     }
 
-    // Get consultations with prescriptions
+    /**
+     * Retrieves all consultations that have prescriptions.
+     * Access restricted to DOCTOR, PHARMACIST, and ADMIN roles.
+     * 
+     * @return ResponseEntity containing a list of consultations with prescriptions
+     */
     @GetMapping("/with-prescriptions")
     @PreAuthorize("hasAnyRole('DOCTOR', 'PHARMACIST', 'ADMIN')")
     public ResponseEntity<List<Consultation>> getConsultationsWithPrescriptions() {
@@ -154,7 +252,13 @@ public class ConsultationController {
         return new ResponseEntity<>(consultations, HttpStatus.OK);
     }
 
-    // Get recent consultations by patient
+    /**
+     * Retrieves recent consultations for a specific patient.
+     * Access restricted to DOCTOR, NURSE, and ADMIN roles.
+     * 
+     * @param patientId The ID of the patient
+     * @return ResponseEntity containing a list of the patient's recent consultations
+     */
     @GetMapping("/recent/patient/{patientId}")
     @PreAuthorize("hasAnyRole('DOCTOR', 'NURSE', 'ADMIN')")
     public ResponseEntity<List<Consultation>> getRecentConsultationsByPatient(@PathVariable String patientId) {
@@ -162,7 +266,13 @@ public class ConsultationController {
         return new ResponseEntity<>(consultations, HttpStatus.OK);
     }
 
-    // Get consultations for follow-up
+    /**
+     * Retrieves consultations that need follow-up on a specific date.
+     * Access restricted to DOCTOR and NURSE roles.
+     * 
+     * @param followUpDate The date to check for follow-ups
+     * @return ResponseEntity containing a list of consultations needing follow-up
+     */
     @GetMapping("/follow-up")
     @PreAuthorize("hasAnyRole('DOCTOR', 'NURSE')")
     public ResponseEntity<List<Consultation>> getConsultationsForFollowUp(
@@ -171,7 +281,15 @@ public class ConsultationController {
         return new ResponseEntity<>(consultations, HttpStatus.OK);
     }
 
-    // Get doctor consultations for period
+    /**
+     * Retrieves a doctor's consultations within a specified time period.
+     * Access restricted to DOCTOR and ADMIN roles.
+     * 
+     * @param doctorId The ID of the doctor
+     * @param start The start date and time of the period
+     * @param end The end date and time of the period
+     * @return ResponseEntity containing a list of the doctor's consultations within the period
+     */
     @GetMapping("/doctor/{doctorId}/period")
     @PreAuthorize("hasAnyRole('DOCTOR', 'ADMIN')")
     public ResponseEntity<List<Consultation>> getDoctorConsultationsForPeriod(
@@ -182,7 +300,13 @@ public class ConsultationController {
         return new ResponseEntity<>(consultations, HttpStatus.OK);
     }
 
-    // Get consultation by appointment ID
+    /**
+     * Retrieves a consultation by its associated appointment ID.
+     * Access restricted to DOCTOR, NURSE, and ADMIN roles.
+     * 
+     * @param appointmentId The ID of the associated appointment
+     * @return ResponseEntity containing the consultation if found, or NOT_FOUND status
+     */
     @GetMapping("/appointment/{appointmentId}")
     @PreAuthorize("hasAnyRole('DOCTOR', 'NURSE', 'ADMIN')")
     public ResponseEntity<Consultation> getConsultationByAppointmentId(@PathVariable String appointmentId) {
@@ -191,7 +315,13 @@ public class ConsultationController {
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
-    // Create consultation from appointment
+    /**
+     * Creates a new consultation from an existing appointment.
+     * Access restricted to DOCTOR and ADMIN roles.
+     * 
+     * @param appointmentId The ID of the appointment to create the consultation from
+     * @return ResponseEntity containing the created consultation, or NOT_FOUND if appointment not found
+     */
     @PostMapping("/from-appointment/{appointmentId}")
     @PreAuthorize("hasAnyRole('DOCTOR', 'ADMIN')")
     public ResponseEntity<Consultation> createConsultationFromAppointment(@PathVariable String appointmentId) {
@@ -204,7 +334,12 @@ public class ConsultationController {
     }
 
     /**
-     * Update the vital signs of a consultation
+     * Updates the vital signs of a consultation.
+     * Access restricted to DOCTOR and ADMIN roles.
+     * 
+     * @param id The ID of the consultation to update
+     * @param vitalSigns The vital signs data to update
+     * @return ResponseEntity containing the updated consultation, or NOT_FOUND if consultation not found
      */
     @PutMapping("/{id}/vital-signs")
     @PreAuthorize("hasAnyRole('DOCTOR', 'ADMIN')")

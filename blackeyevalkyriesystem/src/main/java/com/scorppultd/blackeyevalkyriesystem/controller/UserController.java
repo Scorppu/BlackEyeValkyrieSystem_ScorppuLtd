@@ -21,6 +21,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * Controller for handling user-related web requests.
+ * Provides endpoints for listing, creating, editing, and deleting users.
+ * All endpoints are restricted to administrators.
+ */
 @Controller
 @RequestMapping("/user")
 public class UserController {
@@ -30,6 +35,17 @@ public class UserController {
     @Autowired
     private UserService userService;
 
+    /**
+     * Displays a paginated and sorted list of users.
+     * 
+     * @param model The Spring MVC model
+     * @param request The HTTP request
+     * @param sortBy Field to sort by (defaults to "lastName")
+     * @param direction Sort direction ("asc" or "desc", defaults to "asc")
+     * @param currentPage Current page number (defaults to 1)
+     * @param rowsPerPage Number of rows per page (defaults to 10)
+     * @return The view name for the user list page
+     */
     @GetMapping("/list")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public String listUsers(
@@ -67,6 +83,13 @@ public class UserController {
         return "user-list";
     }
     
+    /**
+     * Displays a form for creating a new user.
+     * 
+     * @param model The Spring MVC model
+     * @param request The HTTP request
+     * @return The view name for the user creation form
+     */
     @GetMapping("/create")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public String createUserForm(Model model, HttpServletRequest request) {
@@ -81,6 +104,16 @@ public class UserController {
         return "create-user";
     }
     
+    /**
+     * Displays a form for editing an existing user.
+     * If the user is not found, redirects back to the user list with an error message.
+     * 
+     * @param id The ID of the user to edit
+     * @param model The Spring MVC model
+     * @param request The HTTP request
+     * @param redirectAttributes Attributes for redirection
+     * @return The view name for the user edit form or a redirect to the user list
+     */
     @GetMapping("/edit/{id}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public String editUserForm(@PathVariable String id, Model model, HttpServletRequest request, RedirectAttributes redirectAttributes) {
@@ -101,6 +134,15 @@ public class UserController {
         return "create-user";
     }
     
+    /**
+     * Deletes a user by ID.
+     * If the user is not found or an error occurs, redirects back to the user list with an error message.
+     * 
+     * @param id The ID of the user to delete
+     * @param request The HTTP request
+     * @param redirectAttributes Attributes for redirection
+     * @return A redirect to the user list
+     */
     @GetMapping("/delete/{id}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public String deleteUser(@PathVariable String id, HttpServletRequest request, RedirectAttributes redirectAttributes) {
@@ -125,7 +167,10 @@ public class UserController {
     }
 }
 
-// RESTful API controller for User operations
+/**
+ * RESTful API controller for User operations.
+ * Provides endpoints for retrieving user counts, creating, and updating users.
+ */
 @RestController
 @RequestMapping("/api/users")
 class UserApiController {
@@ -138,6 +183,12 @@ class UserApiController {
     @Autowired
     private PasswordEncoder passwordEncoder;
     
+    /**
+     * Gets counts of users by role.
+     * Returns a map with total users, doctor count, and nurse count.
+     * 
+     * @return ResponseEntity containing a map of user counts or an error message
+     */
     @GetMapping("/counts")
     public ResponseEntity<?> getUserCounts() {
         try {
@@ -156,6 +207,14 @@ class UserApiController {
         }
     }
     
+    /**
+     * Creates a new user.
+     * Validates that the username is not reserved or already taken.
+     * Encrypts the password and sets creation date and active status.
+     * 
+     * @param user The user object containing details for the new user
+     * @return ResponseEntity containing the created user details or an error message
+     */
     @PostMapping
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<?> createUser(@RequestBody User user) {
@@ -208,6 +267,16 @@ class UserApiController {
         }
     }
     
+    /**
+     * Updates an existing user by ID.
+     * Checks if the user exists and prevents modification of reserved users.
+     * Only updates the password if a new one is provided.
+     * Preserves the original creation date.
+     * 
+     * @param id The ID of the user to update
+     * @param user The user object containing updated details
+     * @return ResponseEntity containing the updated user or an error message
+     */
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<?> updateUser(@PathVariable String id, @RequestBody User user) {

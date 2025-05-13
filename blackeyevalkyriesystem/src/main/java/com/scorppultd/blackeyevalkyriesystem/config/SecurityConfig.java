@@ -25,6 +25,17 @@ import com.scorppultd.blackeyevalkyriesystem.service.UserService;
 import java.util.Arrays;
 import java.util.Collections;
 
+/**
+ * Security configuration for the Black Eye Valkyrie System.
+ * This class configures Spring Security settings including:
+ * - HTTP security rules for endpoints
+ * - Authentication manager
+ * - User details service
+ * - Password encryption
+ * 
+ * It defines which endpoints are publicly accessible and which require authentication,
+ * along with role-based access control for certain endpoints.
+ */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
@@ -33,6 +44,13 @@ public class SecurityConfig {
     @Autowired
     private UserService userService;
 
+    /**
+     * Configures the security filter chain for HTTP requests.
+     * 
+     * @param http The HttpSecurity object to configure
+     * @return The built SecurityFilterChain
+     * @throws Exception If an error occurs during configuration
+     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -68,6 +86,13 @@ public class SecurityConfig {
         return http.build();
     }
     
+    /**
+     * Creates a UserDetailsService that retrieves user authentication information.
+     * First attempts to find the user in the database using the UserService.
+     * If database lookup fails and the username is "admin", creates a default admin user.
+     * 
+     * @return A custom UserDetailsService
+     */
     @Bean
     public UserDetailsService userDetailsService() {
         return username -> {
@@ -112,6 +137,12 @@ public class SecurityConfig {
         };
     }
     
+    /**
+     * Creates an AuthenticationManager that validates user credentials.
+     * Uses DaoAuthenticationProvider with the custom UserDetailsService and BCrypt password encoder.
+     * 
+     * @return The configured AuthenticationManager
+     */
     @Bean
     public AuthenticationManager authenticationManager() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
@@ -120,6 +151,11 @@ public class SecurityConfig {
         return new ProviderManager(authProvider);
     }
     
+    /**
+     * Creates a BCryptPasswordEncoder for secure password hashing.
+     * 
+     * @return The password encoder
+     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

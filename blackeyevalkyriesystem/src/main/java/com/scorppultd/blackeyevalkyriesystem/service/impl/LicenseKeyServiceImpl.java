@@ -15,7 +15,10 @@ import java.util.Random;
 import java.util.regex.Pattern;
 
 /**
- * Implementation of the LicenseKeyService interface
+ * Implementation of the LicenseKeyService interface.
+ * This service manages license key operations including creation, validation,
+ * expiration checks, assignment to users, and management functionalities.
+ * License keys follow a specific format (AAAA-BBBB-CCCC-DDDD) with alphanumeric characters.
  */
 @Service
 public class LicenseKeyServiceImpl implements LicenseKeyService {
@@ -27,11 +30,23 @@ public class LicenseKeyServiceImpl implements LicenseKeyService {
     
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(LicenseKeyServiceImpl.class);
 
+    /**
+     * Constructs a new LicenseKeyServiceImpl with the required repository.
+     *
+     * @param licenseKeyRepository The repository for license key operations
+     */
     @Autowired
     public LicenseKeyServiceImpl(LicenseKeyRepository licenseKeyRepository) {
         this.licenseKeyRepository = licenseKeyRepository;
     }
 
+    /**
+     * Validates a license key by checking its format, existence in the database,
+     * and whether it's expired or active.
+     *
+     * @param licenseKey The license key string to validate
+     * @return true if the license key is valid and active, false otherwise
+     */
     @Override
     public boolean validateLicenseKey(String licenseKey) {
         // First validate the format
@@ -90,6 +105,14 @@ public class LicenseKeyServiceImpl implements LicenseKeyService {
         return licenseKey != null && LICENSE_KEY_PATTERN.matcher(licenseKey).matches();
     }
 
+    /**
+     * Creates a new license key in the system after validating its format
+     * and ensuring it doesn't already exist.
+     *
+     * @param licenseKey The license key object to create
+     * @return The created license key
+     * @throws IllegalArgumentException if the key format is invalid or the key already exists
+     */
     @Override
     public LicenseKey createLicenseKey(LicenseKey licenseKey) {
         // Ensure the license key has the correct format
@@ -116,6 +139,13 @@ public class LicenseKeyServiceImpl implements LicenseKeyService {
         return licenseKeyRepository.save(licenseKey);
     }
 
+    /**
+     * Finds a license key by its key value and updates its status
+     * if it's expired.
+     *
+     * @param key The license key string to find
+     * @return An Optional containing the license key if found, or empty if not found
+     */
     @Override
     public Optional<LicenseKey> findByKey(String key) {
         Optional<LicenseKey> licenseKeyOpt = licenseKeyRepository.findByKey(key);
@@ -126,6 +156,13 @@ public class LicenseKeyServiceImpl implements LicenseKeyService {
         return licenseKeyOpt;
     }
 
+    /**
+     * Finds a license key by its ID and updates its status
+     * if it's expired.
+     *
+     * @param id The ID of the license key to find
+     * @return An Optional containing the license key if found, or empty if not found
+     */
     @Override
     public Optional<LicenseKey> findById(String id) {
         Optional<LicenseKey> licenseKeyOpt = licenseKeyRepository.findById(id);
@@ -136,11 +173,23 @@ public class LicenseKeyServiceImpl implements LicenseKeyService {
         return licenseKeyOpt;
     }
 
+    /**
+     * Retrieves all license keys from the repository.
+     *
+     * @return A list of all license keys
+     */
     @Override
     public List<LicenseKey> getAllLicenseKeys() {
         return licenseKeyRepository.findAll();
     }
 
+    /**
+     * Generates a new random license key in the format AAAA-BBBB-CCCC-DDDD
+     * using alphanumeric characters. Ensures the generated key doesn't already
+     * exist in the repository.
+     *
+     * @return A new unique license key string
+     */
     @Override
     public String generateLicenseKey() {
         StringBuilder licenseKeyBuilder = new StringBuilder();
@@ -168,6 +217,14 @@ public class LicenseKeyServiceImpl implements LicenseKeyService {
         return licenseKey;
     }
 
+    /**
+     * Assigns a license key to a specific user by updating the license key's
+     * issuedTo and user fields, and setting its status to USED.
+     *
+     * @param licenseKey The license key string to assign
+     * @param userId The ID of the user to assign the license key to
+     * @return true if assignment was successful, false if the key doesn't exist or is expired
+     */
     @Override
     public boolean assignLicenseKeyToUser(String licenseKey, String userId) {
         Optional<LicenseKey> licenseKeyOpt = licenseKeyRepository.findByKey(licenseKey);
@@ -190,6 +247,12 @@ public class LicenseKeyServiceImpl implements LicenseKeyService {
         return true;
     }
 
+    /**
+     * Deactivates a license key by setting its status to DEACTIVATED.
+     *
+     * @param licenseKey The license key string to deactivate
+     * @return true if deactivation was successful, false if the key doesn't exist
+     */
     @Override
     public boolean deactivateLicenseKey(String licenseKey) {
         Optional<LicenseKey> licenseKeyOpt = licenseKeyRepository.findByKey(licenseKey);
@@ -204,6 +267,11 @@ public class LicenseKeyServiceImpl implements LicenseKeyService {
         return true;
     }
     
+    /**
+     * Deletes a license key from the repository.
+     *
+     * @param licenseKey The license key object to delete
+     */
     @Override
     public void deleteLicenseKey(LicenseKey licenseKey) {
         licenseKeyRepository.delete(licenseKey);

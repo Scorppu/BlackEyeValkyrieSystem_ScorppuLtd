@@ -24,57 +24,121 @@ import com.scorppultd.blackeyevalkyriesystem.model.Drug;
 import com.scorppultd.blackeyevalkyriesystem.repository.DrugRepository;
 import com.scorppultd.blackeyevalkyriesystem.service.DrugService;
 
+/**
+ * Implementation of the DrugService interface that provides methods for managing drugs
+ * in the BlackEyeValkyrie system. This service handles CRUD operations, search functionality,
+ * CSV import/export, drug interaction management, and pagination support.
+ */
 @Service
 public class DrugServiceImpl implements DrugService {
 
     private static final Logger logger = LoggerFactory.getLogger(DrugServiceImpl.class);
     private final DrugRepository drugRepository;
     
+    /**
+     * Constructs a new DrugServiceImpl with the required repository.
+     *
+     * @param drugRepository Repository for Drug entity operations
+     */
     @Autowired
     public DrugServiceImpl(DrugRepository drugRepository) {
         this.drugRepository = drugRepository;
     }
     
+    /**
+     * Retrieves all drugs from the repository.
+     *
+     * @return A list of all drugs in the system
+     */
     @Override
     public List<Drug> getAllDrugs() {
         return drugRepository.findAll();
     }
     
+    /**
+     * Retrieves a drug by its ID.
+     *
+     * @param id The unique identifier of the drug
+     * @return An Optional containing the drug if found, or empty if not found
+     */
     @Override
     public Optional<Drug> getDrugById(String id) {
         return drugRepository.findById(id);
     }
     
+    /**
+     * Creates a new drug in the system.
+     *
+     * @param drug The drug entity to create
+     * @return The saved drug entity with generated ID
+     */
     @Override
     public Drug createDrug(Drug drug) {
         return drugRepository.save(drug);
     }
     
+    /**
+     * Updates an existing drug in the system.
+     *
+     * @param drug The drug entity with updated fields
+     * @return The updated drug entity
+     */
     @Override
     public Drug updateDrug(Drug drug) {
         return drugRepository.save(drug);
     }
     
+    /**
+     * Deletes a drug from the system by its ID.
+     *
+     * @param id The unique identifier of the drug to delete
+     */
     @Override
     public void deleteDrug(String id) {
         drugRepository.deleteById(id);
     }
     
+    /**
+     * Searches for drugs by a partial name match (case-insensitive).
+     *
+     * @param name The name or partial name to search for
+     * @return A list of drugs that match the search criteria
+     */
     @Override
     public List<Drug> searchDrugsByName(String name) {
         return drugRepository.findByNameContainingIgnoreCase(name);
     }
     
+    /**
+     * Checks if a drug with the specified name already exists (case-insensitive).
+     *
+     * @param name The drug name to check
+     * @return true if a drug with the given name exists, false otherwise
+     */
     @Override
     public boolean existsByName(String name) {
         return drugRepository.existsByNameIgnoreCase(name);
     }
     
+    /**
+     * Retrieves drugs by their template category.
+     *
+     * @param category The template category to filter by
+     * @return A list of drugs in the specified category
+     */
     @Override
     public List<Drug> getDrugsByTemplateCategory(String category) {
         return drugRepository.findByTemplateCategory(category);
     }
     
+    /**
+     * Imports drugs from a CSV file.
+     * Skips drugs that already exist in the system (by name).
+     *
+     * @param csvInputStream The input stream of the CSV file
+     * @return A list of successfully imported drug entities
+     * @throws RuntimeException If CSV parsing fails, or if drugs already exist
+     */
     @Override
     public List<Drug> importDrugsFromCsv(InputStream csvInputStream) {
         List<Drug> importedDrugs = new ArrayList<>();
@@ -128,6 +192,13 @@ public class DrugServiceImpl implements DrugService {
         }
     }
     
+    /**
+     * Generates a CSV template with sample drug data.
+     * The template includes headers and example drugs across various categories.
+     *
+     * @return Byte array containing the CSV template data
+     * @throws RuntimeException If CSV generation fails
+     */
     @Override
     public byte[] generateCsvTemplate() {
         try (ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -345,8 +416,16 @@ public class DrugServiceImpl implements DrugService {
         }
     }
     
-    // Interaction management methods
+
     
+    /**
+     * Adds an interaction between two drugs.
+     * 
+     * @param drugId The ID of the drug to which the interaction will be added
+     * @param interactingDrugId The ID of the drug that interacts with the first drug
+     * @return The updated drug entity with the new interaction
+     * @throws RuntimeException If either drug is not found
+     */
     @Override
     public Drug addInteractionToDrug(String drugId, String interactingDrugId) {
         return drugRepository.findById(drugId)
@@ -377,6 +456,14 @@ public class DrugServiceImpl implements DrugService {
             .orElseThrow(() -> new RuntimeException("Drug not found with ID: " + drugId));
     }
     
+    /**
+     * Removes an interaction between two drugs.
+     *
+     * @param drugId The ID of the drug from which the interaction will be removed
+     * @param interactingDrugId The ID of the interacting drug to remove
+     * @return The updated drug entity with the interaction removed
+     * @throws RuntimeException If the drug is not found
+     */
     @Override
     public Drug removeInteractionFromDrug(String drugId, String interactingDrugId) {
         return drugRepository.findById(drugId)
@@ -390,6 +477,13 @@ public class DrugServiceImpl implements DrugService {
             .orElseThrow(() -> new RuntimeException("Drug not found with ID: " + drugId));
     }
     
+    /**
+     * Retrieves all interactions for a specific drug.
+     *
+     * @param drugId The ID of the drug to get interactions for
+     * @return A list of interacting drug IDs
+     * @throws RuntimeException If the drug is not found
+     */
     @Override
     public List<String> getAllInteractionsForDrug(String drugId) {
         return drugRepository.findById(drugId)
@@ -402,6 +496,11 @@ public class DrugServiceImpl implements DrugService {
             .orElseThrow(() -> new RuntimeException("Drug not found with ID: " + drugId));
     }
     
+    /**
+     * Retrieves all drug interactions in the system.
+     *
+     * @return A list of all interacting drug IDs across all drugs
+     */
     @Override
     public List<String> getAllInteractions() {
         List<String> allInteractions = new ArrayList<>();
@@ -416,13 +515,25 @@ public class DrugServiceImpl implements DrugService {
         return allInteractions;
     }
 
-    // Implement getTotalDrugsCount method
+    /**
+     * Gets the total count of drugs in the system.
+     *
+     * @return The total number of drugs
+     */
     @Override
     public int getTotalDrugsCount() {
         return (int) drugRepository.count();
     }
 
-    // Implement getAllDrugsPaginated method
+    /**
+     * Retrieves a paginated list of drugs with sorting options.
+     *
+     * @param offset The starting point (offset) in the result set
+     * @param limit The maximum number of results to return
+     * @param sortBy The field to sort by
+     * @param direction The sort direction ("asc" or "desc")
+     * @return A paginated and sorted list of drugs
+     */
     @Override
     public List<Drug> getAllDrugsPaginated(int offset, int limit, String sortBy, String direction) {
         // Create sort object based on parameters

@@ -20,6 +20,11 @@ import com.scorppultd.blackeyevalkyriesystem.service.AppointmentService;
 
 import jakarta.servlet.http.HttpServletRequest;
 
+/**
+ * Controller responsible for handling vital signs input for appointments.
+ * This controller manages the viewing and updating of vital signs for patients.
+ * Only users with NURSE or ADMIN roles are authorized to access these endpoints.
+ */
 @Controller
 @RequestMapping("/vital")
 @PreAuthorize("hasAnyRole('ROLE_NURSE', 'ROLE_ADMIN')")
@@ -27,11 +32,24 @@ public class VitalInputController {
     
     private final AppointmentService appointmentService;
     
+    /**
+     * Constructs a VitalInputController with the required service.
+     * 
+     * @param appointmentService Service for managing appointment data
+     */
     @Autowired
     public VitalInputController(AppointmentService appointmentService) {
         this.appointmentService = appointmentService;
     }
     
+    /**
+     * Displays a list of appointments that require or have had vital signs checked.
+     * Shows appointments with status 'pending', 'confirmed', or 'vitalChecked'.
+     * 
+     * @param request HTTP request for sidebar navigation
+     * @param model Model to add attributes for the view
+     * @return The view name for displaying the vital signs list
+     */
     @GetMapping("/list")
     public String vitalList(HttpServletRequest request, Model model) {
         // Add request to model for sidebar navigation
@@ -53,6 +71,15 @@ public class VitalInputController {
         return "vital-list";
     }
     
+    /**
+     * Displays the form for inputting vital signs for a specific appointment.
+     * Initializes empty vital signs if none exist for the appointment.
+     * 
+     * @param id The appointment ID
+     * @param request HTTP request for sidebar navigation
+     * @param model Model to add attributes for the view
+     * @return The view name for the vital signs input form or a redirect if appointment not found
+     */
     @GetMapping("/input/{id}")
     public String vitalInputForm(@PathVariable String id, HttpServletRequest request, Model model) {
         // Add request to model for sidebar navigation
@@ -76,6 +103,23 @@ public class VitalInputController {
         return "vital-input";
     }
     
+    /**
+     * Processes the submitted vital signs form data and updates the appointment.
+     * Calculates BMI if height and weight are provided.
+     * Updates appointment status to 'vitalChecked' if all vital signs are filled.
+     * 
+     * @param id The appointment ID
+     * @param temperature Patient's body temperature
+     * @param lowBloodPressure Patient's diastolic blood pressure
+     * @param highBloodPressure Patient's systolic blood pressure
+     * @param heartRate Patient's heart rate
+     * @param respiratoryRate Patient's respiratory rate
+     * @param oxygenSaturation Patient's oxygen saturation level
+     * @param weight Patient's weight
+     * @param height Patient's height
+     * @param request HTTP request
+     * @return Redirect to the vital signs list with success or error message
+     */
     @PostMapping("/input/{id}")
     public String saveVitals(
             @PathVariable String id,
@@ -131,7 +175,11 @@ public class VitalInputController {
     }
     
     /**
-     * Check if all vital signs are filled
+     * Checks if all vital signs fields have been filled.
+     * Used to determine if the appointment status should be updated.
+     * 
+     * @param vitalSigns The vital signs object to check
+     * @return true if all vital sign fields are filled, false otherwise
      */
     private boolean isAllVitalSigned(VitalSigns vitalSigns) {
         return vitalSigns.getTemperature() != null &&
@@ -145,7 +193,10 @@ public class VitalInputController {
     }
     
     /**
-     * REST API to get appointment list
+     * REST API endpoint to get a list of appointments requiring vital signs.
+     * Returns appointments with status 'pending', 'confirmed', or 'vitalChecked'.
+     * 
+     * @return ResponseEntity containing the list of appointments
      */
     @GetMapping("/api/appointments/pending")
     @ResponseBody
@@ -165,7 +216,13 @@ public class VitalInputController {
     }
     
     /**
-     * REST API to update vital signs
+     * REST API endpoint to update vital signs for a specific appointment.
+     * Calculates BMI if height and weight are provided.
+     * Updates appointment status to 'vitalChecked' if all vital signs are filled.
+     * 
+     * @param id The appointment ID
+     * @param vitalSigns The vital signs data to update
+     * @return ResponseEntity containing the updated appointment or an error message
      */
     @PostMapping("/api/appointments/{id}/vitals")
     @ResponseBody

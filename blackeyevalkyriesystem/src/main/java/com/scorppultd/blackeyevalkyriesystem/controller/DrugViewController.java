@@ -27,6 +27,11 @@ import org.slf4j.LoggerFactory;
 import java.util.Collections;
 import org.springframework.http.HttpStatus;
 
+/**
+ * Controller class for drug management web interface.
+ * Provides endpoints for viewing, adding, editing, and deleting drugs,
+ * as well as managing drug interactions. Restricted to users with ADMIN role.
+ */
 @Controller
 @RequestMapping("/drugs")
 @PreAuthorize("hasRole('ADMIN')")
@@ -35,13 +40,20 @@ public class DrugViewController {
     private final DrugService drugService;
     private static final Logger logger = LoggerFactory.getLogger(DrugViewController.class);
     
+    /**
+     * Constructs a DrugViewController with the required service dependency.
+     * 
+     * @param drugService The service that handles drug-related business logic
+     */
     @Autowired
     public DrugViewController(DrugService drugService) {
         this.drugService = drugService;
     }
     
     /**
-     * Main drugs management page
+     * Redirects to the drug list page.
+     * 
+     * @return Redirect to the drug list view
      */
     @GetMapping
     public String showDrugsPage() {
@@ -49,7 +61,14 @@ public class DrugViewController {
     }
     
     /**
-     * Drug list page
+     * Displays a paginated list of drugs with sorting options.
+     * 
+     * @param model Model object for passing data to the view
+     * @param page Current page number (defaults to 1)
+     * @param rowsPerPage Number of drugs to display per page (defaults to 10)
+     * @param sortBy Field to sort by (defaults to "name")
+     * @param direction Sort direction, "asc" or "desc" (defaults to "asc")
+     * @return The drug-list view
      */
     @GetMapping("/list")
     public String showDrugList(Model model,
@@ -74,7 +93,10 @@ public class DrugViewController {
     }
     
     /**
-     * Add drug page
+     * Displays the form for adding a new drug.
+     * 
+     * @param model Model object for passing data to the view
+     * @return The drug-add view
      */
     @GetMapping("/add")
     public String showAddDrugForm(Model model) {
@@ -83,7 +105,11 @@ public class DrugViewController {
     }
     
     /**
-     * Handle form submission for adding a new drug
+     * Processes the form submission for adding a new drug.
+     * 
+     * @param drug The drug object populated from form data
+     * @param redirectAttributes Used for flash attributes in redirect
+     * @return Redirect to the drug list view
      */
     @PostMapping("/add")
     public String addDrug(@ModelAttribute Drug drug, 
@@ -98,7 +124,9 @@ public class DrugViewController {
     }
     
     /**
-     * Import drugs from CSV page
+     * Displays the form for importing drugs from CSV files.
+     * 
+     * @return The drug-import view
      */
     @GetMapping("/import")
     public String showImportForm() {
@@ -106,7 +134,12 @@ public class DrugViewController {
     }
     
     /**
-     * Handle CSV file upload and import
+     * Processes CSV file uploads to import drugs.
+     * Handles multiple files and reports success/failures.
+     * 
+     * @param files Array of uploaded MultipartFile objects
+     * @param redirectAttributes Used for flash attributes in redirect
+     * @return Redirect to the drug list view
      */
     @PostMapping("/import")
     public String importDrugsFromCsv(@RequestParam("file") MultipartFile[] files, 
@@ -160,7 +193,9 @@ public class DrugViewController {
     }
     
     /**
-     * Download CSV template
+     * Generates and provides a CSV template for drug imports.
+     * 
+     * @return ResponseEntity containing the CSV file as a byte array
      */
     @GetMapping("/template/download")
     public ResponseEntity<byte[]> downloadCsvTemplate() {
@@ -173,7 +208,13 @@ public class DrugViewController {
     }
     
     /**
-     * Edit drug page
+     * Displays the form for editing an existing drug.
+     * Loads the drug information and potential interactions.
+     * 
+     * @param id The ID of the drug to edit
+     * @param model Model object for passing data to the view
+     * @param redirectAttributes Used for flash attributes in redirect
+     * @return The drug-edit view or redirect to list if drug not found
      */
     @GetMapping("/edit/{id}")
     public String showEditDrugForm(@PathVariable String id, Model model, RedirectAttributes redirectAttributes) {
@@ -208,7 +249,11 @@ public class DrugViewController {
     }
     
     /**
-     * API endpoint to get interactions for a drug (for AJAX loading)
+     * API endpoint to get interactions for a drug.
+     * Used for AJAX loading in the UI.
+     * 
+     * @param id The ID of the drug to get interactions for
+     * @return ResponseEntity with interaction IDs or error message
      */
     @GetMapping("/api/drugs/{id}/interactions")
     @ResponseBody
@@ -225,7 +270,14 @@ public class DrugViewController {
     }
     
     /**
-     * Handle form submission for updating a drug
+     * Processes the form submission for updating an existing drug.
+     * Also handles adding new interactions for the drug in batches.
+     * 
+     * @param id The ID of the drug to update
+     * @param drug The drug object populated from form data
+     * @param interactingDrugs List of IDs of drugs to add as interactions
+     * @param redirectAttributes Used for flash attributes in redirect
+     * @return Redirect to the drug list view
      */
     @PostMapping("/edit/{id}")
     public String updateDrug(@PathVariable String id, 
@@ -293,7 +345,11 @@ public class DrugViewController {
     }
     
     /**
-     * Delete a drug
+     * Handles the deletion of a drug.
+     * 
+     * @param id The ID of the drug to delete
+     * @param redirectAttributes Used for flash attributes in redirect
+     * @return Redirect to the drug list view
      */
     @GetMapping("/delete/{id}")
     public String deleteDrug(@PathVariable String id, RedirectAttributes redirectAttributes) {
@@ -303,7 +359,12 @@ public class DrugViewController {
     }
     
     /**
-     * List all drug interactions
+     * Displays a list of all drug interactions in the system.
+     * Can filter to show interactions for a specific drug if drugId is provided.
+     * 
+     * @param model Model object for passing data to the view
+     * @param drugId Optional ID to filter interactions for a specific drug
+     * @return The drug interaction list view
      */
     @GetMapping("/interactions")
     public String listInteractions(Model model, @RequestParam(required = false) String drugId) {
@@ -343,7 +404,10 @@ public class DrugViewController {
     }
     
     /**
-     * Show form to add a new interaction
+     * Displays the form for adding a new drug interaction.
+     * 
+     * @param model Model object for passing data to the view
+     * @return The drug interaction form view
      */
     @GetMapping("/interactions/add")
     public String showAddInteractionForm(Model model) {   
@@ -356,7 +420,13 @@ public class DrugViewController {
     }
     
     /**
-     * Handle form submission for adding a new interaction
+     * Processes the form submission for adding a new interaction between two drugs.
+     * Creates bidirectional interactions (A interacts with B and B interacts with A).
+     * 
+     * @param drugAId The ID of the first drug
+     * @param drugBId The ID of the second drug
+     * @param redirectAttributes Used for flash attributes in redirect
+     * @return Redirect to the interactions list view
      */
     @PostMapping("/interactions/add")
     public String addInteraction(
@@ -381,7 +451,13 @@ public class DrugViewController {
     }
     
     /**
-     * Handle form submission for batch adding interactions
+     * Processes the form submission for adding multiple interactions in a batch.
+     * Creates bidirectional interactions between the main drug and each interacting drug.
+     * 
+     * @param mainDrugId The ID of the main drug
+     * @param interactingDrugs List of IDs of drugs to add as interactions
+     * @param redirectAttributes Used for flash attributes in redirect
+     * @return Redirect to the interactions list view
      */
     @PostMapping("/interactions/batch-add")
     public String batchAddInteractions(
@@ -432,7 +508,13 @@ public class DrugViewController {
     }
     
     /**
-     * Delete an interaction
+     * Deletes an interaction between two drugs.
+     * Removes the bidirectional relationship (A no longer interacts with B and B no longer interacts with A).
+     * 
+     * @param drugId The ID of the first drug
+     * @param interactingDrugId The ID of the second drug
+     * @param redirectAttributes Used for flash attributes in redirect
+     * @return Redirect to the interactions list view
      */
     @GetMapping("/interactions/delete")
     public String deleteInteraction(
@@ -454,7 +536,11 @@ public class DrugViewController {
     }
     
     /**
-     * View interactions for a specific drug
+     * Displays a detailed view of interactions for a specific drug.
+     * 
+     * @param drugId The ID of the drug to view interactions for
+     * @param model Model object for passing data to the view
+     * @return The drug-specific interactions view
      */
     @GetMapping("/interactions/drug/{drugId}")
     public String viewDrugInteractions(@PathVariable String drugId, Model model) {
@@ -498,7 +584,10 @@ public class DrugViewController {
     }
     
     /**
-     * Show form to import drug interactions from CSV
+     * Displays the form for importing drug interactions from CSV.
+     * 
+     * @param model Model object for passing data to the view
+     * @return The drug interaction import view
      */
     @GetMapping("/interactions/import")
     public String showImportInteractionsForm(Model model) {
@@ -508,7 +597,10 @@ public class DrugViewController {
     }
     
     /**
-     * Display interactive drug interaction map
+     * Displays an interactive visualization map of drug interactions.
+     * 
+     * @param model Model object for passing data to the view
+     * @return The drug interaction map view
      */
     @GetMapping("/interactions/map") 
     public String showInteractionMap(Model model) {
@@ -518,7 +610,13 @@ public class DrugViewController {
     }
     
     /**
-     * Handle CSV file upload and import drug interactions
+     * Processes CSV file uploads to import drug interactions.
+     * Creates bidirectional interactions between drugs specified in the CSV.
+     * Handles drug lookup by name using a mapping for efficiency.
+     * 
+     * @param files Array of uploaded MultipartFile objects
+     * @param redirectAttributes Used for flash attributes in redirect
+     * @return Redirect to the interactions list view
      */
     @PostMapping("/interactions/import")
     public String importInteractionsFromCsv(@RequestParam("file") MultipartFile[] files, 
@@ -629,7 +727,9 @@ public class DrugViewController {
     }
     
     /**
-     * Download CSV template for drug interactions
+     * Provides a CSV template for importing drug interactions.
+     * 
+     * @return ResponseEntity containing the CSV file as a byte array
      */
     @GetMapping("/interactions/template/download")
     public ResponseEntity<byte[]> downloadInteractionsCsvTemplate() {
@@ -649,7 +749,10 @@ public class DrugViewController {
     }
     
     /**
-     * API endpoint to get a single drug by ID
+     * API endpoint to retrieve a single drug by ID.
+     * 
+     * @param id The ID of the drug to retrieve
+     * @return ResponseEntity with drug data or appropriate error status
      */
     @GetMapping("/api/drugs/{id}")
     @ResponseBody

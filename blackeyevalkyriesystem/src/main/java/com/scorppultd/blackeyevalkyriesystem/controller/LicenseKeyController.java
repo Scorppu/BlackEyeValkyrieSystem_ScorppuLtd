@@ -14,7 +14,10 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * Controller for license key management
+ * Controller for license key management operations.
+ * Provides REST endpoints for creating, validating, generating, retrieving, 
+ * deactivating, and managing license keys. The controller handles HTTP requests
+ * related to license key operations and delegates business logic to the LicenseKeyService.
  */
 @RestController
 @RequestMapping("/api/licenses")
@@ -22,16 +25,21 @@ public class LicenseKeyController {
 
     private final LicenseKeyService licenseKeyService;
 
+    /**
+     * Constructs a new LicenseKeyController with the provided LicenseKeyService.
+     * 
+     * @param licenseKeyService Service for license key operations
+     */
     @Autowired
     public LicenseKeyController(LicenseKeyService licenseKeyService) {
         this.licenseKeyService = licenseKeyService;
     }
 
     /**
-     * Validate a license key
+     * Validates a license key by checking its format, existence, expiration, and active status.
      * 
-     * @param licenseKeyRequest The license key to validate
-     * @return Response entity with validation result
+     * @param licenseKeyRequest JSON object containing the license key to validate
+     * @return Response entity with validation result including valid status, message, and role if valid
      */
     @PostMapping("/validate")
     public ResponseEntity<Map<String, Object>> validateLicenseKey(@RequestBody Map<String, String> licenseKeyRequest) {
@@ -92,9 +100,10 @@ public class LicenseKeyController {
     }
 
     /**
-     * Get all license keys (admin only)
+     * Retrieves all license keys from the system.
+     * This endpoint is intended for administrative use.
      * 
-     * @return List of all license keys
+     * @return Response entity containing a list of all license keys
      */
     @GetMapping
     public ResponseEntity<List<LicenseKey>> getAllLicenseKeys() {
@@ -102,10 +111,10 @@ public class LicenseKeyController {
     }
 
     /**
-     * Create a new license key
+     * Creates a new license key with the provided details.
      * 
-     * @param licenseKey The license key to create
-     * @return The created license key
+     * @param licenseKey The license key object containing key information to create
+     * @return Response entity with the created license key or bad request if creation fails
      */
     @PostMapping
     public ResponseEntity<LicenseKey> createLicenseKey(@RequestBody LicenseKey licenseKey) {
@@ -118,9 +127,12 @@ public class LicenseKeyController {
     }
 
     /**
-     * Generate a new license key
+     * Generates a new license key with optional expiry date and role.
+     * Supports various expiry options including 7 days, 30 days, 90 days,
+     * 180 days, 365 days, no expiry, or a custom date.
      * 
-     * @return The generated license key
+     * @param request Optional JSON object containing expiry option, custom date, and role
+     * @return Response entity with the generated license key details
      */
     @PostMapping("/generate")
     public ResponseEntity<Map<String, Object>> generateLicenseKey(@RequestBody(required = false) Map<String, Object> request) {
@@ -184,7 +196,7 @@ public class LicenseKeyController {
         String key = licenseKeyService.generateLicenseKey();
         
         // Create and save the license key
-        LicenseKey licenseKey = LicenseKey.builder()
+        LicenseKey licenseKeyObj = LicenseKey.builder()
                 .key(key)
                 .issuedOn(LocalDate.now())
                 .expiresOn(expiresOn)
@@ -192,7 +204,7 @@ public class LicenseKeyController {
                 .role(role)
                 .build();
         
-        LicenseKey savedLicenseKey = licenseKeyService.createLicenseKey(licenseKey);
+        LicenseKey savedLicenseKey = licenseKeyService.createLicenseKey(licenseKeyObj);
         
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
             "licenseKey", savedLicenseKey.getKey(),
@@ -203,10 +215,10 @@ public class LicenseKeyController {
     }
 
     /**
-     * Deactivate a license key
+     * Deactivates a license key in the system.
      * 
-     * @param licenseKey The license key to deactivate
-     * @return Response entity with deactivation result
+     * @param licenseKeyRequest JSON object containing the license key to deactivate
+     * @return Response entity with deactivation result including success status and message
      */
     @PostMapping("/deactivate")
     public ResponseEntity<Map<String, Object>> deactivateLicenseKey(@RequestBody Map<String, String> licenseKeyRequest) {
@@ -235,10 +247,10 @@ public class LicenseKeyController {
     }
 
     /**
-     * Get license key information
+     * Retrieves license key information for a specific key.
      * 
-     * @param key The license key
-     * @return The license key
+     * @param key The license key string to retrieve
+     * @return Response entity with the license key details if found, or 404 not found if not exists
      */
     @GetMapping("/{key}")
     public ResponseEntity<LicenseKey> getLicenseKey(@PathVariable String key) {
@@ -247,11 +259,11 @@ public class LicenseKeyController {
     }
     
     /**
-     * Update license key status
+     * Updates the status of a license key and optionally assigns it to a user.
      * 
-     * @param key The license key
-     * @param request The update request containing new status and user ID
-     * @return The updated license key
+     * @param key The license key to update
+     * @param request JSON object containing the new status and optional user ID
+     * @return Response entity with the updated license key or appropriate error response
      */
     @PostMapping("/{key}/update-status")
     public ResponseEntity<?> updateLicenseKeyStatusByKey(
@@ -294,10 +306,12 @@ public class LicenseKeyController {
     }
 
     /**
-     * Assign a license key to a user
+     * Assigns a license key to a specific user.
+     * Performs various validations including format check, existence check,
+     * and verifies the license key is not already assigned and is active.
      * 
-     * @param request The request containing the license key and user ID
-     * @return Response entity with assignment result
+     * @param request JSON object containing the license key and user ID
+     * @return Response entity with assignment result including success status and message
      */
     @PostMapping("/assign-to-user")
     public ResponseEntity<Map<String, Object>> assignLicenseKeyToUser(@RequestBody Map<String, String> request) {
