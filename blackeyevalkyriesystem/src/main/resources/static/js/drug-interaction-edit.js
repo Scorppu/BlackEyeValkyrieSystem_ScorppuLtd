@@ -1,8 +1,22 @@
+/**
+ * Drug Interaction Edit JavaScript
+ * 
+ * This file handles the client-side functionality for editing drug interactions.
+ * It manages the relationship between two drug selection dropdowns, ensuring that
+ * the same drug cannot be selected in both dropdowns simultaneously.
+ */
+
 document.addEventListener('DOMContentLoaded', function() {
     const drug1Select = document.getElementById('drug1');
     const drug2Select = document.getElementById('drug2');
     
-    // Function to update the options in the second dropdown
+    /**
+     * Updates the available options in the second dropdown based on the selection in the first dropdown.
+     * This function:
+     * - Enables all options in the second dropdown
+     * - Disables the option that matches the selected drug in the first dropdown
+     * - If the currently selected drug in the second dropdown is now disabled, selects the first available option
+     */
     function updateDrug2Options() {
         const selectedDrug1 = drug1Select.value;
         
