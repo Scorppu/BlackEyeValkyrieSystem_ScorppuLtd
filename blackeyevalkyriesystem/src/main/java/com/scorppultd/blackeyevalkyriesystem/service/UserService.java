@@ -3,6 +3,7 @@ package com.scorppultd.blackeyevalkyriesystem.service;
 import com.scorppultd.blackeyevalkyriesystem.model.User;
 import com.scorppultd.blackeyevalkyriesystem.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
@@ -32,6 +33,22 @@ public class UserService {
         } else {
             return userRepository.findAll(Sort.by(sortDirection, sortBy));
         }
+    }
+
+    public List<User> getPaginatedUsersSorted(String sortBy, String direction, int offset, int limit) {
+        Sort.Direction sortDirection = direction.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
+        PageRequest pageRequest;
+        
+        // Handle custom sort fields that don't directly match properties
+        if (sortBy.equals("name")) {
+            pageRequest = PageRequest.of(offset / limit, limit, Sort.by(sortDirection, "lastName", "firstName"));
+        } else if (sortBy.equals("phone")) {
+            pageRequest = PageRequest.of(offset / limit, limit, Sort.by(sortDirection, "phoneNumber"));
+        } else {
+            pageRequest = PageRequest.of(offset / limit, limit, Sort.by(sortDirection, sortBy));
+        }
+        
+        return userRepository.findAll(pageRequest).getContent();
     }
 
     public long countTotalUsers() {

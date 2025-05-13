@@ -36,13 +36,18 @@ public class UserController {
             Model model,
             HttpServletRequest request,
             @RequestParam(name = "sortBy", defaultValue = "lastName") String sortBy,
-            @RequestParam(name = "direction", defaultValue = "asc") String direction) {
+            @RequestParam(name = "direction", defaultValue = "asc") String direction,
+            @RequestParam(name = "page", defaultValue = "1") int currentPage,
+            @RequestParam(name = "rowsPerPage", defaultValue = "10") int rowsPerPage) {
         
         // Add request to model for sidebar navigation
         model.addAttribute("request", request);
         
-        // Get sorted users
-        List<User> users = userService.getAllUsersSorted(sortBy, direction);
+        // Calculate pagination
+        int offset = (currentPage - 1) * rowsPerPage;
+        
+        // Get paginated and sorted users
+        List<User> users = userService.getPaginatedUsersSorted(sortBy, direction, offset, rowsPerPage);
         
         // Count statistics
         long totalUsers = userService.countTotalUsers();
@@ -56,6 +61,8 @@ public class UserController {
         model.addAttribute("nurseCount", nurseCount);
         model.addAttribute("currentSortBy", sortBy);
         model.addAttribute("currentDirection", direction);
+        model.addAttribute("currentPage", currentPage);
+        model.addAttribute("rowsPerPage", rowsPerPage);
         
         return "user-list";
     }

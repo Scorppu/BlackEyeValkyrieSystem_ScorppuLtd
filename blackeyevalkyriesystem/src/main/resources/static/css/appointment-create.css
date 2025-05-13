@@ -1,19 +1,22 @@
 .table-card {
     background-color: var(--secondary-bg);
     border-radius: 0.75rem;
+    padding: 1.5rem;
+    padding-bottom: 1rem;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     margin-bottom: 2rem;
     overflow: hidden;
 }
 
 .search-box {
-    padding: 1rem;
     background-color: var(--secondary-bg);
-    border-bottom: 1px solid var(--border-color);
+    display: flex;
 }
 
 .search-input {
     width: 100%;
+    flex: 1 1 auto;
+    min-width: 0;
     padding: 0.75rem 1rem 0.75rem 2.5rem;
     border-radius: 0.5rem;
     border: 1px solid var(--border-color);
@@ -111,7 +114,19 @@
     justify-content: space-between;
     align-items: center;
     padding: 1rem;
+}
+
+/* Styling for top table footer */
+.top-table-footer {
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 0;
+}
+
+/* Styling for bottom table footer */
+.bottom-table-footer {
     border-top: 1px solid var(--border-color);
+    margin-top: 0;
+    padding-bottom: 0;
 }
 
 .pagination-info {
@@ -156,24 +171,10 @@
     color: var(--primary-text);
 }
 
-.action-buttons {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
+/* Remove action buttons styles */
+.action-buttons,
 .action-button {
-    padding: 0.5rem;
-    background-color: transparent;
-    border: none;
-    border-radius: 0.25rem;
-    cursor: pointer;
-    color: var(--secondary-text);
-}
-
-.action-button:hover {
-    background-color: rgba(138, 43, 226, 0.1);
-    color: var(--accent-color);
+    display: none !important;
 }
 
 .select-checkbox {

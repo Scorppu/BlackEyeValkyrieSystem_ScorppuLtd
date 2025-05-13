@@ -10,44 +10,92 @@ document.addEventListener('DOMContentLoaded', function() {
     // Preserve filter selections
     preserveFilterSettings();
     
-    // Create notification element
-    const notification = document.createElement('div');
-    notification.className = 'copy-notification';
-    notification.innerHTML = '<i class="fas fa-check-circle"></i> License key copied to clipboard';
-    document.body.appendChild(notification);
+    // Handle search functionality
+    const searchInput = document.getElementById('licenseSearch');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const tableRows = document.querySelectorAll('.data-table tbody tr');
+            
+            tableRows.forEach(row => {
+                const licenseKey = row.querySelector('td:first-child').textContent.toLowerCase();
+                const status = row.querySelector('td:nth-child(2) .status-badge').textContent.toLowerCase();
+                const role = row.querySelector('td:nth-child(3) .role-badge').textContent.toLowerCase();
+                const user = row.querySelector('td:nth-child(4)').textContent.toLowerCase();
+                
+                if (licenseKey.includes(searchTerm) || 
+                    status.includes(searchTerm) || 
+                    role.includes(searchTerm) || 
+                    user.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    }
     
-    // Add click event listeners to all copy buttons
-    document.querySelectorAll('.copy-btn').forEach(function(button) {
-        button.addEventListener('click', function() {
-            // Get the license key from data-key attribute
-            const key = this.dataset.key;
-            console.log('Attempting to copy key:', key);
-            
-            if (!key) {
-                console.error('Key not found in data-key attribute');
-                showNotification('Error: Failed to copy license key', 'error');
-                return;
-            }
-            
-            // Use the Clipboard API if available (modern browsers)
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(key)
-                    .then(() => {
-                        // Show success notification
-                        showNotification('License key copied to clipboard', 'success');
-                        // Also show tooltip on button for visual feedback
-                        showTooltip(this, 'Copied!');
-                    })
-                    .catch(err => {
-                        console.error('Clipboard API failed:', err);
-                        fallbackCopyToClipboard(key, this);
-                    });
-            } else {
-                // Fall back to the older execCommand method
-                fallbackCopyToClipboard(key, this);
+    // Handle pagination - rows per page selection
+    const rowsPerPageSelect = document.getElementById('rowsPerPage');
+    const headerRowsPerPageSelect = document.getElementById('headerRowsPerPage');
+    
+    // Sync both selects
+    if (rowsPerPageSelect && headerRowsPerPageSelect) {
+        headerRowsPerPageSelect.addEventListener('change', function() {
+            window.location.href = updateUrlParameter(window.location.href, 'rowsPerPage', this.value);
+        });
+        
+        rowsPerPageSelect.addEventListener('change', function() {
+            window.location.href = updateUrlParameter(window.location.href, 'rowsPerPage', this.value);
+        });
+    }
+    
+    // Handle pagination - next and previous buttons
+    const prevButton = document.querySelector('.prev-page');
+    const nextButton = document.querySelector('.next-page');
+    const headerPrevButton = document.querySelector('.header-prev-page');
+    const headerNextButton = document.querySelector('.header-next-page');
+    
+    function getCurrentPage() {
+        const urlParams = new URLSearchParams(window.location.search);
+        return parseInt(urlParams.get('page')) || 1;
+    }
+    
+    if (prevButton && nextButton) {
+        prevButton.addEventListener('click', function() {
+            if (!prevButton.disabled) {
+                const currentPage = getCurrentPage();
+                if (currentPage > 1) {
+                    window.location.href = updateUrlParameter(window.location.href, 'page', currentPage - 1);
+                }
             }
         });
-    });
+        
+        nextButton.addEventListener('click', function() {
+            if (!nextButton.disabled) {
+                const currentPage = getCurrentPage();
+                window.location.href = updateUrlParameter(window.location.href, 'page', currentPage + 1);
+            }
+        });
+    }
+    
+    if (headerPrevButton && headerNextButton) {
+        headerPrevButton.addEventListener('click', function() {
+            if (!headerPrevButton.disabled) {
+                const currentPage = getCurrentPage();
+                if (currentPage > 1) {
+                    window.location.href = updateUrlParameter(window.location.href, 'page', currentPage - 1);
+                }
+            }
+        });
+        
+        headerNextButton.addEventListener('click', function() {
+            if (!headerNextButton.disabled) {
+                const currentPage = getCurrentPage();
+                window.location.href = updateUrlParameter(window.location.href, 'page', currentPage + 1);
+            }
+        });
+    }
     
     function convertDatesToLocalTimezone() {
         try {
@@ -76,85 +124,6 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (e) {
             // Silently handle errors
         }
-    }
-    
-    // Fallback copy method using execCommand
-    function fallbackCopyToClipboard(text, buttonElement) {
-        // Create a temporary text element to copy from
-        const textArea = document.createElement('textarea');
-        textArea.value = text;
-        textArea.style.position = 'absolute';
-        textArea.style.left = '-9999px';
-        document.body.appendChild(textArea);
-        
-        try {
-            // Select the text and copy it
-            textArea.select();
-            textArea.setSelectionRange(0, 99999); // For mobile devices
-            const successful = document.execCommand('copy');
-            
-            if (successful) {
-                // Show success notification
-                showNotification('License key copied to clipboard', 'success');
-                // Also show tooltip on button for visual feedback
-                showTooltip(buttonElement, 'Copied!');
-            } else {
-                throw new Error('Copy command failed');
-            }
-        } catch (err) {
-            console.error('Copy failed:', err);
-            showNotification('Failed to copy license key', 'error');
-        }
-        
-        // Remove the temporary element
-        document.body.removeChild(textArea);
-    }
-    
-    // Function to show notification popup
-    function showNotification(message, type = 'success') {
-        // Update notification content
-        if (type === 'error') {
-            notification.innerHTML = '<i class="fas fa-exclamation-circle" style="color: #ff3b30;"></i> ' + message;
-        } else {
-            notification.innerHTML = '<i class="fas fa-check-circle"></i> ' + message;
-        }
-        
-        // Show notification
-        notification.classList.add('show');
-        
-        // Hide notification after 1 second
-        setTimeout(() => {
-            notification.classList.remove('show');
-        }, 1000);
-    }
-    
-    // Function to show tooltip on button (as additional feedback)
-    function showTooltip(element, message) {
-        console.log('Showing tooltip:', message);
-        // Check if tooltip already exists
-        let tooltip = element.querySelector('.tooltip');
-        
-        // If tooltip doesn't exist, create it
-        if (!tooltip) {
-            tooltip = document.createElement('div');
-            tooltip.className = 'tooltip';
-            element.appendChild(tooltip);
-        }
-        
-        // Set tooltip message and show it
-        tooltip.textContent = message;
-        tooltip.classList.add('show');
-        
-        // Hide tooltip after 1.5 seconds
-        setTimeout(() => {
-            tooltip.classList.remove('show');
-            // Remove tooltip after fade out animation completes
-            setTimeout(() => {
-                if (tooltip.parentNode === element) {
-                    element.removeChild(tooltip);
-                }
-            }, 300);
-        }, 1500);
     }
 
     // Function to preserve filter settings and handle responsive filters
@@ -250,6 +219,8 @@ document.addEventListener('DOMContentLoaded', function() {
             icon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>';
         } else if (type === 'error') {
             icon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>';
+        } else if (type === 'warning') {
+            icon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>';
         }
         
         // Set notification content
@@ -258,12 +229,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="notification-content">
                 <p>${message}</p>
             </div>
-            <button class="notification-close">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
-            </button>
+            <button class="notification-close">&times;</button>
         `;
         
         // Add to container
@@ -271,33 +237,54 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Add close button functionality
         const closeButton = notification.querySelector('.notification-close');
-        if (closeButton) {
-            closeButton.addEventListener('click', function() {
-                notification.classList.add('closing');
-                setTimeout(() => {
-                    notification.remove();
-                    
-                    // Remove container if empty
-                    if (notificationContainer.children.length === 0) {
-                        notificationContainer.remove();
-                    }
-                }, 300);
-            });
-        }
+        closeButton.addEventListener('click', function() {
+            notification.classList.add('fade-out');
+            setTimeout(() => {
+                notification.remove();
+            }, 300);
+        });
         
-        // Auto-remove after 6 seconds
+        // Auto-remove after 5 seconds
         setTimeout(() => {
             if (notification.parentNode) {
-                notification.classList.add('closing');
+                notification.classList.add('fade-out');
                 setTimeout(() => {
-                    notification.remove();
-                    
-                    // Remove container if empty
-                    if (notificationContainer && notificationContainer.children.length === 0) {
-                        notificationContainer.remove();
+                    if (notification.parentNode) {
+                        notification.remove();
                     }
                 }, 300);
             }
-        }, 6000);
+        }, 5000);
     }
 });
+
+// Helper function to update URL parameters
+function updateUrlParameter(url, key, value) {
+    const urlObj = new URL(url);
+    const params = new URLSearchParams(urlObj.search);
+    
+    // Update or add the parameter
+    params.set(key, value);
+    
+    // Reset page parameter to 1 if we're changing rows per page
+    if (key === 'rowsPerPage') {
+        params.set('page', 1);
+    }
+    
+    // Preserve other parameters
+    if (params.has('statusFilter')) {
+        params.set('statusFilter', params.get('statusFilter'));
+    }
+    
+    if (params.has('roleFilter')) {
+        params.set('roleFilter', params.get('roleFilter'));
+    }
+    
+    if (params.has('sortOrder')) {
+        params.set('sortOrder', params.get('sortOrder'));
+    }
+    
+    // Apply the updated search parameters
+    urlObj.search = params.toString();
+    return urlObj.toString();
+}

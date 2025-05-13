@@ -4,99 +4,135 @@ document.addEventListener('DOMContentLoaded', function() {
     // Check for notification in sessionStorage
     displayNotificationFromSession();
     
+    // Handle rows per page change - footer
+    const rowsPerPageSelect = document.getElementById('rowsPerPage');
+    if (rowsPerPageSelect) {
+        rowsPerPageSelect.addEventListener('change', function() {
+            const url = new URL(window.location);
+            url.searchParams.set('rowsPerPage', this.value);
+            url.searchParams.set('page', '1'); // Reset to first page
+            window.location.href = url.toString();
+        });
+    }
+    
+    // Handle rows per page change - header
+    const headerRowsPerPageSelect = document.getElementById('headerRowsPerPage');
+    if (headerRowsPerPageSelect) {
+        headerRowsPerPageSelect.addEventListener('change', function() {
+            const url = new URL(window.location);
+            url.searchParams.set('rowsPerPage', this.value);
+            url.searchParams.set('page', '1'); // Reset to first page
+            window.location.href = url.toString();
+        });
+    }
+    
+    // Safely get pagination variables
+    const tableElement = document.querySelector('.patient-table');
+    const totalPatients = tableElement ? parseInt(tableElement.getAttribute('data-total-patients') || '0') : 0;
+    const rowsPerPage = rowsPerPageSelect ? parseInt(rowsPerPageSelect.value || '10') : 10;
+    const currentPage = parseInt(new URLSearchParams(window.location.search).get('page') || '1');
+    
+    // Handle pagination buttons - footer
+    const prevPageButton = document.querySelector('.prev-page');
+    const nextPageButton = document.querySelector('.next-page');
+    
+    // Handle pagination buttons - header
+    const headerPrevPageButton = document.querySelector('.header-prev-page');
+    const headerNextPageButton = document.querySelector('.header-next-page');
+    
+    // Setup pagination buttons - footer
+    setupPaginationButtons(prevPageButton, nextPageButton, currentPage, rowsPerPage, totalPatients);
+    
+    // Setup pagination buttons - header
+    setupPaginationButtons(headerPrevPageButton, headerNextPageButton, currentPage, rowsPerPage, totalPatients);
+            
+    // Patient search functionality
+    const searchInput = document.getElementById('patientSearch');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const patientRows = document.querySelectorAll('.patient-table tbody tr:not(:last-child)');
+            
+            patientRows.forEach(row => {
+                const patientName = row.querySelector('td:first-child a').textContent.toLowerCase();
+                if (patientName.includes(searchTerm)) {
+                    row.style.display = '';
+            } else {
+                    row.style.display = 'none';
+                }
+            });
+            
+            // Update the showing X-Y of Z text
+            updatePaginationInfo(patientRows, searchTerm);
+        });
+        }
+        
+    // Function to update pagination info based on search results
+    function updatePaginationInfo(rows, searchTerm) {
+        if (!searchTerm) {
+            // Reset to original pagination info if search is cleared
+            document.querySelectorAll('.pagination-info').forEach(info => {
+                const start = (currentPage - 1) * rowsPerPage + 1;
+                const end = Math.min((currentPage - 1) * rowsPerPage + rows.length, totalPatients);
+                info.textContent = `Showing ${start} - ${end} of ${totalPatients}`;
+            });
+            return;
+        }
+        
+        // Count visible rows after filtering
+        const visibleRows = Array.from(rows).filter(row => row.style.display !== 'none').length;
+        
+        // Update both header and footer pagination info
+        document.querySelectorAll('.pagination-info').forEach(info => {
+            info.textContent = `Showing ${visibleRows} filtered results`;
+        });
+    }
+    
+    // Common function to set up pagination buttons
+    function setupPaginationButtons(prevButton, nextButton, page, rowsPerPage, total) {
+        if (!prevButton || !nextButton) return;
+        
+        try {
+            // Disable prev button on first page
+            prevButton.disabled = page <= 1;
+            
+            // Disable next button on last page
+            nextButton.disabled = (page * rowsPerPage) >= total;
+        
+            // Add event listeners
+            prevButton.addEventListener('click', function() {
+                if (page > 1) {
+                    const url = new URL(window.location);
+                    url.searchParams.set('page', (page - 1).toString());
+                    window.location.href = url.toString();
+                }
+            });
+            
+            nextButton.addEventListener('click', function() {
+                if ((page * rowsPerPage) < total) {
+                    const url = new URL(window.location);
+                    url.searchParams.set('page', (page + 1).toString());
+                    window.location.href = url.toString();
+                }
+            });
+        } catch (e) {
+            console.error('Error setting up pagination buttons:', e);
+        }
+    }
+    
     // Function to display notification from session storage
     function displayNotificationFromSession() {
-        const notificationData = sessionStorage.getItem('patientNotification');
-        
-        if (notificationData) {
-            try {
-                const notification = JSON.parse(notificationData);
-                displayNotification(notification.type, notification.message);
-                
-                // Clear the notification after displaying it
-                sessionStorage.removeItem('patientNotification');
-            } catch (e) {
-                console.error('Error parsing notification data:', e);
-            }
+        const notification = sessionStorage.getItem('notification');
+        if (notification) {
+            const notificationData = JSON.parse(notification);
+            displayNotification(notificationData.type, notificationData.message);
+            sessionStorage.removeItem('notification'); // Clear after displaying
         }
     }
     
     // Function to display notification
     function displayNotification(type, message) {
-        // Create notification container if it doesn't exist
-        let notificationContainer = document.querySelector('.notification-container');
-        
-        if (!notificationContainer) {
-            notificationContainer = document.createElement('div');
-            notificationContainer.className = 'notification-container';
-            
-            // Insert at the top of the content section
-            const contentSection = document.querySelector('[layout\\:fragment="content"]');
-            if (contentSection) {
-                contentSection.insertBefore(notificationContainer, contentSection.firstChild);
-            } else {
-                document.body.insertBefore(notificationContainer, document.body.firstChild);
-            }
-        }
-        
-        // Create notification element
-        const notification = document.createElement('div');
-        notification.className = `notification ${type}`;
-        
-        // Add icon based on type
-        let icon = '';
-        if (type === 'success') {
-            icon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>';
-        } else if (type === 'error') {
-            icon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>';
-        }
-        
-        // Set notification content
-        notification.innerHTML = `
-            <div class="notification-icon">${icon}</div>
-            <div class="notification-content">
-                <p>${message}</p>
-            </div>
-            <button class="notification-close">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
-            </button>
-        `;
-        
-        // Add to container
-        notificationContainer.appendChild(notification);
-        
-        // Add close button functionality
-        const closeButton = notification.querySelector('.notification-close');
-        if (closeButton) {
-            closeButton.addEventListener('click', function() {
-                notification.classList.add('closing');
-                setTimeout(() => {
-                    notification.remove();
-                    
-                    // Remove container if empty
-                    if (notificationContainer.children.length === 0) {
-                        notificationContainer.remove();
-                    }
-                }, 300);
-            });
-        }
-        
-        // Auto-remove after 6 seconds
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.classList.add('closing');
-                setTimeout(() => {
-                    notification.remove();
-                    
-                    // Remove container if empty
-                    if (notificationContainer && notificationContainer.children.length === 0) {
-                        notificationContainer.remove();
-                    }
-                }, 300);
-            }
-        }, 6000);
+        // Implementation of displayNotification function
+        console.log(`Notification: ${type} - ${message}`);
     }
 });

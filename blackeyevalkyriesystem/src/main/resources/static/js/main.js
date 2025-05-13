@@ -3,6 +3,11 @@
  * Handles sidebar navigation, search, UI interactions and form processing
  */
 document.addEventListener('DOMContentLoaded', function() {
+    // Add main-page class to body if on main page
+    if (window.location.pathname === '/' || window.location.pathname === '/index' || window.location.pathname === '/dashboard') {
+        document.body.classList.add('main-page');
+    }
+    
     /**
      * Initializes mobile menu toggle functionality
      */

@@ -56,6 +56,8 @@ public class LicenseKeyViewController {
      * @param statusFilter Filter by status
      * @param roleFilter Filter by role
      * @param request The HTTP request
+     * @param currentPage Current page for pagination
+     * @param rowsPerPage Number of items per page
      * @return The license keys view
      */
     @GetMapping
@@ -64,7 +66,9 @@ public class LicenseKeyViewController {
             @RequestParam(required = false, defaultValue = "asc") String sortOrder,
             @RequestParam(required = false) String statusFilter,
             @RequestParam(required = false) String roleFilter,
-            HttpServletRequest request) {
+            HttpServletRequest request,
+            @RequestParam(name = "page", defaultValue = "1") int currentPage,
+            @RequestParam(name = "rowsPerPage", defaultValue = "10") int rowsPerPage) {
         
         try {
             // Check for expired license keys first - wrap in try-catch to prevent errors
@@ -76,9 +80,9 @@ public class LicenseKeyViewController {
             }
             
             // Get license keys with better error handling
-            List<LicenseKey> licenseKeys = new ArrayList<>();
+            List<LicenseKey> allLicenseKeys = new ArrayList<>();
             try {
-                licenseKeys = licenseKeyService.getAllLicenseKeys();
+                allLicenseKeys = licenseKeyService.getAllLicenseKeys();
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -86,7 +90,7 @@ public class LicenseKeyViewController {
             // Apply status filter if provided
             if (statusFilter != null && !statusFilter.isEmpty()) {
                 try {
-                    licenseKeys = licenseKeys.stream()
+                    allLicenseKeys = allLicenseKeys.stream()
                             .filter(key -> statusFilter.equals(key.getStatus()))
                             .collect(Collectors.toList());
                 } catch (Exception e) {
@@ -97,7 +101,7 @@ public class LicenseKeyViewController {
             // Apply role filter if provided
             if (roleFilter != null && !roleFilter.isEmpty()) {
                 String roleFilterLower = roleFilter.toLowerCase();
-                licenseKeys = licenseKeys.stream()
+                allLicenseKeys = allLicenseKeys.stream()
                     .filter(key -> roleFilterLower.equalsIgnoreCase(key.getRole()))
                     .collect(Collectors.toList());
             }
@@ -114,10 +118,22 @@ public class LicenseKeyViewController {
                     comparator = comparator.reversed();
                 }
                 
-                licenseKeys.sort(comparator);
+                allLicenseKeys.sort(comparator);
             } catch (Exception e) {
                 e.printStackTrace();
             }
+            
+            // Calculate total items
+            int totalLicenseKeys = allLicenseKeys.size();
+            
+            // Calculate pagination
+            int offset = (currentPage - 1) * rowsPerPage;
+            int toIndex = Math.min(offset + rowsPerPage, allLicenseKeys.size());
+            
+            // Apply pagination
+            List<LicenseKey> licenseKeys = offset < toIndex 
+                ? allLicenseKeys.subList(offset, toIndex) 
+                : new ArrayList<>();
             
             // Create a map to store user names for display with better error handling
             Map<String, String> userNames = new HashMap<>();
@@ -155,8 +171,16 @@ public class LicenseKeyViewController {
             model.addAttribute("currentRoleFilter", roleFilter);
             model.addAttribute("currentSortOrder", sortOrder);
             
+            // Add pagination attributes
+            model.addAttribute("currentPage", currentPage);
+            model.addAttribute("rowsPerPage", rowsPerPage);
+            model.addAttribute("totalLicenseKeys", totalLicenseKeys);
+            
             model.addAttribute("allStatuses", allStatuses);
             model.addAttribute("allRoles", allRoles);
+            
+            // Add request to model for sidebar navigation
+            model.addAttribute("request", request);
             
             return "license-keys";  // This will map to a license-keys.html template
         } catch (Exception e) {

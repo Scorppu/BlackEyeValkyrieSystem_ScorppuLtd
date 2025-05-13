@@ -415,4 +415,29 @@ public class DrugServiceImpl implements DrugService {
         
         return allInteractions;
     }
+
+    // Implement getTotalDrugsCount method
+    @Override
+    public int getTotalDrugsCount() {
+        return (int) drugRepository.count();
+    }
+
+    // Implement getAllDrugsPaginated method
+    @Override
+    public List<Drug> getAllDrugsPaginated(int offset, int limit, String sortBy, String direction) {
+        // Create sort object based on parameters
+        org.springframework.data.domain.Sort sort;
+        if (direction.equalsIgnoreCase("desc")) {
+            sort = org.springframework.data.domain.Sort.by(sortBy).descending();
+        } else {
+            sort = org.springframework.data.domain.Sort.by(sortBy).ascending();
+        }
+        
+        // Create pageable object
+        org.springframework.data.domain.Pageable pageable = 
+            org.springframework.data.domain.PageRequest.of(offset / limit, limit, sort);
+        
+        // Get paginated results
+        return drugRepository.findAll(pageable).getContent();
+    }
 } 

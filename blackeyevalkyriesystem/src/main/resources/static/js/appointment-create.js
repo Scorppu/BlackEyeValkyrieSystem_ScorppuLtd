@@ -45,36 +45,84 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Handle rows per page change
     const rowsPerPageSelect = document.getElementById('rowsPerPage');
-    if (rowsPerPageSelect) {
-        rowsPerPageSelect.addEventListener('change', function() {
+    const rowsPerPageSelectTop = document.getElementById('rowsPerPageTop');
+    
+    if (rowsPerPageSelect && rowsPerPageSelectTop) {
+        // Keep the two dropdowns in sync
+        rowsPerPageSelectTop.value = rowsPerPageSelect.value;
+        
+        // Event handler function for rows per page change
+        const handleRowsPerPageChange = function() {
             const url = new URL(window.location);
             url.searchParams.set('rowsPerPage', this.value);
             url.searchParams.set('page', '1'); // Reset to first page
             window.location.href = url.toString();
-        });
+        };
+        
+        // Add event listeners to both selects
+        rowsPerPageSelect.addEventListener('change', handleRowsPerPageChange);
+        rowsPerPageSelectTop.addEventListener('change', handleRowsPerPageChange);
     }
     
     // Handle pagination buttons
     const prevPageButton = document.querySelector('.prev-page');
     const nextPageButton = document.querySelector('.next-page');
+    const prevPageButtonTop = document.querySelector('.prev-page-top');
+    const nextPageButtonTop = document.querySelector('.next-page-top');
     
-    if (prevPageButton && nextPageButton) {
-        const currentPage = parseInt(new URLSearchParams(window.location.search).get('page') || '1');
+    // Add Thymeleaf-injected variables for totalPatients and rowsPerPage
+    const totalPatients = parseInt(document.getElementById('appointmentForm').getAttribute('data-total-patients'));
+    const rowsPerPage = parseInt(document.getElementById('rowsPerPage').value);
+    const currentPage = parseInt(new URLSearchParams(window.location.search).get('page') || '1');
+    
+    // Function to update both sets of pagination buttons
+    function updatePaginationButtons() {
+        const isFirstPage = currentPage <= 1;
+        const isLastPage = (currentPage * rowsPerPage) >= totalPatients;
         
-        prevPageButton.disabled = currentPage <= 1;
-        prevPageButton.addEventListener('click', function() {
+        // Update bottom buttons
+    if (prevPageButton && nextPageButton) {
+            prevPageButton.disabled = isFirstPage;
+            nextPageButton.disabled = isLastPage;
+        }
+        
+        // Update top buttons
+        if (prevPageButtonTop && nextPageButtonTop) {
+            prevPageButtonTop.disabled = isFirstPage;
+            nextPageButtonTop.disabled = isLastPage;
+        }
+    }
+    
+    // Call the function to initialize button states
+    updatePaginationButtons();
+    
+    // Click handler function for pagination
+    function handlePrevPageClick() {
             if (currentPage > 1) {
                 const url = new URL(window.location);
                 url.searchParams.set('page', (currentPage - 1).toString());
                 window.location.href = url.toString();
             }
-        });
+    }
         
-        nextPageButton.addEventListener('click', function() {
+    function handleNextPageClick() {
+        if (currentPage * rowsPerPage < totalPatients) {
             const url = new URL(window.location);
             url.searchParams.set('page', (currentPage + 1).toString());
             window.location.href = url.toString();
-        });
+        }
+    }
+    
+    // Add event listeners to bottom pagination buttons
+    if (prevPageButton && nextPageButton) {
+        prevPageButton.addEventListener('click', handlePrevPageClick);
+        nextPageButton.addEventListener('click', handleNextPageClick);
+    }
+    
+    // Add event listeners to top pagination buttons
+    if (prevPageButtonTop && nextPageButtonTop) {
+        prevPageButtonTop.addEventListener('click', handlePrevPageClick);
+        nextPageButtonTop.addEventListener('click', handleNextPageClick);
     }
     
     // Handle sorting
