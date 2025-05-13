@@ -25,6 +25,7 @@ import java.util.Optional;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -77,7 +78,7 @@ class UserControllerTest {
     @WithMockUser(roles = "ADMIN")
     void listUsersTest() throws Exception {
         // Given
-        when(userService.getAllUsersSorted(anyString(), anyString()))
+        when(userService.getPaginatedUsersSorted(anyString(), anyString(), anyInt(), anyInt()))
                 .thenReturn(Arrays.asList(user1, user2));
         when(userService.countTotalUsers()).thenReturn(2L);
         when(userService.countUsersByRole(User.UserRole.DOCTOR)).thenReturn(1L);
@@ -247,7 +248,7 @@ class UserApiControllerTest {
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(user1)))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id", is("1")))
                 .andExpect(jsonPath("$.username", is("johndoe")));
     }
@@ -265,7 +266,7 @@ class UserApiControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(user1)))
                 .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.error").exists());
+                .andExpect(jsonPath("$.message").exists());
     }
 
     @Test
@@ -281,6 +282,6 @@ class UserApiControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(user1)))
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.error").exists());
+                .andExpect(jsonPath("$.message").exists());
     }
 } 
