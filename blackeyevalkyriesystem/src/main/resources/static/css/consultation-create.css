@@ -1,0 +1,295 @@
+.info-section {
+    background-color: var(--secondary-bg);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    color: var(--secondary-text);
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+}
+.section-label {
+    font-size: 18px;
+    font-weight: 500;
+    margin-bottom: 15px;
+    color: var(--primary-text);
+}
+.info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+.info-item {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 10px;
+}
+.info-label {
+    font-size: 14px;
+    color: var(--secondary-text);
+    margin-bottom: 5px;
+}
+.info-value {
+    font-size: 16px;
+    padding: 8px 12px;
+    background-color: var(--input-bg);
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+}
+.transcript-box {
+    width: 100%;
+    height: 200px;
+    background-color: var(--input-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    color: var(--primary-text);
+    padding: 5px;
+    resize: vertical;
+}
+.diagnosis-input {
+    width: 100%;
+    padding: 5px;
+    background-color: var(--input-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    color: var(--primary-text);
+    margin-bottom: 10px;
+}
+.confirm-btn {
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 16px;
+    float: right;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+.confirm-btn:hover {
+    background-color: #7b26cd;
+}
+.prescription-table {
+    width: 100%;
+    margin-top: 15px;
+    color: var(--secondary-text);
+}
+.prescription-table th, .prescription-table td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+select.info-value {
+    width: 100%;
+    padding: 8px 6px;
+    background-color: var(--input-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    color: var(--primary-text);
+    -webkit-appearance: none;
+    appearance: auto;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+}
+/* Style for dropdown options to ensure full text is displayed */
+select.info-value option {
+    white-space: normal;
+    padding: 6px;
+    min-width: 250px;
+}
+/* Make sure the select itself is large enough */
+#templateSelect {
+    width: 100%;
+    min-width: 200px;
+}
+.drug-cart {
+    min-height: 150px;
+    background-color: var(--input-bg);
+    border-radius: 4px;
+    padding: 15px;
+    margin-top: 15px;
+    border: 1px solid var(--border-color);
+}
+.checkout-btn {
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 16px;
+    float: right;
+    margin-top: 15px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+.checkout-btn:hover {
+    background-color: #7b26cd;
+}
+.checkout-icon {
+    margin-left: 5px;
+}
+.drug-item {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border-color);
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    transition: background-color 0.2s;
+}
+.drug-item:hover {
+    background-color: rgba(138, 43, 226, 0.1);
+}
+.drug-item.selected {
+    background-color: rgba(138, 43, 226, 0.2);
+    border-left: 3px solid var(--accent-color);
+}
+.add-selected-btn {
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 16px;
+    margin-top: 15px;
+    float: right;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+.add-selected-btn:hover {
+    background-color: #7b26cd;
+}
+.add-selected-btn:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+.modal {
+    display: none; 
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+}
+.modal-content {
+    background-color: var(--primary-bg);
+    margin: 10% auto;
+    padding: 20px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    width: 400px;
+    max-width: 90%;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+}
+.modal-header h3 {
+    margin: 0;
+    color: var(--primary-text);
+}
+.close {
+    color: var(--secondary-text);
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+}
+.modal-body {
+    margin-bottom: 20px;
+}
+.modal-body .form-group {
+    margin-bottom: 15px;
+}
+.modal-body label {
+    display: block;
+    margin-bottom: 5px;
+    color: var(--primary-text);
+}
+.modal-body input, .modal-body select {
+    width: 100%;
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    background-color: var(--input-bg);
+    color: var(--primary-text);
+}
+.modal-footer {
+    text-align: right;
+    border-top: 1px solid var(--border-color);
+    padding-top: 15px;
+}
+.btn-primary {
+    background-color: var(--accent-color);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 15px;
+    cursor: pointer;
+}
+.btn-primary:hover {
+    background-color: #7b26cd;
+}
+.btn-secondary {
+    background-color: var(--secondary-bg);
+    color: var(--primary-text);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 8px 15px;
+    margin-right: 10px;
+    cursor: pointer;
+}
+.btn-secondary:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+/* Add styles for validation modal */
+.validation-message {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.validation-message svg {
+    margin-right: 15px;
+    flex-shrink: 0;
+}
+
+.validation-message p {
+    margin: 0;
+    font-size: 16px;
+    color: var(--primary-text);
+}
+
+.validation-details {
+    background-color: rgba(255, 92, 92, 0.1);
+    border: 1px solid rgba(255, 92, 92, 0.3);
+    border-radius: 4px;
+    padding: 12px 15px;
+}
+
+.validation-details ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.validation-details li {
+    margin-bottom: 5px;
+}
+
+.validation-details li:last-child {
+    margin-bottom: 0;
+}
+
+.required-field {
+    position: relative;
+}
+
+.required-field::after {
+    content: "*";
+    color: #ff5c5c;
+    position: absolute;
+    right: -10px;
+    top: 0;
+}

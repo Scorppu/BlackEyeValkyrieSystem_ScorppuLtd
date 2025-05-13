@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/main}">
+<head>
+    <title>Dispensary</title>
+        <link rel="stylesheet" th:href="@{/css/prescription-dispensary.css}">
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="content-wrapper">
+            <div class="content-header">
+                <h1>Dispensary</h1>
+            </div>
+            
+            <!-- Success/Error message -->
+            <div th:if="${success}" class="alert alert-success" th:text="${success}" style="margin-bottom: 20px;"></div>
+            <div th:if="${error}" class="alert alert-danger" th:text="${error}" style="margin-bottom: 20px;"></div>
+            
+            <div class="content-card">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>Prescriptions</h2>
+                    <div class="pagination-text" th:if="${prescriptions != null and !prescriptions.empty}">
+                        <span th:text="${'1 - ' + prescriptions.size() + ' prescriptions'}">1 - 10 prescriptions</span>
+                    </div>
+                </div>
+                
+                <div class="table-responsive" th:if="${prescriptions != null and !prescriptions.empty}">
+                    <table class="prescription-table">
+                        <thead>
+                            <tr>
+                                <th class="patient-col">Patient</th>
+                                <th class="doctor-col">Doctor</th>
+                                <th class="date-col">Date</th>
+                                <th class="status-col">Status</th>
+                                <th class="drugs-col">Drugs</th>
+                                <th class="actions-col">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="prescription : ${prescriptions}">
+                                <td>
+                                    <span th:if="${prescription.patient != null}" 
+                                       class="patient-name" 
+                                       th:text="${prescription.patient != null ? ((prescription.patient.firstName != null ? prescription.patient.firstName : '') + ' ' + (prescription.patient.lastName != null ? prescription.patient.lastName : '')) : 'Unknown Patient'}">
+                                        Patient Name
+                                    </span>
+                                    <span th:if="${prescription.patient == null}">Unknown Patient</span>
+                                </td>
+                                <td th:text="${prescription.doctorName != null ? prescription.doctorName : 'Not specified'}">Doctor Name</td>
+                                <td th:text="${prescription.prescriptionDate != null ? #temporals.format(prescription.prescriptionDate, 'dd MMM yyyy') : 'Not specified'}">01 Jan 2023</td>
+                                <td>
+                                    <span class="status-badge" 
+                                          th:classappend="${prescription.status != null ? 'status-' + prescription.status.toLowerCase() : 'status-pending'}" 
+                                          th:text="${prescription.status != null ? #strings.capitalize(prescription.status) : 'Unknown'}">
+                                        Active
+                                    </span>
+                                </td>
+                                <td th:text="${prescription.prescriptionItems != null ? prescription.prescriptionItems.size() : 0} + ' items'">3 items</td>
+                                <td>
+                                    <a th:href="@{/dispensary/view/{id}(id=${prescription.id})}" class="action-btn view-btn">View</a>
+                                    <form th:if="${prescription.status != null && prescription.status != 'completed'}" th:action="@{/dispensary/update-status/{id}(id=${prescription.id})}" method="post" style="display: inline;">
+                                        <input type="hidden" name="status" value="completed" />
+                                        <button type="submit" class="action-btn complete-btn">Complete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div th:if="${prescriptions == null or prescriptions.empty}" class="empty-state">
+                    <div class="empty-state-icon">📋</div>
+                    <h3>No active prescriptions</h3>
+                    <p>All prescriptions have been dispensed.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

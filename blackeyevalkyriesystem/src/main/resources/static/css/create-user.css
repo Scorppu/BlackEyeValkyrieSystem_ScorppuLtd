@@ -1,0 +1,487 @@
+.user-form-container {
+    width: 100%;
+    padding-bottom: 2rem;
+}
+
+.content-card {
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    background-color: var(--secondary-bg);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    min-height: 80vh;
+    height: auto;
+    overflow-y: auto;
+}
+
+.form-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+    width: 100%;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--text-color);
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    background-color: var(--input-bg);
+    color: var(--text-color);
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
+}
+
+.form-control:focus {
+    border-color: var(--accent-color);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.15);
+}
+
+.form-actions {
+    margin-top: 2rem;
+    display: flex;
+    gap: 1rem;
+    position: sticky;
+    bottom: 0;
+    background-color: var(--secondary-bg);
+    padding: 1rem 0;
+    border-top: 1px solid var(--border-color);
+}
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 0.5rem;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.2s;
+}
+
+.btn:active {
+    transform: translateY(1px);
+}
+
+.btn-primary {
+    background-color: var(--accent-color);
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #7b26cd;
+}
+
+.btn-secondary {
+    background-color: var(--secondary-bg);
+    color: var(--text-color);
+}
+
+.btn-secondary:hover {
+    background-color: #e0e0e0;
+}
+
+.text-muted {
+    color: var(--secondary-text);
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+.alert {
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.alert-danger {
+    background-color: #ffdddd;
+    color: #cf1717;
+    border: 1px solid #ffbbbb;
+}
+
+.password-group {
+    position: relative;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--secondary-text);
+    cursor: pointer;
+}
+
+.field-error {
+    color: #cf1717;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+/* Fix for scrollbar issues */
+body, html {
+    overflow-x: hidden;
+    height: 100%;
+}
+
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+/* Modal styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+    background-color: var(--primary-bg);
+    margin: 15% auto;
+    padding: 20px;
+    border-radius: 8px;
+    width: 400px;
+    max-width: 90%;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.modal-title {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 1.5rem;
+}
+
+.modal-title.success {
+    color: #23b27e;
+}
+
+.modal-title.error {
+    color: #ff4d4d;
+}
+
+.modal-body {
+    margin-bottom: 20px;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.btn-success {
+    background-color: #23b27e;
+    color: white;
+}
+
+.btn-success:hover {
+    background-color: #1c9063;
+}
+
+.btn-error {
+    background-color: #ff4d4d;
+    color: white;
+}
+
+.btn-error:hover {
+    background-color: #e63939;
+}
+
+/* Radio button styling */
+.radio-group {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.radio-option {
+    display: flex;
+    align-items: center;
+}
+
+.radio-option input[type="radio"] {
+    margin-right: 0.5rem;
+    margin-top: 0;
+    vertical-align: middle;
+}
+
+.radio-option label {
+    display: inline-block;
+    vertical-align: middle;
+    margin-bottom: 0;
+}
+
+/* Unauthorized access styling */
+.unauthorized-access {
+    max-width: 600px;
+    margin: 0 auto;
+    text-align: center;
+    padding: 2rem;
+    background-color: var(--secondary-bg);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    margin-top: 2rem;
+}
+
+.unauthorized-access h1 {
+    color: #ff4d4d;
+    margin-bottom: 1rem;
+}
+
+.unauthorized-access a {
+    display: inline-block;
+    margin-top: 1rem;
+    padding: 0.75rem 1.5rem;
+    background-color: var(--accent-color);
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.unauthorized-access a:hover {
+    background-color: #7b26cd;
+}
+
+/* Required field asterisk styling */
+.required {
+    color: #ff4d4d;
+    margin-left: 2px;
+}
+
+/* Invalid input styling */
+.invalid-input {
+    border-color: #ff4d4d !important;
+    box-shadow: 0 0 0 1px #ff4d4d !important;
+}
+
+/* Field validation message */
+.field-validation-error {
+    color: #ff4d4d;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    display: block;
+    width: 100%;
+    order: 3;
+}
+
+/* Custom validation popup */
+.validation-popup {
+    position: fixed;
+    z-index: 1100;
+    left: 0;
+    top: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.validation-popup-content {
+    background-color: var(--primary-bg);
+    padding: 20px;
+    border-radius: 8px;
+    width: 400px;
+    max-width: 90%;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    position: relative;
+    margin: 0;
+}
+
+.validation-popup-title {
+    color: #ff4d4d;
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 1.5rem;
+}
+
+.validation-error-list {
+    margin-bottom: 20px;
+    padding-left: 20px;
+}
+
+.validation-error-item {
+    margin-bottom: 5px;
+    color: #333;
+}
+
+.validation-popup-footer {
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* License key input group */
+.license-key-input-group {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.license-key-input-group .form-control {
+    flex: 1;
+    min-width: 200px;
+}
+
+.license-key-input-group .btn {
+    white-space: nowrap;
+}
+
+/* Password input group */
+.password-input-group {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.password-input-group .form-control {
+    flex: 1;
+    min-width: 200px;
+}
+
+.password-input-group .btn {
+    white-space: nowrap;
+}
+
+/* Generate buttons styling */
+.btn-generate {
+    background-color: var(--accent-color);
+    color: white;
+}
+
+.btn-generate:hover {
+    background-color: #7b26cd;
+}
+
+.btn-icon {
+    background-color: transparent;
+    color: var(--accent-color);
+    padding: 0.75rem;
+    margin-right: 5px;
+    border-radius: 0.25rem;
+}
+
+.btn-icon:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.btn-icon i {
+    font-size: 1rem;
+}
+
+/* Update generate license key button */
+#generateLicenseKeyBtn {
+    background-color: #4682b4;
+    color: white;
+}
+
+#generateLicenseKeyBtn:hover {
+    background-color: #3a6d96;
+}
+
+.readonly-input {
+    background-color: #f5f5f5;
+    cursor: not-allowed;
+    opacity: 0.8;
+}
+
+.readonly-input:disabled {
+    background-color: #f5f5f5;
+    cursor: not-allowed;
+    opacity: 0.8;
+}
+
+/* Add a visual indicator that the field is read-only - only in edit mode */
+.edit-mode .form-group label[for="role"]::after,
+.edit-mode .form-group label[for="licenseKey"]::after {
+    content: " (Read-only)";
+    color: #666;
+    font-size: 0.8em;
+    font-style: italic;
+}
+
+/* Hide the generate button only in edit mode */
+.edit-mode #generateLicenseKeyBtn {
+    display: none;
+}
+
+/* Show the generate button by default */
+#generateLicenseKeyBtn {
+    display: inline-block;
+}
+
+/* Status toggle styling */
+.status-toggle-container {
+    margin-top: 5px;
+}
+
+.status-toggle-container select {
+    width: 200px;
+    padding: 8px 12px;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    background-color: var(--background-color);
+    color: var(--text-color);
+    font-size: 14px;
+}
+
+.status-toggle-container select option[value="true"] {
+    background-color: rgba(0, 128, 0, 0.1);
+    color: green;
+}
+
+.status-toggle-container select option[value="false"] {
+    background-color: rgba(255, 0, 0, 0.1);
+    color: #d93025;
+}
+
+.status-toggle-container small {
+    display: block;
+    margin-top: 5px;
+    color: var(--muted-text-color);
+}
+
+/* Inactive user styling */
+.user-form-container.inactive-user {
+    position: relative;
+}
+
+.user-form-container.inactive-user::before {
+    content: "INACTIVE USER";
+    position: absolute;
+    top: 20px;
+    right: -10px;
+    background-color: rgba(255, 77, 77, 0.1);
+    color: #ff4d4d;
+    padding: 5px 10px;
+    font-size: 12px;
+    font-weight: bold;
+    border-radius: 4px;
+    transform: rotate(45deg);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+}
+
+/* Prevent body scrolling when modal is open */
+body.modal-open {
+    overflow: hidden;
+}

@@ -1,0 +1,54 @@
+.content-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.content-header h1 {
+    margin: 0;
+}
+
+.content-header .btn-primary {
+    background-color: #8A2BE2;
+    border: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 15px;
+}
+
+.drug-header {
+    background-color: rgba(138, 43, 226, 0.1);
+    padding: 15px;
+    font-weight: 600;
+    border-radius: 8px 8px 0 0;
+    margin-top: 25px;
+    color: var(--primary-text);
+    border: 1px solid var(--border-color);
+    border-bottom: none;
+}
+.drug-interactions {
+    border: 1px solid var(--border-color);
+    border-radius: 0 0 8px 8px;
+    margin-bottom: 25px;
+}
+.drug-interaction-item {
+    padding: 15px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.drug-interaction-item:last-child {
+    border-bottom: none;
+}
+.drug-interaction-item:hover {
+    background-color: var(--secondary-bg);
+    border-radius: 0 0 8px 8px;
+}
+.empty-state {
+    text-align: center;
+    padding: 40px;
+    color: var(--secondary-text);
+} 

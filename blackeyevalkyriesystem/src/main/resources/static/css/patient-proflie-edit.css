@@ -1,0 +1,296 @@
+.main-container {
+    display: flex;
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.credentials-sidebar {
+    background-color: var(--secondary-bg);
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    width: 250px;
+    flex-shrink: 0;
+}
+
+.credentials-sidebar h2 {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--primary-text);
+}
+
+.tab-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.tab-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    color: var(--secondary-text);
+    transition: background-color 0.2s;
+}
+
+.tab-item:hover {
+    background-color: rgba(138, 43, 226, 0.1);
+}
+
+.tab-item.active {
+    background-color: rgba(138, 43, 226, 0.2);
+    color: var(--accent-color);
+}
+
+.tab-content {
+    display: none;
+    margin-top: 1.5rem;
+    color: var(--secondary-text);
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.form-container {
+    background-color: var(--secondary-bg);
+    border-radius: 0.5rem;
+    padding: 2rem;
+    flex-grow: 1;
+}
+
+.form-section {
+    display: none;
+}
+
+.form-section.active {
+    display: block;
+}
+
+.form-section h2 {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--primary-text);
+}
+
+.form-section p {
+    margin-top: 0;
+    margin-bottom: 2rem;
+    color: var(--secondary-text);
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--secondary-text);
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background-color: var(--primary-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    color: var(--primary-text);
+    font-size: 1rem;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 2px rgba(138, 43, 226, 0.2);
+}
+
+input.form-control {
+    box-sizing: border-box;
+    appearance: none;
+    padding-right: 2.5rem;
+}
+
+select.form-control {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4 6L8 10L12 6' stroke='white' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    padding-right: 2.5rem;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-primary {
+    background-color: var(--accent-color);
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #7b26cd;
+}
+
+.btn-secondary {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--primary-text);
+}
+
+.btn-secondary:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+.btn-success {
+    background-color: #23b27e;
+    color: white;
+}
+
+.btn-success:hover {
+    background-color: #1e9d6e;
+}
+
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+}
+           
+.drug-allergies-container {
+    margin-top: 0.5rem;
+}
+
+.drug-selection-container {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.allergies-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.allergies-table th, 
+.allergies-table td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.allergies-table th {
+    background-color: rgba(138, 43, 226, 0.1);
+    font-weight: 600;
+    color: var(--primary-text);
+}
+
+.allergies-table tbody tr:hover {
+    background-color: rgba(138, 43, 226, 0.05);
+}
+
+.remove-allergy-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.5rem;
+    background-color: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+    border: none;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.remove-allergy-btn:hover {
+    background-color: rgba(220, 53, 69, 0.2);
+}
+
+.empty-allergies-row td {
+    color: var(--secondary-text);
+    font-style: italic;
+}
+
+.mt-3 {
+    margin-top: 1rem;
+}
+
+.mb-4 {
+    margin-bottom: 1.5rem;
+}
+
+.search-container {
+    position: relative;
+    flex: 1;
+}
+
+.drugs-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    max-height: 300px;
+    overflow-y: auto;
+    background-color: var(--primary-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    z-index: 1000;
+    display: none;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.drug-item {
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.drug-item:last-child {
+    border-bottom: none;
+}
+
+.drug-item:hover {
+    background-color: rgba(138, 43, 226, 0.1);
+}
+
+.drug-name {
+    font-weight: 500;
+    color: var(--primary-text);
+}
+
+.no-results {
+    padding: 0.75rem 1rem;
+    color: var(--secondary-text);
+    font-style: italic;
+    text-align: center;
+}
+
+.drug-selection-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layout/main}">
+<head>
+    <title>Prescription Details</title>
+        <link rel="stylesheet" th:href="@{/css/prescription-details.css}">
+    </style>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="content-wrapper">
+            <div class="content-header">
+                <h1>Prescription Details</h1>
+                <div class="action-buttons">
+                    <a th:href="@{/dispensary}" class="back-btn">
+                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                        </svg>
+                        Back to Dispensary
+                    </a>
+                    
+                    <form class="action-form" th:if="${prescription != null && prescription.status != null && prescription.status != 'completed' && prescription.id != null}" th:action="@{/dispensary/update-status/{id}(id=${prescription.id})}" method="post">
+                        <input type="hidden" name="status" value="completed" />
+                        <button type="submit" class="complete-btn">
+                            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            Mark as Completed
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="content-body" th:if="${prescription != null}">
+                <!-- Prescription Information -->
+                <div class="card">
+                    <h2 class="card-title">Prescription Information</h2>
+                    
+                    <div class="info-row">
+                        <div class="info-label">Status</div>
+                        <div class="info-value">
+                            <span class="status-badge" 
+                                  th:classappend="${prescription.status != null ? 'status-' + prescription.status.toLowerCase() : 'status-pending'}" 
+                                  th:text="${prescription.status != null ? #strings.capitalize(prescription.status) : 'Unknown'}">
+                                Active
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="info-row">
+                        <div class="info-label">Prescription ID</div>
+                        <div class="info-value" th:text="${prescription.id != null ? prescription.id : 'Not assigned'}">PRESC123456</div>
+                    </div>
+                    
+                    <div class="info-row">
+                        <div class="info-label">Date</div>
+                        <div class="info-value" th:text="${prescription.prescriptionDate != null ? #temporals.format(prescription.prescriptionDate, 'dd MMMM yyyy') : 'Not specified'}">01 January 2023</div>
+                    </div>
+                    
+                    <div class="info-row">
+                        <div class="info-label">Valid Until</div>
+                        <div class="info-value" th:text="${prescription.validUntil != null ? #temporals.format(prescription.validUntil, 'dd MMMM yyyy') : 'Not specified'}">01 February 2023</div>
+                    </div>
+                    
+                    <div class="info-row">
+                        <div class="info-label">Diagnosis</div>
+                        <div class="info-value" th:text="${prescription.diagnosis != null ? prescription.diagnosis : 'Not specified'}">Hypertension</div>
+                    </div>
+                    
+                    <div class="info-row" th:if="${prescription.notes != null && !prescription.notes.isEmpty()}">
+                        <div class="info-label">Notes</div>
+                        <div class="info-value" th:text="${prescription.notes}">Additional notes about the prescription</div>
+                    </div>
+                </div>
+                
+                <!-- Patient Information -->
+                <div class="card" th:if="${prescription.patient != null}">
+                    <h2 class="card-title">Patient Information</h2>
+                    
+                    <div class="info-row">
+                        <div class="info-label">Name</div>
+                        <div class="info-value" th:text="${(prescription.patient.firstName != null ? prescription.patient.firstName : '') + ' ' + (prescription.patient.lastName != null ? prescription.patient.lastName : '')}">John Doe</div>
+                    </div>
+                    
+                    <div class="info-row" th:if="${prescription.patient.dateOfBirth != null}">
+                        <div class="info-label">Date of Birth</div>
+                        <div class="info-value" th:text="${#temporals.format(prescription.patient.dateOfBirth, 'dd MMMM yyyy')}">01 January 1980</div>
+                    </div>
+                    
+                    <div class="info-row" th:if="${prescription.patient.id != null && !prescription.patient.id.isEmpty()}">
+                        <div class="info-label">ID</div>
+                        <div class="info-value" th:text="${prescription.patient.id}">ID12345678</div>
+                    </div>
+                </div>
+                
+                <div class="card" th:if="${prescription.patient == null}">
+                    <h2 class="card-title">Patient Information</h2>
+                    <div class="info-row">
+                        <div class="info-value" style="font-style: italic;">Patient information not available</div>
+                    </div>
+                </div>
+                
+                <!-- Prescriber Information -->
+                <div class="card">
+                    <h2 class="card-title">Prescriber Information</h2>
+                    
+                    <div class="info-row">
+                        <div class="info-label">Doctor</div>
+                        <div class="info-value" th:text="${prescription.doctorName != null ? prescription.doctorName : 'Not specified'}">Dr. Jane Smith</div>
+                    </div>
+                </div>
+                
+                <!-- Medications -->
+                <div class="card">
+                    <h2 class="card-title">Prescribed Medications</h2>
+                    
+                    <div class="table-responsive" th:if="${prescription.prescriptionItems != null && !prescription.prescriptionItems.empty}">
+                        <table class="drugs-table">
+                            <thead>
+                                <tr>
+                                    <th class="medication-col">Medication</th>
+                                    <th class="dosage-col">Dosage</th>
+                                    <th class="frequency-col">Frequency</th>
+                                    <th class="duration-col">Duration</th>
+                                    <th class="quantity-col">Quantity</th>
+                                    <th class="instructions-col">Instructions</th>
+                                    <th class="refills-col">Refills</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="item : ${prescription.prescriptionItems}">
+                                    <td th:text="${item != null && item.drug != null ? (item.drug.name != null ? item.drug.name : 'Unnamed') : 'Unknown medication'}">Medication Name</td>
+                                    <td th:text="${item != null && item.dosage != null ? item.dosage : '-'}">10mg</td>
+                                    <td th:text="${item != null && item.frequency != null ? item.frequency : '-'}">Twice daily</td>
+                                    <td th:text="${item != null && item.duration != null ? item.duration : '-'}">7 days</td>
+                                    <td th:text="${item != null && item.quantity != null ? item.quantity : '-'}">14</td>
+                                    <td th:text="${item != null && item.instructions != null ? item.instructions : '-'}">Take with food</td>
+                                    <td th:text="${item != null && item.refillable != null && item.refillable ? (item.refillsRemaining != null ? item.refillsRemaining + ' remaining' : 'Available') : 'None'}">3 remaining</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div th:if="${prescription.prescriptionItems == null || prescription.prescriptionItems.empty}" style="padding: 15px; font-style: italic; color: var(--secondary-text);">
+                        No medications listed in this prescription.
+                    </div>
+                </div>
+            </div>
+            
+            <div class="content-body" th:if="${prescription == null}">
+                <div class="card">
+                    <h2 class="card-title">Prescription Information</h2>
+                    <div class="info-row">
+                        <div class="info-value" style="font-style: italic;">Prescription information not available</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

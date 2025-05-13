@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main}"
+      lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit License Key</title>
+    <th:block layout:fragment="head">
+        <link rel="stylesheet" th:href="@{/css/edit-license-key.css}">
+        <link rel="stylesheet" th:href="@{/css/notifications.css}">
+    </th:block>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="content-header">
+            <h1>Edit License Key</h1>
+        </div>
+        
+        <div class="form-container">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">License Key Details</h3>
+                </div>
+                <div class="card-body">
+                    <div class="key-info">
+                        <h3>License Key:</h3>
+                        <p class="key-value monospace-font" th:text="${licenseKey.key}"></p>
+                        <p th:if="${licenseKey.user != null}" class="user-info">
+                            Used by: <span th:text="${userName}"></span>
+                        </p>
+                    </div>
+                    
+                    <form th:action="@{/licenses/edit/{id}(id=${licenseKey.id})}" 
+                          method="post" id="editForm" class="needs-validation">
+                        <input type="hidden" name="_method" value="PUT">
+                        
+                        <div class="form-section">
+                            <!-- Status selection -->
+                            <div class="form-group">
+                                <label for="status">Status:</label>
+                                <select id="status" name="status" class="form-control" required>
+                                    <option th:each="statusOption : ${statusOptions}" 
+                                            th:value="${statusOption}" 
+                                            th:text="${statusOption}"
+                                            th:selected="${licenseKey.status == statusOption}"></option>
+                                </select>
+                            </div>
+                            
+                            <!-- Role selection -->
+                            <div class="form-group">
+                                <label for="role">Role:</label>
+                                <select id="role" name="role" class="form-control" required>
+                                    <option th:each="roleOption : ${roleOptions}" 
+                                            th:value="${roleOption}" 
+                                            th:text="${roleOption}"
+                                            th:selected="${licenseKey.role == roleOption}"></option>
+                                </select>
+                            </div>
+                            
+                            <!-- Expiry date -->
+                            <div class="form-group">
+                                <label for="expiresOn">Expiry Date:</label>
+                                <input type="date" id="expiresOn" name="expiresOn" class="form-control"
+                                       th:value="${licenseKey.expiresOn != null ? #temporals.format(licenseKey.expiresOn, 'yyyy-MM-dd') : ''}">
+                            </div>
+                        </div>
+                        
+                        <!-- Form actions -->
+                        <div class="form-actions">
+                            <a th:href="@{/licenses}" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <th:block layout:fragment="scripts">
+        <script th:src="@{/js/edit-license-key.js}"></script>
+    </th:block>
+</body>
+</html> 

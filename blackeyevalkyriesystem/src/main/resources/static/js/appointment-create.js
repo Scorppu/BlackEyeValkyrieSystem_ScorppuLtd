@@ -1,0 +1,366 @@
+/**
+ * Appointment Creation - Patient Selection Page JavaScript
+ * 
+ * This script manages the patient selection page functionality during appointment creation.
+ * It handles patient selection, pagination, sorting, searching, and form navigation.
+ * 
+ * Key features:
+ * - Single patient selection enforcement (radio-button-like behavior for checkboxes)
+ * - Patient search functionality with real-time filtering
+ * - Pagination with configurable rows per page
+ * - Table sorting by different columns (name, ID)
+ * - Form validation to ensure exactly one patient is selected
+ * - Unsaved changes detection and confirmation when navigating away
+ * - Responsive UI interactions with proper error messaging
+ * 
+ * The script ensures proper form submission and validation before proceeding to the
+ * next step in appointment creation, while also preventing accidental navigation
+ * away from the page when there are unsaved changes.
+ */
+document.addEventListener('DOMContentLoaded', function() {              
+    // Handle select all checkbox
+    const selectAllCheckbox = document.getElementById('selectAll');
+    const patientCheckboxes = document.querySelectorAll('.patient-select');
+    const backButton = document.getElementById('back-to-list-btn');
+    const appointmentForm = document.getElementById('appointmentForm');
+    
+    // Setup unsaved changes tracking
+    setupUnsavedChangesTracking();
+    
+    // check if exist
+    if (selectAllCheckbox) {
+        // Remove the select all functionality since we only want one checkbox checked at a time
+        selectAllCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                // Uncheck all patient checkboxes first
+                patientCheckboxes.forEach(checkbox => {
+                    checkbox.checked = false;
+                });
+                
+                // Check only the first patient checkbox if any exist
+                if (patientCheckboxes.length > 0) {
+                    patientCheckboxes[0].checked = true;
+                }
+                
+                // Uncheck the select all box (it's just used as a trigger now)
+                this.checked = false;
+            }
+        });
+    }
+    
+    // Add event listeners to patient checkboxes for radio-button-like behavior
+    patientCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            if (this.checked) {
+                // If this checkbox is checked, uncheck all other patient checkboxes
+                patientCheckboxes.forEach(otherCheckbox => {
+                    if (otherCheckbox !== this) {
+                        otherCheckbox.checked = false;
+                    }
+                });
+            }
+        });
+    });
+    
+    // Handle rows per page change
+    const rowsPerPageSelect = document.getElementById('rowsPerPage');
+    const rowsPerPageSelectTop = document.getElementById('rowsPerPageTop');
+    
+    if (rowsPerPageSelect && rowsPerPageSelectTop) {
+        // Keep the two dropdowns in sync
+        rowsPerPageSelectTop.value = rowsPerPageSelect.value;
+        
+        /**
+         * Handles changes to the number of rows displayed per page.
+         * Updates the URL with the new rowsPerPage parameter and resets to the first page.
+         * This function is triggered when either the top or bottom rows per page select is changed.
+         */
+        const handleRowsPerPageChange = function() {
+            const url = new URL(window.location);
+            url.searchParams.set('rowsPerPage', this.value);
+            url.searchParams.set('page', '1'); // Reset to first page
+            window.location.href = url.toString();
+        };
+        
+        // Add event listeners to both selects
+        rowsPerPageSelect.addEventListener('change', handleRowsPerPageChange);
+        rowsPerPageSelectTop.addEventListener('change', handleRowsPerPageChange);
+    }
+    
+    // Handle pagination buttons
+    const prevPageButton = document.querySelector('.prev-page');
+    const nextPageButton = document.querySelector('.next-page');
+    const prevPageButtonTop = document.querySelector('.prev-page-top');
+    const nextPageButtonTop = document.querySelector('.next-page-top');
+    
+    // Add Thymeleaf-injected variables for totalPatients and rowsPerPage
+    const totalPatients = parseInt(document.getElementById('appointmentForm').getAttribute('data-total-patients'));
+    const rowsPerPage = parseInt(document.getElementById('rowsPerPage').value);
+    const currentPage = parseInt(new URLSearchParams(window.location.search).get('page') || '1');
+    
+    /**
+     * Updates the enabled/disabled state of all pagination buttons based on current page position.
+     * Disables previous buttons on the first page and next buttons on the last page.
+     * Applies to both top and bottom pagination button sets.
+     */
+    function updatePaginationButtons() {
+        const isFirstPage = currentPage <= 1;
+        const isLastPage = (currentPage * rowsPerPage) >= totalPatients;
+        
+        // Update bottom buttons
+    if (prevPageButton && nextPageButton) {
+            prevPageButton.disabled = isFirstPage;
+            nextPageButton.disabled = isLastPage;
+        }
+        
+        // Update top buttons
+        if (prevPageButtonTop && nextPageButtonTop) {
+            prevPageButtonTop.disabled = isFirstPage;
+            nextPageButtonTop.disabled = isLastPage;
+        }
+    }
+    
+    // Call the function to initialize button states
+    updatePaginationButtons();
+    
+    /**
+     * Handles navigation to the previous page.
+     * Updates the page URL parameter and navigates to the updated URL.
+     * Only navigates if not already on the first page.
+     */
+    function handlePrevPageClick() {
+            if (currentPage > 1) {
+                const url = new URL(window.location);
+                url.searchParams.set('page', (currentPage - 1).toString());
+                window.location.href = url.toString();
+            }
+    }
+        
+    /**
+     * Handles navigation to the next page.
+     * Updates the page URL parameter and navigates to the updated URL.
+     * Only navigates if not already on the last page.
+     */
+    function handleNextPageClick() {
+        if (currentPage * rowsPerPage < totalPatients) {
+            const url = new URL(window.location);
+            url.searchParams.set('page', (currentPage + 1).toString());
+            window.location.href = url.toString();
+        }
+    }
+    
+    // Add event listeners to bottom pagination buttons
+    if (prevPageButton && nextPageButton) {
+        prevPageButton.addEventListener('click', handlePrevPageClick);
+        nextPageButton.addEventListener('click', handleNextPageClick);
+    }
+    
+    // Add event listeners to top pagination buttons
+    if (prevPageButtonTop && nextPageButtonTop) {
+        prevPageButtonTop.addEventListener('click', handlePrevPageClick);
+        nextPageButtonTop.addEventListener('click', handleNextPageClick);
+    }
+    
+    // Handle sorting
+    const sortLinks = document.querySelectorAll('.sort-link');
+    sortLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const sort = this.getAttribute('data-sort');
+            const currentSort = new URLSearchParams(window.location.search).get('sortBy') || 'lastName';
+            const currentDirection = new URLSearchParams(window.location.search).get('direction') || 'asc';
+            
+            const url = new URL(window.location);
+            url.searchParams.set('sortBy', sort);
+            url.searchParams.set('direction', sort === currentSort && currentDirection === 'asc' ? 'desc' : 'asc');
+            window.location.href = url.toString();
+        });
+    });
+    
+    // Handle next button
+    const nextButton = document.getElementById('nextButton');
+    if (nextButton) {
+        nextButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Check if at least one patient is selected
+            const selectedPatients = document.querySelectorAll('.patient-select:checked');
+            if (selectedPatients.length === 0) {
+                alert('Please select at least one patient to continue.');
+                return;
+            }else if (selectedPatients.length > 1) {
+                alert('Please select only one patient to continue.');
+                return;
+            }
+            
+            // Submit the form
+            document.getElementById('appointmentForm').submit();
+        });
+    }
+    
+    // Handle search
+    const searchInput = document.getElementById('patientSearch');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const rows = document.querySelectorAll('#patientTableBody tr');
+            
+            rows.forEach(row => {
+                if (row.cells.length > 1) { // Skip empty state row
+                    const name = row.cells[1].textContent.toLowerCase();
+                    const id = row.cells[2].textContent.toLowerCase();
+                    const visible = name.includes(searchTerm) || id.includes(searchTerm);
+                    row.style.display = visible ? '' : 'none';
+                }
+            });
+        });
+    }
+    
+    /**
+     * Sets up tracking for unsaved changes on the form and handles navigation confirmation.
+     * Captures the initial form state and compares it with the current state to detect changes.
+     * Shows a confirmation popup when attempting to navigate away with unsaved changes.
+     */
+    function setupUnsavedChangesTracking() {
+        let formChanged = false;
+        const formInputs = document.querySelectorAll('input, select, textarea');
+        const initialFormState = captureFormState();
+        
+        /**
+         * Captures the current state of all form inputs.
+         * Creates an object with input IDs as keys and their current values or checked states as values.
+         * 
+         * @returns {Object} An object representing the current form state
+         */
+        function captureFormState() {
+            const state = {};
+            formInputs.forEach(input => {
+                if (input.type === 'checkbox' || input.type === 'radio') {
+                    state[input.id] = input.checked;
+                } else {
+                    state[input.id] = input.value;
+                }
+            });
+            return state;
+        }
+        
+        /**
+         * Determines if the form state has changed from its initial state.
+         * Compares the current form state with the initial state captured on page load.
+         * Also checks for changes in patient selection that might not be tracked through IDs.
+         * 
+         * @returns {boolean} True if the form has changed, false otherwise
+         */
+        function hasFormChanged() {
+            const currentState = captureFormState();
+            for (const key in currentState) {
+                if (initialFormState[key] !== currentState[key]) {
+                    return true;
+                }
+            }
+            
+            // Also check if any patient has been selected (special handling for checkboxes without IDs)
+            const initialSelectedCount = Object.values(initialFormState).filter(value => value === true).length;
+            const currentSelectedCount = document.querySelectorAll('.patient-select:checked').length;
+            
+            return initialSelectedCount !== currentSelectedCount;
+        }
+        
+        // Track changes to form inputs
+        formInputs.forEach(input => {
+            input.addEventListener('change', function() {
+                formChanged = hasFormChanged();
+            });
+            
+            input.addEventListener('input', function() {
+                formChanged = hasFormChanged();
+            });
+        });
+        
+        // Special handling for patient checkboxes that might not have IDs
+        patientCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                formChanged = true;
+            });
+        });
+        
+        // Handle back button click
+        if (backButton) {
+            backButton.addEventListener('click', function(e) {
+                if (formChanged) {
+                    e.preventDefault();
+                    showUnsavedChangesPopup('/appointment/timeline');
+                }
+            });
+        }
+        
+        // Handle clicks on sidebar links or other navigation
+        document.addEventListener('click', function(e) {
+            const link = e.target.closest('a');
+            
+            // Ignore next button, same-page links, and form elements
+            if (link && 
+                link.id !== 'nextButton' &&
+                !link.getAttribute('href').startsWith('#') &&
+                !appointmentForm.contains(link)) {
+                
+                if (formChanged) {
+                    e.preventDefault();
+                    const targetUrl = link.getAttribute('href');
+                    showUnsavedChangesPopup(targetUrl);
+                }
+            }
+        });
+        
+        /**
+         * Shows a popup warning about unsaved changes when attempting to navigate away.
+         * Creates a modal dialog with options to cancel navigation or discard changes.
+         * 
+         * @param {string} targetUrl - The URL to navigate to if user chooses to discard changes
+         */
+        function showUnsavedChangesPopup(targetUrl = '/appointment/timeline') {
+            // Remove any existing popup
+            const existingPopup = document.querySelector('.unsaved-changes-popup');
+            if (existingPopup) {
+                existingPopup.remove();
+            }
+            
+            // Create the popup
+            const popup = document.createElement('div');
+            popup.className = 'unsaved-changes-popup';
+            
+            popup.innerHTML = `
+                <div class="unsaved-changes-content">
+                    <div class="unsaved-changes-header">
+                        Unsaved Changes
+                    </div>
+                    <div class="unsaved-changes-body">
+                        <div class="unsaved-changes-message">
+                            You have unsaved changes that will be lost if you leave this page. 
+                            Do you want to discard these changes?
+                        </div>
+                        <div class="unsaved-changes-actions">
+                            <button class="unsaved-changes-action unsaved-changes-cancel">Cancel</button>
+                            <button class="unsaved-changes-action unsaved-changes-discard">Discard Changes</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(popup);
+            
+            // Add event listeners
+            const cancelButton = popup.querySelector('.unsaved-changes-cancel');
+            const discardButton = popup.querySelector('.unsaved-changes-discard');
+            
+            cancelButton.addEventListener('click', function() {
+                popup.remove();
+            });
+            
+            discardButton.addEventListener('click', function() {
+                // Redirect to the target URL
+                window.location.href = targetUrl;
+            });
+        }
+    }
+});

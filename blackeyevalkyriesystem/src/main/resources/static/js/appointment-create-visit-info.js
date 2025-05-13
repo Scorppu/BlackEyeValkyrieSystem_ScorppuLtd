@@ -1,0 +1,807 @@
+/**
+ * Appointment Creation - Visit Information Page JavaScript
+ * 
+ * This script manages the functionality of the appointment creation visit information page.
+ * It handles doctor selection, time slot management, appointment scheduling, and conflict detection.
+ * 
+ * Key features:
+ * - Doctor schedule fetching and display in a timeline view
+ * - Time slot selection with validation for working hours (9:00 AM - 5:30 PM)
+ * - Appointment conflict detection with existing appointments
+ * - Visual representation of appointments in a scrollable timeline
+ * - Form validation for required fields
+ * - Tracking unsaved changes and confirmation when navigating away
+ * - Responsive timeline display that adjusts to screen size
+ * 
+ * The script interacts with backend APIs to fetch doctor schedules and uses DOM manipulation
+ * to create a dynamic timeline interface for appointment scheduling.
+ */
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Visit information page loaded');
+    
+    const appointmentForm = document.getElementById('visitInfoForm');
+    const requiredTimeInput = document.getElementById('requiredTime');
+    const appointmentTypeSelect = document.getElementById('appointmentType');
+    const doctorSelect = document.getElementById('doctorName');
+    const scheduledTimeInput = document.getElementById('scheduledTime');
+    const scheduledTimeHelp = document.getElementById('scheduledTimeHelp');
+    const timelineContainer = document.getElementById('timelineContainer');
+    const timelineHeader = document.getElementById('timelineHeader');
+    const doctorColumn = document.getElementById('doctorColumn');
+    const timelineSlots = document.getElementById('timelineSlots');
+    const doctorLoading = document.getElementById('doctorLoading');
+    const doctorSearch = document.querySelector('.doctor-search-input');
+    const backButton = document.getElementById('back-to-list-btn');
+    
+    let doctorAppointments = []; // Store all fetched appointments
+    
+    // Setup unsaved changes tracking
+    setupUnsavedChangesTracking();
+    
+    /**
+     * Checks if the timeline content needs a scrollbar and adjusts the container accordingly.
+     * Compares the width of timeline content with its container to determine if scrolling is needed.
+     */
+    function checkTimelineOverflow() {
+        const timelineContent = document.querySelector('.timeline-content');
+        const scrollContainer = document.querySelector('.timeline-scroll-container');
+        
+        if (timelineContent && scrollContainer) {
+            // Check if content width exceeds container width
+            const needsScroll = timelineContent.scrollWidth > scrollContainer.clientWidth;
+            scrollContainer.setAttribute('data-overflow', needsScroll);
+            
+            // Adjust appearance based on need for scrollbar
+            if (needsScroll) {
+                scrollContainer.style.overflowX = 'auto';
+            } else {
+                scrollContainer.style.overflowX = 'hidden';
+            }
+        }
+    }
+    
+    // Check for overflow when timeline is displayed and on window resize
+    window.addEventListener('resize', checkTimelineOverflow);
+    
+    /**
+     * Formats a Date object into a string suitable for datetime-local input fields (YYYY-MM-DDThh:mm).
+     * 
+     * @param {Date} date - The date object to format
+     * @returns {string} A formatted date string in YYYY-MM-DDThh:mm format
+     */
+    const formatDateForInput = (date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
+    };
+    
+    // Initialize date fields with default date (today)
+    const now = new Date();
+    const defaultDate = formatDateForInput(now).split('T')[0];
+    if (!scheduledTimeInput.value) {
+        // Set default time to 9:00 AM
+        scheduledTimeInput.value = defaultDate + 'T09:00';
+    }
+    
+    /**
+     * Parses a datetime string into a Date object.
+     * 
+     * @param {string} dateTimeStr - The datetime string to parse
+     * @returns {Date} A Date object representing the parsed datetime
+     */
+    const parseDateTime = (dateTimeStr) => {
+        return new Date(dateTimeStr);
+    };
+    
+    /**
+     * Formats a date for time display in hour:minute format.
+     * 
+     * @param {Date} date - The date object to format
+     * @returns {string} A formatted time string (e.g., "9:00 AM")
+     */
+    const formatTimeDisplay = (date) => {
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    };
+    
+    // Handle doctor search
+    if (doctorSelect) {
+        // Store the initial content container width
+        const initialContainerWidth = document.querySelector('.content-container').offsetWidth;
+        
+        doctorSelect.addEventListener('change', function() {
+            console.log("Doctor selection changed to:", this.value);
+            const selectedOption = this.options[this.selectedIndex];
+            if (selectedOption) {
+                // When a doctor is selected, load their schedule
+                if (selectedOption.value) {
+                    console.log("Doctor selected:", selectedOption.value);
+                    // Force container width to stay fixed before timeline displays
+                    document.querySelector('.content-container').style.width = initialContainerWidth + 'px';
+                    
+                    // Get date from scheduledTimeInput or use current date
+                    let selectedDate = scheduledTimeInput.value && scheduledTimeInput.value.includes('T') ? 
+                        new Date(scheduledTimeInput.value) : new Date();
+                    
+                    console.log("Selected date:", selectedDate);
+                    scheduledTimeInput.disabled = true; // Temporarily disable until schedule is loaded
+                    scheduledTimeHelp.textContent = 'Loading doctor\'s schedule...';
+                    
+                    // Show loading indicator
+                    doctorLoading.style.display = 'inline-block';
+                    
+                    fetchDoctorSchedule(selectedOption.value, selectedDate);
+                } else {
+                    // If no doctor selected, hide timeline and disable scheduledTime
+                    timelineContainer.style.display = 'none';
+                    scheduledTimeInput.disabled = true;
+                    scheduledTimeInput.value = '';
+                    scheduledTimeHelp.textContent = 'Select a doctor first to see available time slots';
+                }
+            }
+        });
+    } else {
+        console.error("Doctor select element not found!");
+    }
+    
+    // When required time changes, update the timeline if a doctor is selected
+    if (requiredTimeInput) {
+        requiredTimeInput.addEventListener('change', function() {
+            console.log("Required time changed to:", this.value);
+            const doctorName = doctorSelect.value;
+            if (doctorName) {
+                // Get date from scheduledTimeInput or use current date
+                let selectedDate = scheduledTimeInput.value && scheduledTimeInput.value.includes('T') ? 
+                    new Date(scheduledTimeInput.value) : new Date();
+                
+                fetchDoctorSchedule(doctorName, selectedDate);
+            }
+        });
+    } else {
+        console.error("Required time input element not found!");
+    }
+    
+    // When scheduled date changes, update the timeline if a doctor is selected
+    if (scheduledTimeInput) {
+        scheduledTimeInput.addEventListener('input', function() {
+            // Check if the input has a valid date component
+            if (this.value && this.value.includes('T')) {
+                const selectedDate = new Date(this.value);
+                const hours = selectedDate.getHours();
+                const minutes = selectedDate.getMinutes();
+                const requiredTimeMinutes = parseInt(requiredTimeInput.value, 10);
+                
+                // Calculate end time based on required time
+                const endTime = new Date(selectedDate.getTime() + requiredTimeMinutes * 60000);
+                const endHours = endTime.getHours();
+                const endMinutes = endTime.getMinutes();
+                
+                // Check time restrictions without alerts
+                let isValid = true;
+                let validationMessage = '';
+                
+                // Check if appointment starts before 9:00 AM
+                if (hours < 9) {
+                    isValid = false;
+                    validationMessage = 'Appointments can only be scheduled after 9:00 AM';
+                }
+                // Check if appointment starts after 17:30 (5:30 PM)
+                else if (hours > 17 || (hours === 17 && minutes > 30)) {
+                    isValid = false;
+                    validationMessage = 'Appointments cannot be scheduled after 5:30 PM';
+                }
+                // Check if appointment ends after 17:30 (5:30 PM)
+                else if (endHours > 17 || (endHours === 17 && endMinutes > 30)) {
+                    isValid = false;
+                    validationMessage = 'With the current duration, the appointment would end after 5:30 PM';
+                }
+                
+                // Update UI based on validation
+                if (isValid) {
+                    // Valid time - remove error styling
+                    this.classList.remove('invalid-time');
+                    scheduledTimeHelp.textContent = 'Selected time is valid';
+                    scheduledTimeHelp.style.color = 'var(--secondary-text)';
+                } else {
+                    // Invalid time - add error styling but don't prevent typing
+                    this.classList.add('invalid-time');
+                    scheduledTimeHelp.textContent = validationMessage;
+                    scheduledTimeHelp.style.color = '#ef4444';
+                }
+                
+                const doctorName = doctorSelect.value;
+                if (doctorName) {
+                    // Only fetch new schedule if date has changed
+                    const currentDate = new Date(doctorAppointments.length > 0 ? 
+                        doctorAppointments[0]?.scheduledTime : null);
+                    
+                    if (!currentDate || 
+                        currentDate.getDate() !== selectedDate.getDate() ||
+                        currentDate.getMonth() !== selectedDate.getMonth() ||
+                        currentDate.getFullYear() !== selectedDate.getFullYear()) {
+                        fetchDoctorSchedule(doctorName, selectedDate);
+                    } else {
+                        // Just check for conflicts with existing data
+                        checkAppointmentConflict(selectedDate);
+                    }
+                }
+            }
+        });
+    } else {
+        console.error("Scheduled time input element not found!");
+    }
+    
+    /**
+     * Fetches a doctor's schedule for a specific date and displays it in the timeline.
+     * Calls the backend API to get appointments and updates the UI accordingly.
+     * 
+     * @param {string} doctorName - The name of the doctor whose schedule to fetch
+     * @param {Date} selectedDate - The date for which to fetch the schedule
+     */
+    function fetchDoctorSchedule(doctorName, selectedDate) {
+        console.log("Fetching doctor schedule for:", doctorName, "on date:", selectedDate);
+        
+        // Force content containers to fixed width before loading
+        document.querySelectorAll('.content-container, .form-card, .form-section').forEach(el => {
+            el.style.overflowX = 'hidden';
+        });
+        
+        // Show loading indicator
+        doctorLoading.style.display = 'inline-block';
+        
+        // Get selected date at 00:00
+        const startDay = new Date(selectedDate);
+        startDay.setHours(0, 0, 0, 0);
+        
+        // Get end of selected date (23:59:59)
+        const endDay = new Date(startDay);
+        endDay.setHours(23, 59, 59, 999);
+        
+        // Format dates for API
+        const startTime = startDay.toISOString();
+        const endTime = endDay.toISOString();
+        
+        // Display the timeline first with no appointments (will be filled in)
+        displayTimeline(doctorName, [], null, parseInt(requiredTimeInput.value, 10));
+        timelineContainer.style.display = 'block';
+        
+        // Enable scheduled time selection immediately
+        scheduledTimeInput.disabled = false;
+        scheduledTimeHelp.textContent = 'Select an available time slot';
+        
+        // Set default time to 9:00 AM today if not already set
+        if (!scheduledTimeInput.value.includes('T')) {
+            const today = new Date();
+            today.setHours(9, 0, 0, 0);
+            scheduledTimeInput.value = today.toISOString().substring(0, 16);
+        }
+        
+        // Fetch doctor's appointments for selected date
+        fetch(`/api/appointments/doctor/${encodeURIComponent(doctorName)}/daterange?startTime=${startTime}&endTime=${endTime}`)
+            .then(response => {
+                console.log("API response status:", response.status);
+                return response.json();
+            })
+            .then(appointments => {
+                console.log("Retrieved appointments:", appointments);
+                
+                // Store the appointments for later conflict checking
+                doctorAppointments = appointments;
+                
+                // Find the next available time slot
+                const requiredTime = parseInt(requiredTimeInput.value, 10);
+                
+                // Display the timeline with appointments
+                const currentSelectedTime = scheduledTimeInput.value;
+                displayTimeline(doctorName, appointments, currentSelectedTime, requiredTime);
+                
+                // Check if current selection conflicts with appointments
+                if (currentSelectedTime && currentSelectedTime.includes('T')) {
+                    checkAppointmentConflict(new Date(currentSelectedTime));
+                }
+                
+                // Hide loading indicator
+                doctorLoading.style.display = 'none';
+            })
+            .catch(error => {
+                console.error('Error fetching appointments:', error);
+                // Still show an empty timeline
+                timelineContainer.style.display = 'block';
+                doctorLoading.style.display = 'none';
+                scheduledTimeInput.disabled = false;
+                scheduledTimeHelp.textContent = 'Error loading appointments. Please select a time manually.';
+            });
+    }
+    
+    /**
+     * Checks if a new appointment would conflict with existing appointments.
+     * Compares the selected time and duration with all existing appointments for the doctor.
+     * 
+     * @param {Date} selectedTime - The start time of the new appointment
+     * @returns {boolean} True if there is a conflict, false otherwise
+     */
+    function checkAppointmentConflict(selectedTime) {
+        if (!selectedTime || !doctorAppointments.length) return false;
+        
+        const requiredTime = parseInt(requiredTimeInput.value, 10);
+        const appointmentStart = new Date(selectedTime);
+        const appointmentEnd = new Date(appointmentStart.getTime() + requiredTime * 60000);
+        
+        // Check each existing appointment for overlap
+        let hasConflict = false;
+        let conflictingAppointment = null;
+        
+        for (const appointment of doctorAppointments) {
+            const existingStart = new Date(appointment.scheduledTime);
+            const existingEnd = new Date(existingStart.getTime() + appointment.requiredTime * 60000);
+            
+            // Check if appointment times overlap
+            // Overlap occurs if:
+            // (new start is before existing end) AND (new end is after existing start)
+            if (appointmentStart < existingEnd && appointmentEnd > existingStart) {
+                hasConflict = true;
+                conflictingAppointment = appointment;
+                break;
+            }
+        }
+        
+        // Update UI to reflect conflict status
+        updateConflictUI(hasConflict, conflictingAppointment);
+        
+        return hasConflict;
+    }
+    
+    /**
+     * Updates the UI to show conflict status of the currently selected appointment time.
+     * Creates or updates a visual indicator on the timeline for the new appointment.
+     * 
+     * @param {boolean} hasConflict - Whether the selected time conflicts with existing appointments
+     * @param {Object} conflictingAppointment - The appointment that conflicts, if any
+     */
+    function updateConflictUI(hasConflict, conflictingAppointment) {
+        // Remove previous dotted appointment
+        const previousDotted = timelineSlots.querySelector('.dotted');
+        if (previousDotted) {
+            previousDotted.remove();
+        }
+        
+        // Get current appointment details
+        const selectedTime = new Date(scheduledTimeInput.value);
+        const requiredTime = parseInt(requiredTimeInput.value, 10);
+        
+        // Calculate positions for timeline (same as in displayTimeline)
+        const workStartHour = 9;
+        const slotWidth = 100;
+        
+        function calculateTimePosition(time) {
+            const hours = time.getHours();
+            const minutes = time.getMinutes();
+            const slot = (hours - workStartHour) * 2 + (minutes >= 30 ? 1 : 0);
+            return slot * slotWidth;
+        }
+        
+        const leftPosition = calculateTimePosition(selectedTime);
+        const suggestedDurationSlots = Math.ceil(requiredTime / 30);
+        
+        // Create the new appointment block
+        const updatedAppointmentBlock = document.createElement('div');
+        updatedAppointmentBlock.className = `appointment-block dotted ${hasConflict ? 'red' : ''}`;
+        
+        // Use consistent positioning calculation
+        updatedAppointmentBlock.style.left = `${leftPosition}px`;
+        updatedAppointmentBlock.style.width = `${suggestedDurationSlots * slotWidth - 10}px`;
+        
+        if (hasConflict) {
+            let conflictMessage = 'Conflict! (New Appointment)';
+            if (conflictingAppointment && conflictingAppointment.patient) {
+                conflictMessage = `Conflicts with ${conflictingAppointment.patient.firstName} ${conflictingAppointment.patient.lastName}'s appointment`;
+            }
+            updatedAppointmentBlock.textContent = conflictMessage;
+            
+            scheduledTimeHelp.textContent = 'Warning: The selected time conflicts with another appointment!';
+            scheduledTimeHelp.style.color = '#ef4444';
+        } else {
+            updatedAppointmentBlock.textContent = 'New Appointment';
+            scheduledTimeHelp.textContent = 'Selected time is available';
+            scheduledTimeHelp.style.color = 'var(--secondary-text)';
+        }
+        
+        // Add to timeline slots container
+        timelineSlots.appendChild(updatedAppointmentBlock);
+        
+        // Scroll to make the selected time visible
+        setTimeout(() => {
+            const timelineScrollContainer = document.querySelector('.timeline-scroll-container');
+            if (timelineScrollContainer) {
+                const scrollPosition = leftPosition;
+                timelineScrollContainer.scrollLeft = Math.max(0, scrollPosition - 100);
+            }
+        }, 100);
+    }
+    
+    /**
+     * Displays the timeline with doctor's appointments and the new appointment slot.
+     * Creates a visual representation of all appointments in a scrollable timeline.
+     * 
+     * @param {string} doctorName - The name of the doctor whose schedule is being displayed
+     * @param {Array} appointments - Array of existing appointments to display
+     * @param {string|Date|null} nextAvailableTime - The suggested time for the new appointment
+     * @param {number} requiredTime - The duration in minutes for the new appointment
+     */
+    function displayTimeline(doctorName, appointments, nextAvailableTime, requiredTime) {
+        // Get the current container width before showing the timeline
+        const containerWidth = document.querySelector('.content-container').offsetWidth;
+        
+        // Clear previous timeline
+        timelineHeader.innerHTML = '';
+        timelineSlots.innerHTML = '';
+        doctorColumn.textContent = doctorName;
+        
+        // Show timeline container but keep content within container bounds
+        document.querySelectorAll('.content-container, .form-card, .form-section').forEach(el => {
+            el.style.width = '100%';
+            el.style.maxWidth = '100%';
+            el.style.overflowX = 'hidden';
+        });
+        
+        // Now show the timeline
+        timelineContainer.style.display = 'block';
+        
+        // Appointment working hours: 9 AM to 5:30 PM
+        const workStartHour = 9;
+        const workEndHour = 17.5; // Changed from 17 to 17.5 (5:30 PM)
+        
+        // Calculate time slots for layout
+        const timeSlots = Math.ceil((workEndHour - workStartHour) * 2) + 1; // 30-minute slots
+        const slotWidth = 100; // Width in pixels of each time slot
+        
+        // Set min-width for the timeline content based on time slots
+        const totalWidth = (timeSlots * slotWidth) + 100; // Add doctor column width
+        
+        // Get timeline scroll container
+        const scrollContainer = timelineContainer.querySelector('.timeline-scroll-container');
+        
+        // Ensure only the scroll container has scrollbars
+        document.querySelectorAll('body, html, .content-container, .form-card, .form-section, .timeline-container, .timeline-content').forEach(el => {
+            if (el !== scrollContainer) {
+                el.style.overflow = 'hidden';
+            }
+        });
+        
+        // Set appropriate width for timeline content
+        const timelineContent = document.querySelector('.timeline-content');
+        if (timelineContent) {
+            timelineContent.style.width = totalWidth + 'px';
+            timelineContent.style.minWidth = Math.min(800, totalWidth) + 'px';
+            timelineContent.style.maxWidth = 'none'; // Allow content to be wider than container for scrolling
+            timelineContent.style.overflow = 'visible';
+        }
+        
+        // Ensure scroll container has proper overflow settings
+        if (scrollContainer) {
+            scrollContainer.style.overflowX = 'auto';
+            scrollContainer.style.overflowY = 'hidden';
+            scrollContainer.style.maxWidth = '100%';
+            scrollContainer.style.width = '100%';
+        }
+        
+        // Generate time slots (every 30 minutes) in a single row
+        for (let hour = workStartHour; hour <= workEndHour; hour++) {
+            for (let minute = 0; minute < 60; minute += 30) {
+                if (hour === workEndHour && minute > 0) continue; // Skip after 5 PM
+                
+                const displayTime = `${hour}:${minute === 0 ? '00' : minute}`;
+                const timeSlot = document.createElement('div');
+                timeSlot.className = 'timeline-time';
+                timeSlot.textContent = displayTime;
+                timelineHeader.appendChild(timeSlot);
+            }
+        }
+        
+        // Sort appointments by scheduled time
+        appointments.sort((a, b) => new Date(a.scheduledTime) - new Date(b.scheduledTime));
+        
+        /**
+         * Calculates the left position for a time on the timeline.
+         * 
+         * @param {Date} time - The time to calculate position for
+         * @returns {number} The pixel position from the left edge
+         */
+        function calculateTimePosition(time) {
+            if (!time) {
+                console.warn("Null time provided to calculateTimePosition, using default 9:00 AM");
+                // Default to 9:00 AM if time is null
+                const defaultTime = new Date();
+                defaultTime.setHours(9, 0, 0, 0);
+                time = defaultTime;
+            }
+            
+            const hours = time.getHours();
+            const minutes = time.getMinutes();
+            const slot = (hours - workStartHour) * 2 + (minutes >= 30 ? 1 : 0);
+            return slot * slotWidth;
+        }
+        
+        // Place existing appointments in the timeline
+        appointments.forEach(appointment => {
+            const startTime = new Date(appointment.scheduledTime);
+            const endTime = new Date(startTime.getTime() + appointment.requiredTime * 60000);
+            
+            // Skip appointments outside working hours
+            if (startTime.getHours() < workStartHour || startTime.getHours() >= workEndHour) {
+                return;
+            }
+            
+            // Calculate position
+            const leftPosition = calculateTimePosition(startTime);
+            const durationSlots = Math.ceil(appointment.requiredTime / 30);
+            
+            // Create appointment block
+            const appointmentBlock = document.createElement('div');
+            appointmentBlock.className = 'appointment-block';
+            
+            // Position the block using absolute positioning - adjust position to align with time markers
+            appointmentBlock.style.left = `${leftPosition}px`;
+            appointmentBlock.style.width = `${durationSlots * slotWidth - 10}px`; // -10 for margins
+            
+            // Add patient name or appointment type
+            appointmentBlock.textContent = appointment.patient ? 
+                `${appointment.patient.firstName} ${appointment.patient.lastName}` : 
+                appointment.appointmentType;
+            
+            // Add appointment to the slots container
+            timelineSlots.appendChild(appointmentBlock);
+        });
+        
+        // Create a default time at 9:00 AM today if nextAvailableTime is null
+        let suggestedStartTime;
+        if (nextAvailableTime === null) {
+            suggestedStartTime = new Date();
+            suggestedStartTime.setHours(9, 0, 0, 0);
+            
+            // If a time is already selected in the input, use that instead
+            if (scheduledTimeInput.value && scheduledTimeInput.value.includes('T')) {
+                suggestedStartTime = new Date(scheduledTimeInput.value);
+            }
+        } else {
+            suggestedStartTime = typeof nextAvailableTime === 'string' ? 
+                new Date(nextAvailableTime) : nextAvailableTime;
+        }
+        
+        // Ensure requiredTime has a value (default to 30 if not set)
+        const finalRequiredTime = requiredTime || 30;
+        
+        const leftPosition = calculateTimePosition(suggestedStartTime);
+        const suggestedDurationSlots = Math.ceil(finalRequiredTime / 30);
+        
+        const newAppointmentBlock = document.createElement('div');
+        newAppointmentBlock.className = 'appointment-block dotted';
+        
+        // Fix the alignment calculation for the appointment block
+        newAppointmentBlock.style.left = `${leftPosition}px`;
+        newAppointmentBlock.style.width = `${suggestedDurationSlots * slotWidth - 10}px`; // -10 for margins
+        newAppointmentBlock.textContent = 'New Appointment';
+        
+        // Add to timeline slots container
+        timelineSlots.appendChild(newAppointmentBlock);
+        
+        // Check for conflicts with current selection
+        if (suggestedStartTime) {
+            checkAppointmentConflict(suggestedStartTime);
+        }
+        
+        // Scroll to make the suggested time visible
+        setTimeout(() => {
+            const timelineScrollContainer = document.querySelector('.timeline-scroll-container');
+            if (timelineScrollContainer) {
+                // Scroll to the appointment position
+                timelineScrollContainer.scrollLeft = Math.max(0, leftPosition - 100);
+                
+                // Check if timeline needs scrollbar
+                checkTimelineOverflow();
+            }
+        }, 100);
+    }
+    
+    /**
+     * Sets up tracking for unsaved changes and handles navigation away from the form.
+     * Attaches event listeners to detect navigation attempts and show confirmation dialogs.
+     */
+    function setupUnsavedChangesTracking() {
+        // Handle back button click
+        if (backButton) {
+            backButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                showUnsavedChangesPopup('/appointment/timeline');
+            });
+        }
+        
+        // Handle clicks on sidebar links or other navigation
+        document.addEventListener('click', function(e) {
+            const link = e.target.closest('a');
+            
+            // Ignore submission buttons, same-page links, and form elements
+            if (link && 
+                !link.classList.contains('btn-primary') &&
+                !link.getAttribute('href').startsWith('#') &&
+                !appointmentForm.contains(link)) {
+                
+                e.preventDefault();
+                const targetUrl = link.getAttribute('href');
+                showUnsavedChangesPopup(targetUrl);
+            }
+        });
+        
+        /**
+         * Shows a popup to warn about unsaved changes when navigating away.
+         * Creates a modal dialog with options to stay on the page or discard changes.
+         * 
+         * @param {string} targetUrl - The URL to navigate to if user chooses to discard changes
+         */
+        function showUnsavedChangesPopup(targetUrl = '/appointment/timeline') {
+            // Remove any existing popup
+            const existingPopup = document.querySelector('.unsaved-changes-popup');
+            if (existingPopup) {
+                existingPopup.remove();
+            }
+            
+            // Create the popup
+            const popup = document.createElement('div');
+            popup.className = 'unsaved-changes-popup';
+            
+            popup.innerHTML = `
+                <div class="unsaved-changes-content">
+                    <div class="unsaved-changes-header">
+                        Unsaved Changes
+                    </div>
+                    <div class="unsaved-changes-body">
+                        <div class="unsaved-changes-message">
+                            You have unsaved changes that will be lost if you leave this page. 
+                            Do you want to discard these changes?
+                        </div>
+                        <div class="unsaved-changes-actions">
+                            <button class="unsaved-changes-action unsaved-changes-cancel">Cancel</button>
+                            <button class="unsaved-changes-action unsaved-changes-discard">Discard Changes</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(popup);
+            
+            // Add event listeners
+            const cancelButton = popup.querySelector('.unsaved-changes-cancel');
+            const discardButton = popup.querySelector('.unsaved-changes-discard');
+            
+            cancelButton.addEventListener('click', function() {
+                popup.remove();
+            });
+            
+            discardButton.addEventListener('click', function() {
+                // Redirect to the target URL
+                window.location.href = targetUrl;
+            });
+        }
+    }
+    
+    // Form validation
+    if (appointmentForm) {
+        appointmentForm.addEventListener('submit', function(event) {
+            // Clear previous error messages
+            document.querySelectorAll('.error-message').forEach(el => el.remove());
+            document.querySelectorAll('.form-control, .form-select').forEach(el => el.classList.remove('invalid-time'));
+            
+            const doctorValue = doctorSelect.value;
+            const scheduledTimeValue = scheduledTimeInput.value;
+            let hasErrors = false;
+            
+            // Validate that doctor is selected
+            if (!doctorValue) {
+                event.preventDefault();
+                hasErrors = true;
+                doctorSelect.classList.add('invalid-time');
+                const errorMessage = document.createElement('div');
+                errorMessage.className = 'error-message';
+                errorMessage.textContent = 'Please select a doctor';
+                errorMessage.style.color = '#ef4444';
+                errorMessage.style.fontSize = '0.8rem';
+                errorMessage.style.marginTop = '0.5rem';
+                doctorSelect.parentNode.appendChild(errorMessage);
+            }
+            
+            // Validate that scheduled time is set
+            if (!scheduledTimeValue) {
+                event.preventDefault();
+                hasErrors = true;
+                scheduledTimeInput.classList.add('invalid-time');
+                const errorMessage = document.createElement('div');
+                errorMessage.className = 'error-message';
+                errorMessage.textContent = 'Please select a scheduled time';
+                errorMessage.style.color = '#ef4444';
+                errorMessage.style.fontSize = '0.8rem';
+                errorMessage.style.marginTop = '0.5rem';
+                scheduledTimeInput.parentNode.appendChild(errorMessage);
+            } else {
+                // Parse the scheduled time
+                const scheduledTime = new Date(scheduledTimeValue);
+                const hours = scheduledTime.getHours();
+                const minutes = scheduledTime.getMinutes();
+                const requiredTimeMinutes = parseInt(requiredTimeInput.value, 10);
+                
+                // Calculate end time based on required time
+                const endTime = new Date(scheduledTime.getTime() + requiredTimeMinutes * 60000);
+                const endHours = endTime.getHours();
+                const endMinutes = endTime.getMinutes();
+                
+                // Validate time restrictions
+                let isValid = true;
+                let validationMessage = '';
+                
+                // Check if appointment starts before 9:00 AM
+                if (hours < 9) {
+                    isValid = false;
+                    validationMessage = 'Appointments can only be scheduled after 9:00 AM';
+                }
+                // Check if appointment starts after 17:30 (5:30 PM)
+                else if (hours > 17 || (hours === 17 && minutes > 30)) {
+                    isValid = false;
+                    validationMessage = 'Appointments cannot be scheduled after 5:30 PM';
+                }
+                // Check if appointment ends after 17:30 (5:30 PM)
+                else if (endHours > 17 || (endHours === 17 && endMinutes > 30)) {
+                    isValid = false;
+                    validationMessage = 'With the current duration, the appointment would end after 5:30 PM';
+                }
+                
+                // Prevent submission if time is invalid
+                if (!isValid) {
+                    event.preventDefault();
+                    hasErrors = true;
+                    scheduledTimeInput.classList.add('invalid-time');
+                    
+                    // Add error message if it doesn't exist yet
+                    if (!scheduledTimeHelp.classList.contains('error-message')) {
+                        scheduledTimeHelp.textContent = validationMessage;
+                        scheduledTimeHelp.style.color = '#ef4444';
+                        scheduledTimeHelp.classList.add('error-message');
+                    }
+                }
+            }
+            
+            // Check for conflicts before submitting
+            if (!hasErrors && checkAppointmentConflict(new Date(scheduledTimeValue))) {
+                event.preventDefault();
+                if (!confirm('The selected time conflicts with another appointment. Do you still want to proceed?')) {
+                    return;
+                }
+            }
+            
+            // If there are errors, scroll to the first error
+            if (hasErrors) {
+                const firstError = document.querySelector('.invalid-time');
+                if (firstError) {
+                    firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    firstError.focus();
+                }
+            }
+        });
+    }
+    
+    // Handle window resize to adjust timeline width
+    window.addEventListener('resize', function() {
+        // Get the timeline content element
+        const timelineContent = document.querySelector('.timeline-content');
+        if (timelineContent && timelineContainer.style.display === 'block') {
+            // Get the container width
+            const containerWidth = timelineContainer.clientWidth - 30;
+            
+            // Ensure we don't exceed viewport width
+            const maxViewportWidth = window.innerWidth - 50;
+            const finalWidth = Math.min(containerWidth, maxViewportWidth);
+            
+            timelineContent.style.width = `${finalWidth}px`;
+        }
+    });
+}); 
