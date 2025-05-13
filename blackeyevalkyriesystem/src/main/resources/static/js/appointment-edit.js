@@ -1,3 +1,24 @@
+/**
+ * Appointment Creation and Editing JavaScript
+ * 
+ * This script manages the functionality for creating and editing appointments.
+ * It handles patient and doctor selection, appointment scheduling, availability checking,
+ * form validation, and status history tracking.
+ * 
+ * Key features:
+ * - Patient and doctor search with real-time filtering and selection
+ * - Date and time selection using flatpickr date/time pickers
+ * - Real-time availability checking for doctor schedules
+ * - Form validation before submission
+ * - AJAX form submission for creating/updating appointments
+ * - Status history tracking and timeline display
+ * - Alert system for user feedback with auto-dismissal
+ * - Pre-filling form data when editing existing appointments
+ * 
+ * The script uses fetch API for all server communications and provides
+ * immediate feedback to users throughout the appointment management process.
+ */
+
 // Global variables
 let selectedPatient = null;
 let selectedDoctor = null;

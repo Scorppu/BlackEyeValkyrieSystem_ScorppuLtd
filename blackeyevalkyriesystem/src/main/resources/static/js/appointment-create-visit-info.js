@@ -1,3 +1,21 @@
+/**
+ * Appointment Creation - Visit Information Page JavaScript
+ * 
+ * This script manages the functionality of the appointment creation visit information page.
+ * It handles doctor selection, time slot management, appointment scheduling, and conflict detection.
+ * 
+ * Key features:
+ * - Doctor schedule fetching and display in a timeline view
+ * - Time slot selection with validation for working hours (9:00 AM - 5:30 PM)
+ * - Appointment conflict detection with existing appointments
+ * - Visual representation of appointments in a scrollable timeline
+ * - Form validation for required fields
+ * - Tracking unsaved changes and confirmation when navigating away
+ * - Responsive timeline display that adjusts to screen size
+ * 
+ * The script interacts with backend APIs to fetch doctor schedules and uses DOM manipulation
+ * to create a dynamic timeline interface for appointment scheduling.
+ */
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Visit information page loaded');
     

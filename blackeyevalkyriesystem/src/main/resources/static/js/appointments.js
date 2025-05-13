@@ -1,3 +1,16 @@
+/**
+ * Appointments Page JavaScript
+ * 
+ * This script initializes the main appointments page functionality.
+ * It sets up the page when the DOM content is loaded and includes
+ * placeholder for future implementations.
+ * 
+ * Key features:
+ * - Page initialization on DOM content load
+ * - Placeholder for upcoming appointments fetching functionality
+ * - Console logging for page load confirmation
+ * - Structure for calendar implementation (to be added)
+ */
 // Appointments-specific JavaScript
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Appointments page loaded');

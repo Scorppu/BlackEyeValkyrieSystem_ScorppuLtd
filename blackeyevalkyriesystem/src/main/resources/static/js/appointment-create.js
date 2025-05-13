@@ -1,3 +1,22 @@
+/**
+ * Appointment Creation - Patient Selection Page JavaScript
+ * 
+ * This script manages the patient selection page functionality during appointment creation.
+ * It handles patient selection, pagination, sorting, searching, and form navigation.
+ * 
+ * Key features:
+ * - Single patient selection enforcement (radio-button-like behavior for checkboxes)
+ * - Patient search functionality with real-time filtering
+ * - Pagination with configurable rows per page
+ * - Table sorting by different columns (name, ID)
+ * - Form validation to ensure exactly one patient is selected
+ * - Unsaved changes detection and confirmation when navigating away
+ * - Responsive UI interactions with proper error messaging
+ * 
+ * The script ensures proper form submission and validation before proceeding to the
+ * next step in appointment creation, while also preventing accidental navigation
+ * away from the page when there are unsaved changes.
+ */
 document.addEventListener('DOMContentLoaded', function() {              
     // Handle select all checkbox
     const selectAllCheckbox = document.getElementById('selectAll');

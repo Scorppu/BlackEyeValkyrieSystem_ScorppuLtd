@@ -1,3 +1,23 @@
+/**
+ * Appointment Timeline JavaScript
+ * 
+ * This script manages the appointment timeline view, displaying scheduled appointments
+ * by doctor and time, as well as pending appointments in a tabular format.
+ * 
+ * Key features:
+ * - Timeline visualization of appointments across doctors for a selected date
+ * - Interactive appointment blocks with visual indicators for appointment types
+ * - Date selection for filtering the timeline and pending appointments
+ * - Pending appointments table with date range filtering
+ * - Appointment actions (edit, cancel) with confirmation handling
+ * - Responsive timeline with proper scrolling behavior
+ * - Tooltips for appointment details on hover
+ * - Notification system for operation results (creation, updates)
+ * - Error handling with fallback data when API calls fail
+ * 
+ * The script handles the entire lifecycle of displaying and interacting with appointments
+ * in a timeline format, from fetching data to rendering visual elements and handling user actions.
+ */
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Appointment Timeline page loaded');
     
