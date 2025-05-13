@@ -52,8 +52,24 @@ public class DrugViewController {
      * Drug list page
      */
     @GetMapping("/list")
-    public String showDrugList(Model model) {
-        model.addAttribute("drugs", drugService.getAllDrugs());
+    public String showDrugList(Model model,
+                             @RequestParam(defaultValue = "1") int page,
+                             @RequestParam(defaultValue = "10") int rowsPerPage,
+                             @RequestParam(defaultValue = "name") String sortBy,
+                             @RequestParam(defaultValue = "asc") String direction) {
+        
+        int totalDrugs = drugService.getTotalDrugsCount();
+        int offset = (page - 1) * rowsPerPage;
+        
+        List<Drug> drugs = drugService.getAllDrugsPaginated(offset, rowsPerPage, sortBy, direction);
+        
+        model.addAttribute("drugs", drugs);
+        model.addAttribute("totalDrugs", totalDrugs);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("rowsPerPage", rowsPerPage);
+        model.addAttribute("currentSortBy", sortBy);
+        model.addAttribute("currentDirection", direction);
+        
         return "drug-list";
     }
     

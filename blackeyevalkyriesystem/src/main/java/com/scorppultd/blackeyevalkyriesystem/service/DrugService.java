@@ -15,6 +15,10 @@ public interface DrugService {
     Drug updateDrug(Drug drug);
     void deleteDrug(String id);
     
+    // Pagination operations
+    int getTotalDrugsCount();
+    List<Drug> getAllDrugsPaginated(int offset, int limit, String sortBy, String direction);
+    
     // Search operations
     List<Drug> searchDrugsByName(String name);
     boolean existsByName(String name);

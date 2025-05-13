@@ -110,7 +110,7 @@
                                         <option value="">Select a doctor</option>
                                         <option th:each="doctor : ${doctors}" 
                                                 th:value="${doctor.firstName + ' ' + doctor.lastName}"
-                                                th:text="${doctor.firstName + ' ' + doctor.lastName}"
+                                                th:text="${'Dr. ' + doctor.firstName + ' ' + doctor.lastName}"
                                                 th:selected="${doctor.firstName + ' ' + doctor.lastName == appointment.doctorName}">
                                         </option>
                                     </select>

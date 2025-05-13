@@ -69,24 +69,48 @@ public class PatientViewController {
     public String listPatients(
             @RequestParam(required = false, defaultValue = "lastName") String sortBy,
             @RequestParam(required = false, defaultValue = "asc") String direction,
+            @RequestParam(required = false, defaultValue = "1") Integer page,
+            @RequestParam(required = false, defaultValue = "10") Integer rowsPerPage,
             Model model) {
         
-        List<Patient> patients = patientService.getAllPatientsSorted(sortBy, direction);
-        model.addAttribute("patients", patients);
+        List<Patient> allPatients = patientService.getAllPatientsSorted(sortBy, direction);
+        
+        // Calculate total count before pagination
+        int totalPatients = allPatients.size();
+        
+        // Apply pagination
+        int startIdx = (page - 1) * rowsPerPage;
+        int endIdx = Math.min(startIdx + rowsPerPage, allPatients.size());
+        
+        // Guard against invalid indices
+        if (startIdx > allPatients.size()) {
+            startIdx = 0;
+            page = 1;
+        }
+        
+        List<Patient> paginatedPatients = allPatients;
+        if (startIdx < endIdx) {
+            paginatedPatients = allPatients.subList(startIdx, endIdx);
+        }
+        
+        model.addAttribute("patients", paginatedPatients);
+        
+        // Add pagination parameters to the model for the view
+        model.addAttribute("currentPage", page);
+        model.addAttribute("rowsPerPage", rowsPerPage);
+        model.addAttribute("totalPatients", totalPatients);
         
         // Add current sort parameters to the model for the view
         model.addAttribute("currentSortBy", sortBy);
         model.addAttribute("currentDirection", direction);
         
-        long totalPatients = patients.size();
-        long admittedPatients = patients.stream()
+        long admittedPatients = allPatients.stream()
                 .filter(p -> "Admitted".equals(p.getStatus()))
                 .count();
-        long dischargedPatients = patients.stream()
+        long dischargedPatients = allPatients.stream()
                 .filter(p -> "Discharged".equals(p.getStatus()))
                 .count();
         
-        model.addAttribute("totalPatients", totalPatients);
         model.addAttribute("admittedPatients", admittedPatients);
         model.addAttribute("dischargedPatients", dischargedPatients);
         

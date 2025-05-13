@@ -78,6 +78,11 @@ body {
     margin-left: 275px;
 }
 
+/* Add 15px top padding to all pages except main page */
+body:not(.main-page) .main-content {
+    padding-top: 15px;
+}
+
 .header {
     display: flex;
     justify-content: space-between;

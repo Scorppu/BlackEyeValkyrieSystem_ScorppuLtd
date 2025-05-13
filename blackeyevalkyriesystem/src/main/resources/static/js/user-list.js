@@ -113,43 +113,149 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Delete modal functionality
-    const modal = document.getElementById('deleteModal');
+    // Handle search functionality
+    const searchInput = document.getElementById('userSearch');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const tableRows = document.querySelectorAll('.user-table tbody tr');
+            
+            tableRows.forEach(row => {
+                const userName = row.querySelector('td:first-child').textContent.toLowerCase();
+                const userEmail = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+                const userRole = row.querySelector('td:nth-child(3) .role-badge').textContent.toLowerCase();
+                
+                if (userName.includes(searchTerm) || userEmail.includes(searchTerm) || userRole.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    }
+    
+    // Handle pagination - rows per page selection
+    const rowsPerPageSelect = document.getElementById('rowsPerPage');
+    const headerRowsPerPageSelect = document.getElementById('headerRowsPerPage');
+    
+    // Sync both selects
+    if (rowsPerPageSelect && headerRowsPerPageSelect) {
+        headerRowsPerPageSelect.addEventListener('change', function() {
+            window.location.href = updateUrlParameter(window.location.href, 'rowsPerPage', this.value);
+        });
+        
+        rowsPerPageSelect.addEventListener('change', function() {
+            window.location.href = updateUrlParameter(window.location.href, 'rowsPerPage', this.value);
+        });
+    }
+    
+    // Handle pagination - next and previous buttons
+    const prevButton = document.querySelector('.prev-page');
+    const nextButton = document.querySelector('.next-page');
+    const headerPrevButton = document.querySelector('.header-prev-page');
+    const headerNextButton = document.querySelector('.header-next-page');
+    
+    function getCurrentPage() {
+        const urlParams = new URLSearchParams(window.location.search);
+        return parseInt(urlParams.get('page')) || 1;
+    }
+    
+    if (prevButton && nextButton) {
+        prevButton.addEventListener('click', function() {
+            if (!prevButton.disabled) {
+                const currentPage = getCurrentPage();
+                if (currentPage > 1) {
+                    window.location.href = updateUrlParameter(window.location.href, 'page', currentPage - 1);
+                }
+            }
+        });
+        
+        nextButton.addEventListener('click', function() {
+            if (!nextButton.disabled) {
+                const currentPage = getCurrentPage();
+                window.location.href = updateUrlParameter(window.location.href, 'page', currentPage + 1);
+            }
+        });
+    }
+    
+    if (headerPrevButton && headerNextButton) {
+        headerPrevButton.addEventListener('click', function() {
+            if (!headerPrevButton.disabled) {
+                const currentPage = getCurrentPage();
+                if (currentPage > 1) {
+                    window.location.href = updateUrlParameter(window.location.href, 'page', currentPage - 1);
+                }
+            }
+        });
+        
+        headerNextButton.addEventListener('click', function() {
+            if (!headerNextButton.disabled) {
+                const currentPage = getCurrentPage();
+                window.location.href = updateUrlParameter(window.location.href, 'page', currentPage + 1);
+            }
+        });
+    }
+    
+    // Handle delete modal
+    const deleteModal = document.getElementById('deleteModal');
     const confirmInput = document.getElementById('confirmInput');
-    const deleteUserId = document.getElementById('deleteUserId');
-    const cancelDelete = document.getElementById('cancelDelete');
-    const confirmDelete = document.getElementById('confirmDelete');
+    const deleteUserIdInput = document.getElementById('deleteUserId');
+    const confirmDeleteBtn = document.getElementById('confirmDelete');
+    const cancelDeleteBtn = document.getElementById('cancelDelete');
     
-    // Close modal when cancel is clicked
-    cancelDelete.addEventListener('click', function() {
-        modal.style.display = 'none';
+    // Function to open delete modal
+    window.openDeleteModal = function(userId) {
+        deleteUserIdInput.value = userId;
+        deleteModal.style.display = 'block';
         confirmInput.value = '';
-    });
+        confirmDeleteBtn.disabled = true;
+    };
     
-    // Handle confirm delete button
-    confirmDelete.addEventListener('click', function() {
-        if (confirmInput.value === 'Confirm') {
-            window.location.href = '/user/delete/' + deleteUserId.value;
-        } else {
-            alert('Please type "Confirm" to proceed with deletion.');
-        }
-    });
+    // Close modal when clicking cancel
+    if (cancelDeleteBtn) {
+        cancelDeleteBtn.addEventListener('click', function() {
+            deleteModal.style.display = 'none';
+        });
+    }
     
-    // Close modal when clicking outside
+    // Check confirmation text
+    if (confirmInput) {
+        confirmInput.addEventListener('input', function() {
+            confirmDeleteBtn.disabled = this.value !== 'Confirm';
+        });
+    }
+    
+    // Handle delete confirmation
+    if (confirmDeleteBtn) {
+        confirmDeleteBtn.addEventListener('click', function() {
+            if (confirmInput.value === 'Confirm') {
+                window.location.href = '/user/delete/' + deleteUserIdInput.value;
+            }
+        });
+    }
+    
+    // Close modal when clicking outside of it
     window.addEventListener('click', function(event) {
-        if (event.target === modal) {
-            modal.style.display = 'none';
-            confirmInput.value = '';
+        if (event.target === deleteModal) {
+            deleteModal.style.display = 'none';
         }
     });
 });
 
-// Function to open delete modal
-function openDeleteModal(userId) {
-    const modal = document.getElementById('deleteModal');
-    const deleteUserId = document.getElementById('deleteUserId');
+// Helper function to update URL parameters
+function updateUrlParameter(url, key, value) {
+    const urlObj = new URL(url);
+    const params = new URLSearchParams(urlObj.search);
     
-    deleteUserId.value = userId;
-    modal.style.display = 'block';
-    document.getElementById('confirmInput').focus();
+    // Update or add the parameter
+    params.set(key, value);
+    
+    // Reset page parameter to 1 if we're changing rows per page
+    if (key === 'rowsPerPage') {
+        params.set('page', 1);
+    }
+    
+    // Apply the updated search parameters
+    urlObj.search = params.toString();
+    return urlObj.toString();
 }
