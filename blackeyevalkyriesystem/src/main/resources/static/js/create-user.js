@@ -1,3 +1,8 @@
+/**
+ * Create/Edit User Page JavaScript
+ * Manages user creation and editing functionality including form validation,
+ * license key generation and validation, password management, and UI interactions.
+ */
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('user-form');
     const alertBox = document.getElementById('alerts');
@@ -112,7 +117,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Function to show success modal
+    /**
+     * Shows success notification and redirects to user list
+     * @param {string} message - The success message to display
+     */
     function showSuccessModal(message) {
         // Replace modal with sessionStorage notification
         sessionStorage.setItem('userNotification', JSON.stringify({
@@ -124,13 +132,19 @@ document.addEventListener('DOMContentLoaded', function() {
         window.location.href = '/user/list';
     }
     
-    // Function to show error modal
+    /**
+     * Shows error modal with provided message
+     * @param {string} message - The error message to display
+     */
     function showErrorModal(message) {
         errorMessage.textContent = message;
         errorModal.style.display = 'block';
     }
     
-    // Function to show validation errors popup
+    /**
+     * Shows a validation popup with list of validation errors
+     * @param {string[]} errors - Array of error messages to display
+     */
     function showValidationPopup(errors) {
         // Remove any existing popup
         const existingPopup = document.querySelector('.validation-popup');
@@ -206,7 +220,10 @@ document.addEventListener('DOMContentLoaded', function() {
         document.body.classList.add('modal-open');
     }
     
-    // Function to mark invalid fields
+    /**
+     * Marks invalid form fields with visual indicators
+     * @param {string[]} invalidFields - Array of field IDs to mark as invalid
+     */
     function markInvalidFields(invalidFields) {
         // Reset all fields first
         const allInputs = form.querySelectorAll('input, select');
@@ -228,7 +245,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Function to add validation message below an input
+    /**
+     * Adds validation error message below an input field
+     * @param {string} inputId - ID of the input field
+     * @param {string} message - Validation error message to display
+     */
     function addValidationMessage(inputId, message) {
         const field = document.getElementById(inputId);
         if (!field) return;
@@ -250,7 +271,11 @@ document.addEventListener('DOMContentLoaded', function() {
         parent.appendChild(errorElement);
     }
     
-    // Function to generate a random password
+    /**
+     * Generates a random password with required complexity
+     * @param {number} length - Length of the password to generate (default: 8)
+     * @returns {string} The generated password
+     */
     function generateRandomPassword(length = 8) {
         const uppercaseChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
         const lowercaseChars = 'abcdefghijklmnopqrstuvwxyz';
@@ -272,7 +297,11 @@ document.addEventListener('DOMContentLoaded', function() {
         return shuffleString(password);
     }
     
-    // Function to shuffle a string (Fisher-Yates algorithm)
+    /**
+     * Shuffles the characters in a string using Fisher-Yates algorithm
+     * @param {string} string - The string to shuffle
+     * @returns {string} The shuffled string
+     */
     function shuffleString(string) {
         const array = string.split('');
         for (let i = array.length - 1; i > 0; i--) {
@@ -402,14 +431,20 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Function to get date 2 days later in YYYY-MM-DD format
+    /**
+     * Gets a date 2 days in the future in YYYY-MM-DD format
+     * @returns {string} Date string in YYYY-MM-DD format
+     */
     function getTwoDaysLaterDate() {
         const date = new Date();
         date.setDate(date.getDate() + 2);
         return date.toISOString().split('T')[0]; // Returns YYYY-MM-DD
     }
     
-    // Function to validate the form
+    /**
+     * Validates the form fields for required values and proper format
+     * @returns {Object} Validation result with isValid flag and errors array
+     */
     function validateForm() {
         const errors = [];
         const invalidFields = [];
@@ -480,7 +515,10 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
     
-    // Add validation to check if license key role matches selected role
+    /**
+     * Validates that the license key role matches the selected role
+     * @returns {Promise<Object>} Promise resolving to validation result
+     */
     function validateLicenseKeyRole() {
         const licenseKey = licenseKeyInput.value.trim();
         const selectedRole = roleSelect.value.toLowerCase(); // Convert to lowercase
@@ -552,7 +590,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 submitFormData();
             }
             
-            // Function to submit form data
+            /**
+             * Submits the form data to the appropriate API endpoint
+             * Creates or updates a user based on edit mode
+             */
             function submitFormData() {
                 // Get form data
                 const formData = {};
@@ -637,7 +678,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Helper function to validate email
+    /**
+     * Validates if a string is a properly formatted email address
+     * @param {string} email - The email string to validate
+     * @returns {boolean} True if the email is valid, false otherwise
+     */
     function isValidEmail(email) {
         const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return emailPattern.test(email);
@@ -695,7 +740,10 @@ document.addEventListener('DOMContentLoaded', function() {
             this.setSelectionRange(newPosition, newPosition);
         });
         
-        // Function to validate license key format
+        /**
+         * Validates the license key format
+         * @returns {string|null} Error message or null if valid
+         */
         function validateLicenseKey() {
             const licenseKey = licenseKeyInput.value;
             if (!licenseKeyPattern.test(licenseKey)) {
@@ -888,7 +936,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Function to update license key with user information
+    /**
+     * Updates a license key with user information
+     * @param {string} licenseKey - The license key to associate with the user
+     * @param {string} userId - The ID of the user to associate with the license key
+     * @returns {Promise<Object>} Promise resolving to assignment result
+     */
     function updateLicenseKeyWithUser(licenseKey, userId) {
         console.log(`Attempting to update license key ${licenseKey} for user ${userId}`);
             
@@ -987,7 +1040,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Make sure we use the correct active status in form submission
+    /**
+     * Gets the active status from the appropriate form field
+     * @returns {boolean} The active status of the user
+     */
     function getActiveStatus() {
         // If admin toggle exists, use its value
         if (activeSelect) {
@@ -1013,14 +1069,19 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('New user: Setting default active status to true');
     }
     
-    // Track form changes and handle navigation
+    /**
+     * Sets up tracking for unsaved changes in the form to prevent accidental navigation
+     */
     function setupUnsavedChangesTracking() {
         let formChanged = false;
         const formInputs = form.querySelectorAll('input, select, textarea');
         const cancelButton = document.querySelector('.form-actions .btn-secondary');
         const initialFormState = captureFormState();
         
-        // Capture the initial state of the form
+        /**
+         * Captures the current state of the form
+         * @returns {Object} State object with field IDs as keys and field values as values
+         */
         function captureFormState() {
             const state = {};
             formInputs.forEach(input => {
@@ -1033,7 +1094,10 @@ document.addEventListener('DOMContentLoaded', function() {
             return state;
         }
         
-        // Check if the form state has changed
+        /**
+         * Checks if the form state has changed from its initial state
+         * @returns {boolean} True if the form has changed, false otherwise
+         */
         function hasFormChanged() {
             const currentState = captureFormState();
             for (const key in currentState) {
@@ -1082,7 +1146,10 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        // Show the unsaved changes popup
+        /**
+         * Shows a popup warning about unsaved changes
+         * @param {string} targetUrl - The URL to navigate to if changes are discarded (default: '/user/list')
+         */
         function showUnsavedChangesPopup(targetUrl = '/user/list') {
             // Remove any existing popup
             const existingPopup = document.querySelector('.unsaved-changes-popup');
@@ -1129,7 +1196,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Add displayNotification function if not present
+    /**
+     * Displays a toast notification to the user
+     * @param {string} type - The type of notification ('success' or 'error')
+     * @param {string} message - The message to display
+     */
     function displayNotification(type, message) {
         // Create notification container if it doesn't exist
         let notificationContainer = document.querySelector('.notification-container');
