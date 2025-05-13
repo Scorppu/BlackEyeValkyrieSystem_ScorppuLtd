@@ -1,3 +1,15 @@
+/**
+ * @fileoverview Theme toggle functionality for the Black Eye Valkyrie System
+ * @description This file implements the UI components for theme toggling (light/dark mode).
+ * It creates a theme toggle button with appropriate icons and adds it to the sidebar if
+ * it doesn't already exist in the DOM. The button includes both sun and moon icons to 
+ * represent light and dark modes respectively. Initial state shows the moon icon with
+ * "Switch to Light Mode" label.
+ * 
+ * Note: This file only handles the creation of the toggle button UI element.
+ * The actual theme switching functionality should be implemented separately.
+ */
+
 // Theme toggling functionality
 document.addEventListener('DOMContentLoaded', function() {
     // Ensure visibility when DOM is fully loaded
@@ -10,7 +22,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Function to create and append the theme toggle button
+/**
+ * Creates and appends a theme toggle button to the sidebar
+ * @function createThemeToggleButton
+ * @description Dynamically creates a theme toggle button with moon and sun icons
+ * and appends it to the sidebar element. The button includes SVG icons for both
+ * dark mode (moon) and light mode (sun), with the moon icon displayed by default.
+ * The sun icon is initially hidden (display: none).
+ * @returns {void}
+ */
 function createThemeToggleButton() {
     // Create the container
     const themeToggle = document.createElement('div');

@@ -1,3 +1,16 @@
+/**
+ * User list management script
+ * 
+ * This script handles the client-side functionality for the user list page, including:
+ * - Notification display system (both from session storage and dynamic creation)
+ * - Table row selection with select-all checkbox functionality
+ * - Real-time search filtering for users by name, email, or role
+ * - Pagination controls (rows per page selection and page navigation)
+ * - User deletion confirmation modal with text verification
+ * 
+ * @file user-list.js
+ */
+
 // User List specific JavaScript
 document.addEventListener('DOMContentLoaded', function() {
     console.log('User List page loaded');

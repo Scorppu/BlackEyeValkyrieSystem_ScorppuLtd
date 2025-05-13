@@ -1,7 +1,19 @@
 /**
- * Global error handler to prevent uncaught exceptions from causing page crashes
- * @param {ErrorEvent} event - The error event object
- * @returns {boolean} - Always returns true to prevent default error handling
+ * Theme Handling Module
+ * 
+ * This module manages the application's theme switching functionality.
+ * It handles theme persistence using localStorage, applies themes based on saved preferences,
+ * and manages the theme toggle button UI elements.
+ * 
+ * @module theme-handling
+ */
+
+/**
+ * Global error handler to prevent uncaught exceptions from causing page crashes.
+ * Logs errors to the console and prevents the default error behavior.
+ * 
+ * @param {ErrorEvent} event - The error event object containing error details
+ * @returns {boolean} - Always returns true to indicate the error was handled
  */
 window.addEventListener('error', function(event) {
     console.error('JavaScript Error:', event.error);
@@ -10,9 +22,13 @@ window.addEventListener('error', function(event) {
 });
 
 /**
- * Initializes and handles theme toggle functionality
- * Sets up theme toggle buttons, applies saved theme preferences,
- * and handles theme switching interactions
+ * Initializes theme toggle functionality when the DOM is fully loaded.
+ * This function:
+ * - Retrieves the theme toggle button and its child elements
+ * - Applies any previously saved theme from localStorage
+ * - Sets up event listeners for theme switching
+ * - Updates UI elements (icons and labels) based on the current theme
+ * - Saves theme preferences to localStorage for persistence
  */
 document.addEventListener('DOMContentLoaded', function() {
     // Get the theme toggle button

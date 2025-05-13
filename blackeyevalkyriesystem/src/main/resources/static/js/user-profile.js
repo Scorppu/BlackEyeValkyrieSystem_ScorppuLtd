@@ -1,3 +1,14 @@
+/**
+ * User Profile JavaScript Module
+ * 
+ * This module handles fetching and displaying user profile information.
+ * It retrieves profile data from the '/api/profile' endpoint and updates
+ * the user interface with the user's full name and avatar initials.
+ * 
+ * The script runs when the DOM content is fully loaded and updates two UI elements:
+ * - '.user-name' element with the user's full name
+ * - '.avatar span' element with the user's initials
+ */
 document.addEventListener('DOMContentLoaded', function() {
     // Get elements
     const userNameElement = document.querySelector('.user-name');
