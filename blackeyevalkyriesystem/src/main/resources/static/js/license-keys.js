@@ -288,3 +288,62 @@ function updateUrlParameter(url, key, value) {
     urlObj.search = params.toString();
     return urlObj.toString();
 }
+
+/**
+ * Opens the delete confirmation modal for a license key.
+ * Sets up the modal with the license key information and configures
+ * the necessary event handlers for the confirmation dialog.
+ * 
+ * @param {string} id - The ID of the license key to delete
+ * @param {string} key - The license key text to display in the confirmation
+ */
+function openDeleteModal(id, key) {
+    const modal = document.getElementById('deleteModal');
+    const licenseKeySpan = document.getElementById('licenseKeyToDelete');
+    const deleteForm = document.getElementById('deleteForm');
+    
+    // Set the license key text
+    licenseKeySpan.textContent = key;
+    
+    // Set the form action
+    deleteForm.action = `/licenses/delete/${id}`;
+    
+    // Show the modal
+    modal.style.display = 'block';
+    
+    // Close modal when clicking cancel
+    document.getElementById('cancelDelete').onclick = function() {
+        modal.style.display = 'none';
+    };
+    
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+        if (event.target == modal) {
+            modal.style.display = 'none';
+        }
+    };
+    
+    // Add submit event listener to the delete form
+    deleteForm.addEventListener('submit', function(e) {
+        // Store notification data in sessionStorage before form submission
+        sessionStorage.setItem('licenseKeyNotification', JSON.stringify({
+            type: 'success',
+            message: 'The selected license key was deleted'
+        }));
+    });
+}
+
+/**
+ * Resets all license key filters and redirects to the base license page.
+ * Clears filter-related values from localStorage and navigates to the
+ * license page without any filter parameters.
+ */
+function resetFilters() {
+    // Clear all filter-related localStorage values
+    localStorage.removeItem('licenseKeyStatusFilter');
+    localStorage.removeItem('licenseKeyRoleFilter');
+    localStorage.removeItem('licenseKeySortOrder');
+    
+    // Redirect to the base license page without parameters
+    window.location.href = '/licenses';
+}
