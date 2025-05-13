@@ -1,3 +1,17 @@
+/**
+ * Settings Management JavaScript Module
+ * 
+ * This module handles all settings-related functionality for the BlackEyeValkyrieSystem interface.
+ * It manages settings panel navigation, theme toggling, and form submission handling.
+ * 
+ * Features:
+ * - Settings panel navigation: Shows/hides different settings panels based on menu selection
+ * - Theme toggle: Switches between light and dark themes, saving preferences to localStorage and server
+ * - Form submission: Handles AJAX form submissions for all settings forms with success/error feedback
+ * 
+ * The module initializes when the DOM content is loaded, setting up all necessary event listeners
+ * and displaying the general settings panel by default.
+ */
 document.addEventListener('DOMContentLoaded', function() {
     // Show the default panel (general settings) on load
     document.getElementById('generalPanel').style.display = 'block';

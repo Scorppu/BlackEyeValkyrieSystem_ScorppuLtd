@@ -1,9 +1,25 @@
+/**
+ * @fileoverview Patient Profile Page JavaScript
+ * 
+ * This script handles the patient profile page functionality, including:
+ * - Loading patient data via API calls
+ * - Displaying personal information, contact details, and drug allergies
+ * - Showing past consultations with detailed views
+ * - Managing tab navigation between different information sections
+ * - Displaying vitals history with charts and tables
+ * - Managing various modal dialogs for detailed views
+ */
+
 // Initialize empty data structures that will be populated via API calls
 let patient = {};
 let drugNamesMap = {};
 let pastConsultations = [];
 let isLoading = true;
 
+/**
+ * Main initialization function that runs when the DOM is fully loaded.
+ * Extracts patient ID, fetches required data, and populates the UI.
+ */
 document.addEventListener('DOMContentLoaded', async function() {
     try {
         // Extract patient ID from URL path
@@ -39,14 +55,22 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 });
 
-// Extract patient ID from the current URL
+/**
+ * Extracts the patient ID from the current URL path.
+ * Expects a URL format where the ID follows after '/view/' segment.
+ * 
+ * @returns {string|null} The extracted patient ID or null if not found
+ */
 function extractPatientIdFromUrl() {
     const pathParts = window.location.pathname.split('/');
     const idIndex = pathParts.indexOf('view') + 1;
     return pathParts[idIndex] || null;
 }
 
-// Show loading indicators throughout the UI
+/**
+ * Displays loading indicators throughout the UI while data is being fetched.
+ * Adds placeholders to patient info fields, allergies list, and consultations table.
+ */
 function showLoadingState() {
     isLoading = true;
     
@@ -64,7 +88,9 @@ function showLoadingState() {
     `;
 }
 
-// Hide loading indicators
+/**
+ * Removes all loading indicators from the UI once data has been loaded.
+ */
 function hideLoadingState() {
     isLoading = false;
     document.querySelectorAll('.loading-placeholder').forEach(el => {
@@ -72,7 +98,12 @@ function hideLoadingState() {
     });
 }
 
-// Show an error message to the user
+/**
+ * Displays an error notification to the user.
+ * The notification appears as a toast message that automatically dismisses after 8 seconds.
+ * 
+ * @param {string} message - The error message to display to the user
+ */
 function showErrorMessage(message) {
     hideLoadingState();
     
@@ -99,7 +130,12 @@ function showErrorMessage(message) {
     }, 8000);
 }
 
-// Fetch patient data from API
+/**
+ * Fetches patient data from the API and updates the global patient object.
+ * 
+ * @param {string} patientId - The ID of the patient to fetch data for
+ * @throws {Error} If the API request fails
+ */
 async function fetchPatientData(patientId) {
     try {
         const response = await fetch(`/api/patients/${patientId}`);
@@ -115,7 +151,12 @@ async function fetchPatientData(patientId) {
     }
 }
 
-// Fetch drug data for mapping drug IDs to names
+/**
+ * Fetches drug data from the API and builds a map of drug IDs to names.
+ * Updates the global drugNamesMap object for use in displaying allergies.
+ * 
+ * @throws {Error} If the API request fails
+ */
 async function fetchDrugsData() {
     try {
         const response = await fetch('/api/drugs');
@@ -138,7 +179,13 @@ async function fetchDrugsData() {
     }
 }
 
-// Fetch past consultations for this patient
+/**
+ * Fetches past consultations for a specific patient from the API.
+ * Updates the global pastConsultations array with the 10 most recent completed consultations.
+ * 
+ * @param {string} patientId - The ID of the patient to fetch consultations for
+ * @throws {Error} If the API request fails
+ */
 async function fetchPastConsultations(patientId) {
     try {
         const response = await fetch(`/api/consultations/patient/${patientId}`);
@@ -161,7 +208,10 @@ async function fetchPastConsultations(patientId) {
     }
 }
 
-// Populate personal information in the UI
+/**
+ * Populates the patient's personal and contact information sections in the UI.
+ * Uses data from the global patient object.
+ */
 function populatePatientInfo() {
     if (!patient) return;
     
@@ -189,7 +239,10 @@ function populatePatientInfo() {
     }
 }
 
-// Populate drug allergies section
+/**
+ * Populates the drug allergies table with data from the patient object.
+ * Maps drug IDs to names using the global drugNamesMap.
+ */
 function populateDrugAllergies() {
     const allergiesList = document.getElementById('allergiesList');
     allergiesList.innerHTML = '';
@@ -211,7 +264,10 @@ function populateDrugAllergies() {
     }
 }
 
-// Populate past consultations table
+/**
+ * Populates the past consultations table with data from the global pastConsultations array.
+ * Creates table rows with formatted data and buttons for detailed views.
+ */
 function populatePastConsultations() {
     const consultationsList = document.getElementById('pastConsultationsList');
     consultationsList.innerHTML = '';
@@ -292,14 +348,22 @@ function populatePastConsultations() {
     }
 }
 
-// Set up tab navigation
+/**
+ * Sets up tab navigation for switching between personal info, contact info, and consultations sections.
+ * Attaches event listeners to tab elements and defines the behavior when switching tabs.
+ */
 function setupTabNavigation() {
     const tabItems = document.querySelectorAll('.tab-item');
     const personalInfoSection = document.getElementById('personal-info-section');
     const contactInfoSection = document.getElementById('contact-info-section');
     const consultationsSection = document.getElementById('consultations-section');
     
-    // Switch between sections based on tab
+    /**
+     * Switches the active section based on the selected tab ID.
+     * Hides all sections, then shows only the selected one.
+     * 
+     * @param {string} tabId - The ID of the tab to activate
+     */
     function switchSection(tabId) {
         // Hide all sections
         document.querySelectorAll('.info-section').forEach(section => {
@@ -333,7 +397,12 @@ function setupTabNavigation() {
     });
 }
 
-// Function to show consultation details in modal
+/**
+ * Displays a modal with detailed consultation information.
+ * Populates the modal with data from the clicked element's dataset attributes.
+ * 
+ * @param {HTMLElement} element - The element that triggered the function, containing consultation data
+ */
 function showConsultationDetails(element) {
     const data = element.dataset;
     
@@ -357,24 +426,37 @@ function showConsultationDetails(element) {
     document.getElementById('consultationDetailsModal').style.display = 'block';
 }
 
-// Function to close the consultation details modal
+/**
+ * Closes the consultation details modal by setting its display to none.
+ */
 function closeConsultationModal() {
     document.getElementById('consultationDetailsModal').style.display = 'none';
 }
 
-// Function to show full notes modal
+/**
+ * Displays a modal with the full text of clinical notes from a consultation.
+ * 
+ * @param {HTMLElement} element - The element containing the full notes data attribute
+ */
 function showFullNotes(element) {
     const fullNotes = element.getAttribute('data-full-notes');
     document.getElementById('fullConsultationNotes').textContent = fullNotes || 'No clinical notes recorded';
     document.getElementById('pastConsultationNotesModal').style.display = 'block';
 }
 
-// Function to close notes modal
+/**
+ * Closes the consultation notes modal by setting its display to none.
+ */
 function closeNotesModal() {
     document.getElementById('pastConsultationNotesModal').style.display = 'none';
 }
 
-// Function to show vitals history modal
+/**
+ * Displays a modal showing the history of a specific vital sign (height or weight).
+ * Collects data from past consultations and displays it as a table and chart.
+ * 
+ * @param {string} vitalType - The type of vital sign to display ('height' or 'weight')
+ */
 function showVitalsHistory(vitalType) {
     const modal = document.getElementById('vitalsHistoryModal');
     const title = document.getElementById('vitalsHistoryTitle');
@@ -390,12 +472,19 @@ function showVitalsHistory(vitalType) {
     displayVitalsHistory(consultations, vitalType);
 }
 
-// Function to close vitals history modal
+/**
+ * Closes the vitals history modal by setting its display to none.
+ */
 function closeVitalsHistoryModal() {
     document.getElementById('vitalsHistoryModal').style.display = 'none';
 }
 
-// Function to collect data from past consultations table
+/**
+ * Collects height and weight data from the past consultations table.
+ * Extracts data from the dataset attributes of buttons in the table.
+ * 
+ * @returns {Array<Object>} An array of consultation objects with date, height, weight, and doctor properties
+ */
 function collectPastConsultationsData() {
     const consultations = [];
     
@@ -420,7 +509,13 @@ function collectPastConsultationsData() {
     return consultations;
 }
 
-// Function to display vitals history
+/**
+ * Displays the history of a specific vital sign in the vitals history modal.
+ * Creates both a table and a chart visualization of the data.
+ * 
+ * @param {Array<Object>} data - Array of consultation objects with vital sign data
+ * @param {string} vitalType - The type of vital sign to display ('height' or 'weight')
+ */
 function displayVitalsHistory(data, vitalType) {
     const tableBody = document.getElementById('vitalsHistoryTableBody');
     const chartDiv = document.getElementById('vitalsHistoryChart');
@@ -466,7 +561,13 @@ function displayVitalsHistory(data, vitalType) {
     createVitalsChart(chartDiv, filteredData, vitalType);
 }
 
-// Function to create a chart for vitals history
+/**
+ * Creates a line chart visualization of vital sign history data using Chart.js.
+ * 
+ * @param {HTMLElement} container - The container element to place the chart in
+ * @param {Array<Object>} data - Array of consultation objects with vital sign data
+ * @param {string} vitalType - The type of vital sign to display ('height' or 'weight')
+ */
 function createVitalsChart(container, data, vitalType) {
     // Clear previous chart
     container.innerHTML = '';
@@ -534,7 +635,12 @@ function createVitalsChart(container, data, vitalType) {
     });
 }
 
-// Close modals when clicking outside
+/**
+ * Event handler for closing modals when user clicks outside of them.
+ * Handles consultation details, notes, and vitals history modals.
+ * 
+ * @param {Event} event - The click event
+ */
 window.onclick = function(event) {
     const modal = document.getElementById('consultationDetailsModal');
     const notesModal = document.getElementById('pastConsultationNotesModal');

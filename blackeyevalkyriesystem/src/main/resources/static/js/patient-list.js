@@ -1,3 +1,21 @@
+/**
+ * Patient List Page JavaScript
+ * 
+ * This file handles the interactive functionality of the patient list page.
+ * 
+ * Features:
+ * - Handles pagination controls (header and footer) with prev/next navigation
+ * - Manages rows per page selection and updates URL accordingly
+ * - Implements real-time patient search filtering by name
+ * - Updates pagination information based on search results
+ * - Displays notifications from session storage
+ * 
+ * Functions:
+ * - updatePaginationInfo: Updates pagination text based on visible/filtered rows
+ * - setupPaginationButtons: Configures prev/next pagination buttons with proper state and event listeners
+ * - displayNotificationFromSession: Retrieves and displays notifications from session storage
+ * - displayNotification: Shows notification messages of specified type (implementation logs to console only)
+ */
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Patient List page loaded');
     
@@ -67,7 +85,15 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         }
         
-    // Function to update pagination info based on search results
+    /**
+     * Updates pagination information text based on search results
+     * 
+     * @param {NodeList} rows - Collection of patient table rows
+     * @param {string} searchTerm - Current search filter text
+     * 
+     * If searchTerm is empty, displays regular pagination info (showing X-Y of Z).
+     * If filtering is active, shows count of filtered results.
+     */
     function updatePaginationInfo(rows, searchTerm) {
         if (!searchTerm) {
             // Reset to original pagination info if search is cleared
@@ -88,7 +114,18 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Common function to set up pagination buttons
+    /**
+     * Sets up pagination buttons with proper state and event listeners
+     * 
+     * @param {HTMLElement} prevButton - Previous page button element
+     * @param {HTMLElement} nextButton - Next page button element
+     * @param {number} page - Current page number
+     * @param {number} rowsPerPage - Number of rows displayed per page
+     * @param {number} total - Total number of patients
+     * 
+     * Disables buttons appropriately based on current page and total records.
+     * Adds click handlers to navigate between pages.
+     */
     function setupPaginationButtons(prevButton, nextButton, page, rowsPerPage, total) {
         if (!prevButton || !nextButton) return;
         
@@ -120,7 +157,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Function to display notification from session storage
+    /**
+     * Retrieves and displays notification from session storage
+     * 
+     * Checks for 'notification' item in sessionStorage, displays it if found,
+     * and then removes it to prevent showing the same notification multiple times.
+     */
     function displayNotificationFromSession() {
         const notification = sessionStorage.getItem('notification');
         if (notification) {
@@ -130,7 +172,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Function to display notification
+    /**
+     * Displays a notification message
+     * 
+     * @param {string} type - The type of notification (e.g., 'success', 'error')
+     * @param {string} message - The notification message text
+     * 
+     * Currently only logs to console, implementation for UI display would be added here.
+     */
     function displayNotification(type, message) {
         // Implementation of displayNotification function
         console.log(`Notification: ${type} - ${message}`);
