@@ -1,3 +1,17 @@
+/**
+ * Duty Status Management Module
+ * 
+ * This module handles the functionality for managing healthcare staff duty statuses.
+ * It provides features for:
+ * - Filtering doctor and nurse tables via search input
+ * - Toggling duty status (on/off) for staff members
+ * - Updating UI elements to reflect duty status changes
+ * - Formatting and displaying duty duration information
+ * - Maintaining real-time statistics about staff on/off duty
+ * 
+ * The module interacts with the server via the '/api/duty/toggle/{staffId}' endpoint
+ * to persist duty status changes.
+ */
 document.addEventListener('DOMContentLoaded', function() {
     // Doctor search functionality
     const doctorSearch = document.getElementById('doctor-search');
@@ -35,7 +49,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Filter table function
+    /**
+     * Filters table rows based on a search query
+     * 
+     * @param {string} tableId - The ID of the table to filter
+     * @param {string} query - The search term to filter by
+     */
     function filterTable(tableId, query) {
         const table = document.getElementById(tableId);
         if (!table) return;
@@ -57,7 +76,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Format duration in minutes to a readable string
+    /**
+     * Formats a duration in minutes to a human-readable string
+     * 
+     * @param {number} minutes - The duration in minutes to format
+     * @returns {string} Formatted duration string (e.g., "2 hours 30 minutes")
+     */
     function formatDuration(minutes) {
         if (minutes <= 0) {
             return 'Never on Duty';
@@ -79,7 +103,15 @@ document.addEventListener('DOMContentLoaded', function() {
         return result;
     }
     
-    // Function to toggle duty status
+    /**
+     * Toggles the duty status of a staff member
+     * 
+     * Makes an API call to update the staff's duty status and updates the UI accordingly.
+     * Also updates the duty duration display when a staff member goes off duty.
+     * 
+     * @param {string} staffId - The ID of the staff member
+     * @param {HTMLElement} buttonElement - The button element that was clicked
+     */
     function toggleDutyStatus(staffId, buttonElement) {
         // Disable button during the request
         buttonElement.disabled = true;
@@ -164,7 +196,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Function to update stats
+    /**
+     * Updates the staff statistics counters in the UI
+     * 
+     * Counts the number of doctors and nurses on duty and updates
+     * the corresponding stat cards on the page.
+     */
     function updateStats() {
         // Count doctors on duty
         const doctorsOnDuty = document.querySelectorAll('#doctors-table .status-on').length;

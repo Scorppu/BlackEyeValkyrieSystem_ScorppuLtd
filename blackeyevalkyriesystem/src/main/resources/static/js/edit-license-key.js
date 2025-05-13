@@ -1,3 +1,9 @@
+/**
+ * @fileoverview Handles license key editing functionality including form validation and notifications.
+ * This script initializes when the DOM content is loaded and attaches event listeners
+ * to validate the license key edit form before submission. It also handles displaying
+ * notifications for form validation errors and successful submissions.
+ */
 document.addEventListener('DOMContentLoaded', function() {
     const editForm = document.getElementById('editForm');
     
@@ -37,7 +43,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Function to display notifications
+    /**
+     * Displays a notification message to the user
+     * @param {string} type - The type of notification ('success' or 'error')
+     * @param {string} message - The message to display in the notification
+     */
     function displayNotification(type, message) {
         // Create notification container if it doesn't exist
         let notificationContainer = document.querySelector('.notification-container');

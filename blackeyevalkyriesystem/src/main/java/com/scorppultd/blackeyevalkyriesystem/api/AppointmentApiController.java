@@ -25,6 +25,15 @@ import com.scorppultd.blackeyevalkyriesystem.model.Patient;
 import com.scorppultd.blackeyevalkyriesystem.service.AppointmentService;
 import com.scorppultd.blackeyevalkyriesystem.service.DoctorService;
 
+/**
+ * REST Controller for managing appointment-related API endpoints.
+ * Provides endpoints to retrieve appointment timelines for doctors and pending appointments.
+ * <p>
+ * This controller handles requests to the "/api/appointments" base path and
+ * offers functionality to view appointment schedules and manage pending appointments.
+ * 
+ * @author ScorppuLtd
+ */
 @RestController
 @RequestMapping("/api/appointments")
 public class AppointmentApiController {
@@ -36,10 +45,12 @@ public class AppointmentApiController {
     private DoctorService doctorService;
     
     /**
-     * API endpoint to get the timeline data for all doctors on a specific date
+     * API endpoint to get the timeline data for all doctors on a specific date.
+     * Retrieves all doctors and their scheduled appointments for the requested date,
+     * returning the data structured as a timeline view.
      * 
      * @param date The date for which to get the timeline data (format: YYYY-MM-DD)
-     * @return ResponseEntity with TimelineDTO containing the doctors and their appointments
+     * @return ResponseEntity with TimelineDTO containing the doctors and their appointments for the specified date
      */
     @GetMapping("/timeline")
     public ResponseEntity<TimelineDTO> getTimelineData(
@@ -98,11 +109,13 @@ public class AppointmentApiController {
     }
     
     /**
-     * API endpoint to get pending appointments within a date range
+     * API endpoint to get pending appointments within a date range.
+     * Retrieves all appointments with status "pending" that fall within the specified
+     * date range and returns them as DTOs containing relevant appointment information.
      * 
      * @param startDate Start date of the range (format: YYYY-MM-DDThh:mm:ss)
      * @param endDate End date of the range (format: YYYY-MM-DDThh:mm:ss)
-     * @return ResponseEntity with list of PendingAppointmentDTO
+     * @return ResponseEntity with list of PendingAppointmentDTO containing filtered pending appointments
      */
     @GetMapping("/pending")
     public ResponseEntity<List<PendingAppointmentDTO>> getPendingAppointments(

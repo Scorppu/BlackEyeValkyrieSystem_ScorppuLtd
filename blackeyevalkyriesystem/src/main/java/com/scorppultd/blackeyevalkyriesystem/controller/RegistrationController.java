@@ -21,6 +21,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * Controller handling user registration and related functionality such as license key verification
+ * and username availability checking.
+ *
+ * This controller provides endpoints for user registration, forgot password functionality,
+ * license key verification, and username availability checking.
+ */
 @Controller
 public class RegistrationController {
 
@@ -38,19 +45,42 @@ public class RegistrationController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    // Show the forgot password page
+    /**
+     * Displays the forgot password page.
+     *
+     * @return The name of the forgot password view
+     */
     @GetMapping("/forgot-password")
     public String showForgotPasswordPage() {
         return "forgot-password";
     }
 
-    // Show the registration page
+    /**
+     * Displays the user registration page.
+     *
+     * @return The name of the registration view
+     */
     @GetMapping("/register")
     public String showRegistrationPage() {
         return "register";
     }
 
-    // Handle user registration
+    /**
+     * Processes user registration form submission.
+     *
+     * Validates the license key, checks password confirmation, ensures username is available,
+     * and creates a new user account. The license key is marked as used after successful registration.
+     *
+     * @param licenseKey License key provided by the user
+     * @param fullName User's full name
+     * @param username Chosen username
+     * @param email User's email address
+     * @param password User's password
+     * @param confirmPassword Password confirmation
+     * @param phone User's phone number (optional)
+     * @param redirectAttributes Used to add flash attributes for redirect
+     * @return Redirect to login page on success or back to registration page on failure
+     */
     @PostMapping("/register")
     public String registerUser(@RequestParam String licenseKey,
                                @RequestParam String fullName,
@@ -161,7 +191,14 @@ public class RegistrationController {
         }
     }
 
-    // REST API endpoint for verifying license key
+    /**
+     * REST API endpoint for verifying a license key.
+     *
+     * Checks if the license key exists, is active, unused, and not expired.
+     *
+     * @param request Map containing the license key to verify
+     * @return ResponseEntity with verification result as JSON
+     */
     @PostMapping("/api/verify-license-key")
     @ResponseBody
     public ResponseEntity<?> verifyLicenseKey(@RequestBody Map<String, String> request) {
@@ -215,7 +252,14 @@ public class RegistrationController {
         }
     }
 
-    // REST API endpoint for checking username availability
+    /**
+     * REST API endpoint for checking username availability.
+     *
+     * Checks if a username is already taken or is a reserved system username.
+     *
+     * @param username Username to check
+     * @return ResponseEntity with availability result as JSON
+     */
     @GetMapping("/api/users/check-username")
     @ResponseBody
     public ResponseEntity<?> checkUsernameAvailability(@RequestParam String username) {

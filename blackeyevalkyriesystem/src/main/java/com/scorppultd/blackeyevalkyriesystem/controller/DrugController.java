@@ -16,22 +16,42 @@ import org.springframework.web.bind.annotation.RestController;
 import com.scorppultd.blackeyevalkyriesystem.model.Drug;
 import com.scorppultd.blackeyevalkyriesystem.service.DrugService;
 
+/**
+ * REST controller for managing drug-related operations in the system.
+ * Provides endpoints for retrieving, searching, and managing drug information.
+ */
 @RestController
 @RequestMapping("/api/drugs")
 public class DrugController {
 
     private final DrugService drugService;
     
+    /**
+     * Constructor for DrugController.
+     * 
+     * @param drugService The service that handles drug business logic
+     */
     @Autowired
     public DrugController(DrugService drugService) {
         this.drugService = drugService;
     }
     
+    /**
+     * Retrieves all drugs in the system.
+     * 
+     * @return ResponseEntity containing a list of all drugs
+     */
     @GetMapping
     public ResponseEntity<List<Drug>> getAllDrugs() {
         return ResponseEntity.ok(drugService.getAllDrugs());
     }
     
+    /**
+     * Retrieves a drug by its ID.
+     * 
+     * @param id The ID of the drug to retrieve
+     * @return ResponseEntity containing the drug if found, or NOT_FOUND status
+     */
     @GetMapping("/{id}")
     public ResponseEntity<Drug> getDrugById(@PathVariable String id) {
         Optional<Drug> drug = drugService.getDrugById(id);
@@ -39,16 +59,34 @@ public class DrugController {
                 .orElse(ResponseEntity.notFound().build());
     }
     
+    /**
+     * Searches for drugs by name.
+     * 
+     * @param name The name or part of the name to search for
+     * @return ResponseEntity containing a list of drugs matching the search criteria
+     */
     @GetMapping("/search")
     public ResponseEntity<List<Drug>> searchDrugs(@RequestParam String name) {
         return ResponseEntity.ok(drugService.searchDrugsByName(name));
     }
     
+    /**
+     * Retrieves drugs by template category.
+     * 
+     * @param category The template category to filter drugs by
+     * @return ResponseEntity containing a list of drugs in the specified template category
+     */
     @GetMapping("/template/{category}")
     public ResponseEntity<List<Drug>> getDrugsByTemplate(@PathVariable String category) {
         return ResponseEntity.ok(drugService.getDrugsByTemplateCategory(category));
     }
     
+    /**
+     * Retrieves all drug interactions for a specific drug.
+     * 
+     * @param id The ID of the drug whose interactions to retrieve
+     * @return ResponseEntity containing a list of interacting drug IDs, or NOT_FOUND status if the drug is not found
+     */
     @GetMapping("/{id}/interactions")
     public ResponseEntity<List<String>> getDrugInteractions(@PathVariable String id) {
         try {
@@ -59,6 +97,14 @@ public class DrugController {
         }
     }
     
+    /**
+     * Retrieves drugs that are available for interaction with a specific drug.
+     * Returns all drugs except the specified drug and those that already have interactions with it.
+     * 
+     * @param id The ID of the drug to find potential interactions for
+     * @return ResponseEntity containing a list of drugs available for interaction, 
+     *         or NOT_FOUND if the drug is not found, or INTERNAL_SERVER_ERROR if an exception occurs
+     */
     @GetMapping("/{id}/available-for-interaction")
     public ResponseEntity<List<Drug>> getDrugsAvailableForInteraction(@PathVariable String id) {
         try {

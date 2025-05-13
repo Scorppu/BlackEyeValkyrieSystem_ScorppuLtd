@@ -28,6 +28,11 @@ import com.scorppultd.blackeyevalkyriesystem.model.User;
 import com.scorppultd.blackeyevalkyriesystem.service.DutyStatusService;
 import com.scorppultd.blackeyevalkyriesystem.service.UserService;
 
+/**
+ * Controller for managing user duty status.
+ * Provides endpoints for toggling duty status, retrieving current status,
+ * and listing all users who are currently on duty.
+ */
 @Controller
 @RequestMapping("/api/duty")
 public class DutyStatusController {
@@ -39,6 +44,12 @@ public class DutyStatusController {
     @Autowired
     private UserService userService;
 
+    /**
+     * Toggles the duty status of the currently authenticated user.
+     * 
+     * @return ResponseEntity containing the updated duty status information,
+     *         including isOnDuty status, lastDutyDuration, and timestamp
+     */
     @PostMapping("/toggle")
     @ResponseBody
     public ResponseEntity<?> toggleDutyStatus() {
@@ -71,6 +82,13 @@ public class DutyStatusController {
         }
     }
 
+    /**
+     * Retrieves the current duty status of the authenticated user.
+     * 
+     * @return ResponseEntity containing the current duty status information,
+     *         including isOnDuty status, lastDutyDuration, and timestamp,
+     *         or an error response if no duty status exists for the user
+     */
     @GetMapping("/status")
     @ResponseBody
     public ResponseEntity<?> getCurrentDutyStatus() {
@@ -105,6 +123,11 @@ public class DutyStatusController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * Retrieves a list of all users who are currently on duty.
+     * 
+     * @return ResponseEntity containing a list of DutyStatus objects for all users who are on duty
+     */
     @GetMapping("/on-duty")
     @ResponseBody
     public ResponseEntity<?> getOnDutyUsers() {
@@ -112,6 +135,15 @@ public class DutyStatusController {
         return ResponseEntity.ok(onDutyUsers);
     }
 
+    /**
+     * Toggles the duty status for a specific staff member identified by their ID.
+     * This endpoint allows administrators to toggle duty status for other users.
+     * 
+     * @param staffId The ID of the staff member whose duty status should be toggled
+     * @return ResponseEntity containing the updated duty status information,
+     *         including isOnDuty status, userId, lastDutyDuration, and timestamp,
+     *         or an error response if the user is not found or an error occurs
+     */
     @PostMapping("/toggle/{staffId}")
     @ResponseBody
     public ResponseEntity<?> toggleDutyStatusForStaff(@PathVariable String staffId) {

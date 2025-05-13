@@ -1,3 +1,8 @@
+/**
+ * Drug List page controller script.
+ * Handles search functionality, pagination, rows per page selection, and delete confirmations.
+ * This script is loaded on the drug list page.
+ */
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Drug List page loaded');
     
@@ -67,7 +72,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // Setup delete confirmation modal
     setupDeleteConfirmation();
     
-    // Function to update pagination info based on search results
+    /**
+     * Updates the pagination information text based on search results.
+     * When search is active, displays "Showing X filtered results".
+     * When no search is active, displays "Showing X - Y of Z" pagination info.
+     * 
+     * @param {NodeList} rows - Collection of table rows to filter
+     * @param {string} searchTerm - Current search term
+     */
     function updatePaginationInfo(rows, searchTerm) {
         if (!searchTerm) {
             // Reset to original pagination info if search is cleared
@@ -88,7 +100,17 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Common function to set up pagination buttons
+    /**
+     * Sets up pagination button functionality and states.
+     * Disables previous button on first page and next button on last page.
+     * Adds event listeners to navigate between pages.
+     * 
+     * @param {HTMLElement} prevButton - Previous page button element
+     * @param {HTMLElement} nextButton - Next page button element
+     * @param {number} page - Current page number
+     * @param {number} rowsPerPage - Number of rows per page
+     * @param {number} total - Total number of items
+     */
     function setupPaginationButtons(prevButton, nextButton, page, rowsPerPage, total) {
         if (!prevButton || !nextButton) return;
         
@@ -121,7 +143,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Delete confirmation modal functionality
+/**
+ * Sets up the delete confirmation modal functionality.
+ * Handles showing/hiding the modal, capturing the drug ID to delete,
+ * and redirecting to the delete endpoint when confirmed.
+ * Prevents page scrolling while the modal is open.
+ */
 function setupDeleteConfirmation() {
     const modal = document.getElementById('deleteConfirmModal');
     if (!modal) return;

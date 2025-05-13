@@ -1,3 +1,27 @@
+/**
+ * License Keys Management JavaScript
+ * 
+ * This script handles the client-side functionality for the license key management interface.
+ * It provides features for searching, filtering, and paginating license key data.
+ * 
+ * Features:
+ * - Search functionality for filtering license keys by key, status, role, or user
+ * - Pagination controls with configurable rows per page
+ * - Filter persistence across page reloads using localStorage and URL parameters
+ * - Date conversion from UTC to local timezone for expiration dates
+ * - Toast notification system for displaying success, error, and warning messages
+ * 
+ * Functions:
+ * - convertDatesToLocalTimezone(): Converts UTC timestamps to local timezone
+ * - preserveFilterSettings(): Maintains filter selections across page loads
+ * - displayNotificationFromSession(): Retrieves and displays notifications from sessionStorage
+ * - displayNotification(): Creates and displays toast notifications
+ * - updateUrlParameter(): Helper function to update URL parameters
+ */
+
+/**
+ * Main event listener that initializes all functionality when DOM is fully loaded
+ */
 document.addEventListener('DOMContentLoaded', function() {
     console.log('License keys JS loaded');
     
@@ -56,6 +80,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const headerPrevButton = document.querySelector('.header-prev-page');
     const headerNextButton = document.querySelector('.header-next-page');
     
+    /**
+     * Gets the current page from URL parameters
+     * @returns {number} The current page number (defaults to 1 if not found)
+     */
     function getCurrentPage() {
         const urlParams = new URLSearchParams(window.location.search);
         return parseInt(urlParams.get('page')) || 1;
@@ -97,6 +125,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    /**
+     * Converts UTC timestamps to local timezone for display
+     * Looks for elements with class 'expires-date' and data-utc-timestamp attribute
+     */
     function convertDatesToLocalTimezone() {
         try {
             const dateElements = document.querySelectorAll('.expires-date');
@@ -126,7 +158,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Function to preserve filter settings and handle responsive filters
+    /**
+     * Preserves filter settings across page loads using URL parameters and localStorage
+     * Handles status filter, role filter, and sort order
+     */
     function preserveFilterSettings() {
         // Get current URL parameters
         const urlParams = new URLSearchParams(window.location.search);
@@ -174,7 +209,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Function to check and display notification from session storage
+    /**
+     * Checks for and displays notifications stored in sessionStorage
+     * Used to persist notifications across page reloads
+     */
     function displayNotificationFromSession() {
         const notificationData = sessionStorage.getItem('licenseKeyNotification');
         
@@ -191,7 +229,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Function to display toast notifications
+    /**
+     * Creates and displays toast notifications
+     * @param {string} type - The type of notification: 'success', 'error', or 'warning'
+     * @param {string} message - The notification message to display
+     */
     function displayNotification(type, message) {
         // Create notification container if it doesn't exist
         let notificationContainer = document.querySelector('.notification-container');
@@ -258,7 +300,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Helper function to update URL parameters
+/**
+ * Updates a URL parameter while preserving other existing parameters
+ * @param {string} url - The URL to update
+ * @param {string} key - The parameter key to update
+ * @param {string|number} value - The new value for the parameter
+ * @returns {string} The updated URL with the new parameter value
+ */
 function updateUrlParameter(url, key, value) {
     const urlObj = new URL(url);
     const params = new URLSearchParams(urlObj.search);

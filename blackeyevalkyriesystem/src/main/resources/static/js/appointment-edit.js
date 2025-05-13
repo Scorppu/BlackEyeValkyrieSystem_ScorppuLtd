@@ -1,3 +1,24 @@
+/**
+ * Appointment Creation and Editing JavaScript
+ * 
+ * This script manages the functionality for creating and editing appointments.
+ * It handles patient and doctor selection, appointment scheduling, availability checking,
+ * form validation, and status history tracking.
+ * 
+ * Key features:
+ * - Patient and doctor search with real-time filtering and selection
+ * - Date and time selection using flatpickr date/time pickers
+ * - Real-time availability checking for doctor schedules
+ * - Form validation before submission
+ * - AJAX form submission for creating/updating appointments
+ * - Status history tracking and timeline display
+ * - Alert system for user feedback with auto-dismissal
+ * - Pre-filling form data when editing existing appointments
+ * 
+ * The script uses fetch API for all server communications and provides
+ * immediate feedback to users throughout the appointment management process.
+ */
+
 // Global variables
 let selectedPatient = null;
 let selectedDoctor = null;
@@ -74,7 +95,14 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 /**
- * Generic search initialization function
+ * Initializes search functionality for patients or doctors.
+ * Creates a debounced search that fetches results from the server, displays them in a dropdown,
+ * and handles selection of search results.
+ * 
+ * @param {string} inputSelector - CSS selector for the search input field
+ * @param {string} searchUrl - API endpoint URL to fetch search results
+ * @param {Function} formatResult - Function that formats each result item for display
+ * @param {Function} onSelect - Callback function that handles the selected item
  */
 function initializeSearch(inputSelector, searchUrl, formatResult, onSelect) {
     const searchInput = document.querySelector(inputSelector);
@@ -141,7 +169,14 @@ function initializeSearch(inputSelector, searchUrl, formatResult, onSelect) {
 }
 
 /**
- * Display patient information in the info box
+ * Displays patient information in a formatted info box.
+ * Shows patient details like ID number, birth date, gender, and contact information.
+ * 
+ * @param {Object} patient - The patient object containing personal details
+ * @param {string} patient.idNumber - Patient's identification number
+ * @param {string} patient.dateOfBirth - Patient's date of birth
+ * @param {string} patient.gender - Patient's gender
+ * @param {string} patient.phoneNumber - Patient's contact number
  */
 function displayPatientInfo(patient) {
     const infoContainer = document.getElementById('patientInfo');
@@ -167,7 +202,13 @@ function displayPatientInfo(patient) {
 }
 
 /**
- * Display doctor information in the info box
+ * Displays doctor information in a formatted info box.
+ * Shows doctor details like specialty, department, and years of experience.
+ * 
+ * @param {Object} doctor - The doctor object containing professional details
+ * @param {string} doctor.specialty - Doctor's medical specialty
+ * @param {string} doctor.department - Doctor's department
+ * @param {number|string} doctor.yearsOfExperience - Doctor's years of professional experience
  */
 function displayDoctorInfo(doctor) {
     const infoContainer = document.getElementById('doctorInfo');
@@ -189,7 +230,9 @@ function displayDoctorInfo(doctor) {
 }
 
 /**
- * Check availability of the doctor at the selected time
+ * Checks if the selected doctor is available at the specified date and time.
+ * Makes an API call to verify availability and updates the UI with the result.
+ * Takes into account the current appointment ID when checking availability for editing.
  */
 function checkAvailability() {
     const doctorId = document.getElementById('doctorId').value;
@@ -233,7 +276,10 @@ function checkAvailability() {
 }
 
 /**
- * Validate the form before submission
+ * Validates the appointment form before submission.
+ * Checks that all required fields are filled and displays error messages for missing fields.
+ * 
+ * @returns {boolean} True if the form is valid, false otherwise
  */
 function validateForm() {
     const patientId = document.getElementById('patientId').value;
@@ -283,7 +329,9 @@ function validateForm() {
 }
 
 /**
- * Submit the form via AJAX
+ * Submits the appointment form via AJAX.
+ * Determines whether to create a new appointment or update an existing one based on the presence of an appointment ID.
+ * Shows success or error messages based on the server response.
  */
 function submitForm() {
     const form = document.getElementById('appointmentForm');
@@ -321,7 +369,11 @@ function submitForm() {
 }
 
 /**
- * Display an alert message
+ * Displays an alert message to the user.
+ * Creates a dismissible alert with auto-dismiss functionality after 5 seconds.
+ * 
+ * @param {string} message - The message to display in the alert
+ * @param {string} type - The type of alert ('success', 'danger', 'warning', etc.)
  */
 function showAlert(message, type) {
     const alertsContainer = document.getElementById('alerts');
@@ -343,7 +395,9 @@ function showAlert(message, type) {
 }
 
 /**
- * Dismiss an alert
+ * Dismisses an alert by fading it out and removing it from the DOM.
+ * 
+ * @param {string} alertId - The ID of the alert element to dismiss
  */
 function dismissAlert(alertId) {
     const alert = document.getElementById(alertId);
@@ -356,14 +410,17 @@ function dismissAlert(alertId) {
 }
 
 /**
- * Initialize alerts
+ * Initializes the alert system.
+ * Exposes the dismissAlert function to the global scope for use in inline onclick handlers.
  */
 function initializeAlerts() {
     window.dismissAlert = dismissAlert;
 }
 
 /**
- * Pre-fill the form when editing an existing appointment
+ * Pre-fills the form with existing appointment data when editing.
+ * Fetches appointment details from the server and populates all form fields.
+ * Also loads the appointment status history and checks doctor availability.
  */
 function prefillForm() {
     const appointmentId = document.getElementById('appointmentId').value;
@@ -424,7 +481,10 @@ function prefillForm() {
 }
 
 /**
- * Load status history for an appointment
+ * Loads and displays the status history for an appointment.
+ * Creates a timeline visualization of all status changes with timestamps and user information.
+ * 
+ * @param {string} appointmentId - The ID of the appointment to load history for
  */
 function loadStatusHistory(appointmentId) {
     fetch(`/api/appointments/${appointmentId}/history`)

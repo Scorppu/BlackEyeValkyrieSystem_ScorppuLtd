@@ -1,3 +1,7 @@
+/**
+ * Dashboard.js - Handles the dashboard functionality for the BlackEyeValkyrie System
+ * Includes calendar visualization and staff duty status tracking
+ */
 document.addEventListener('DOMContentLoaded', function() {
     // Remove scrollbar from calendar
     const calendarControlsElement = document.querySelector('.calendar-controls');
@@ -36,7 +40,10 @@ document.addEventListener('DOMContentLoaded', function() {
         if (nextButton) nextButton.addEventListener('click', nextMonth);
     }
 
-    // Initialize calendar
+    /**
+     * Initializes the calendar by updating the header, generating days,
+     * and selecting today's date by default
+     */
     function initCalendar() {
         updateCalendarHeader();
         generateCalendarDays();
@@ -45,7 +52,10 @@ document.addEventListener('DOMContentLoaded', function() {
         selectTodayDate();
     }
 
-    // Update calendar header with month and year
+    /**
+     * Updates the calendar header with the current month, day, and year
+     * Uses the months array to display the month name
+     */
     function updateCalendarHeader() {
         const months = [
             'January', 'February', 'March', 'April', 'May', 'June', 
@@ -59,7 +69,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Generate days for the calendar grid
+    /**
+     * Generates calendar days for the current month, including days from
+     * previous and next months to fill the grid. Also handles reselecting
+     * a previously selected day when navigating between months.
+     */
     function generateCalendarDays() {
         const calendarGrid = document.querySelector('.calendar-grid');
         if (!calendarGrid) return;
@@ -132,7 +146,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Create a day element for the calendar
+    /**
+     * Creates and returns a single day element for the calendar
+     * @param {number} day - The day number to display
+     * @param {string} className - Additional class name for styling (prev-month, next-month, or current)
+     * @returns {HTMLElement} - The created day element with appropriate styling and event listeners
+     */
     function createDayElement(day, className) {
         const dayElement = document.createElement('div');
         dayElement.className = `calendar-date ${className}`;
@@ -215,7 +234,11 @@ document.addEventListener('DOMContentLoaded', function() {
         return dayElement;
     }
     
-    // Function to select a day and handle styling
+    /**
+     * Handles day selection styling, deselecting any previously selected day
+     * and applying proper highlight styling to the newly selected day
+     * @param {HTMLElement} dayElement - The calendar day element to select
+     */
     function selectDay(dayElement) {
         // Remove selection from any previously selected day
         document.querySelectorAll('.calendar-date.selected').forEach(element => {
@@ -268,7 +291,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Navigate to previous month
+    /**
+     * Navigates to the previous month in the calendar
+     * Updates the month and year variables and refreshes the calendar display
+     */
     function previousMonth() {
         currentMonth--;
         if (currentMonth < 0) {
@@ -278,7 +304,10 @@ document.addEventListener('DOMContentLoaded', function() {
         updateCalendar();
     }
     
-    // Navigate to next month
+    /**
+     * Navigates to the next month in the calendar
+     * Updates the month and year variables and refreshes the calendar display
+     */
     function nextMonth() {
         currentMonth++;
         if (currentMonth > 11) {
@@ -288,13 +317,19 @@ document.addEventListener('DOMContentLoaded', function() {
         updateCalendar();
     }
     
-    // Update calendar after month navigation
+    /**
+     * Updates the calendar display after navigation
+     * Refreshes both the header and the grid of days
+     */
     function updateCalendar() {
         updateCalendarHeader();
         generateCalendarDays();
     }
 
-    // Function to select today's date
+    /**
+     * Selects today's date in the calendar if the current month/year being displayed
+     * matches the actual current month/year
+     */
     function selectTodayDate() {
         const today = new Date();
         const isCurrentMonth = today.getMonth() === currentMonth && today.getFullYear() === currentYear;
@@ -324,7 +359,11 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Initialize duty bar charts with minimum heights and update based on existing values
+/**
+ * Initializes the duty status bar charts by reading staff counts from the DOM
+ * and updating the visualization bars to reflect on-duty vs off-duty proportions
+ * for both doctors and nurses
+ */
 function initializeDutyBars() {
     // Get counts from the DOM (provided by Thymeleaf)
     const doctorsOnDuty = parseInt(document.querySelector('#doctors-on-duty-value')?.textContent || 0);
@@ -341,7 +380,16 @@ function initializeDutyBars() {
     updateBoxWidth('nurses-on-duty-box', 'nurses-off-duty-box', nursesOnDuty, nursesOffDuty, totalNurses);
 }
 
-// Helper function to update box section widths
+/**
+ * Updates the width and display of duty status boxes based on staff counts
+ * Handles special cases like when all staff are on/off duty or when counts are zero
+ * 
+ * @param {string} onDutyId - The HTML ID of the on-duty box element
+ * @param {string} offDutyId - The HTML ID of the off-duty box element
+ * @param {number} onDutyCount - The number of staff on duty
+ * @param {number} offDutyCount - The number of staff off duty
+ * @param {number} total - The total number of staff (used for percentage calculation)
+ */
 function updateBoxWidth(onDutyId, offDutyId, onDutyCount, offDutyCount, total) {
     const onDutyElement = document.getElementById(onDutyId);
     const offDutyElement = document.getElementById(offDutyId);

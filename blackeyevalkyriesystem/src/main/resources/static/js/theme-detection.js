@@ -1,3 +1,16 @@
+/**
+ * Theme Detection Script
+ * 
+ * This script is executed immediately to prevent flash of unstyled content (FOUC)
+ * by detecting and applying the user's preferred theme before the page renders.
+ * 
+ * Functionality:
+ * - Checks localStorage for saved theme preference
+ * - Applies 'light-mode' class to document root based on saved preference
+ * - Adds 'theme-initialized' class when DOM is fully loaded to signal theme initialization is complete
+ * 
+ * Note: This script must be included in the head section to execute before page rendering
+ */
 // Immediate theme detection script - must run before any rendering
 (function() {
     // Get saved theme preference

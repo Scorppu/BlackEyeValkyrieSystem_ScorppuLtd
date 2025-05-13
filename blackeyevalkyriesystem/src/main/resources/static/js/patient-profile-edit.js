@@ -1,3 +1,19 @@
+/**
+ * Patient Profile Edit Module
+ * 
+ * This module handles all aspects of patient profile editing functionality including:
+ * - Tab navigation between personal info and contact info
+ * - Age calculation from date of birth
+ * - Form validation for required fields
+ * - Form submission via API
+ * - Drug allergies management (search, add, remove)
+ * - Unsaved changes tracking and navigation warnings
+ * 
+ * The module works with patient data fetched from and submitted to the server API.
+ * It uses event listeners to handle user interactions and provides feedback through
+ * validation messages and notifications.
+ */
+
 document.addEventListener('DOMContentLoaded', function() {
     // Variables for form elements
     const patientForm = document.getElementById('patient-form');
@@ -15,7 +31,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Setup unsaved changes tracking
     setupUnsavedChangesTracking();
 
-    // Tab navigation setup
+    /**
+     * Sets up tab navigation between personal info and contact info sections
+     * Handles tab clicks and section visibility toggling
+     */
     function setupTabNavigation() {
         const tabItems = document.querySelectorAll('.tab-item');
         
@@ -26,7 +45,10 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 
-        // Function to switch form sections
+        /**
+         * Switches visibility between form sections based on selected tab
+         * @param {string} tabId - The ID of the tab to activate
+         */
         function switchFormSection(tabId) {
             // Remove active class from all tabs
             document.querySelectorAll('.tab-item').forEach(tab => {
@@ -50,7 +72,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Calculate age from date of birth
+    /**
+     * Sets up automatic age calculation based on date of birth
+     * Updates age field when date of birth changes
+     */
     function setupAgeCalculation() {
         const dobField = document.getElementById('dateOfBirth');
         const ageField = document.getElementById('age');
@@ -64,6 +89,10 @@ document.addEventListener('DOMContentLoaded', function() {
             // Update age when DOB changes
             dobField.addEventListener('change', calculateAge);
             
+            /**
+             * Calculates age from date of birth and updates the age field
+             * Accounts for whether birthday has occurred in current year
+             */
             function calculateAge() {
                 const dob = new Date(dobField.value);
                 const today = new Date();
@@ -80,7 +109,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Form validation setup
+    /**
+     * Sets up form validation for both personal info and contact info forms
+     * Handles field validation, error messages, and validation popups
+     * @returns {Object} Object containing validation functions for both forms
+     */
     function setupFormValidation() {
         // Define validation patterns
         const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -88,7 +121,11 @@ document.addEventListener('DOMContentLoaded', function() {
         // Add validation styles
         addValidationStyles();
 
-        // Function to add validation message below an input
+        /**
+         * Adds validation error message below an input field
+         * @param {string} inputId - ID of the input field
+         * @param {string} message - Error message to display
+         */
         function addValidationMessage(inputId, message) {
             const field = document.getElementById(inputId);
             if (!field) return;
@@ -106,7 +143,10 @@ document.addEventListener('DOMContentLoaded', function() {
             field.parentNode.appendChild(errorElement);
         }
 
-        // Function to mark invalid fields
+        /**
+         * Marks fields as invalid with visual styling
+         * @param {Array} invalidFields - Array of field IDs to mark as invalid
+         */
         function markInvalidFields(invalidFields) {
             // First, clear all invalid markings
             document.querySelectorAll('.invalid-input').forEach(field => {
@@ -126,7 +166,10 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
-        // Function to validate patient form fields
+        /**
+         * Validates patient form fields
+         * @returns {Object} Validation result with isValid flag and errors array
+         */
         function validatePatientForm() {
             const errors = [];
             const invalidFields = [];
@@ -160,7 +203,10 @@ document.addEventListener('DOMContentLoaded', function() {
             };
         }
 
-        // Function to validate contact form fields
+        /**
+         * Validates contact form fields
+         * @returns {Object} Validation result with isValid flag and errors array
+         */
         function validateContactForm() {
             const errors = [];
             const invalidFields = [];
@@ -320,7 +366,10 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
-        // Function to show validation popup
+        /**
+         * Displays validation popup with error messages
+         * @param {Array} errors - Array of error messages to display
+         */
         function showValidationPopup(errors) {
             // Remove any existing popup
             const existingPopup = document.querySelector('.validation-popup');
@@ -398,7 +447,10 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
 
-    // Add styles for form validation
+    /**
+     * Adds CSS styles for form validation
+     * Creates style element with rules for invalid inputs and error messages
+     */
     function addValidationStyles() {
         // Add CSS styles for validation
         const styleElement = document.createElement('style');
@@ -418,7 +470,10 @@ document.addEventListener('DOMContentLoaded', function() {
         document.head.appendChild(styleElement);
     }
 
-    // Form submission setup
+    /**
+     * Sets up form submission handling
+     * Validates form data, collects all field values, and sends to server API
+     */
     function setupFormSubmission() {
         const validation = setupFormValidation();
         
@@ -532,7 +587,10 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
-        // Function to show validation popup
+        /**
+         * Displays validation popup with error messages
+         * @param {Array} errors - Array of error messages to display
+         */
         function showValidationPopup(errors) {
             if (errors.length === 0) return;
             
@@ -547,7 +605,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Global variable for drugs data
     let allDrugsData = [];
 
-    // Function to initialize drug allergies component
+    /**
+     * Initializes drug allergies component
+     * Sets up drug search, selection, adding to and removing from allergies list
+     */
     function initializeDrugAllergies() {
         const drugAllergyInput = document.getElementById('drugAllergyInput');
         const drugsDropdown = document.getElementById('drugsDropdown');
@@ -649,7 +710,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
         }
             
-        // Function to populate existing allergies in the UI
+        /**
+         * Populates the allergies list UI with existing allergies
+         * Shows empty message if no allergies are selected
+         */
         function populateExistingAllergies() {
             console.log("Populating existing allergies, selected allergies:", selectedAllergies);
             // Clear the list first
@@ -710,7 +774,11 @@ document.addEventListener('DOMContentLoaded', function() {
             filterDrugs(this.value);
         });
         
-        // Function to filter drugs based on search input
+        /**
+         * Filters drugs based on search input text
+         * Populates dropdown with matching drugs
+         * @param {string} searchText - Text to search for in drug names
+         */
         function filterDrugs(searchText) {
             // Clear the dropdown
             drugsDropdown.innerHTML = '';
@@ -760,14 +828,21 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         
-        // Function to select a drug from dropdown
+        /**
+         * Selects a drug from the dropdown
+         * @param {string} drugId - ID of the selected drug
+         * @param {string} drugName - Name of the selected drug
+         */
         function selectDrug(drugId, drugName) {
             drugAllergyInput.value = drugName;
             drugsDropdown.style.display = 'none';
             drugAllergyInput.setAttribute('data-selected-id', drugId);
         }
         
-        // Function to add a drug allergy
+        /**
+         * Adds a drug allergy to the list
+         * Validates selection and updates the UI
+         */
         function addDrugAllergy() {
             const drugInput = document.getElementById('drugAllergyInput');
             // Fix: Use getAttribute to get the selected ID
@@ -834,7 +909,10 @@ document.addEventListener('DOMContentLoaded', function() {
             drugInput.removeAttribute('data-selected-id');
         }
         
-        // Function to update the hidden input with selected drug IDs
+        /**
+         * Updates the hidden input with selected drug IDs
+         * Joins drug IDs with commas
+         */
         function updateDrugAllergiesInput() {
             if (drugAllergiesInput) {
                 drugAllergiesInput.value = Array.from(selectedAllergies).join(',');
@@ -853,7 +931,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Add displayNotification function to the file
+    /**
+     * Displays a notification message to the user
+     * @param {string} type - Type of notification ('success' or 'error')
+     * @param {string} message - Message to display
+     */
     function displayNotification(type, message) {
         // Create notification container if it doesn't exist
         let notificationContainer = document.querySelector('.notification-container');
@@ -932,14 +1014,20 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 6000);
     }
 
-    // Track form changes and handle navigation
+    /**
+     * Sets up tracking for unsaved form changes
+     * Warns users before navigating away from page with unsaved changes
+     */
     function setupUnsavedChangesTracking() {
         let formChanged = false;
         const formInputs = document.querySelectorAll('input, select, textarea');
         const cancelButton = document.getElementById('cancel-btn');
         const initialFormState = captureFormState();
         
-        // Capture the initial state of the form
+        /**
+         * Captures the current state of all form inputs
+         * @returns {Object} Object with input IDs as keys and values as current input values
+         */
         function captureFormState() {
             const state = {};
             formInputs.forEach(input => {
@@ -952,7 +1040,10 @@ document.addEventListener('DOMContentLoaded', function() {
             return state;
         }
         
-        // Check if the form state has changed
+        /**
+         * Checks if the form state has changed from initial state
+         * @returns {boolean} True if form has changed, false otherwise
+         */
         function hasFormChanged() {
             const currentState = captureFormState();
             for (const key in currentState) {
@@ -1003,7 +1094,10 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        // Show the unsaved changes popup
+        /**
+         * Shows the unsaved changes popup dialog
+         * @param {string} targetUrl - URL to navigate to if changes are discarded
+         */
         function showUnsavedChangesPopup(targetUrl = '/patient/list') {
             // Remove any existing popup
             const existingPopup = document.querySelector('.unsaved-changes-popup');

@@ -14,6 +14,11 @@ import com.scorppultd.blackeyevalkyriesystem.model.DutyStatus;
 import com.scorppultd.blackeyevalkyriesystem.model.User;
 import com.scorppultd.blackeyevalkyriesystem.repository.DutyStatusRepository;
 
+/**
+ * Service for managing user duty status operations.
+ * Provides functionality to toggle, retrieve, and track user duty statuses.
+ * Handles status changes, duration calculations, and maintains duty status history.
+ */
 @Service
 public class DutyStatusService {
     private static final Logger logger = LoggerFactory.getLogger(DutyStatusService.class);
@@ -21,6 +26,14 @@ public class DutyStatusService {
     @Autowired
     private DutyStatusRepository dutyStatusRepository;
 
+    /**
+     * Toggles a user's duty status between on-duty and off-duty.
+     * If switching from on-duty to off-duty, calculates and stores the duration if greater than 2 minutes.
+     * 
+     * @param user The user whose duty status is to be toggled
+     * @return The updated DutyStatus object
+     * @throws IllegalStateException if no duty status exists for the user
+     */
     public DutyStatus toggleDutyStatus(User user) {
         Optional<DutyStatus> existingStatus = dutyStatusRepository.findFirstByUserOrderByTimestampDesc(user);
         
@@ -56,25 +69,53 @@ public class DutyStatusService {
         return dutyStatusRepository.save(dutyStatus);
     }
 
+    /**
+     * Retrieves the most recent duty status for a user.
+     * 
+     * @param user The user whose duty status is to be retrieved
+     * @return An Optional containing the latest DutyStatus if it exists
+     */
     public Optional<DutyStatus> getLatestDutyStatus(User user) {
         return dutyStatusRepository.findFirstByUserOrderByTimestampDesc(user);
     }
 
+    /**
+     * Retrieves the complete duty status history for a user, ordered by timestamp (most recent first).
+     * 
+     * @param user The user whose duty status history is to be retrieved
+     * @return A list of DutyStatus objects representing the user's duty history
+     */
     public List<DutyStatus> getDutyStatusHistory(User user) {
         return dutyStatusRepository.findByUserOrderByTimestampDesc(user);
     }
 
+    /**
+     * Retrieves duty status history for a user within a specified time range.
+     * 
+     * @param user The user whose duty status history is to be retrieved
+     * @param start The start datetime of the period
+     * @param end The end datetime of the period
+     * @return A list of DutyStatus objects within the specified time range
+     */
     public List<DutyStatus> getDutyStatusHistory(User user, LocalDateTime start, LocalDateTime end) {
         return dutyStatusRepository.findByUserAndTimestampBetweenOrderByTimestampDesc(user, start, end);
     }
 
+    /**
+     * Retrieves all users currently on duty.
+     * 
+     * @return A list of DutyStatus objects for all users currently on duty
+     */
     public List<DutyStatus> getAllOnDutyUsers() {
         return dutyStatusRepository.findAllOnDuty();
     }
 
     /**
-     * Creates initial duty status for a user if it doesn't exist
-     * This should be called during user creation or system initialization
+     * Creates initial duty status for a user if it doesn't exist.
+     * This should be called during user creation or system initialization.
+     * 
+     * @param user The user for whom to create an initial duty status
+     * @return The created or existing DutyStatus object
      */
     public DutyStatus createInitialDutyStatus(User user) {
         Optional<DutyStatus> existingStatus = dutyStatusRepository.findFirstByUserOrderByTimestampDesc(user);

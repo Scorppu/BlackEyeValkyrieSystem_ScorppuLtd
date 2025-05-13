@@ -1,3 +1,21 @@
+/**
+ * Appointment Creation - Visit Information Page JavaScript
+ * 
+ * This script manages the functionality of the appointment creation visit information page.
+ * It handles doctor selection, time slot management, appointment scheduling, and conflict detection.
+ * 
+ * Key features:
+ * - Doctor schedule fetching and display in a timeline view
+ * - Time slot selection with validation for working hours (9:00 AM - 5:30 PM)
+ * - Appointment conflict detection with existing appointments
+ * - Visual representation of appointments in a scrollable timeline
+ * - Form validation for required fields
+ * - Tracking unsaved changes and confirmation when navigating away
+ * - Responsive timeline display that adjusts to screen size
+ * 
+ * The script interacts with backend APIs to fetch doctor schedules and uses DOM manipulation
+ * to create a dynamic timeline interface for appointment scheduling.
+ */
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Visit information page loaded');
     
@@ -20,7 +38,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Setup unsaved changes tracking
     setupUnsavedChangesTracking();
     
-    // Function to check if timeline needs scrollbar
+    /**
+     * Checks if the timeline content needs a scrollbar and adjusts the container accordingly.
+     * Compares the width of timeline content with its container to determine if scrolling is needed.
+     */
     function checkTimelineOverflow() {
         const timelineContent = document.querySelector('.timeline-content');
         const scrollContainer = document.querySelector('.timeline-scroll-container');
@@ -42,7 +63,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // Check for overflow when timeline is displayed and on window resize
     window.addEventListener('resize', checkTimelineOverflow);
     
-    // Format to YYYY-MM-DDThh:mm
+    /**
+     * Formats a Date object into a string suitable for datetime-local input fields (YYYY-MM-DDThh:mm).
+     * 
+     * @param {Date} date - The date object to format
+     * @returns {string} A formatted date string in YYYY-MM-DDThh:mm format
+     */
     const formatDateForInput = (date) => {
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -60,12 +86,22 @@ document.addEventListener('DOMContentLoaded', function() {
         scheduledTimeInput.value = defaultDate + 'T09:00';
     }
     
-    // Parse a datetime string into a Date object
+    /**
+     * Parses a datetime string into a Date object.
+     * 
+     * @param {string} dateTimeStr - The datetime string to parse
+     * @returns {Date} A Date object representing the parsed datetime
+     */
     const parseDateTime = (dateTimeStr) => {
         return new Date(dateTimeStr);
     };
     
-    // Format a date for display
+    /**
+     * Formats a date for time display in hour:minute format.
+     * 
+     * @param {Date} date - The date object to format
+     * @returns {string} A formatted time string (e.g., "9:00 AM")
+     */
     const formatTimeDisplay = (date) => {
         return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     };
@@ -197,6 +233,13 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error("Scheduled time input element not found!");
     }
     
+    /**
+     * Fetches a doctor's schedule for a specific date and displays it in the timeline.
+     * Calls the backend API to get appointments and updates the UI accordingly.
+     * 
+     * @param {string} doctorName - The name of the doctor whose schedule to fetch
+     * @param {Date} selectedDate - The date for which to fetch the schedule
+     */
     function fetchDoctorSchedule(doctorName, selectedDate) {
         console.log("Fetching doctor schedule for:", doctorName, "on date:", selectedDate);
         
@@ -272,7 +315,13 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     }
     
-    // Check if a new appointment would conflict with existing appointments
+    /**
+     * Checks if a new appointment would conflict with existing appointments.
+     * Compares the selected time and duration with all existing appointments for the doctor.
+     * 
+     * @param {Date} selectedTime - The start time of the new appointment
+     * @returns {boolean} True if there is a conflict, false otherwise
+     */
     function checkAppointmentConflict(selectedTime) {
         if (!selectedTime || !doctorAppointments.length) return false;
         
@@ -304,7 +353,13 @@ document.addEventListener('DOMContentLoaded', function() {
         return hasConflict;
     }
     
-    // Update UI elements to show conflict status
+    /**
+     * Updates the UI to show conflict status of the currently selected appointment time.
+     * Creates or updates a visual indicator on the timeline for the new appointment.
+     * 
+     * @param {boolean} hasConflict - Whether the selected time conflicts with existing appointments
+     * @param {Object} conflictingAppointment - The appointment that conflicts, if any
+     */
     function updateConflictUI(hasConflict, conflictingAppointment) {
         // Remove previous dotted appointment
         const previousDotted = timelineSlots.querySelector('.dotted');
@@ -366,6 +421,15 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 100);
     }
     
+    /**
+     * Displays the timeline with doctor's appointments and the new appointment slot.
+     * Creates a visual representation of all appointments in a scrollable timeline.
+     * 
+     * @param {string} doctorName - The name of the doctor whose schedule is being displayed
+     * @param {Array} appointments - Array of existing appointments to display
+     * @param {string|Date|null} nextAvailableTime - The suggested time for the new appointment
+     * @param {number} requiredTime - The duration in minutes for the new appointment
+     */
     function displayTimeline(doctorName, appointments, nextAvailableTime, requiredTime) {
         // Get the current container width before showing the timeline
         const containerWidth = document.querySelector('.content-container').offsetWidth;
@@ -439,7 +503,12 @@ document.addEventListener('DOMContentLoaded', function() {
         // Sort appointments by scheduled time
         appointments.sort((a, b) => new Date(a.scheduledTime) - new Date(b.scheduledTime));
         
-        // Function to calculate the left position for a given time
+        /**
+         * Calculates the left position for a time on the timeline.
+         * 
+         * @param {Date} time - The time to calculate position for
+         * @returns {number} The pixel position from the left edge
+         */
         function calculateTimePosition(time) {
             if (!time) {
                 console.warn("Null time provided to calculateTimePosition, using default 9:00 AM");
@@ -536,7 +605,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 100);
     }
     
-    // Track form changes and handle navigation
+    /**
+     * Sets up tracking for unsaved changes and handles navigation away from the form.
+     * Attaches event listeners to detect navigation attempts and show confirmation dialogs.
+     */
     function setupUnsavedChangesTracking() {
         // Handle back button click
         if (backButton) {
@@ -562,7 +634,12 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        // Show the unsaved changes popup
+        /**
+         * Shows a popup to warn about unsaved changes when navigating away.
+         * Creates a modal dialog with options to stay on the page or discard changes.
+         * 
+         * @param {string} targetUrl - The URL to navigate to if user chooses to discard changes
+         */
         function showUnsavedChangesPopup(targetUrl = '/appointment/timeline') {
             // Remove any existing popup
             const existingPopup = document.querySelector('.unsaved-changes-popup');

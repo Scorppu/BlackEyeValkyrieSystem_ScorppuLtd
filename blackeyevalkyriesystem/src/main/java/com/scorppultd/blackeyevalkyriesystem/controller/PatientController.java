@@ -11,6 +11,10 @@ import org.springframework.web.bind.annotation.*;
 import com.scorppultd.blackeyevalkyriesystem.model.Patient;
 import com.scorppultd.blackeyevalkyriesystem.service.PatientService;
 
+/**
+ * REST controller for managing Patient resources.
+ * Provides endpoints for CRUD operations on patient records.
+ */
 @RestController
 @RequestMapping("/api/patients")
 public class PatientController {
@@ -18,6 +22,13 @@ public class PatientController {
     @Autowired
     private PatientService patientService;
     
+    /**
+     * Retrieves all patients with optional sorting.
+     * 
+     * @param sortBy The field to sort by (defaults to "lastName")
+     * @param direction The sort direction, either "asc" or "desc" (defaults to "asc")
+     * @return ResponseEntity containing the list of patients or an error status
+     */
     @GetMapping
     public ResponseEntity<List<Patient>> getAllPatients(
             @RequestParam(required = false, defaultValue = "lastName") String sortBy,
@@ -33,6 +44,12 @@ public class PatientController {
         return new ResponseEntity<>(patients, HttpStatus.OK);
     }
     
+    /**
+     * Retrieves a specific patient by ID.
+     * 
+     * @param id The unique identifier of the patient
+     * @return ResponseEntity containing the patient if found, or NOT_FOUND status
+     */
     @GetMapping("/{id}")
     public ResponseEntity<Patient> getPatientById(@PathVariable String id) {
         Optional<Patient> patient = patientService.getPatientById(id);
@@ -40,6 +57,13 @@ public class PatientController {
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
     
+    /**
+     * Creates a new patient.
+     * Validates required fields (firstName, lastName, dateOfBirth) before saving.
+     * 
+     * @param patient The patient object to be created
+     * @return ResponseEntity containing the created patient or an appropriate error status
+     */
     @PostMapping
     public ResponseEntity<Patient> createPatient(@RequestBody Patient patient) {
         try {
@@ -79,6 +103,13 @@ public class PatientController {
         }
     }
     
+    /**
+     * Updates an existing patient by ID.
+     * 
+     * @param id The unique identifier of the patient to update
+     * @param patientDetails The updated patient data
+     * @return ResponseEntity containing the updated patient if found, or NOT_FOUND status
+     */
     @PutMapping("/{id}")
     public ResponseEntity<Patient> updatePatient(@PathVariable String id, @RequestBody Patient patientDetails) {
         Optional<Patient> patient = patientService.getPatientById(id);
@@ -103,6 +134,12 @@ public class PatientController {
         }
     }
     
+    /**
+     * Deletes a patient by ID.
+     * 
+     * @param id The unique identifier of the patient to delete
+     * @return ResponseEntity with NO_CONTENT status if successful, or an error status
+     */
     @DeleteMapping("/{id}")
     public ResponseEntity<HttpStatus> deletePatient(@PathVariable String id) {
         try {

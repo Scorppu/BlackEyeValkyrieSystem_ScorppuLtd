@@ -1,7 +1,11 @@
 // Global variable for drugs data
 let allDrugsData = [];
 
-// Function to validate the patient form - moved to global scope
+/**
+ * Validates the patient form by checking required fields
+ * 
+ * @returns {Object} An object with isValid flag and array of error messages
+ */
 function validatePatientForm() {
     const requiredFields = ['firstName', 'lastName', 'sex', 'dateOfBirth', 'bloodType'];
     const errors = [];
@@ -27,7 +31,11 @@ function validatePatientForm() {
     };
 }
 
-// Function to switch between form sections - moved to global scope
+/**
+ * Switches between form sections (personal info and contact info)
+ * 
+ * @param {string} targetTabId - The ID of the tab to switch to
+ */
 function switchFormSection(targetTabId) {
     // Hide all form sections
     document.querySelectorAll('.form-section').forEach(section => {
@@ -53,7 +61,11 @@ function switchFormSection(targetTabId) {
     });
 }
 
-// Function to mark invalid fields with red border
+/**
+ * Marks invalid fields with red border and adds validation messages
+ * 
+ * @param {Array} invalidFields - Array of field IDs that failed validation
+ */
 function markInvalidFields(invalidFields) {
     // Clear previous validation styling
     document.querySelectorAll('.form-control').forEach(field => {
@@ -74,7 +86,12 @@ function markInvalidFields(invalidFields) {
     });
 }
 
-// Function to add validation message below the field
+/**
+ * Adds validation message below the input field
+ * 
+ * @param {string} inputId - The ID of the input field
+ * @param {string} message - The validation message to display
+ */
 function addValidationMessage(inputId, message) {
     const input = document.getElementById(inputId);
     if (!input) return;
@@ -98,7 +115,11 @@ function addValidationMessage(inputId, message) {
     input.parentNode.insertBefore(msgElement, input.nextSibling);
 }
 
-// Function to show validation popup with errors
+/**
+ * Shows a validation popup with error messages
+ * 
+ * @param {Array} errors - Array of error messages to display
+ */
 function showValidationPopup(errors) {
     // Ensure errors is an array
     errors = Array.isArray(errors) ? errors : [];
@@ -155,7 +176,11 @@ function showValidationPopup(errors) {
     }, 10);
 }
 
-// Function to fetch drugs data
+/**
+ * Fetches drugs data from the API endpoint
+ * 
+ * @returns {Promise<Array>} A promise that resolves to the array of drugs data
+ */
 function fetchDrugsData() {
     return fetch('/api/drugs')
         .then(response => {
@@ -184,7 +209,11 @@ function fetchDrugsData() {
         });
 }
 
-// Initialize and setup drug allergies component
+/**
+ * Initializes and sets up the drug allergies component
+ * 
+ * Creates dropdown for drug selection, handles searching, adding and removing allergies
+ */
 function initializeDrugAllergies() {
     const drugAllergyInput = document.getElementById('drugAllergyInput');
     const drugsDropdown = document.getElementById('drugsDropdown');
@@ -207,7 +236,9 @@ function initializeDrugAllergies() {
     const selectedAllergies = new Set();
     const drugMap = {};
     
-    // Create a map of drug IDs to drug names
+    /**
+     * Creates a map of drug IDs to drug names
+     */
     function updateDrugMap() {
         if (Array.isArray(allDrugsData)) {
             allDrugsData.forEach(drug => {
@@ -241,7 +272,11 @@ function initializeDrugAllergies() {
         }
     });
     
-    // Function to filter and display drugs based on search input
+    /**
+     * Filters and displays drugs based on search input
+     * 
+     * @param {string} searchText - The text to search for
+     */
     function filterDrugs(searchText) {
         // Clear the dropdown
         drugsDropdown.innerHTML = '';
@@ -265,7 +300,11 @@ function initializeDrugAllergies() {
         }
     }
     
-    // Internal function to filter drugs after data is available
+    /**
+     * Internal function to filter drugs after data is available
+     * 
+     * @param {string} searchText - The text to search for
+     */
     function filterDrugsInternal(searchText) {
         // Make sure allDrugsData is an array with the expected properties
         if (!Array.isArray(allDrugsData) || allDrugsData.length === 0) {
@@ -322,7 +361,12 @@ function initializeDrugAllergies() {
         }
     }
     
-    // Function to select a drug from the dropdown
+    /**
+     * Selects a drug from the dropdown and populates the input field
+     * 
+     * @param {string} drugId - The ID of the selected drug
+     * @param {string} drugName - The name of the selected drug
+     */
     function selectDrug(drugId, drugName) {
         drugAllergyInput.value = drugName;
         drugsDropdown.style.display = 'none';
@@ -331,12 +375,16 @@ function initializeDrugAllergies() {
         drugAllergyInput.setAttribute('data-selected-id', drugId);
     }
     
-    // Function to update the hidden input with selected drug IDs
+    /**
+     * Updates the hidden input with selected drug IDs
+     */
     function updateDrugAllergiesInput() {
         drugAllergiesInput.value = Array.from(selectedAllergies).join(',');
     }
     
-    // Function to add a drug allergy
+    /**
+     * Adds a drug allergy to the list
+     */
     function addDrugAllergy() {
         const drugInput = document.getElementById('drugAllergyInput');
         const drugId = drugInput.getAttribute('data-selected-id');
@@ -440,7 +488,11 @@ function initializeDrugAllergies() {
     });
 }
 
-// Tab navigation for personal to contact info
+/**
+ * Sets up tab navigation between personal info and contact info sections
+ * 
+ * Handles tab switching, validation before proceeding to next tab
+ */
 function setupTabNavigation() {
     const nextButton = document.getElementById('next-btn');
     const backButton = document.getElementById('back-btn');
@@ -448,7 +500,11 @@ function setupTabNavigation() {
     const personalInfoForm = document.getElementById('personal-info-form');
     const contactInfoForm = document.getElementById('contact-info-form');
     
-    // Switch between form sections based on tab
+    /**
+     * Switches between form sections based on tab ID
+     * 
+     * @param {string} tabId - The ID of the tab to switch to
+     */
     function switchFormSection(tabId) {
         // Hide all form sections
         document.querySelectorAll('.form-section').forEach(section => {
@@ -513,7 +569,11 @@ function setupTabNavigation() {
     }
 }
 
-// Calculate age based on date of birth
+/**
+ * Sets up automatic age calculation based on date of birth
+ * 
+ * Updates the age field when date of birth changes
+ */
 function setupAgeCalculation() {
     const dobField = document.getElementById('dateOfBirth');
     const ageField = document.getElementById('age');
@@ -549,7 +609,11 @@ function setupAgeCalculation() {
     }
 }
 
-// Form submission handling
+/**
+ * Sets up form submission handling
+ * 
+ * Collects form data, validates it, and submits to the server
+ */
 function setupFormSubmission() {
     const contactForm = document.getElementById('contact-form');
     if (contactForm) {
@@ -657,7 +721,11 @@ function setupFormSubmission() {
     }
 }
 
-// Validation helpers
+/**
+ * Adds validation modals to the page
+ * 
+ * Creates success, error, and validation popup modals
+ */
 function addValidationModals() {
     // Create modal container
     const modalsContainer = document.createElement('div');
@@ -721,6 +789,11 @@ function addValidationModals() {
     addValidationStyles();
 }
 
+/**
+ * Adds CSS styles for validation elements
+ * 
+ * Creates styles for invalid inputs and validation error messages
+ */
 function addValidationStyles() {
     // Add CSS styles for validation
     const styleElement = document.createElement('style');
@@ -764,7 +837,11 @@ document.addEventListener('DOMContentLoaded', function() {
     setupUnsavedChangesTracking();
 });
 
-// Setup validation form
+/**
+ * Sets up form validation handlers
+ * 
+ * Creates and manages validation modal popups, field validation
+ */
 function setupValidationForm() {
     const patientForm = document.getElementById('patient-form');
     const contactForm = document.getElementById('contact-form');
@@ -821,19 +898,31 @@ function setupValidationForm() {
         }
     });
     
-    // Function to show success modal
+    /**
+     * Shows success modal with a message
+     * 
+     * @param {string} message - Success message to display
+     */
     function showSuccessModal(message) {
         successMessage.textContent = message;
         successModal.style.display = 'block';
     }
     
-    // Function to show error modal
+    /**
+     * Shows error modal with a message
+     * 
+     * @param {string} message - Error message to display
+     */
     function showErrorModal(message) {
         errorMessage.textContent = message;
         errorModal.style.display = 'block';
     }
     
-    // Function to show validation errors popup
+    /**
+     * Shows validation errors popup
+     * 
+     * @param {Array} errors - Array of error messages to display
+     */
     function showValidationPopup(errors) {
         // Remove any existing popup
         const existingPopup = document.querySelector('.validation-popup');
@@ -905,7 +994,11 @@ function setupValidationForm() {
         overlay.addEventListener('click', closePopup);
     }
     
-    // Function to mark invalid fields
+    /**
+     * Marks fields that failed validation with visual indicators
+     * 
+     * @param {Array} invalidFields - Array of field IDs that failed validation
+     */
     function markInvalidFields(invalidFields) {
         // Reset all fields first
         const allInputs = document.querySelectorAll('input, select');
@@ -927,7 +1020,12 @@ function setupValidationForm() {
         });
     }
     
-    // Function to add validation message below an input
+    /**
+     * Adds validation message below an input field
+     * 
+     * @param {string} inputId - The ID of the input field
+     * @param {string} message - The validation message to display
+     */
     function addValidationMessage(inputId, message) {
         const field = document.getElementById(inputId);
         if (!field) return;
@@ -948,7 +1046,11 @@ function setupValidationForm() {
     // Define validation patterns
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     
-    // Function to validate patient form fields
+    /**
+     * Validates patient form fields
+     * 
+     * @returns {Object} An object with isValid flag and array of error messages
+     */
     function validatePatientForm() {
         const errors = [];
         const invalidFields = [];
@@ -982,7 +1084,11 @@ function setupValidationForm() {
         };
     }
     
-    // Function to validate contact form fields
+    /**
+     * Validates contact form fields
+     * 
+     * @returns {Object} An object with isValid flag and array of error messages
+     */
     function validateContactForm() {
         const errors = [];
         const invalidFields = [];
@@ -1148,14 +1254,22 @@ function setupValidationForm() {
     }
 }
 
-// Track form changes and handle navigation
+/**
+ * Tracks unsaved form changes and shows confirmation dialog before navigation
+ * 
+ * Prevents accidental loss of user input when navigating away from the form
+ */
 function setupUnsavedChangesTracking() {
     let formChanged = false;
     const formInputs = document.querySelectorAll('input, select, textarea');
     const cancelButton = document.getElementById('cancel-btn');
     const initialFormState = captureFormState();
     
-    // Capture the initial state of the form
+    /**
+     * Captures the current state of the form
+     * 
+     * @returns {Object} An object mapping input IDs to their current values
+     */
     function captureFormState() {
         const state = {};
         formInputs.forEach(input => {
@@ -1168,7 +1282,11 @@ function setupUnsavedChangesTracking() {
         return state;
     }
     
-    // Check if the form state has changed
+    /**
+     * Checks if the form state has changed from initial state
+     * 
+     * @returns {boolean} True if form state has changed, false otherwise
+     */
     function hasFormChanged() {
         const currentState = captureFormState();
         for (const key in currentState) {
@@ -1219,7 +1337,11 @@ function setupUnsavedChangesTracking() {
         }
     });
     
-    // Show the unsaved changes popup
+    /**
+     * Shows a popup warning about unsaved changes
+     * 
+     * @param {string} targetUrl - The URL to navigate to if user confirms discarding changes
+     */
     function showUnsavedChangesPopup(targetUrl = '/patient/list') {
         // Remove any existing popup
         const existingPopup = document.querySelector('.unsaved-changes-popup');
@@ -1266,7 +1388,12 @@ function setupUnsavedChangesTracking() {
     }
 }
 
-// Add displayNotification function to the file
+/**
+ * Displays a notification message to the user
+ * 
+ * @param {string} type - The type of notification ('success' or 'error')
+ * @param {string} message - The message to display
+ */
 function displayNotification(type, message) {
     // Create notification container if it doesn't exist
     let notificationContainer = document.querySelector('.notification-container');
