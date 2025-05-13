@@ -1,6 +1,13 @@
 # BlackEye Valkyrie System
 A comprehensive healthcare management system built with Spring Boot. This application allows healthcare organizations to manage patients, appointments, prescriptions, consultations, and staff duty schedules.
 
+## Repository link
+[BlackEyeValkyrieSystem_ScorppuLtd](https://github.com/Scorppu/BlackEyeValkyrieSystem_ScorppuLtd)
+
+## Branches
+- main (release branch)
+- dev (development branch)
+
 ## Features
 
 - Patient Profile Management
