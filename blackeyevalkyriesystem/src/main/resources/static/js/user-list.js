@@ -1,12 +1,35 @@
 /**
- * User list management script
+ * User List Management Script
  * 
- * This script handles the client-side functionality for the user list page, including:
- * - Notification display system (both from session storage and dynamic creation)
- * - Table row selection with select-all checkbox functionality
- * - Real-time search filtering for users by name, email, or role
- * - Pagination controls (rows per page selection and page navigation)
- * - User deletion confirmation modal with text verification
+ * This script handles the client-side functionality for the user management page, providing:
+ * 
+ * - Notification System:
+ *   - Displays notifications from sessionStorage on page load
+ *   - Creates dynamic notification elements with type-specific styling
+ *   - Auto-removes notifications after a timeout
+ *   - Provides manual close functionality
+ * 
+ * - Table Row Selection:
+ *   - Implements select-all checkbox functionality
+ *   - Manages individual row checkbox states
+ * 
+ * - Real-time Search Filtering:
+ *   - Filters table rows by username, email, or role
+ *   - Updates visibility as the user types
+ * 
+ * - Pagination Controls:
+ *   - Manages rows per page selection with synchronized controls
+ *   - Handles page navigation (previous/next) in both header and footer
+ *   - Updates URL parameters to persist pagination state
+ * 
+ * - User Deletion System:
+ *   - Implements a confirmation modal with text verification
+ *   - Validates the confirmation text before enabling deletion
+ *   - Handles modal opening/closing with appropriate event listeners
+ * 
+ * - URL Parameter Management:
+ *   - Helper function to update URL parameters while preserving state
+ *   - Resets page number when changing rows per page
  * 
  * @file user-list.js
  */
@@ -18,7 +41,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // Check for notification in sessionStorage
     displayNotificationFromSession();
     
-    // Function to display notification from session storage
+    /**
+     * Retrieves notification data from sessionStorage and displays it
+     * 
+     * Looks for the 'userNotification' key in sessionStorage, parses the
+     * JSON data, and passes it to displayNotification. Removes the notification
+     * from sessionStorage after displaying to prevent duplicate notifications.
+     */
     function displayNotificationFromSession() {
         const notificationData = sessionStorage.getItem('userNotification');
         
@@ -35,7 +64,16 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Function to display notification
+    /**
+     * Creates and displays a notification element
+     * 
+     * @param {string} type - The notification type ('success' or 'error')
+     * @param {string} message - The notification message to display
+     * 
+     * Creates a notification container if one doesn't exist, then adds
+     * a notification with type-specific styling and icon. Notifications
+     * automatically close after 6 seconds or can be closed manually.
+     */
     function displayNotification(type, message) {
         // Create notification container if it doesn't exist
         let notificationContainer = document.querySelector('.notification-container');
@@ -168,6 +206,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const headerPrevButton = document.querySelector('.header-prev-page');
     const headerNextButton = document.querySelector('.header-next-page');
     
+    /**
+     * Gets the current page number from URL parameters
+     * 
+     * @returns {number} The current page number, defaults to 1 if not found
+     */
     function getCurrentPage() {
         const urlParams = new URLSearchParams(window.location.search);
         return parseInt(urlParams.get('page')) || 1;
@@ -216,7 +259,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const confirmDeleteBtn = document.getElementById('confirmDelete');
     const cancelDeleteBtn = document.getElementById('cancelDelete');
     
-    // Function to open delete modal
+    /**
+     * Opens the user deletion confirmation modal
+     *
+     * @param {string|number} userId - The ID of the user to delete
+     * 
+     * Sets the user ID in the hidden input field, displays the modal,
+     * clears any previous confirmation text, and ensures the delete
+     * button starts in a disabled state.
+     */
     window.openDeleteModal = function(userId) {
         deleteUserIdInput.value = userId;
         deleteModal.style.display = 'block';
@@ -255,7 +306,17 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// Helper function to update URL parameters
+/**
+ * Updates URL parameters while preserving other parameters
+ * 
+ * @param {string} url - The current URL to modify
+ * @param {string} key - The parameter name to update
+ * @param {string|number} value - The new value for the parameter
+ * @returns {string} The updated URL string
+ * 
+ * If the parameter is 'rowsPerPage', the page parameter is reset to 1
+ * to ensure users start at the first page when changing the rows displayed.
+ */
 function updateUrlParameter(url, key, value) {
     const urlObj = new URL(url);
     const params = new URLSearchParams(urlObj.search);
