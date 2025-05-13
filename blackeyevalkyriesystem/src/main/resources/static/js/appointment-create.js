@@ -70,7 +70,11 @@ document.addEventListener('DOMContentLoaded', function() {
         // Keep the two dropdowns in sync
         rowsPerPageSelectTop.value = rowsPerPageSelect.value;
         
-        // Event handler function for rows per page change
+        /**
+         * Handles changes to the number of rows displayed per page.
+         * Updates the URL with the new rowsPerPage parameter and resets to the first page.
+         * This function is triggered when either the top or bottom rows per page select is changed.
+         */
         const handleRowsPerPageChange = function() {
             const url = new URL(window.location);
             url.searchParams.set('rowsPerPage', this.value);
@@ -94,7 +98,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const rowsPerPage = parseInt(document.getElementById('rowsPerPage').value);
     const currentPage = parseInt(new URLSearchParams(window.location.search).get('page') || '1');
     
-    // Function to update both sets of pagination buttons
+    /**
+     * Updates the enabled/disabled state of all pagination buttons based on current page position.
+     * Disables previous buttons on the first page and next buttons on the last page.
+     * Applies to both top and bottom pagination button sets.
+     */
     function updatePaginationButtons() {
         const isFirstPage = currentPage <= 1;
         const isLastPage = (currentPage * rowsPerPage) >= totalPatients;
@@ -115,7 +123,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Call the function to initialize button states
     updatePaginationButtons();
     
-    // Click handler function for pagination
+    /**
+     * Handles navigation to the previous page.
+     * Updates the page URL parameter and navigates to the updated URL.
+     * Only navigates if not already on the first page.
+     */
     function handlePrevPageClick() {
             if (currentPage > 1) {
                 const url = new URL(window.location);
@@ -124,6 +136,11 @@ document.addEventListener('DOMContentLoaded', function() {
             }
     }
         
+    /**
+     * Handles navigation to the next page.
+     * Updates the page URL parameter and navigates to the updated URL.
+     * Only navigates if not already on the last page.
+     */
     function handleNextPageClick() {
         if (currentPage * rowsPerPage < totalPatients) {
             const url = new URL(window.location);
@@ -199,13 +216,22 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Track form changes and handle navigation
+    /**
+     * Sets up tracking for unsaved changes on the form and handles navigation confirmation.
+     * Captures the initial form state and compares it with the current state to detect changes.
+     * Shows a confirmation popup when attempting to navigate away with unsaved changes.
+     */
     function setupUnsavedChangesTracking() {
         let formChanged = false;
         const formInputs = document.querySelectorAll('input, select, textarea');
         const initialFormState = captureFormState();
         
-        // Capture the initial state of the form
+        /**
+         * Captures the current state of all form inputs.
+         * Creates an object with input IDs as keys and their current values or checked states as values.
+         * 
+         * @returns {Object} An object representing the current form state
+         */
         function captureFormState() {
             const state = {};
             formInputs.forEach(input => {
@@ -218,7 +244,13 @@ document.addEventListener('DOMContentLoaded', function() {
             return state;
         }
         
-        // Check if the form state has changed
+        /**
+         * Determines if the form state has changed from its initial state.
+         * Compares the current form state with the initial state captured on page load.
+         * Also checks for changes in patient selection that might not be tracked through IDs.
+         * 
+         * @returns {boolean} True if the form has changed, false otherwise
+         */
         function hasFormChanged() {
             const currentState = captureFormState();
             for (const key in currentState) {
@@ -280,7 +312,12 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        // Show the unsaved changes popup
+        /**
+         * Shows a popup warning about unsaved changes when attempting to navigate away.
+         * Creates a modal dialog with options to cancel navigation or discard changes.
+         * 
+         * @param {string} targetUrl - The URL to navigate to if user chooses to discard changes
+         */
         function showUnsavedChangesPopup(targetUrl = '/appointment/timeline') {
             // Remove any existing popup
             const existingPopup = document.querySelector('.unsaved-changes-popup');

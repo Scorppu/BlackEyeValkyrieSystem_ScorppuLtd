@@ -39,7 +39,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const startDateInput = document.getElementById('startDate');
     const endDateInput = document.getElementById('endDate');
     
-    // Get today's date formatted as YYYY-MM-DD
+    /**
+     * Returns today's date formatted as YYYY-MM-DD.
+     * 
+     * @returns {string} The current date in YYYY-MM-DD format
+     */
     function getTodayFormatted() {
         const today = new Date();
         const year = today.getFullYear();
@@ -48,7 +52,11 @@ document.addEventListener('DOMContentLoaded', function() {
         return `${year}-${month}-${day}`;
     }
     
-    // Initialize date inputs
+    /**
+     * Initializes date input fields with the current date and sets up event listeners.
+     * Sets up timeline date input and date range for pending appointments.
+     * Triggers initial loading of timeline and pending appointments table.
+     */
     function initializeDateInputs() {
         const today = getTodayFormatted();
         
@@ -128,7 +136,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Set the timeline content width based on time slots
+    /**
+     * Sets up the timeline content width based on time slots.
+     * Calculates the width based on the number of time slots and slot width.
+     * Applies minimum width constraints and checks if scrolling is needed.
+     */
     function setupTimelineWidth() {
         if (timelineContent) {
             const totalWidth = (timeSlots * slotWidth) + 120; // Add doctor column width
@@ -140,7 +152,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Check if timeline needs scrollbar
+    /**
+     * Checks if the timeline content exceeds its container and adds scrolling if needed.
+     * Sets the data-overflow attribute and adjusts overflowX style accordingly.
+     */
     function checkTimelineOverflow() {
         const scrollContainer = document.querySelector('.timeline-scroll-container');
         
@@ -154,7 +169,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Fetch appointments for timeline by date
+    /**
+     * Fetches appointments for the timeline for a specific date.
+     * Displays a loading state and makes an API request to get appointments.
+     * Provides a fallback response if the API call fails.
+     * 
+     * @param {string} date - The date in YYYY-MM-DD format to fetch appointments for
+     * @returns {Promise<Object>} Promise resolving to the appointments data object
+     */
     async function fetchAppointmentsForTimeline(date) {
         try {
             // Show loading state
@@ -202,7 +224,13 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Function to calculate position based on time
+    /**
+     * Calculates the horizontal position for an appointment on the timeline based on its time.
+     * Converts time from the appointment's start time string to a pixel position.
+     * 
+     * @param {string} time - Time string in ISO format (e.g., "2023-01-01T09:30:00")
+     * @returns {number} The horizontal position in pixels from the left edge
+     */
     function calculatePosition(time) {
         // Extract hours and minutes from datetime string
         const timePart = time.split('T')[1];
@@ -213,7 +241,13 @@ document.addEventListener('DOMContentLoaded', function() {
         return ((hours - workStartHour) * 2 + (minutes >= 30 ? 1 : 0)) * slotWidth;
     }
     
-    // Function to determine appointment color
+    /**
+     * Determines the CSS class for an appointment block based on its type.
+     * Different appointment types get different visual styling.
+     * 
+     * @param {string} type - The appointment type (e.g., "Emergency", "Follow-up")
+     * @returns {string} The CSS class name to apply
+     */
     function getAppointmentClass(type) {
         switch(type) {
             case 'Emergency':
@@ -225,7 +259,13 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Position appointments on timeline
+    /**
+     * Updates the timeline display for the specified date.
+     * Fetches appointments and renders them on the timeline grid.
+     * Creates doctor rows and appointment blocks with proper positioning.
+     * 
+     * @param {string} date - The date in YYYY-MM-DD format to display on the timeline
+     */
     async function updateTimeline(date) {
         // Get data
         const data = await fetchAppointmentsForTimeline(date);
@@ -300,7 +340,14 @@ document.addEventListener('DOMContentLoaded', function() {
         checkTimelineOverflow();
     }
     
-    // Fetch pending appointments for date range
+    /**
+     * Fetches pending appointments for a date range.
+     * Creates formatted date strings and makes an API request.
+     * 
+     * @param {string} startDate - Start date in YYYY-MM-DD format
+     * @param {string} endDate - End date in YYYY-MM-DD format
+     * @returns {Promise<Array>} Promise resolving to an array of pending appointments
+     */
     async function fetchPendingAppointments(startDate, endDate) {
         try {
             // Create formatted date strings for API
@@ -327,7 +374,13 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Format date for display with localized time
+    /**
+     * Formats a date string for display with localized time.
+     * Converts an ISO date string to a formatted date-time string.
+     * 
+     * @param {string} dateString - The date string to format (ISO format)
+     * @returns {string} Formatted date string in YYYY-MM-DD HH:MM format
+     */
     function formatDate(dateString) {
         const date = new Date(dateString);
         
@@ -343,7 +396,14 @@ document.addEventListener('DOMContentLoaded', function() {
         return `${year}-${month}-${day} ${hours}:${minutes}`;
     }
     
-    // Render pending appointments table
+    /**
+     * Renders the pending appointments table for a date range.
+     * Fetches appointments and creates table rows with appointment details.
+     * Handles different priority levels with appropriate styling.
+     * 
+     * @param {string} startDate - Start date in YYYY-MM-DD format
+     * @param {string} endDate - End date in YYYY-MM-DD format
+     */
     async function renderPendingAppointmentsTable(startDate, endDate) {
         if (!pendingAppointmentsList) return;
         
@@ -415,7 +475,12 @@ document.addEventListener('DOMContentLoaded', function() {
         pendingAppointmentsList.innerHTML = html;
     }
     
-    // Function to handle appointment editing
+    /**
+     * Handles appointment editing by navigating to the edit page.
+     * Uses window.location to redirect to the edit page for the specified appointment.
+     * 
+     * @param {string} appointmentId - The ID of the appointment to edit
+     */
     function editAppointment(appointmentId) {
         try {
             if (!appointmentId) {
@@ -433,7 +498,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Function to handle appointment cancellation
+    /**
+     * Handles appointment cancellation with user confirmation.
+     * Makes a DELETE request to the API and refreshes the timeline and pending table on success.
+     * 
+     * @param {string} appointmentId - The ID of the appointment to cancel
+     */
     function cancelAppointment(appointmentId) {
         if (confirm('Are you sure you want to cancel this appointment?')) {
             fetch(`/api/appointments/${appointmentId}`, {
@@ -465,7 +535,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Add event listeners for appointment action buttons
+    /**
+     * Adds event listeners for appointment action buttons using event delegation.
+     * Listens for clicks on edit and cancel buttons throughout the document.
+     * Routes each action to the appropriate handler function.
+     */
     function addAppointmentActionEventListeners() {
         // Event delegation for edit and cancel buttons
         document.addEventListener('click', function(e) {
@@ -483,7 +557,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Initialize tooltip container
+    /**
+     * Initializes the tooltip container by creating and appending it to the body.
+     * Creates a div with appropriate classes to serve as a tooltip for appointments.
+     */
     function initializeTooltip() {
         const tooltipDiv = document.createElement('div');
         tooltipDiv.className = 'appointment-tooltip';
@@ -491,7 +568,12 @@ document.addEventListener('DOMContentLoaded', function() {
         document.body.appendChild(tooltipDiv);
     }
     
-    // Show appointment tooltip
+    /**
+     * Shows the appointment tooltip with details when hovering over an appointment.
+     * Positions the tooltip above the appointment block and fills it with appointment data.
+     * 
+     * @param {Event} event - The mouse event that triggered the tooltip
+     */
     function showTooltip(event) {
         const appointment = event.currentTarget;
         const tooltip = document.getElementById('appointmentTooltip');
@@ -520,7 +602,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Hide appointment tooltip
+    /**
+     * Hides the appointment tooltip.
+     * Removes the visible class from the tooltip element.
+     */
     function hideTooltip() {
         const tooltip = document.getElementById('appointmentTooltip');
         if (tooltip) {
@@ -528,7 +613,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Fix styling issues for proper layout
+    /**
+     * Fixes styling issues to ensure proper layout of the timeline and pending appointments.
+     * Applies specific overflow settings to different containers to prevent unwanted scrollbars.
+     * Ensures proper sizing and expansion of containers for correct display.
+     */
     function fixLayoutStyling() {
         // Force proper overflow settings on all parent containers
         document.querySelectorAll('html, body, .main-content, .content-container, .timeline-container').forEach(el => {
@@ -562,7 +651,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Initialize everything
+    /**
+     * Initializes all components of the appointment timeline interface.
+     * Sets up the tooltip, timeline width, date inputs, event listeners, and layout styling.
+     * Adds a resize event listener to check timeline overflow on window resize.
+     */
     function initialize() {
         initializeTooltip();
         setupTimelineWidth();
@@ -580,7 +673,11 @@ document.addEventListener('DOMContentLoaded', function() {
     initialize();
 });
 
-// Function to display notification from URL parameters
+/**
+ * Displays a notification based on URL parameters.
+ * Checks for success parameters and appointment IDs to show appropriate notifications.
+ * Fetches appointment details to display patient and doctor names in the notification.
+ */
 function displayNotificationFromUrlParams() {
     const urlParams = new URLSearchParams(window.location.search);
     const success = urlParams.get('success');
@@ -632,7 +729,14 @@ function displayNotificationFromUrlParams() {
     }
 }
 
-// Function to display notification
+/**
+ * Displays a notification message with the specified type.
+ * Creates a notification container if it doesn't exist and adds the notification to it.
+ * Includes automatic removal after a timeout and click-to-dismiss functionality.
+ * 
+ * @param {string} type - The type of notification ('success', 'error')
+ * @param {string} message - The message to display in the notification
+ */
 function displayNotification(type, message) {
     // Create notification container if it doesn't exist
     let notificationContainer = document.querySelector('.notification-container');

@@ -3,7 +3,15 @@ let selectedTemplate = ''; // No default template selected - show all drugs by d
 let allDrugs = []; // Will store all drugs
 let selectedDrugs = []; // Will store selected drug elements
 
-// Function to show a custom confirmation modal
+/**
+ * Shows a custom confirmation modal dialog with different styling based on the type.
+ * Creates and appends a modal to the document with customized styling for different warning types.
+ * 
+ * @param {string} title - The title of the confirmation modal
+ * @param {string} message - The message to display in the modal
+ * @param {Function} onConfirm - Callback function to execute if the user confirms
+ * @param {string} type - Type of confirmation ('danger', 'allergen', 'interaction') for styling
+ */
 function showConfirmationModal(title, message, onConfirm, type = 'danger') {
     console.log('Showing confirmation modal:', title, message, type);
     
@@ -93,7 +101,10 @@ function showConfirmationModal(title, message, onConfirm, type = 'danger') {
     });
 }
 
-// Function to close the confirmation modal
+/**
+ * Closes the confirmation modal by removing it from the DOM.
+ * Finds the modal element and its container and removes them from the document.
+ */
 function closeConfirmationModal() {
     const modal = document.getElementById('customConfirmationModal');
     if (modal) {
@@ -106,6 +117,13 @@ function closeConfirmationModal() {
     }
 }
 
+/**
+ * Toggles drug selection with warnings for allergens or interactions.
+ * Handles the selection and deselection of drugs, with special handling for allergens
+ * and drugs that interact with those already in the cart.
+ * 
+ * @param {HTMLElement} element - The drug element being toggled
+ */
 function toggleDrugSelection(element) {
     // Check if this is an allergen
     const isAllergen = element.getAttribute('data-is-allergen') === 'true';
@@ -191,6 +209,10 @@ function toggleDrugSelection(element) {
     proceedWithSelection(false);
 }
 
+/**
+ * Adds selected drugs to the cart by opening the drug details modal.
+ * Only proceeds if there are drugs selected.
+ */
 function addSelectedDrugsToCart() {
     if (selectedDrugs.length === 0) {
         return;
@@ -200,6 +222,11 @@ function addSelectedDrugsToCart() {
     showDrugDetailsModal();
 }
 
+/**
+ * Shows a modal with details about the selected drugs.
+ * Creates a list of selected drugs in the modal and pre-fills dosage
+ * information if only one drug is selected.
+ */
 function showDrugDetailsModal() {
     // Get the modal
     const modal = document.getElementById('drugDetailsModal');
@@ -254,10 +281,19 @@ function showDrugDetailsModal() {
     };
 }
 
+/**
+ * Closes the drug details modal by hiding it.
+ * Sets the display style to 'none' for the modal.
+ */
 function closeModal() {
     document.getElementById('drugDetailsModal').style.display = 'none';
 }
 
+/**
+ * Validates inputs and adds selected drugs to cart after checking interactions.
+ * Verifies dosage, duration, and quantity are provided, then checks for drug
+ * interactions before adding the drugs to the cart.
+ */
 function confirmAddToCart() {
     // Get values from modal
     const dosage = document.getElementById('modalDosage').value;
@@ -314,6 +350,14 @@ function confirmAddToCart() {
 }
 
 // Implementation function to add drugs after interaction check
+/**
+ * Implements adding drugs to cart after interaction check.
+ * Processes each selected drug, adds it to the cart, and clears the selection.
+ * 
+ * @param {string} dosage - The dosage instructions for the drugs
+ * @param {string|number} days - The number of days for the prescription
+ * @param {string|number} qty - The quantity of medication to dispense
+ */
 function addSelectedDrugsToCartImpl(dosage, days, qty) {
     // Process each selected drug
     selectedDrugs.forEach(drugElement => {
@@ -337,13 +381,26 @@ function addSelectedDrugsToCartImpl(dosage, days, qty) {
     closeModal();
 }
 
-// Get all drug IDs currently in the cart
+/**
+ * Gets all drug IDs currently in the cart.
+ * Queries all elements in the cart that have a data-drug-id attribute
+ * and returns an array of their ID values.
+ * 
+ * @returns {string[]} Array of drug IDs in the cart
+ */
 function getExistingDrugIdsInCart() {
     const cartItems = document.querySelectorAll('#drugCart [data-drug-id]');
     return Array.from(cartItems).map(item => item.getAttribute('data-drug-id'));
 }
 
-// Check for interactions between selected drugs
+/**
+ * Checks for interactions between selected drugs.
+ * Makes API calls to fetch drug interactions for each drug ID provided
+ * and returns a combined list of all detected interactions.
+ * 
+ * @param {string[]} drugIds - Array of drug IDs to check for interactions
+ * @returns {Promise<Array>} Promise resolving to an array of interaction objects
+ */
 async function checkDrugInteractions(drugIds) {
     if (!drugIds || drugIds.length < 2) {
         return []; // No interactions possible with less than 2 drugs
@@ -404,7 +461,14 @@ async function checkDrugInteractions(drugIds) {
     return enrichedInteractions;
 }
 
-// Add drug names to the interaction data
+/**
+ * Adds drug names to the interaction data.
+ * Collects drug names from the DOM and API calls to enrich interaction objects
+ * with readable drug names.
+ * 
+ * @param {Object[]} interactions - Array of interaction objects with drug IDs
+ * @returns {Promise<Object[]>} Promise resolving to enriched interaction objects with drug names
+ */
 async function enrichInteractionsWithDrugNames(interactions) {
     const drugNames = new Map();
     
@@ -459,7 +523,14 @@ async function enrichInteractionsWithDrugNames(interactions) {
     }));
 }
 
-// Show a warning modal for drug interactions
+/**
+ * Shows a warning modal for drug interactions.
+ * Creates and displays a modal listing all identified drug interactions
+ * and providing options to proceed or cancel.
+ * 
+ * @param {Object[]} interactions - Array of interaction objects with drug names
+ * @param {Function} onConfirm - Callback function to execute if the user confirms
+ */
 function showDrugInteractionWarning(interactions, onConfirm) {
     console.log('Creating drug interaction warning modal for interactions:', interactions);
     
@@ -538,7 +609,10 @@ function showDrugInteractionWarning(interactions, onConfirm) {
     closeModal();
 }
 
-// Close the interaction warning modal
+/**
+ * Closes the interaction warning modal.
+ * Finds the modal element and its container and removes them from the document.
+ */
 function closeInteractionWarningModal() {
     console.log('Closing interaction warning modal');
     const modal = document.getElementById('interactionWarningModal');
@@ -552,6 +626,13 @@ function closeInteractionWarningModal() {
     }
 }
 
+/**
+ * Handles template selection from a dropdown element.
+ * Updates the global template selection, synchronizes with other template selectors,
+ * filters the drug list by the selected template, and clears previously selected drugs.
+ * 
+ * @param {HTMLSelectElement} selectElement - The dropdown element that triggered the template selection
+ */
 function selectTemplateFromDropdown(selectElement) {
     const template = selectElement.value;
     selectedTemplate = template;
@@ -582,6 +663,13 @@ function selectTemplateFromDropdown(selectElement) {
     console.log(`Selected drugs count: ${selectedDrugs.length}`);
 }
 
+/**
+ * Filters drugs in the list by the selected template.
+ * Shows or hides drug items based on their template attribute
+ * and displays an empty message if no drugs match the template.
+ * 
+ * @param {string} template - The template name to filter by
+ */
 function filterDrugsByTemplate(template) {
     const drugList = document.getElementById('drugList');
     const items = drugList.querySelectorAll('li.drug-item');
@@ -639,6 +727,12 @@ function filterDrugsByTemplate(template) {
     }
 }
 
+/**
+ * Updates the drug select dropdown options based on the selected template.
+ * Repopulates the dropdown with only the drugs that match the current template.
+ * 
+ * @param {string} template - The template name to filter by
+ */
 function updateDrugSelectOptions(template) {
     const drugSelect = document.getElementById('drugSelect');
     
@@ -674,6 +768,13 @@ function updateDrugSelectOptions(template) {
     });
 }
 
+/**
+ * Selects a drug from the list and sets it in the dropdown.
+ * Updates the dropdown selection and dosage input, then scrolls
+ * to the prescription table section.
+ * 
+ * @param {HTMLElement} element - The drug element that was clicked
+ */
 function selectDrugFromList(element) {
     // Get data from the clicked drug
     const drugId = element.getAttribute('data-id');
@@ -714,6 +815,14 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+/**
+ * Removes a drug from the cart and updates the UI.
+ * Removes the cart item, shows an empty message if the cart becomes empty,
+ * and updates drug interaction indicators.
+ * 
+ * @param {HTMLElement} buttonElement - The remove button that was clicked
+ * @param {number} itemIndex - The index of the item to remove
+ */
 function removeFromCart(buttonElement, itemIndex) {
     // Find the parent cart item and remove it
     const cartItem = buttonElement.closest('[data-drug-id]');
@@ -890,7 +999,11 @@ document.addEventListener('DOMContentLoaded', function() {
     updateCheckoutState();
 });
 
-// Function to initialize blood pressure fields by splitting the combined value
+/**
+ * Initializes blood pressure fields by splitting the combined value.
+ * Takes the combined BP value (systolic/diastolic) and splits it into
+ * separate systolic and diastolic fields.
+ */
 function initializeBloodPressureFields() {
     const combinedBPField = document.getElementById('combinedBP');
     const systolicField = document.getElementById('systolicBP');
@@ -920,7 +1033,11 @@ function initializeBloodPressureFields() {
     }
 }
 
-// Function to combine Systolic and Diastolic values into a single BP value
+/**
+ * Combines systolic and diastolic values into a single BP value.
+ * Takes the separate systolic and diastolic field values and combines
+ * them into the format "systolic/diastolic" in the hidden field.
+ */
 function combineBPValues() {
     const systolicField = document.getElementById('systolicBP');
     const diastolicField = document.getElementById('diastolicBP');
@@ -948,7 +1065,11 @@ function combineBPValues() {
     }
 }
 
-// Function to check if checkout should be enabled
+/**
+ * Updates the checkout button state based on vital signs and diagnosis confirmation.
+ * Enables or disables the checkout button and displays appropriate messages
+ * based on whether vitals and diagnosis have been confirmed.
+ */
 function updateCheckoutState() {
     const vitalsConfirmed = document.getElementById('confirmVitals').getAttribute('data-locked') === 'true';
     const diagnosisConfirmed = document.getElementById('confirmDiagnosis').getAttribute('data-locked') === 'true';
@@ -978,7 +1099,14 @@ function updateCheckoutState() {
     }
 }
 
-// Function to validate checkout
+/**
+ * Validates the checkout process before form submission.
+ * Checks that all required fields (diagnosis and vital signs) are filled
+ * and that both vitals and diagnosis have been confirmed.
+ * 
+ * @param {Event} event - The form submission event
+ * @returns {boolean} True if validation passes, false otherwise
+ */
 function validateCheckout(event) {
     const vitalsConfirmed = document.getElementById('confirmVitals').getAttribute('data-locked') === 'true';
     const diagnosisConfirmed = document.getElementById('confirmDiagnosis').getAttribute('data-locked') === 'true';
@@ -1028,7 +1156,14 @@ function validateCheckout(event) {
     return true; // All good, allow submission
 }
 
-// Function to show validation modal
+/**
+ * Shows a validation modal with a list of validation issues.
+ * Creates and displays a modal with the specified missing fields
+ * or validation issues.
+ * 
+ * @param {string[]} missingFields - Array of validation error messages
+ * @param {string} title - Title for the validation modal
+ */
 function showValidationModal(missingFields, title = 'Required Fields') {
     const modal = document.getElementById('validationModal');
     const modalTitle = modal.querySelector('.modal-header h3');
@@ -1048,13 +1183,20 @@ function showValidationModal(missingFields, title = 'Required Fields') {
     modal.style.display = 'block';
 }
 
-// Function to close validation modal
+/**
+ * Closes the validation modal by hiding it.
+ * Sets the display style to 'none' for the validation modal.
+ */
 function closeValidationModal() {
     const modal = document.getElementById('validationModal');
     modal.style.display = 'none';
 }
 
-// Function to confirm vital signs (locks the input fields)
+/**
+ * Toggles the locked state of vital sign input fields.
+ * When confirmed, fields become read-only; when unlocked, they become editable again.
+ * Updates the button text and style based on the locked state.
+ */
 function confirmVitalSigns() {
     // Get all vital sign input fields
     const vitalFields = document.querySelectorAll('.editable-vital');
@@ -1099,7 +1241,11 @@ function confirmVitalSigns() {
     updateCheckoutState();
 }
 
-// Function to confirm diagnosis (locks the diagnosis input and transcript fields)
+/**
+ * Toggles the locked state of diagnosis and clinical notes fields.
+ * When confirmed, fields become read-only; when unlocked, they become editable again.
+ * Updates the button text and style based on the locked state.
+ */
 function confirmDiagnosis() {
     // Get the diagnosis input and consultation transcript fields
     const diagnosisInput = document.querySelector('input[name="diagnosis"]');
@@ -1149,18 +1295,34 @@ function confirmDiagnosis() {
     updateCheckoutState();
 }
 
-// Functions for past consultations notes modal
+/**
+ * Shows the full consultation notes in a modal.
+ * Extracts the full notes from the data-full-notes attribute and
+ * displays them in a modal dialog.
+ * 
+ * @param {HTMLElement} element - The element containing the full notes data
+ */
 function showFullNotes(element) {
     const fullNotes = element.getAttribute('data-full-notes');
     document.getElementById('fullConsultationNotes').textContent = fullNotes || 'No notes available';
     document.getElementById('pastConsultationNotesModal').style.display = 'block';
 }
 
+/**
+ * Closes the past consultation notes modal by hiding it.
+ * Sets the display style to 'none' for the notes modal.
+ */
 function closeNotesModal() {
     document.getElementById('pastConsultationNotesModal').style.display = 'none';
 }
 
-// Function to show consultation details in the modal
+/**
+ * Shows detailed consultation information in a modal.
+ * Extracts consultation details from data attributes and populates
+ * the modal with this information.
+ * 
+ * @param {HTMLElement} element - The element containing the consultation data
+ */
 function showConsultationDetails(element) {
     const data = element.dataset;
     
@@ -1189,11 +1351,19 @@ function showConsultationDetails(element) {
     document.getElementById('fullVitalsModal').style.display = 'block';
 }
 
+/**
+ * Closes the vitals details modal by hiding it.
+ * Sets the display style to 'none' for the vitals modal.
+ */
 function closeVitalsModal() {
     document.getElementById('fullVitalsModal').style.display = 'none';
 }
 
-// Function to toggle past consultations section
+/**
+ * Toggles the visibility of the past consultations section.
+ * Expands or collapses the past consultations content and
+ * rotates the toggle icon accordingly.
+ */
 function togglePastConsultations() {
     const content = document.getElementById('pastConsultationsContent');
     const icon = document.getElementById('toggleIcon');
@@ -1230,13 +1400,25 @@ window.onclick = function(event) {
     }
 }
 
-// Get the patient ID from the hidden input
+/**
+ * Gets the patient ID from the hidden input field.
+ * Retrieves the value of the patientId field or returns an empty string.
+ * 
+ * @returns {string} The patient ID or an empty string if not found
+ */
 function getPatientId() {
     const patientIdField = document.getElementById('patientId');
     return patientIdField ? patientIdField.value : '';
 }
 
-// Functions for vitals history modal
+/**
+ * Shows the vitals history modal for a specific vital type.
+ * Only shows the history if vital fields are not locked for editing.
+ * Sets the modal title based on the vital type and fetches the patient's
+ * vital sign history.
+ * 
+ * @param {string} vitalType - The type of vital sign ('height' or 'weight')
+ */
 function showVitalsHistory(vitalType) {
     // Only show history if fields are not locked for editing
     const confirmBtn = document.getElementById('confirmVitals');
@@ -1258,10 +1440,22 @@ function showVitalsHistory(vitalType) {
     fetchPatientVitalsHistory(getPatientId(), vitalType);
 }
 
+/**
+ * Closes the vitals history modal by hiding it.
+ * Sets the display style to 'none' for the vitals history modal.
+ */
 function closeVitalsHistoryModal() {
     document.getElementById('vitalsHistoryModal').style.display = 'none';
 }
 
+/**
+ * Fetches the patient's vitals history for a specific vital type.
+ * Makes an API request to get the history data or falls back to
+ * collecting data from the past consultations section.
+ * 
+ * @param {string} patientId - The ID of the patient
+ * @param {string} vitalType - The type of vital sign ('height' or 'weight')
+ */
 function fetchPatientVitalsHistory(patientId, vitalType) {
     if (!patientId) {
         showNoDataMessage(vitalType);
@@ -1292,6 +1486,12 @@ function fetchPatientVitalsHistory(patientId, vitalType) {
         });
 }
 
+/**
+ * Collects vital sign data from the past consultations table on the page.
+ * Extracts height and weight data from the data attributes of consultation rows.
+ * 
+ * @returns {Object[]} Array of consultation objects with date, height, weight, and doctor data
+ */
 function collectPastConsultationsData() {
     // Collect data from the past consultations table that's already on the page
     const consultations = [];
@@ -1329,6 +1529,14 @@ function collectPastConsultationsData() {
     return consultations;
 }
 
+/**
+ * Displays the vitals history data in a table and chart.
+ * Filters the data for the specific vital type, creates a chart,
+ * and populates the table with the filtered data.
+ * 
+ * @param {Object[]} data - Array of consultation objects with vital sign data
+ * @param {string} vitalType - The type of vital sign ('height' or 'weight')
+ */
 function displayVitalsHistory(data, vitalType) {
     const tableBody = document.getElementById('vitalsHistoryTableBody');
     const chartDiv = document.getElementById('vitalsHistoryChart');
@@ -1410,6 +1618,12 @@ function displayVitalsHistory(data, vitalType) {
     });
 }
 
+/**
+ * Shows a message when no vital sign history data is available.
+ * Updates the table and chart areas with appropriate "no data" messages.
+ * 
+ * @param {string} vitalType - The type of vital sign ('height' or 'weight')
+ */
 function showNoDataMessage(vitalType) {
     const tableBody = document.getElementById('vitalsHistoryTableBody');
     const chartDiv = document.getElementById('vitalsHistoryChart');
@@ -1418,6 +1632,14 @@ function showNoDataMessage(vitalType) {
     chartDiv.innerHTML = `<p style="text-align: center; padding: 20px;">No ${vitalType} history data available</p>`;
 }
 
+/**
+ * Creates a line chart for displaying vitals history.
+ * Uses Chart.js to create a line chart of the vital sign values over time.
+ * 
+ * @param {HTMLElement} container - The container element for the chart
+ * @param {Object} data - Object with 'labels' and 'values' arrays for the chart data
+ * @param {string} vitalType - The type of vital sign ('height' or 'weight')
+ */
 function createVitalsChart(container, data, vitalType) {
     // Clear previous chart
     container.innerHTML = '';
@@ -1470,6 +1692,17 @@ function createVitalsChart(container, data, vitalType) {
     });
 }
 
+/**
+ * Adds a drug to the cart with specified details.
+ * Creates cart item elements with drug information and adds them to the cart.
+ * Includes hidden form fields for submission.
+ * 
+ * @param {string} drugId - The ID of the drug to add
+ * @param {string} drugName - The name of the drug
+ * @param {string} dosage - The dosage instructions
+ * @param {string|number} days - The number of days for the prescription
+ * @param {string|number} qty - The quantity of medication to dispense
+ */
 function addDrugToCart(drugId, drugName, dosage, days, qty) {
     // Get the current index for this prescription item
     const itemIndex = prescriptionItemIndex++;
@@ -1523,7 +1756,11 @@ function addDrugToCart(drugId, drugName, dosage, days, qty) {
 // Initialize checkout button state
 updateCheckoutState();
 
-// Function to initialize the drug cart
+/**
+ * Initializes the drug cart UI.
+ * Checks if cart is empty and displays an appropriate message if it is.
+ * Also initializes drug interaction markers.
+ */
 function initializeDrugCart() {
     const cartElement = document.getElementById('drugCart');
     if (!cartElement) return;
@@ -1585,7 +1822,11 @@ document.addEventListener('DOMContentLoaded', function() {
     markInteractingDrugs();
 });
 
-// Function to mark drugs that interact with drugs in the cart
+/**
+ * Marks drugs that interact with drugs already in the cart.
+ * Fetches interaction data for drugs in the cart and visually highlights
+ * drugs in the list that have potential interactions.
+ */
 async function markInteractingDrugs() {
     console.log('Marking drugs that interact with drugs in the cart');
     
@@ -1687,7 +1928,14 @@ async function markInteractingDrugs() {
     });
 }
 
-// Function to show a toast notification
+/**
+ * Shows a toast notification message.
+ * Creates and displays a temporary toast notification with specified message and type.
+ * The toast automatically fades after a few seconds.
+ * 
+ * @param {string} message - The message to display in the toast
+ * @param {string} type - The type of toast ('info', 'success', 'warning', 'error')
+ */
 function showToast(message, type = 'info') {
     // Remove any existing toast
     const existingToast = document.getElementById('toast-notification');

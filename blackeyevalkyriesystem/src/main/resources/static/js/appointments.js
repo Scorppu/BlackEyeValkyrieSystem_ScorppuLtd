@@ -17,7 +17,11 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Calendar initialization code will go here
     
-    // Fetch and display upcoming appointments
+    /**
+     * Placeholder function for fetching upcoming appointments.
+     * Currently doesn't perform any operations but serves as a structural placeholder
+     * for future implementation to retrieve appointment data from the server.
+     */
     function fetchUpcomingAppointments() {
         // This will be implemented to fetch appointments from the server
         // For now, just a placeholder
