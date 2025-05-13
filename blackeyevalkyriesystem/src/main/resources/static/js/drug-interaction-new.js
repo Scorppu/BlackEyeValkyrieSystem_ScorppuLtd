@@ -1,3 +1,28 @@
+/**
+ * Drug Interaction Management UI
+ * 
+ * This script handles the front-end functionality for managing drug interactions:
+ * - Selecting a main drug
+ * - Displaying available drugs for interaction with the main drug
+ * - Selecting multiple drugs to add to the interaction cart
+ * - Managing the interaction cart (adding/removing drugs)
+ * - Filtering and sorting the drug list
+ * - Submitting the selected interactions to the server
+ * 
+ * The workflow consists of:
+ * 1. Select a main drug from the dropdown
+ * 2. Select one or more drugs from the available drugs list
+ * 3. Add selected drugs to the interaction cart
+ * 4. Submit the interactions form
+ * 
+ * Key features:
+ * - Asynchronous loading of available drugs based on the main drug
+ * - Search/filter functionality for the drug list
+ * - Modal confirmation dialog for adding interactions
+ * - Tracking of selected drugs with hidden form inputs
+ * - Alphabetical sorting of drugs for easy selection
+ */
+
 let selectedDrugs = []; // Will store selected drug elements
 let interactionIndex = 0; // Counter for interaction items
 let mainDrugId = ''; // Will store the main drug ID
@@ -39,7 +64,10 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 });
 
-// Function to sort the main drug dropdown by name
+/**
+ * Sorts the main drug dropdown alphabetically by drug name
+ * Preserves the default "Select Main Drug" option at the top
+ */
 function sortMainDrugDropdown() {
     const select = document.getElementById('mainDrug');
     const defaultOption = select.options[0]; // Keep the "Select Main Drug" option first
@@ -60,6 +88,10 @@ function sortMainDrugDropdown() {
     options.forEach(option => select.appendChild(option));
 }
 
+/**
+ * Initializes the allDrugs array with drug data from the mainDrug dropdown
+ * Each drug object contains id and name properties
+ */
 function fetchAllDrugs() {
     // In a real implementation, you might fetch this data via AJAX
     // For now, we'll use the drugs data that's already in the page
@@ -76,6 +108,11 @@ function fetchAllDrugs() {
     console.log("Loaded " + allDrugs.length + " drugs");
 }
 
+/**
+ * Updates the available drugs list based on the selected main drug
+ * Fetches available drugs from the server and displays them
+ * Handles loading states and error conditions
+ */
 function updateDrugsList() {
     const drugsListElement = document.getElementById('drugsList');
     drugsListElement.innerHTML = '';
@@ -186,7 +223,11 @@ function updateDrugsList() {
         });
 }
 
-// Check if a drug is already in the interaction cart
+/**
+ * Checks if a drug is already in the interaction cart
+ * @param {string} drugId - The ID of the drug to check
+ * @returns {boolean} - True if the drug is in the cart, false otherwise
+ */
 function isInInteractionCart(drugId) {
     const cartItems = document.querySelectorAll('#drugCart [data-drug-id]');
     for (let i = 0; i < cartItems.length; i++) {
@@ -197,6 +238,11 @@ function isInInteractionCart(drugId) {
     return false;
 }
 
+/**
+ * Toggles the selection state of a drug item
+ * Updates the selectedDrugs array and the Add Selected button state
+ * @param {HTMLElement} element - The drug item element to toggle
+ */
 function toggleDrugSelection(element) {
     // Toggle selected class
     element.classList.toggle('selected');
@@ -215,6 +261,10 @@ function toggleDrugSelection(element) {
     console.log("Selected drugs: " + selectedDrugs.length);
 }
 
+/**
+ * Initiates the process of adding selected drugs to the cart
+ * Shows the interaction details modal for confirmation
+ */
 function addSelectedDrugsToCart() {
     if (selectedDrugs.length === 0) {
         return;
@@ -224,6 +274,10 @@ function addSelectedDrugsToCart() {
     showInteractionDetailsModal();
 }
 
+/**
+ * Displays the interaction details modal with the list of selected drugs
+ * Creates a formatted list of drugs for review before adding to cart
+ */
 function showInteractionDetailsModal() {
     // Get the modal
     const modal = document.getElementById('interactionDetailsModal');
@@ -256,11 +310,19 @@ function showInteractionDetailsModal() {
     console.log("Opened interaction details modal");
 }
 
+/**
+ * Closes the interaction details modal
+ */
 function closeModal() {
     document.getElementById('interactionDetailsModal').style.display = 'none';
     console.log("Closed interaction details modal");
 }
 
+/**
+ * Confirms the addition of selected drugs to the cart
+ * Adds each drug to the cart, removes them from the available list,
+ * updates UI states, and closes the modal
+ */
 function confirmAddToCart() {
     // Find the main drug details
     const mainDrugName = document.getElementById('mainDrug').options[
@@ -293,6 +355,12 @@ function confirmAddToCart() {
     console.log("Added interactions to cart");
 }
 
+/**
+ * Adds a drug interaction to the cart
+ * Creates a UI element for the drug in the cart and adds a hidden input to the form
+ * @param {string} drugId - The ID of the drug to add
+ * @param {string} drugName - The name of the drug to add
+ */
 function addInteractionToCart(drugId, drugName) {
     // Get the interaction cart element
     const cartElement = document.getElementById('drugCart');
@@ -336,6 +404,11 @@ function addInteractionToCart(drugId, drugName) {
     removeFromDrugsList(drugId);
 }
 
+/**
+ * Adds a hidden input to the form for a drug
+ * Used to send selected drug IDs to the server on form submission
+ * @param {string} drugId - The ID of the drug to add as input
+ */
 function addHiddenInput(drugId) {
     const container = document.getElementById('formInputsContainer');
     const input = document.createElement('input');
@@ -346,6 +419,12 @@ function addHiddenInput(drugId) {
     container.appendChild(input);
 }
 
+/**
+ * Removes a drug from the interaction cart
+ * Removes the UI element, hidden input, and adds the drug back to the available list
+ * @param {HTMLElement} buttonElement - The remove button element
+ * @param {number} itemIndex - The index of the interaction item
+ */
 function removeFromCart(buttonElement, itemIndex) {
     // Find the parent cart item and remove it
     const cartItem = buttonElement.closest('[data-drug-id]');
@@ -376,11 +455,19 @@ function removeFromCart(buttonElement, itemIndex) {
     }
 }
 
+/**
+ * Removes hidden inputs for a specific drug from the form
+ * @param {string} drugId - The ID of the drug to remove inputs for
+ */
 function removeHiddenInput(drugId) {
     const inputs = document.querySelectorAll(`input[name="interactingDrugs[]"][data-drug-id="${drugId}"]`);
     inputs.forEach(input => input.remove());
 }
 
+/**
+ * Clears all interactions from the cart
+ * Resets the cart UI, removes all hidden inputs, and updates available drugs list
+ */
 function clearInteractionCart() {
     const cartElement = document.getElementById('drugCart');
     
@@ -415,6 +502,10 @@ function clearInteractionCart() {
     console.log("Cleared interaction cart");
 }
 
+/**
+ * Submits the interaction form to the server
+ * Validates that a main drug is selected and interactions are added before submission
+ */
 function submitInteractions() {
     // Check if we have a main drug selected
     if (!mainDrugId) {
@@ -445,6 +536,10 @@ function submitInteractions() {
     console.log("Submitting interactions form");
 }
 
+/**
+ * Removes a drug from the available drugs list
+ * @param {string} drugId - The ID of the drug to remove
+ */
 function removeFromDrugsList(drugId) {
     const drugListItems = document.querySelectorAll('#drugsList .drug-item');
     drugListItems.forEach(item => {
@@ -454,6 +549,12 @@ function removeFromDrugsList(drugId) {
     });
 }
 
+/**
+ * Adds a drug to the available drugs list
+ * Creates and appends a new drug item element if not already in the list
+ * @param {string} drugId - The ID of the drug to add
+ * @param {string} drugName - The name of the drug to add
+ */
 function addToDrugsList(drugId, drugName) {
     // Only add if it's not already in the list
     if (document.querySelector(`#drugsList .drug-item[data-id="${drugId}"]`)) {
@@ -487,6 +588,10 @@ function addToDrugsList(drugId, drugName) {
     sortDrugsList();
 }
 
+/**
+ * Filters the drugs list based on the search input
+ * Shows/hides drugs based on whether their names contain the search term
+ */
 function filterDrugsList() {
     const searchInput = document.getElementById('drugSearchInput');
     const searchTerm = searchInput.value.toLowerCase();
@@ -507,6 +612,10 @@ function filterDrugsList() {
     });
 }
 
+/**
+ * Sorts the drugs list alphabetically by drug name
+ * Maintains the current search filter state
+ */
 function sortDrugsList() {
     const drugsListElement = document.getElementById('drugsList');
     const drugItems = Array.from(drugsListElement.querySelectorAll('.drug-item'));

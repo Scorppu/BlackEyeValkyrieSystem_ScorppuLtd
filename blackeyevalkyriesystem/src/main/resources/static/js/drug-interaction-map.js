@@ -1,8 +1,45 @@
+/**
+ * Drug Interaction Map Visualization
+ * 
+ * This JavaScript module provides interactive visualizations for drug interactions using D3.js.
+ * It creates force-directed graphs to display relationships between drugs, with support for
+ * both individual drug interaction maps and a full network visualization of all drug relationships.
+ * 
+ * Features:
+ * - Interactive force-directed graph visualizations of drug interactions
+ * - Responsive design that adapts to container dimensions
+ * - Support for both dark and light themes with automatic detection
+ * - Data caching to improve performance when switching between drugs
+ * - Drag-and-drop interaction for repositioning nodes
+ * - Color-coding of interaction nodes based on severity/group
+ * - Automatic theme detection and switching
+ * 
+ * Dependencies:
+ * - D3.js (loaded externally)
+ * - Requires an HTML select element with id 'drugSelect' for drug selection
+ * - Requires SVG element with id 'bubbleMap' for visualization rendering
+ * - Requires div with id 'emptyState' for displaying loading/error states
+ * 
+ * API Usage:
+ * - updateInteractionMap() - Updates the visualization based on the selected drug
+ * - loadFullRelationshipGraph() - Loads and displays the full drug interaction network
+ */
 let forceDarkMode = false;
 // Track theme state with a global variable
 let currentThemeIsDark = false;
 
 // This function will be called immediately and again when creating visualizations
+/**
+ * Detects if the page is in dark mode based on multiple indicators.
+ * 
+ * This function checks several elements to determine if dark mode is active:
+ * 1. Looks for buttons with text "Switch to Light Mode"
+ * 2. Checks HTML attributes like data-bs-theme or data-theme
+ * 3. Examines document body classes for dark-mode
+ * 4. Analyzes computed background color of the body
+ * 
+ * @returns {boolean} True if dark mode is detected, false otherwise
+ */
 function detectDarkMode() {
     // Simplest check - look for the switch button text
     const allButtons = document.querySelectorAll('a, button');
@@ -47,6 +84,13 @@ function detectDarkMode() {
 detectDarkMode();
 
 // Set initial background colors right away
+/**
+ * Sets initial background colors for visualization containers.
+ * 
+ * This immediately-invoked function expression (IIFE) applies theme-appropriate
+ * background colors to the map container and SVG elements as soon as possible
+ * to avoid flashes of incorrect theme colors during page load.
+ */
 (function setInitialBackgroundColor() {
     const isDark = forceDarkMode;
     console.log("Setting initial background color, dark mode:", isDark);
@@ -70,6 +114,13 @@ detectDarkMode();
 })();
 
 // Also add this to the DOMContentLoaded event to ensure backgrounds are set even before D3 loads
+/**
+ * Initializes the visualization when the DOM is fully loaded.
+ * 
+ * This event handler executes when the DOM content is loaded, setting up theme detection,
+ * applying the initial background colors, and preparing the drug interaction
+ * visualization. It ensures that elements look correct even before D3.js is ready.
+ */
 document.addEventListener('DOMContentLoaded', function() {
     // Check dark mode on page load again
     detectDarkMode();
@@ -107,6 +158,15 @@ document.addEventListener('DOMContentLoaded', function() {
 let allDrugs = [];
 
 // Function to ensure D3.js is loaded
+/**
+ * Ensures D3.js is loaded before executing visualization code.
+ * 
+ * This function checks if D3 is available and calls the provided callback when ready.
+ * If D3 is not initially loaded, it will poll periodically until it becomes available
+ * or until a timeout is reached. Applies the current theme before executing the callback.
+ * 
+ * @param {Function} callback - The function to execute once D3 is available
+ */
 function ensureD3Loaded(callback) {
     // Check if D3 is already loaded
     if (typeof d3 !== 'undefined') {
@@ -140,6 +200,17 @@ let cachedNodeData = {};
 let lastUsedDrugId = null;
 
 // Optimize data loading with caching
+/**
+ * Updates the drug interaction visualization based on the selected drug.
+ * 
+ * This function fetches interaction data for the selected drug and creates
+ * the appropriate visualization. It implements caching to avoid redundant 
+ * API calls and handles different visualization modes:
+ * - For a specific drug: Shows a bubble map of interactions
+ * - For "Overview" (no drug selected): Shows the full relationship graph
+ * 
+ * The function also handles error states and loading indicators.
+ */
 function updateInteractionMap() {
     console.log("updateInteractionMap called");
     const drugId = document.getElementById('drugSelect').value;
@@ -285,6 +356,16 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Improved function to create bubble map with more robust error handling
+/**
+ * Creates a bubble map visualization for a specific drug and its interactions.
+ * 
+ * This function generates a force-directed graph where the main drug is at the center
+ * and its interactions are represented as connected nodes. Each interaction is 
+ * displayed as a colored bubble with appropriate sizing based on significance.
+ * 
+ * @param {string} drugId - The ID of the main drug to visualize
+ * @param {Array<string>} interactionIds - Array of drug IDs that interact with the main drug
+ */
 function createBubbleMap(drugId, interactionIds) {
     console.log("Creating bubble map for drug ID:", drugId, "with interactions:", interactionIds);
     
@@ -380,6 +461,16 @@ function createBubbleMap(drugId, interactionIds) {
 }
 
 // Helper function to display errors
+/**
+ * Displays an error message to the user.
+ * 
+ * This function shows an error message in the empty state container and hides
+ * the visualization elements. Used to present user-friendly error messages when
+ * data loading or visualization creation fails.
+ * 
+ * @param {string} title - The error title/heading
+ * @param {string} message - The detailed error message
+ */
 function showError(title, message) {
     const emptyState = document.getElementById('emptyState');
     const bubbleMap = document.getElementById('bubbleMap');
@@ -394,6 +485,16 @@ function showError(title, message) {
 }
 
 // Improved createForceGraph function with explicit color handling
+/**
+ * Creates a force-directed graph visualization for drug interactions.
+ * 
+ * This function builds an interactive D3.js force simulation with nodes (drugs)
+ * and links (interactions). It handles theme-specific styling, node coloring
+ * based on categories, and interactive features like dragging nodes.
+ * 
+ * @param {Array<Object>} nodes - Array of node objects with drug data (id, name, group, value)
+ * @param {Array<Object>} links - Array of link objects defining connections between nodes
+ */
 function createForceGraph(nodes, links) {
     try {
         if (typeof d3 === 'undefined') {
@@ -579,17 +680,46 @@ function createForceGraph(nodes, links) {
         });
         
         // Drag functions
+        /**
+         * Handles the start of a drag interaction on a node.
+         * 
+         * This function is called when a user begins dragging a node in the visualization.
+         * It sets up the drag behavior by initializing fixed coordinates and restarting
+         * the simulation with a higher alpha target for more responsive movement.
+         * 
+         * @param {Event} event - The drag start event
+         * @param {Object} d - The data object for the node being dragged
+         */
         function dragstarted(event, d) {
             if (!event.active) simulation.alphaTarget(0.3).restart();
             d.fx = d.x;
             d.fy = d.y;
         }
         
+        /**
+         * Handles the drag movement of a node.
+         * 
+         * This function is called continuously as a user drags a node. It updates
+         * the node's fixed position coordinates to match the current drag position.
+         * 
+         * @param {Event} event - The drag event
+         * @param {Object} d - The data object for the node being dragged
+         */
         function dragged(event, d) {
             d.fx = event.x;
             d.fy = event.y;
         }
         
+        /**
+         * Handles the end of a drag interaction on a node.
+         * 
+         * This function is called when a user releases a node after dragging.
+         * It releases the node's fixed position, allowing it to be affected by
+         * the force simulation again.
+         * 
+         * @param {Event} event - The drag end event
+         * @param {Object} d - The data object for the node being dragged
+         */
         function dragended(event, d) {
             if (!event.active) simulation.alphaTarget(0);
             d.fx = null;
@@ -602,6 +732,16 @@ function createForceGraph(nodes, links) {
 }
 
 // Similarly update the createNetworkGraph function with the same color approach
+/**
+ * Creates a network graph visualization showing all drug relationships.
+ * 
+ * This function builds a complex network visualization with all drugs and their
+ * interactions. It supports zooming, panning, and drag-and-drop interaction.
+ * The visualization uses color-coding based on drug categories and theme support.
+ * 
+ * @param {Array<Object>} nodes - Array of node objects with drug data
+ * @param {Array<Object>} links - Array of link objects defining relationships between drugs
+ */
 function createNetworkGraph(nodes, links) {
     try {
         if (typeof d3 === 'undefined') {
@@ -806,17 +946,46 @@ function createNetworkGraph(nodes, links) {
         for (let i = 0; i < 20; ++i) simulation.tick();
         
         // Drag functions
+        /**
+         * Handles the start of a drag interaction on a node.
+         * 
+         * This function is called when a user begins dragging a node in the network visualization.
+         * It sets up the drag behavior by initializing fixed coordinates and restarting
+         * the simulation with a higher alpha target for more responsive movement.
+         * 
+         * @param {Event} event - The drag start event
+         * @param {Object} d - The data object for the node being dragged
+         */
         function dragstarted(event, d) {
             if (!event.active) simulation.alphaTarget(0.3).restart();
             d.fx = d.x;
             d.fy = d.y;
         }
         
+        /**
+         * Handles the drag movement of a node.
+         * 
+         * This function is called continuously as a user drags a node. It updates
+         * the node's fixed position coordinates to match the current drag position.
+         * 
+         * @param {Event} event - The drag event
+         * @param {Object} d - The data object for the node being dragged
+         */
         function dragged(event, d) {
             d.fx = event.x;
             d.fy = event.y;
         }
         
+        /**
+         * Handles the end of a drag interaction on a node.
+         * 
+         * This function is called when a user releases a node after dragging.
+         * It releases the node's fixed position, allowing it to be affected by
+         * the force simulation again.
+         * 
+         * @param {Event} event - The drag end event
+         * @param {Object} d - The data object for the node being dragged
+         */
         function dragended(event, d) {
             if (!event.active) simulation.alphaTarget(0);
             d.fx = null;
@@ -829,6 +998,16 @@ function createNetworkGraph(nodes, links) {
 }
 
 // Function to generate the network graph from the full interaction data
+/**
+ * Generates a network graph from the complete drug interaction dataset.
+ * 
+ * This function processes the complete interaction data and transforms it into 
+ * a format suitable for visualization. It creates nodes for each drug and links
+ * for interactions between drugs, while preventing duplicate links and handling
+ * error states.
+ * 
+ * @param {Object} interactionData - Object containing all drug interaction data
+ */
 function generateNetworkGraph(interactionData) {
     try {
         console.log("Generating network graph with", Object.keys(interactionData).length, "drugs");
@@ -945,6 +1124,15 @@ function generateNetworkGraph(interactionData) {
 }
 
 // Helper function to categorize nodes based on interaction count
+/**
+ * Determines the category group of a drug based on its number of interactions.
+ * 
+ * This function assigns a visual/semantic category to a drug node based on how
+ * many interactions it has with other drugs. The categories affect the node's color.
+ * 
+ * @param {number} interactionCount - The number of interactions the drug has
+ * @returns {string} The category group ("none", "low", "medium", or "high")
+ */
 function getNodeGroup(interactionCount) {
     if (interactionCount === 0) return "none";
     if (interactionCount <= 2) return "low";
@@ -953,6 +1141,17 @@ function getNodeGroup(interactionCount) {
 }
 
 // Add a debounce function to prevent excessive refreshes
+/**
+ * Creates a debounced version of a function.
+ * 
+ * This utility function prevents a function from being called too frequently
+ * by delaying its execution until a specified wait time has passed since the
+ * last invocation.
+ * 
+ * @param {Function} func - The function to debounce
+ * @param {number} wait - The wait time in milliseconds 
+ * @returns {Function} A debounced version of the input function
+ */
 function debounce(func, wait) {
     let timeout;
     return function(...args) {
@@ -970,6 +1169,15 @@ let refreshInProgress = false;
 // Default to light mode - variable declared at the top of the file
 
 // Update the checkDarkMode function to use our state tracker
+/**
+ * Checks and determines the current theme based on UI elements.
+ * 
+ * This function examines the theme toggle button text to determine if the 
+ * application is currently in dark mode. It updates the global state variable
+ * and provides detailed logging for debugging purposes.
+ * 
+ * @returns {boolean} True if dark mode is active, false otherwise
+ */
 function checkDarkMode() {
     // Get the toggle button text to determine current theme
     const themeToggleButtons = Array.from(document.querySelectorAll('a, button'));
@@ -998,6 +1206,13 @@ function checkDarkMode() {
 }
 
 // Update the setupThemeDetection function to initialize and track theme state
+/**
+ * Sets up theme detection and tracking mechanisms.
+ * 
+ * This function initializes the theme state based on current UI elements,
+ * adds event listeners to theme toggle buttons, and sets up a MutationObserver
+ * to watch for dynamic theme changes in the DOM.
+ */
 function setupThemeDetection() {
     // Initialize theme state based on button text
     const themeToggleButtons = Array.from(document.querySelectorAll('a, button'));
@@ -1068,6 +1283,13 @@ function themeClickHandler() {
 }
 
 // Function to update visualizations after theme change
+/**
+ * Updates visualizations after a theme change occurs.
+ * 
+ * This function is called when theme settings change to ensure all visualizations
+ * reflect the current theme. It determines what visualization is currently displayed
+ * and refreshes it with appropriate colors and styling.
+ */
 function updateVisualizations() {
     console.log("Updating visualizations for theme change");
     
@@ -1104,6 +1326,15 @@ function updateVisualizations() {
 }
 
 // Function to directly update colors without redrawing
+/**
+ * Applies theme-appropriate colors directly to visualization elements.
+ * 
+ * This function updates the colors of all visualization elements based on the current theme
+ * without requiring a full redraw of the graph. It directly modifies SVG elements, including
+ * backgrounds, node colors, link colors, and text colors to match the specified theme.
+ * 
+ * @param {boolean} isDarkMode - Whether to apply dark mode (true) or light mode (false) colors
+ */
 function applyColorsDirectly(isDarkMode) {
     console.log("Applying colors directly, dark mode:", isDarkMode);
     
@@ -1195,6 +1426,13 @@ function applyColorsDirectly(isDarkMode) {
 }
 
 // Add back the loadFullRelationshipGraph function that was removed
+/**
+ * Loads the full drug relationship network graph.
+ * 
+ * This function fetches interaction data for all drugs and builds a complete
+ * network visualization. It implements caching to avoid repeated API calls,
+ * shows progress feedback, and handles error states.
+ */
 function loadFullRelationshipGraph() {
     console.log("Loading full relationship graph");
     const emptyState = document.getElementById('emptyState');
@@ -1247,6 +1485,14 @@ function loadFullRelationshipGraph() {
     const validDrugs = allDrugs.filter(drug => drug && drug.id);
     
     // Process each drug and get its interactions
+    /**
+     * Recursively processes each drug to fetch its interactions.
+     * 
+     * This internal function implements a sequential, recursive approach to fetch
+     * interaction data for each drug one by one, updating progress as it goes.
+     * 
+     * @param {number} index - The current index in the validDrugs array
+     */
     function processNextDrug(index) {
         if (index >= validDrugs.length) {
             // All drugs processed, generate the graph
@@ -1294,6 +1540,16 @@ function loadFullRelationshipGraph() {
 }
 
 // Add a function to initialize theme state on page load
+/**
+ * Initializes the theme state when the page loads.
+ * 
+ * This function detects the initial theme state through multiple methods:
+ * 1. Checks for pre-detected theme settings
+ * 2. Analyzes theme toggle button text
+ * 3. Examines CSS variables and computed styles
+ * 
+ * It then applies the detected theme throughout the application.
+ */
 function initializeTheme() {
     // Check if we pre-detected dark mode
     if (window.initialDarkMode === true) {
@@ -1398,6 +1654,13 @@ function initializeTheme() {
 }
 
 // Add a function to apply initial theme without animation
+/**
+ * Applies the initial theme without animation effects.
+ * 
+ * This function applies theme settings to the document when the page first loads.
+ * It sets CSS classes, attributes, and styles directly without animations
+ * to ensure a consistent initial appearance.
+ */
 function applyInitialTheme() {
     // No need to check for concurrent refresh since this is initialization
     const isDarkMode = currentThemeIsDark;
@@ -1421,6 +1684,13 @@ function applyInitialTheme() {
 }
 
 // Update applyCurrentTheme to avoid reloading when possible
+/**
+ * Applies the current theme to the visualization.
+ * 
+ * This function updates the visualization to match the current theme setting.
+ * It avoids unnecessary reloading of data by directly updating colors when possible.
+ * Includes debouncing to prevent simultaneous refreshes.
+ */
 function applyCurrentTheme() {
     // Prevent concurrent refreshes
     if (refreshInProgress) {
@@ -1511,6 +1781,13 @@ function applyCurrentTheme() {
 }
 
 // New function to update colors without reloading data
+/**
+ * Updates visualization colors without reloading data.
+ * 
+ * This function efficiently applies theme-specific colors to an existing visualization
+ * without regenerating the entire graph. It updates node colors, link colors, 
+ * backgrounds, and text elements based on the current theme.
+ */
 function updateVisualizationColors() {
     const isDarkMode = checkDarkMode();
     console.log("Updating visualization colors only, dark mode:", isDarkMode);
@@ -1597,6 +1874,12 @@ function updateVisualizationColors() {
 }
 
 // Add a dedicated function for setting up theme switcher events
+/**
+ * Sets up event handlers for theme switching buttons.
+ * 
+ * This function attaches click event listeners to theme toggle buttons in the UI,
+ * ensuring that theme changes are properly detected and applied to the visualization.
+ */
 function setupThemeSwitcherEvents() {
     console.log("Setting up theme switcher events");
     
@@ -1616,6 +1899,15 @@ function setupThemeSwitcherEvents() {
 }
 
 // Handler for theme switching clicks
+/**
+ * Handles theme switch button click events.
+ * 
+ * This event handler function toggles the theme state when a theme switch button
+ * is clicked and triggers an immediate update of the visualization to reflect
+ * the new theme.
+ * 
+ * @param {Event} event - The click event object
+ */
 function themeSwitchHandler(event) {
     console.log("Theme switch button clicked");
     
@@ -1632,6 +1924,13 @@ function themeSwitchHandler(event) {
 }
 
 // Function to update current visualization based on theme change
+/**
+ * Updates the current visualization based on theme changes.
+ * 
+ * This function refreshes the current visualization to reflect theme changes.
+ * It determines the current view (overview or specific drug) and reloads
+ * the appropriate visualization while preserving the current state.
+ */
 function updateCurrentVisualization() {
     console.log("Updating current visualization for theme change");
     
@@ -1668,6 +1967,13 @@ function updateCurrentVisualization() {
 }
 
 // Function to apply colors directly to all existing nodes
+/**
+ * Applies theme-specific colors to existing visualization elements.
+ * 
+ * This function directly modifies the DOM to apply appropriate colors to
+ * all visualization elements based on the current theme. It updates backgrounds,
+ * node colors, link colors, and text elements without redrawing the graph.
+ */
 function applyColorsToExistingNodes() {
     console.log("Directly applying colors to existing nodes, dark mode:", currentThemeIsDark);
     

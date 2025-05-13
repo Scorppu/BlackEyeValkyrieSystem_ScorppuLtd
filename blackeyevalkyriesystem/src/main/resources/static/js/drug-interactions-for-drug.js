@@ -1,3 +1,18 @@
+/**
+ * Drug Interactions Management Script
+ * 
+ * This script handles the functionality for the drug interactions page for a specific drug.
+ * It provides the following features:
+ * - Real-time filtering of drug interactions via search input
+ * - Empty state handling when no interactions match the search criteria
+ * - Confirmation and deletion of drug interactions with success feedback
+ * 
+ * Functions:
+ * - filterInteractions: Filters the interaction table based on the search input
+ * - checkEmptyState: Toggles visibility of empty state message and table based on visible rows
+ * 
+ * The script initializes on DOMContentLoaded and sets up all necessary event listeners.
+ */
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Drug interactions for drug page loaded');
     const searchInput = document.getElementById('searchInput');
@@ -7,6 +22,13 @@ document.addEventListener('DOMContentLoaded', function() {
         searchInput.addEventListener('keyup', filterInteractions);
     }
     
+    /**
+     * Filters the drug interactions table based on the search input.
+     * 
+     * This function searches for matches in the first column (drug name) of the interactions table
+     * and hides rows that don't contain the search query. It's triggered on each keyup event
+     * in the search input field.
+     */
     function filterInteractions() {
         const input = document.getElementById('searchInput');
         const filter = input.value.toUpperCase();
@@ -29,6 +51,13 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+    /**
+     * Manages the visibility of empty state message and table.
+     * 
+     * This function checks if there are any visible rows in the drug table after filtering.
+     * If no rows are visible, it displays an empty state message and hides the table.
+     * Otherwise, it shows the table and hides the empty state message.
+     */
     function checkEmptyState() {
         const visibleRows = document.querySelectorAll('.drug-table tbody tr:not([style*="display: none"])');
         const emptyState = document.querySelector('.empty-state');
@@ -54,7 +83,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize the empty state check
     checkEmptyState();
     
-    // Setup delete confirmation
+    /**
+     * Setup the interaction deletion functionality.
+     * 
+     * Adds click event listeners to all delete buttons. When clicked, the user is prompted to confirm
+     * the deletion. If confirmed, it sends a DELETE request to the API, removes the row from the table,
+     * displays a success message for 3 seconds, and checks if the table is now empty.
+     */
     const deleteButtons = document.querySelectorAll('.delete-btn');
     
     deleteButtons.forEach(button => {
