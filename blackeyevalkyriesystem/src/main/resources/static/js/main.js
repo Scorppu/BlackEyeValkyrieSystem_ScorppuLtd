@@ -1,6 +1,28 @@
 /**
- * Main application JavaScript
- * Handles sidebar navigation, search, UI interactions and form processing
+ * Main application JavaScript for the Black Eye Valkyrie System
+ * 
+ * This file provides core functionality for the application's user interface including:
+ * 
+ * - Sidebar navigation and mobile responsiveness
+ *   - Mobile menu toggle
+ *   - Search filtering for menu items
+ *   - Dropdown menu interactions
+ *   - Current page highlighting
+ *   - Special menu fixes for consultation and dispensary sections
+ * 
+ * - UI interactions
+ *   - Tab navigation within content pages
+ *   - User profile dropdown menu
+ *   - Staff duty status toggle with server synchronization
+ * 
+ * - Form processing
+ *   - Patient form submission via AJAX
+ *   - Automatic age calculation from date of birth
+ * 
+ * - Helper utilities
+ *   - Date and time formatting
+ *   - DOM event handling
+ *   - Server data fetching and persistence
  */
 document.addEventListener('DOMContentLoaded', function() {
     // Add main-page class to body if on main page
@@ -10,6 +32,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     /**
      * Initializes mobile menu toggle functionality
+     * Toggles the 'show' class on the sidebar when the mobile menu button is clicked
      */
     const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
     const sidebar = document.querySelector('.sidebar');
@@ -22,6 +45,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     /**
      * Implements search functionality for sidebar navigation items
+     * Controls the search input field and clear button behavior
      */
     const searchInput = document.getElementById('sidebar-search');
     const clearSearchButton = document.getElementById('clear-search');
@@ -52,6 +76,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     /**
      * Filters sidebar navigation items based on search text
+     * Shows or hides navigation items and their children based on whether they match the search text
+     * Handles both regular nav items and dropdown menus with subitems
+     * 
      * @param {string} searchText - The text to search for in navigation items
      */
     function filterSidebarItems(searchText) {
@@ -108,6 +135,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     /**
      * Ensures appropriate sidebar dropdown is expanded based on current URL path
+     * Highlights and expands the active navigation item based on the current page
      * Handles special cases for consultation and dispensary sections
      */
     function fixSidebarNavigation() {
@@ -178,6 +206,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     /**
      * Sets up dropdown menu toggle functionality in the sidebar
+     * Clones dropdown links to prevent event listener conflicts
+     * Handles expanding and collapsing of dropdown menus with animation
      */
     const dropdownLinks = document.querySelectorAll('.dropdown-toggle');
     
@@ -213,6 +243,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     /**
      * Applies special fixes for consultation and dispensary menu items
+     * Ensures these specific menu items are properly highlighted when active
      */
     function applySpecialMenuFixes() {
         const consultationItem = document.getElementById('consultation-nav-item');
@@ -233,6 +264,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     /**
      * Handles tab navigation within content pages
+     * Sets up click event listeners for tab items to show corresponding content
+     * Activates the first tab by default
      */
     const tabItems = document.querySelectorAll('.tab-item');
     const tabContents = document.querySelectorAll('.tab-content');
@@ -265,6 +298,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     /**
      * Handles patient form submission via AJAX
+     * Collects form data, submits it to the API, and handles success/error responses
      */
     const patientForm = document.getElementById('patient-form');
     
@@ -310,6 +344,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     /**
      * Calculates age automatically from date of birth input
+     * Updates the age field whenever the date of birth field changes
      */
     const dobField = document.getElementById('dateOfBirth');
     const ageField = document.getElementById('age');
@@ -331,6 +366,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     /**
      * Handles user profile dropdown toggle and animations
+     * Controls the display of user profile menu with animation effects
+     * Closes the menu when clicking outside of it
      */
     const userProfileToggle = document.getElementById('user-profile-toggle');
     const userProfileDropdown = document.getElementById('user-profile-dropdown');
@@ -369,6 +406,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     /**
      * Handles staff duty status toggle and persistence
+     * Manages the duty status using both local storage and server synchronization
      */
     const dutyToggleBtn = document.getElementById('duty-toggle');
     const dutyStatusText = document.getElementById('duty-status');
@@ -437,6 +475,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     /**
      * Fetches current duty status from the server
+     * Updates UI with server data or falls back to localStorage if server request fails
      */
     function fetchCurrentDutyStatus() {
         fetch('/api/duty/status', {
@@ -480,6 +519,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     /**
      * Updates the duty status text and button based on current state
+     * Changes UI elements to reflect the current duty status
+     * 
      * @param {boolean} isOnDuty - Whether the user is currently on duty
      * @param {string} time - The time to display in the status text
      * @param {string} date - The date to display in the status text (optional)
@@ -501,6 +542,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     /**
      * Returns the current time formatted as HH:MM
+     * 
      * @returns {string} The current time in HH:MM format
      */
     function getCurrentTime() {
@@ -510,6 +552,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     /**
      * Formats a Date object to HH:MM time format
+     * 
      * @param {Date} date - The date to format
      * @returns {string} The formatted time
      */
@@ -521,6 +564,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     /**
      * Returns the current date formatted as MMM DD
+     * 
      * @returns {string} The current date in MMM DD format
      */
     function getCurrentDate() {
@@ -530,6 +574,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     /**
      * Formats a Date object to MMM DD date format
+     * 
      * @param {Date} date - The date to format
      * @returns {string} The formatted date
      */

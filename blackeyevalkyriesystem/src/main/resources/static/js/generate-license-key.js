@@ -1,3 +1,14 @@
+/**
+ * License Key Generator Form Handling
+ * 
+ * This script manages the license key generation form, including:
+ * - Showing/hiding the custom date field based on expiry option selection
+ * - Setting minimum date constraint for custom expiry dates
+ * - Form validation with visual feedback
+ * - Success notification storage for the redirect page
+ * - Displaying validation popups and notifications
+ */
+
 document.addEventListener('DOMContentLoaded', function() {
     const expiryOption = document.getElementById('expiryOption');
     const customDateContainer = document.getElementById('customDateContainer');
@@ -5,7 +16,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const roleSelect = document.getElementById('role');
     const form = document.querySelector('form');
     
-    // Show/hide custom date field based on selection
+    /**
+     * Event listener to show/hide custom date field based on expiry option selection
+     * Shows custom date field when 'custom' is selected and sets it as required
+     * Hides the field and removes required attribute for other options
+     */
     expiryOption.addEventListener('change', function() {
         if (this.value === 'custom') {
             customDateContainer.style.display = 'block';
@@ -16,7 +31,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Set min date for custom date to today
+    /**
+     * Sets minimum date for custom date input to today's date
+     * Prevents selection of past dates for license expiry
+     */
     const today = new Date();
     const yyyy = today.getFullYear();
     const mm = String(today.getMonth() + 1).padStart(2, '0');
@@ -24,7 +42,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const formattedDate = `${yyyy}-${mm}-${dd}`;
     customDateInput.setAttribute('min', formattedDate);
 
-    // Form validation on submit
+    /**
+     * Form validation on submit
+     * Validates required fields and shows errors if validation fails
+     * Stores success notification in sessionStorage for the redirect page
+     */
     form.addEventListener('submit', function(e) {
         let errors = [];
         // Remove previous invalid styles
@@ -60,7 +82,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Validation popup (matching create-patient format)
+    /**
+     * Creates and displays a validation popup with error messages
+     * 
+     * @param {Array} errors - Array of error messages to display
+     */
     function showValidationPopup(errors) {
         // Remove any existing popup
         const existingPopup = document.querySelector('.validation-popup');
@@ -123,7 +149,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Add displayNotification function for showing toast notifications
+/**
+ * Displays a toast notification
+ * 
+ * Creates and displays a notification toast that auto-dismisses after 6 seconds
+ * or can be manually closed. Supports different notification types (success, error)
+ * with appropriate icons.
+ * 
+ * @param {string} type - Notification type ('success' or 'error')
+ * @param {string} message - Message to display in the notification
+ */
 function displayNotification(type, message) {
     // Create notification container if it doesn't exist
     let notificationContainer = document.querySelector('.notification-container');
